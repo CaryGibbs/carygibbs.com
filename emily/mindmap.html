@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mind Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 50% 90%,rgba(255,255,255,.25) 0%,transparent 100%);pointer-events:none;z-index:0;}
+  nav{position:sticky;top:0;z-index:100;background:rgba(15,14,23,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);}
+  nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color:var(--text);}
+  nav span{opacity:.45;}
+  .wrap{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 4rem;position:relative;z-index:1;}
+  .hero{margin-bottom:2.5rem;}
+  .hero-row{display:flex;align-items:center;gap:14px;margin-bottom:.5rem;}
+  .hero-icon{font-size:40px;}
+  .hero h1{font-family:'Nunito',sans-serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;line-height:1.1;}
+  .hero p{color:var(--muted);font-size:14px;margin-top:.3rem;}
+  .quiz-all-btn{display:inline-block;margin-top:1rem;padding:.55rem 1.2rem;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);transition:background .15s;}
+  .quiz-all-btn:hover{background:rgba(255,255,255,.12);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;}
+  .topic-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:fadeUp .45s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .topic-head{padding:1rem 1.25rem .8rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+  .topic-icon{font-size:22px;flex-shrink:0;}
+  .topic-name{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;}
+  .topic-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+  .subtopic-list{padding:.6rem 0 .5rem;}
+  .subtopic-item{padding:.55rem 1.25rem;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(255,255,255,.04);}
+  .subtopic-item:last-child{border-bottom:none;}
+  .st-dot{width:6px;height:6px;border-radius:50%;margin-top:7px;flex-shrink:0;}
+  .st-body{flex:1;}
+  .st-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .st-title a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s;}
+  .st-title a:hover{border-color:currentColor;}
+  .st-detail{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.5;}
+  .st-formula{font-size:11px;font-family:monospace;margin-top:3px;padding:2px 6px;border-radius:5px;display:inline-block;}
+  .card-footer{padding:.6rem 1.25rem .75rem;display:flex;gap:7px;}
+  .footer-btn{flex:1;text-align:center;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:6px 4px;border-radius:9px;text-decoration:none;border:1px solid rgba(255,255,255,.12);color:var(--muted);background:rgba(255,255,255,.05);transition:background .15s,color .15s;}
+  .footer-btn:hover{background:rgba(255,255,255,.1);color:var(--text);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">🏠 Home</a>
+  <span>›</span>
+  <span id="nav-subject">Mind Map</span>
+</nav>
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-row">
+      <span class="hero-icon" id="hero-icon"></span>
+      <div>
+        <h1 id="hero-title"></h1>
+        <p id="hero-tag"></p>
+      </div>
+    </div>
+    <a class="quiz-all-btn" id="quiz-all-btn" href="#">✏️ Quiz all topics</a>
+  </div>
+  <div class="grid" id="mind-grid"></div>
+</div>
+<script src="data.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const sid = params.get('subject') || 'maths';
+const S = SUBJECTS[sid];
+const data = MINDMAP_DATA[sid] || [];
+
+document.title = S.name + ' – Mind Map';
+document.getElementById('nav-subject').textContent = S.name;
+document.getElementById('hero-icon').textContent = S.icon;
+document.getElementById('hero-title').textContent = S.name + ' – Mind Map';
+document.getElementById('hero-tag').textContent = S.tag;
+document.getElementById('quiz-all-btn').href = `quiz.html?subject=${sid}`;
+
+const [c1,c2] = S.gradient;
+document.querySelector('.hero h1').style.background = `linear-gradient(135deg,${c1},${c2})`;
+document.querySelector('.hero h1').style.webkitBackgroundClip = 'text';
+document.querySelector('.hero h1').style.webkitTextFillColor = 'transparent';
+document.querySelector('.hero h1').style.backgroundClip = 'text';
+
+const grid = document.getElementById('mind-grid');
+
+data.forEach((topic, ti) => {
+  const pal = PALETTE[topic.theme] || PALETTE.purple;
+  const meta = S.topicMeta?.[topic.topic] || {};
+
+  const subtopicsHTML = (topic.subtopics || []).map(st => {
+    const titleContent = st.lessonKey
+      ? `<a href="lesson.html?lesson=${st.lessonKey}">${st.title} →</a>`
+      : st.title;
+    const formula = st.formula
+      ? `<span class="st-formula" style="background:${pal.bg};color:${pal.light}">${st.formula}</span>`
+      : '';
+    return `
+      <div class="subtopic-item">
+        <div class="st-dot" style="background:${pal.color}"></div>
+        <div class="st-body">
+          <div class="st-title" style="color:${pal.light}">${titleContent}</div>
+          <div class="st-detail">${st.detail}</div>
+          ${formula}
+        </div>
+      </div>`;
+  }).join('');
+
+  grid.innerHTML += `
+    <div class="topic-card" style="animation-delay:${ti*.06}s;border-color:${pal.bg}">
+      <div class="topic-head" style="background:${pal.bg}">
+        <span class="topic-icon">${meta.icon || topic.icon || '📌'}</span>
+        <div>
+          <div class="topic-name" style="color:${pal.light}">${topic.topic}</div>
+          <div class="topic-sub">${topic.subtitle || ''}</div>
+        </div>
+      </div>
+      <div class="subtopic-list">${subtopicsHTML}</div>
+      <div class="card-footer">
+        <a class="footer-btn" href="quiz.html?subject=${sid}&topic=${encodeURIComponent(topic.quizTopic || topic.topic)}">✏️ Quiz this topic</a>
+      </div>
+    </div>`;
+});
+</script>
+</body>
+</html>
