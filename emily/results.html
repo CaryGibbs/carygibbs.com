@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emily's Progress</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);--green:#5bbf6a;--red:#e05c6a;--amber:#f5a623;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%);pointer-events:none;z-index:0;}
+nav{position:sticky;top:0;z-index:100;background:rgba(15,14,23,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);}
+nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color:var(--text);}nav span{opacity:.45;}
+.wrap{max-width:900px;margin:0 auto;padding:2rem 1.5rem 5rem;position:relative;z-index:1;}
+.page-header{margin-bottom:2rem;}
+.page-title{font-family:'Nunito',sans-serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;background:linear-gradient(135deg,#c4bbff,#9ef5e2,#ffd580);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.3rem;}
+.page-sub{color:var(--muted);font-size:14px;}
+
+/* STREAK + SUMMARY ROW */
+.summary-row{display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;}
+.stat-card{flex:1;min-width:140px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.1rem 1.25rem;text-align:center;}
+.stat-val{font-family:'Nunito',sans-serif;font-size:2.2rem;font-weight:900;line-height:1;}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:.3rem;font-weight:600;}
+.streak-fire{font-size:2rem;display:block;margin-bottom:.2rem;}
+
+/* SUBJECT CARDS */
+.section-label{font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;}
+.subject-block{background:var(--card);border:1px solid var(--border);border-radius:18px;margin-bottom:1.25rem;overflow:hidden;}
+.subject-header{display:flex;align-items:center;gap:12px;padding:1.1rem 1.5rem;cursor:pointer;user-select:none;}
+.subject-header:hover{background:rgba(255,255,255,.03);}
+.subj-bar{width:5px;height:40px;border-radius:3px;flex-shrink:0;}
+.subj-info{flex:1;}
+.subj-name{font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;}
+.subj-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.subj-score{font-family:'Nunito',sans-serif;font-size:1.6rem;font-weight:900;text-align:right;}
+.subj-score-lbl{font-size:11px;color:var(--muted);text-align:right;}
+.chevron{color:var(--dim);font-size:14px;transition:transform .2s;}
+.chevron.open{transform:rotate(90deg);}
+.subject-detail{display:none;padding:0 1.5rem 1.25rem;}
+.subject-detail.open{display:block;}
+
+/* TOPIC TABLE */
+.topic-row{display:flex;align-items:center;gap:10px;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.topic-row:last-child{border-bottom:none;}
+.topic-name{flex:1;font-size:13px;color:var(--muted);}
+.topic-name.weak{color:#ffaab3;font-weight:700;}
+.topic-name.weak::after{content:' ⚠️';font-size:11px;}
+.topic-bar-wrap{width:120px;height:7px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.topic-bar{height:100%;border-radius:3px;transition:width .6s ease;}
+.topic-pct{width:36px;text-align:right;font-size:12px;font-weight:700;}
+.topic-pct.weak{color:#ffaab3;}
+.topic-pct.ok{color:#ffd580;}
+.topic-pct.good{color:#b2f0bb;}
+.topic-attempts{font-size:11px;color:var(--dim);width:55px;text-align:right;}
+
+/* CHART */
+.chart-section{margin-top:1rem;border-top:1px solid rgba(255,255,255,.05);padding-top:1rem;}
+.chart-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:.6rem;}
+.chart-wrap{position:relative;height:80px;background:rgba(255,255,255,.02);border-radius:8px;overflow:hidden;}
+.chart-svg{width:100%;height:100%;}
+.no-data{font-size:13px;color:var(--dim);text-align:center;padding:1.5rem;font-style:italic;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);}
+.empty-emoji{font-size:48px;display:block;margin-bottom:.75rem;}
+.empty-title{font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:.4rem;}
+.empty-sub{font-size:14px;line-height:1.6;max-width:340px;margin:0 auto 1.5rem;}
+.go-quiz-btn{display:inline-block;padding:.75rem 1.75rem;border-radius:12px;background:linear-gradient(135deg,#9b59b6,#3498db);color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;text-decoration:none;}
+
+/* RESET */
+.reset-area{text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);}
+.reset-btn{background:rgba(224,92,106,.12);border:1px solid rgba(224,92,106,.3);color:#ffaab3;padding:.5rem 1.25rem;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito Sans',sans-serif;}
+.reset-btn:hover{background:rgba(224,92,106,.22);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">🏠 Home</a><span>›</span><span>My Progress</span>
+</nav>
+<div class="wrap">
+  <div class="page-header">
+    <div class="page-title">📊 My Progress</div>
+    <div class="page-sub">Your quiz results by subject and topic — saved on this device.</div>
+  </div>
+  <div id="main-content"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+var STORE_KEY = 'emilys_results_v1';
+var STREAK_KEY = 'emilys_streak_v1';
+
+function loadResults() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
+}
+function loadStreak() {
+  try { return JSON.parse(localStorage.getItem(STREAK_KEY)) || {count:0,lastDate:''}; } catch(e) { return {count:0,lastDate:''}; }
+}
+
+function getSubjectColor(sid) {
+  var s = SUBJECTS[sid];
+  return s ? s.gradient : ['#9b59b6','#3498db'];
+}
+
+function pctColor(p) {
+  if (p < 60) return 'weak';
+  if (p < 75) return 'ok';
+  return 'good';
+}
+
+function barColor(p, c1, c2) {
+  if (p < 60) return '#e05c6a';
+  if (p < 75) return '#f5a623';
+  return 'linear-gradient(90deg,' + c1 + ',' + c2 + ')';
+}
+
+function drawChart(sessions, c1, c2) {
+  if (!sessions || sessions.length < 2) {
+    return '<div class="no-data">Complete at least 2 quizzes to see your trend.</div>';
+  }
+  var pts = sessions.slice(-20); // last 20 sessions
+  var n = pts.length;
+  var w = 300, h = 80, pad = 8;
+  var xs = pts.map(function(_,i){ return pad + (i/(n-1)) * (w - 2*pad); });
+  var ys = pts.map(function(s){ return h - pad - ((s.pct/100) * (h - 2*pad)); });
+
+  // Area path
+  var area = 'M ' + xs[0] + ' ' + h;
+  pts.forEach(function(_,i){ area += ' L ' + xs[i] + ' ' + ys[i]; });
+  area += ' L ' + xs[n-1] + ' ' + h + ' Z';
+
+  // Line path
+  var line = 'M ' + xs[0] + ' ' + ys[0];
+  pts.forEach(function(_,i){ if(i>0) line += ' L ' + xs[i] + ' ' + ys[i]; });
+
+  // Grid lines at 60% and 90%
+  var y60 = h - pad - (0.6 * (h - 2*pad));
+  var y90 = h - pad - (0.9 * (h - 2*pad));
+
+  var gradId = 'g' + Math.random().toString(36).slice(2,7);
+  var areaGradId = 'ag' + Math.random().toString(36).slice(2,7);
+
+  return '<div class="chart-wrap">'
+    + '<svg class="chart-svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs>'
+    + '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="' + c1 + '"/><stop offset="100%" stop-color="' + c2 + '"/></linearGradient>'
+    + '<linearGradient id="' + areaGradId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + c1 + '" stop-opacity=".35"/><stop offset="100%" stop-color="' + c1 + '" stop-opacity=".02"/></linearGradient>'
+    + '</defs>'
+    // Reference lines
+    + '<line x1="' + pad + '" y1="' + y60 + '" x2="' + (w-pad) + '" y2="' + y60 + '" stroke="rgba(224,92,106,.3)" stroke-width="1" stroke-dasharray="3,3"/>'
+    + '<line x1="' + pad + '" y1="' + y90 + '" x2="' + (w-pad) + '" y2="' + y90 + '" stroke="rgba(91,191,106,.3)" stroke-width="1" stroke-dasharray="3,3"/>'
+    // Area
+    + '<path d="' + area + '" fill="url(#' + areaGradId + ')"/>'
+    // Line
+    + '<path d="' + line + '" fill="none" stroke="url(#' + gradId + ')" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    // Dots
+    + pts.map(function(s,i){
+        var dotColor = s.pct >= 90 ? '#5bbf6a' : s.pct >= 60 ? c1 : '#e05c6a';
+        return '<circle cx="' + xs[i] + '" cy="' + ys[i] + '" r="3" fill="' + dotColor + '"/>';
+      }).join('')
+    + '</svg>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:4px;padding:0 ' + pad + 'px">'
+    + '<span>' + pts[0].date + '</span>'
+    + '<span style="color:rgba(224,92,106,.7)">─ 60%</span>'
+    + '<span style="color:rgba(91,191,106,.7)">─ 90%</span>'
+    + '<span>' + pts[n-1].date + '</span>'
+    + '</div>';
+}
+
+function render() {
+  var data = loadResults();
+  var streak = loadStreak();
+  var container = document.getElementById('main-content');
+
+  // Check if we have any data
+  var hasData = Object.keys(data).length > 0;
+  if (!hasData) {
+    container.innerHTML = '<div class="empty-state">'
+      + '<span class="empty-emoji">📝</span>'
+      + '<div class="empty-title">No results yet!</div>'
+      + '<div class="empty-sub">Complete a quiz to start tracking your progress. Results are saved automatically after each quiz.</div>'
+      + '<a class="go-quiz-btn" href="index.html">Choose a Subject →</a>'
+      + '</div>';
+    return;
+  }
+
+  // Summary stats
+  var totalSessions = 0, totalCorrect = 0, totalQ = 0;
+  Object.values(data).forEach(function(s) {
+    totalSessions += s.sessions.length;
+    s.sessions.forEach(function(sess){ totalCorrect += sess.score; totalQ += sess.total; });
+  });
+  var overallPct = totalQ > 0 ? Math.round((totalCorrect/totalQ)*100) : 0;
+
+  // Check streak validity
+  var today = new Date().toISOString().slice(0,10);
+  var yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  var streakValid = streak.lastDate === today || streak.lastDate === yesterday;
+  var streakCount = streakValid ? streak.count : 0;
+
+  var html = '<div class="summary-row">'
+    + '<div class="stat-card"><span class="streak-fire">' + (streakCount > 0 ? '🔥' : '💤') + '</span>'
+    + '<div class="stat-val" style="' + (streakCount > 0 ? 'color:#ffd580' : 'color:var(--dim)') + '">' + streakCount + '</div>'
+    + '<div class="stat-lbl">Day streak</div></div>'
+    + '<div class="stat-card"><div class="stat-val" style="color:#b2f0bb">' + overallPct + '%</div><div class="stat-lbl">Overall score</div></div>'
+    + '<div class="stat-card"><div class="stat-val" style="color:#c4bbff">' + totalSessions + '</div><div class="stat-lbl">Quizzes taken</div></div>'
+    + '<div class="stat-card"><div class="stat-val" style="color:#9ef5e2">' + totalQ + '</div><div class="stat-lbl">Questions answered</div></div>'
+    + '</div>';
+
+  // Find any weak topics across all subjects
+  var weakTopics = [];
+  Object.entries(data).forEach(function(entry) {
+    var sid = entry[0], sdata = entry[1];
+    var s = SUBJECTS[sid];
+    if (!s) return;
+    Object.entries(sdata.topicTotals || {}).forEach(function(te) {
+      var t = te[0], v = te[1];
+      if (v.attempted >= 5) {
+        var p = Math.round((v.correct/v.attempted)*100);
+        if (p < 60) weakTopics.push(s.name + ' › ' + t + ' (' + p + '%)');
+      }
+    });
+  });
+
+  if (weakTopics.length > 0) {
+    html += '<div style="background:rgba(224,92,106,.08);border:1px solid rgba(224,92,106,.25);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.5rem;">'
+      + '<div style="font-family:Nunito,sans-serif;font-size:13px;font-weight:800;color:#ffaab3;margin-bottom:.5rem;">⚠️ Topics needing attention (below 60%)</div>'
+      + weakTopics.map(function(t){ return '<div style="font-size:13px;color:var(--muted);padding:2px 0">• ' + t + '</div>'; }).join('')
+      + '</div>';
+  }
+
+  html += '<div class="section-label">Results by Subject</div>';
+
+  // Subject blocks
+  Object.keys(SUBJECTS).forEach(function(sid) {
+    var sdata = data[sid];
+    if (!sdata || !sdata.sessions || sdata.sessions.length === 0) return;
+    var s = SUBJECTS[sid];
+    var c1 = s.gradient[0], c2 = s.gradient[1];
+    var sessions = sdata.sessions;
+    var lastSess = sessions[sessions.length-1];
+    var avgPct = Math.round(sessions.reduce(function(a,b){return a+b.pct;},0)/sessions.length);
+    var topicTotals = sdata.topicTotals || {};
+    var detailId = 'detail-' + sid;
+    var chevId = 'chev-' + sid;
+
+    html += '<div class="subject-block">'
+      + '<div class="subject-header" onclick="toggleDetail(\'' + detailId + '\',\'' + chevId + '\')">'
+      + '<div class="subj-bar" style="background:linear-gradient(180deg,' + c1 + ',' + c2 + ')"></div>'
+      + '<div class="subj-info">'
+      + '<div class="subj-name">' + s.icon + ' ' + s.name + '</div>'
+      + '<div class="subj-meta">' + sessions.length + ' quiz' + (sessions.length!==1?'zes':'') + ' · Last: ' + lastSess.date + ' · Avg: ' + avgPct + '%</div>'
+      + '</div>'
+      + '<div>'
+      + '<div class="subj-score" style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ');-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">' + lastSess.pct + '%</div>'
+      + '<div class="subj-score-lbl">last quiz</div>'
+      + '</div>'
+      + '<div class="chevron" id="' + chevId + '">›</div>'
+      + '</div>'
+      + '<div class="subject-detail" id="' + detailId + '">';
+
+    // Topic rows
+    if (Object.keys(topicTotals).length > 0) {
+      html += '<div style="margin-bottom:.75rem">';
+      Object.entries(topicTotals).forEach(function(te) {
+        var t = te[0], v = te[1];
+        var p = v.attempted > 0 ? Math.round((v.correct/v.attempted)*100) : 0;
+        var cls = pctColor(p);
+        var bc = p < 60 ? '#e05c6a' : p < 75 ? '#f5a623' : 'linear-gradient(90deg,' + c1 + ',' + c2 + ')';
+        var meta = (s.topicMeta && s.topicMeta[t]) || {};
+        html += '<div class="topic-row">'
+          + '<div class="topic-name ' + (cls==='weak'?'weak':'') + '">' + (meta.icon||'') + ' ' + t + '</div>'
+          + '<div class="topic-bar-wrap"><div class="topic-bar" style="width:' + p + '%;background:' + bc + '"></div></div>'
+          + '<div class="topic-pct ' + cls + '">' + p + '%</div>'
+          + '<div class="topic-attempts">' + v.correct + '/' + v.attempted + ' ans</div>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Chart
+    html += '<div class="chart-section">'
+      + '<div class="chart-label">Score over time</div>'
+      + drawChart(sessions, c1, c2)
+      + '</div>';
+
+    html += '</div></div>'; // close detail + block
+  });
+
+  // Reset button
+  html += '<div class="reset-area">'
+    + '<button class="reset-btn" onclick="resetData()">🗑 Clear all results</button>'
+    + '</div>';
+
+  container.innerHTML = html;
+}
+
+function toggleDetail(id, chevId) {
+  var el = document.getElementById(id);
+  var ch = document.getElementById(chevId);
+  if (!el) return;
+  var isOpen = el.classList.contains('open');
+  el.classList.toggle('open', !isOpen);
+  ch.classList.toggle('open', !isOpen);
+}
+
+function resetData() {
+  if (confirm('Clear ALL quiz results? This cannot be undone.')) {
+    localStorage.removeItem('emilys_results_v1');
+    localStorage.removeItem('emilys_streak_v1');
+    render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
