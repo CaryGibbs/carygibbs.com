@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 50% 90%,rgba(255,255,255,.25) 0%,transparent 100%);pointer-events:none;z-index:0;}
+  nav{position:sticky;top:0;z-index:100;background:rgba(15,14,23,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);}
+  nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color:var(--text);}
+  nav span{opacity:.45;}
+  .wrap{max-width:700px;margin:0 auto;padding:2rem 1.5rem 5rem;position:relative;z-index:1;}
+
+  /* SETUP SCREEN */
+  #setup-screen{animation:fadeUp .4s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .setup-title{font-family:'Nunito',sans-serif;font-size:clamp(1.7rem,5vw,2.4rem);font-weight:900;margin-bottom:.4rem;}
+  .setup-sub{color:var(--muted);font-size:14px;margin-bottom:1.5rem;}
+  .setup-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:1rem;}
+  .setup-label{font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:.75rem;}
+  .topic-selector{display:flex;flex-wrap:wrap;gap:7px;}
+  .topic-chip{padding:.4rem .9rem;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid transparent;background:rgba(255,255,255,.05);color:var(--muted);transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+  .topic-chip.selected{color:var(--text);}
+  .topic-chip:hover{background:rgba(255,255,255,.1);}
+  .setup-row{display:flex;gap:8px;margin-top:.75rem;flex-wrap:wrap;}
+  .link-btn{font-size:12px;padding:.35rem .8rem;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:'Nunito Sans',sans-serif;transition:background .12s;}
+  .link-btn:hover{background:rgba(255,255,255,.1);color:var(--text);}
+  .start-btn{width:100%;padding:1rem;border-radius:13px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;border:none;cursor:pointer;transition:opacity .15s,transform .1s;}
+  .start-btn:hover{opacity:.9;transform:translateY(-1px);}
+  .start-btn:disabled{opacity:.4;cursor:default;transform:none;}
+
+  /* PROGRESS BAR */
+  #progress-bar-wrap{display:none;margin-bottom:1.5rem;}
+  .prog-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:.4rem;}
+  .prog-track{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+  .prog-fill{height:100%;border-radius:3px;transition:width .35s ease;}
+
+  /* QUIZ CARD */
+  #quiz-card{display:none;}
+  .qcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:1.5rem 1.75rem;animation:slideIn .35s ease both;}
+  @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+  .q-topic-tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 9px;border-radius:10px;margin-bottom:.85rem;}
+  .q-text{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;line-height:1.4;margin-bottom:1.25rem;}
+  .opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  @media(max-width:480px){.opts-grid{grid-template-columns:1fr;}}
+  .opt-btn{padding:.75rem 1rem;border-radius:11px;border:1.5px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-family:'Nunito Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:background .12s,border-color .12s,transform .1s;line-height:1.4;}
+  .opt-btn:hover:not(:disabled){background:rgba(255,255,255,.09);transform:translateY(-1px);}
+  .opt-btn.correct{background:rgba(91,191,106,.2);border-color:rgba(91,191,106,.6);color:#b2f0bb;}
+  .opt-btn.wrong{background:rgba(224,92,106,.15);border-color:rgba(224,92,106,.5);color:#ffaab3;}
+  .opt-btn:disabled{cursor:default;}
+  .explanation{margin-top:1rem;padding:.75rem 1rem;background:rgba(255,255,255,.05);border-radius:10px;font-size:13.5px;line-height:1.6;display:none;}
+  .explanation.show{display:block;}
+  .next-btn{width:100%;margin-top:1rem;padding:.85rem;border-radius:12px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;border:none;cursor:pointer;transition:opacity .15s,transform .1s;display:none;}
+  .next-btn.show{display:block;}
+  .next-btn:hover{opacity:.9;transform:translateY(-1px);}
+
+  /* RESULTS */
+  #results-screen{display:none;}
+  .results-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:2rem;text-align:center;animation:fadeUp .5s ease both;margin-bottom:1rem;}
+  .results-emoji{font-size:52px;margin-bottom:.75rem;display:block;}
+  .results-score{font-family:'Nunito',sans-serif;font-size:clamp(2.5rem,10vw,4rem);font-weight:900;margin-bottom:.25rem;}
+  .results-label{font-size:15px;color:var(--muted);margin-bottom:1.5rem;}
+  .score-msg{font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;margin-bottom:1rem;}
+  .breakdown-title{font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:.75rem;}
+  .breakdown-list{text-align:left;}
+  .bd-row{display:flex;align-items:center;gap:10px;margin-bottom:.5rem;font-size:13px;}
+  .bd-topic{flex:1;color:var(--muted);}
+  .bd-bar-wrap{width:120px;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;}
+  .bd-bar{height:100%;border-radius:4px;transition:width .6s ease;}
+  .bd-frac{width:40px;text-align:right;font-weight:700;font-size:12px;}
+  .results-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .ra-btn{flex:1;padding:.85rem 1rem;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;text-decoration:none;text-align:center;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);cursor:pointer;transition:background .15s;}
+  .ra-btn:hover{background:rgba(255,255,255,.1);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">🏠 Home</a>
+  <span>›</span>
+  <a id="nav-subject" href="#">Subject</a>
+  <span>›</span>
+  <span>Quiz</span>
+</nav>
+<div class="wrap">
+  <!-- SETUP -->
+  <div id="setup-screen">
+    <div class="setup-title" id="setup-title">Quiz</div>
+    <div class="setup-sub" id="setup-sub">Choose topics, then start.</div>
+    <div class="setup-card">
+      <div class="setup-label">Topics to include</div>
+      <div class="topic-selector" id="topic-selector"></div>
+      <div class="setup-row">
+        <button class="link-btn" onclick="selectAll()">Select all</button>
+        <button class="link-btn" onclick="clearAll()">Clear all</button>
+      </div>
+    </div>
+    <button class="start-btn" id="start-btn" onclick="startQuiz()" disabled>Start Quiz</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="progress-bar-wrap">
+    <div class="prog-meta">
+      <span id="prog-label">Question 1 of 10</span>
+      <span id="prog-score">Score: 0</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- QUIZ CARD -->
+  <div id="quiz-card">
+    <div class="qcard" id="qcard">
+      <div class="q-topic-tag" id="q-tag"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="opts-grid" id="opts-grid"></div>
+      <div class="explanation" id="explanation"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-screen">
+    <div class="results-card">
+      <span class="results-emoji" id="res-emoji"></span>
+      <div class="results-score" id="res-score"></div>
+      <div class="results-label" id="res-label"></div>
+      <div class="score-msg" id="res-msg"></div>
+      <div class="breakdown-title">Topic Breakdown</div>
+      <div class="breakdown-list" id="breakdown"></div>
+    </div>
+    <div class="results-actions">
+      <button class="ra-btn" onclick="retryQuiz()">🔁 Try Again</button>
+      <a class="ra-btn" id="ra-mindmap" href="#">🗺 Mind Map</a>
+      <a class="ra-btn" href="index.html">🏠 Home</a>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const sid = params.get('subject') || 'maths';
+const preselect = params.get('topic');
+const S = SUBJECTS[sid];
+const [c1,c2] = S.gradient;
+const allQuestions = QUIZ_QUESTIONS[sid] || [];
+
+document.getElementById('nav-subject').textContent = S.name;
+document.getElementById('nav-subject').href = `mindmap.html?subject=${sid}`;
+document.getElementById('ra-mindmap').href = `mindmap.html?subject=${sid}`;
+document.getElementById('setup-title').textContent = `${S.name} Quiz`;
+document.getElementById('setup-sub').textContent = `${allQuestions.length} questions · Choose topics to include`;
+document.getElementById('start-btn').style.background = `linear-gradient(135deg,${c1},${c2})`;
+document.getElementById('start-btn').style.color = '#fff';
+document.title = S.name + ' Quiz';
+
+// Build topic chips
+const topics = [...new Set(allQuestions.map(q=>q.topic))];
+const selected = new Set(preselect ? [preselect] : topics);
+const selector = document.getElementById('topic-selector');
+
+function renderChips(){
+  selector.innerHTML = topics.map(t => {
+    const meta = S.topicMeta?.[t] || {};
+    const pal = PALETTE[meta.palette] || {color:c1,bg:'rgba(124,111,205,.18)'};
+    const isSel = selected.has(t);
+    return `<div class="topic-chip ${isSel?'selected':''}"
+      style="${isSel?`background:${pal.bg};border-color:${c1};color:var(--text)`:'background:rgba(255,255,255,.05);border-color:transparent'}"
+      onclick="toggleTopic('${t}')">${meta.icon||''} ${t}</div>`;
+  }).join('');
+  document.getElementById('start-btn').disabled = selected.size === 0;
+}
+renderChips();
+
+function toggleTopic(t){selected.has(t)?selected.delete(t):selected.add(t);renderChips();}
+function selectAll(){topics.forEach(t=>selected.add(t));renderChips();}
+function clearAll(){selected.clear();renderChips();}
+
+// Quiz state
+let questions=[], qi=0, score=0, topicScores={}, shuffledOpts=[], correctShuffled=0;
+
+function startQuiz(){
+  const pool = allQuestions.filter(q=>selected.has(q.topic));
+  questions = [...pool].sort(()=>Math.random()-.5).slice(0,Math.min(pool.length,20));
+  qi=0; score=0; topicScores={};
+  questions.forEach(q=>{ if(!topicScores[q.topic]) topicScores[q.topic]={c:0,t:0}; topicScores[q.topic].t++; });
+
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('progress-bar-wrap').style.display='block';
+  document.getElementById('quiz-card').style.display='block';
+  document.getElementById('prog-fill').style.background=`linear-gradient(90deg,${c1},${c2})`;
+  showQuestion();
+}
+
+function showQuestion(){
+  if(qi>=questions.length){showResults();return;}
+  const q = questions[qi];
+  const meta = S.topicMeta?.[q.topic]||{};
+  const pal = PALETTE[meta.palette] || {color:c1,light:'#c4bbff',bg:'rgba(124,111,205,.18)'};
+
+  // Update progress
+  document.getElementById('prog-label').textContent=`Question ${qi+1} of ${questions.length}`;
+  document.getElementById('prog-score').textContent=`Score: ${score}`;
+  document.getElementById('prog-fill').style.width=`${(qi/questions.length)*100}%`;
+
+  // Shuffle options
+  shuffledOpts = q.opts.map((o,i)=>({o,orig:i})).sort(()=>Math.random()-.5);
+  correctShuffled = shuffledOpts.findIndex(x=>x.orig===q.ans);
+
+  // Populate card
+  document.getElementById('q-tag').textContent=`${meta.icon||''} ${q.topic}`;
+  document.getElementById('q-tag').style.background=pal.bg||'rgba(124,111,205,.18)';
+  document.getElementById('q-tag').style.color=c1;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('explanation').className='explanation';
+  document.getElementById('explanation').innerHTML='';
+  document.getElementById('next-btn').className='next-btn';
+
+  // Force re-animation
+  const card=document.getElementById('qcard');
+  card.style.animation='none';card.offsetHeight;card.style.animation='slideIn .35s ease both';
+
+  const grid=document.getElementById('opts-grid');
+  grid.innerHTML=shuffledOpts.map((x,si)=>
+    `<button class="opt-btn" onclick="answer(${si})">${x.o}</button>`
+  ).join('');
+}
+
+function answer(chosen){
+  const q=questions[qi];
+  const btns=document.getElementById('opts-grid').querySelectorAll('.opt-btn');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    if(i===correctShuffled)b.classList.add('correct');
+    else if(i===chosen)b.classList.add('wrong');
+  });
+  const correct=chosen===correctShuffled;
+  if(correct){score++;topicScores[q.topic].c++;}
+  const exp=document.getElementById('explanation');
+  exp.innerHTML=`${correct?'✅':'❌'} ${q.exp}`;
+  exp.className='explanation show';
+  const nb=document.getElementById('next-btn');
+  nb.textContent=qi<questions.length-1?'Next Question →':'See Results →';
+  nb.style.background=`linear-gradient(135deg,${c1},${c2})`;
+  nb.style.color='#fff';
+  nb.className='next-btn show';
+}
+
+function nextQuestion(){qi++;showQuestion();}
+
+function showResults(){
+  document.getElementById('progress-bar-wrap').style.display='none';
+  document.getElementById('quiz-card').style.display='none';
+  document.getElementById('results-screen').style.display='block';
+
+  const pct=Math.round((score/questions.length)*100);
+  const emoji=pct>=90?'🏆':pct>=70?'⭐':pct>=50?'📚':'💪';
+  const msg=pct>=90?'Outstanding! 🎉':pct>=70?'Really good — keep going!':pct>=50?'Getting there — review the mind map.':'Keep practising — you\'ve got this!';
+
+  document.getElementById('res-emoji').textContent=emoji;
+  document.getElementById('res-score').textContent=`${score}/${questions.length}`;
+  document.getElementById('res-score').style.background=`linear-gradient(135deg,${c1},${c2})`;
+  document.getElementById('res-score').style.webkitBackgroundClip='text';
+  document.getElementById('res-score').style.webkitTextFillColor='transparent';
+  document.getElementById('res-score').style.backgroundClip='text';
+  document.getElementById('res-label').textContent=`${pct}% correct`;
+  document.getElementById('res-msg').textContent=msg;
+
+  // Breakdown
+  const bd=document.getElementById('breakdown');
+  bd.innerHTML=Object.entries(topicScores).map(([t,{c,total:_,t:tot}])=>{
+    const tpct=Math.round((c/tot)*100);
+    const meta=S.topicMeta?.[t]||{};
+    return `
+      <div class="bd-row">
+        <div class="bd-topic">${meta.icon||''} ${t}</div>
+        <div class="bd-bar-wrap"><div class="bd-bar" style="width:${tpct}%;background:linear-gradient(90deg,${c1},${c2})"></div></div>
+        <div class="bd-frac">${c}/${tot}</div>
+      </div>`;
+  }).join('');
+}
+
+function retryQuiz(){
+  document.getElementById('results-screen').style.display='none';
+  document.getElementById('setup-screen').style.display='block';
+}
+</script>
+</body>
+</html>
