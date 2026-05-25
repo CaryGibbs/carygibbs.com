@@ -1,1 +1,274 @@
-<h1>Emily Page</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emily's Revision Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e17;
+    --surface: #1a1825;
+    --card: #201e2e;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #f0eeff;
+    --muted: rgba(240,238,255,0.55);
+    --dim: rgba(240,238,255,0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    font-family: 'Nunito Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 8%  12%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 22% 55%, rgba(255,255,255,0.25) 0%, transparent 100%),
+      radial-gradient(2px   2px   at 38% 28%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 52% 78%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 67% 18%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 78% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(2px   2px   at 88% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 94% 82%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 15% 88%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 45% 92%, rgba(255,255,255,0.25) 0%, transparent 100%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 4rem; position: relative; z-index: 1; }
+
+  /* Hero */
+  .hero { text-align: center; margin-bottom: 3.5rem; }
+  .hero-emoji { font-size: 52px; margin-bottom: 1rem; display: block; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .hero h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #c4bbff 0%, #9ef5e2 50%, #ffd580 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 0.5rem; line-height: 1.1;
+  }
+  .hero p { font-size: 16px; color: var(--muted); max-width: 440px; margin: 0 auto; line-height: 1.6; }
+
+  /* Progress bar row */
+  .progress-row {
+    display: flex; gap: 8px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 3rem;
+  }
+  .prog-pill {
+    font-size: 12px; font-weight: 700;
+    padding: 4px 14px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--surface); color: var(--muted);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .prog-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* Section label */
+  .section-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 1rem;
+    padding-left: 2px;
+  }
+
+  /* Subject grid */
+  .subjects { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 3rem; }
+
+  .subject-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    animation: fadeUp 0.5s ease both;
+  }
+  .subject-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    border-color: var(--border2);
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+  .card-top {
+    height: 7px;
+  }
+  .card-body { padding: 1.25rem 1.5rem 1.375rem; }
+  .card-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 0.875rem; }
+  .card-icon { font-size: 28px; line-height: 1; margin-top: 2px; flex-shrink: 0; }
+  .card-name {
+    font-family: 'Nunito', sans-serif;
+    font-size: 19px; font-weight: 800;
+    color: var(--text); line-height: 1.2;
+  }
+  .card-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .topic-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 1rem; }
+  .mini-chip {
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .card-actions { display: flex; gap: 8px; }
+  .action-btn {
+    flex: 1; padding: 7px 10px;
+    border-radius: 10px; border: 1px solid;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px; font-weight: 700;
+    text-align: center; text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s;
+    display: block;
+  }
+  .action-btn:hover { opacity: 0.85; transform: scale(0.98); }
+
+  /* Coming soon overlay */
+  .subject-card.coming-soon { opacity: 0.5; cursor: default; pointer-events: none; }
+  .coming-label {
+    font-size: 11px; font-weight: 700;
+    color: var(--muted); text-align: right;
+    padding: 0 1.5rem 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Tips section */
+  .tips {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+  }
+  .tips-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; font-weight: 800;
+    color: var(--muted); margin-bottom: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .tip { font-size: 13px; color: var(--muted); line-height: 1.5; display: flex; gap: 8px; }
+  .tip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="hero-emoji">🚀</span>
+    <h1>Emily's Revision Hub</h1>
+    <p>Year 8 End of Year exams. Mind maps to learn, quizzes to test — pick a subject and get started.</p>
+  </div>
+
+  <div class="section-label">Subjects</div>
+  <div class="subjects">
+
+    <!-- MATHS -->
+    <a class="subject-card" href="maths-mindmap.html" style="animation-delay:0.05s; text-decoration:none;">
+      <div class="card-top" style="background: linear-gradient(90deg,#7c6fcd,#3ecfac)"></div>
+      <div class="card-body">
+        <div class="card-row">
+          <div class="card-icon">📐</div>
+          <div>
+            <div class="card-name">Mathematics</div>
+            <div class="card-meta">9 topics · 30 quiz questions · 1 hr paper</div>
+          </div>
+        </div>
+        <div class="topic-chips">
+          <span class="mini-chip">Indices</span>
+          <span class="mini-chip">Transformations</span>
+          <span class="mini-chip">Brackets</span>
+          <span class="mini-chip">Equations</span>
+          <span class="mini-chip">Fractions &amp; %</span>
+          <span class="mini-chip">Circles</span>
+          <span class="mini-chip">Standard Form</span>
+          <span class="mini-chip">Statistics</span>
+        </div>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <a class="action-btn" href="maths-mindmap.html" style="background:rgba(124,111,205,0.15);border-color:rgba(124,111,205,0.5);color:#c4bbff">🗺 Mind Map</a>
+          <a class="action-btn" href="maths-quiz.html" style="background:rgba(62,207,172,0.12);border-color:rgba(62,207,172,0.5);color:#9ef5e2">✏️ Quiz</a>
+        </div>
+      </div>
+    </a>
+
+    <!-- Placeholder cards for future subjects — shown as coming soon -->
+    <div class="subject-card coming-soon" style="animation-delay:0.1s">
+      <div class="card-top" style="background: linear-gradient(90deg,#e05c6a,#f5a623)"></div>
+      <div class="card-body">
+        <div class="card-row">
+          <div class="card-icon">🔬</div>
+          <div>
+            <div class="card-name">Science</div>
+            <div class="card-meta">Revision list coming soon</div>
+          </div>
+        </div>
+        <div class="topic-chips"><span class="mini-chip">Biology</span><span class="mini-chip">Chemistry</span><span class="mini-chip">Physics</span></div>
+        <div class="card-actions">
+          <span class="action-btn" style="background:rgba(224,92,106,0.1);border-color:rgba(224,92,106,0.3);color:rgba(255,170,179,0.4)">🗺 Mind Map</span>
+          <span class="action-btn" style="background:rgba(245,166,35,0.1);border-color:rgba(245,166,35,0.3);color:rgba(255,213,128,0.4)">✏️ Quiz</span>
+        </div>
+      </div>
+      <div class="coming-label">Revision list needed</div>
+    </div>
+
+    <div class="subject-card coming-soon" style="animation-delay:0.15s">
+      <div class="card-top" style="background: linear-gradient(90deg,#4a90d9,#d066a8)"></div>
+      <div class="card-body">
+        <div class="card-row">
+          <div class="card-icon">🌍</div>
+          <div>
+            <div class="card-name">Geography</div>
+            <div class="card-meta">Revision list coming soon</div>
+          </div>
+        </div>
+        <div class="topic-chips"><span class="mini-chip">Physical</span><span class="mini-chip">Human</span><span class="mini-chip">Maps</span></div>
+        <div class="card-actions">
+          <span class="action-btn" style="background:rgba(74,144,217,0.1);border-color:rgba(74,144,217,0.3);color:rgba(168,208,255,0.4)">🗺 Mind Map</span>
+          <span class="action-btn" style="background:rgba(208,102,168,0.1);border-color:rgba(208,102,168,0.3);color:rgba(245,184,228,0.4)">✏️ Quiz</span>
+        </div>
+      </div>
+      <div class="coming-label">Revision list needed</div>
+    </div>
+
+    <div class="subject-card coming-soon" style="animation-delay:0.2s">
+      <div class="card-top" style="background: linear-gradient(90deg,#f07050,#5bbf6a)"></div>
+      <div class="card-body">
+        <div class="card-row">
+          <div class="card-icon">📚</div>
+          <div>
+            <div class="card-name">English</div>
+            <div class="card-meta">Revision list coming soon</div>
+          </div>
+        </div>
+        <div class="topic-chips"><span class="mini-chip">Language</span><span class="mini-chip">Literature</span></div>
+        <div class="card-actions">
+          <span class="action-btn" style="background:rgba(240,112,80,0.1);border-color:rgba(240,112,80,0.3);color:rgba(255,191,173,0.4)">🗺 Mind Map</span>
+          <span class="action-btn" style="background:rgba(91,191,106,0.1);border-color:rgba(91,191,106,0.3);color:rgba(178,240,187,0.4)">✏️ Quiz</span>
+        </div>
+      </div>
+      <div class="coming-label">Revision list needed</div>
+    </div>
+
+  </div>
+
+  <div class="tips">
+    <div class="tips-title">💡 How to use this hub</div>
+    <div class="tips-grid">
+      <div class="tip"><span class="tip-icon">🗺</span><span>Start with the <strong>Mind Map</strong> to learn and memorise all the key facts and formulas.</span></div>
+      <div class="tip"><span class="tip-icon">✏️</span><span>Use the <strong>Quiz</strong> to test yourself — try individual topics first, then mix them all.</span></div>
+      <div class="tip"><span class="tip-icon">🔁</span><span><strong>Repeat</strong> the quiz until you score 90%+. Questions shuffle every time.</span></div>
+      <div class="tip"><span class="tip-icon">📖</span><span>Always <strong>read the explanation</strong> after each answer — that's where the real learning happens.</span></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
