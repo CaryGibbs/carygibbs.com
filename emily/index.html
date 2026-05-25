@@ -6,38 +6,39 @@
 <title>Emily's Revision Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
-  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 50% 90%,rgba(255,255,255,.25) 0%,transparent 100%);pointer-events:none;z-index:0;}
-  .wrap{max-width:960px;margin:0 auto;padding:3rem 1.5rem 4rem;position:relative;z-index:1;}
-  .hero{text-align:center;margin-bottom:3rem;}
-  .hero-emoji{font-size:52px;margin-bottom:1rem;display:block;animation:float 3s ease-in-out infinite;}
-  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-  .hero h1{font-family:'Nunito',sans-serif;font-size:clamp(2rem,6vw,3.5rem);font-weight:900;background:linear-gradient(135deg,#c4bbff 0%,#9ef5e2 50%,#ffd580 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem;line-height:1.1;}
-  .hero p{font-size:16px;color:var(--muted);max-width:440px;margin:0 auto;line-height:1.6;}
-  .section-label{font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;}
-  .subjects{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:3rem;}
-  .subject-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;text-decoration:none;display:block;transition:transform .22s,box-shadow .22s,border-color .22s;animation:fadeUp .5s ease both;width:calc(50% - .5rem);}
-  @media(max-width:600px){.subject-card{width:100%;}}
-  .subject-card:hover{transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.45);border-color:rgba(255,255,255,.15);}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-  .card-bar{height:7px;}
-  .card-body{padding:1.25rem 1.5rem 1.375rem;}
-  .card-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:.875rem;}
-  .card-icon{font-size:28px;line-height:1;margin-top:2px;flex-shrink:0;}
-  .card-name{font-family:'Nunito',sans-serif;font-size:19px;font-weight:800;color:var(--text);line-height:1.2;}
-  .card-meta{font-size:12px;color:var(--muted);margin-top:2px;}
-  .topic-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;}
-  .mini-chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
-  .card-actions{display:flex;gap:8px;}
-  .action-btn{flex:1;padding:7px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;text-align:center;text-decoration:none;transition:opacity .15s,transform .1s;display:block;background:rgba(255,255,255,.06);color:var(--text);}
-  .action-btn:hover{opacity:.85;transform:scale(.98);}
-  .tips{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem 1.5rem;}
-  .tips-title{font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--muted);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;}
-  .tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
-  .tip{font-size:13px;color:var(--muted);line-height:1.5;display:flex;gap:8px;}
-  .tip-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+:root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.2) 0%,transparent 100%);pointer-events:none;z-index:0;}
+.wrap{max-width:1000px;margin:0 auto;padding:3rem 1.5rem 4rem;position:relative;z-index:1;}
+.hero{text-align:center;margin-bottom:3rem;}
+.hero-emoji{font-size:52px;margin-bottom:1rem;display:block;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero h1{font-family:'Nunito',sans-serif;font-size:clamp(2rem,6vw,3.5rem);font-weight:900;background:linear-gradient(135deg,#c4bbff 0%,#9ef5e2 50%,#ffd580 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem;line-height:1.1;}
+.hero p{font-size:16px;color:var(--muted);max-width:440px;margin:0 auto;line-height:1.6;}
+.section-label{font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;}
+.subjects{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:3rem;}
+.subject-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;text-decoration:none;display:block;transition:transform .22s,box-shadow .22s,border-color .22s;animation:fadeUp .5s ease both;width:calc(33.333% - 0.667rem);}
+@media(max-width:700px){.subject-card{width:calc(50% - 0.5rem);}}
+@media(max-width:480px){.subject-card{width:100%;}}
+.subject-card:hover{transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.45);border-color:rgba(255,255,255,.15);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card-bar{height:7px;}
+.card-body{padding:1.25rem 1.5rem 1.375rem;}
+.card-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:.875rem;}
+.card-icon{font-size:28px;line-height:1;margin-top:2px;flex-shrink:0;}
+.card-name{font-family:'Nunito',sans-serif;font-size:19px;font-weight:800;color:var(--text);line-height:1.2;}
+.card-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.topic-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;}
+.mini-chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
+.card-actions{display:flex;gap:8px;}
+.action-btn{flex:1;padding:7px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;text-align:center;text-decoration:none;transition:opacity .15s,transform .1s;display:block;background:rgba(255,255,255,.06);color:var(--text);}
+.action-btn:hover{opacity:.85;transform:scale(.98);}
+.tips{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem 1.5rem;}
+.tips-title{font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--muted);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;}
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.tip{font-size:13px;color:var(--muted);line-height:1.5;display:flex;gap:8px;}
+.tip-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
 </style>
 </head>
 <body>
@@ -48,17 +49,18 @@
     <p>Year 8 End of Year exams. Mind maps to learn, quizzes to test. Pick a subject and get started.</p>
   </div>
   <div class="section-label">Subjects</div>
-  <div class="subjects" id="subjects-grid"></div>
+  <div class="subjects" id="grid"></div>
   <div class="tips">
     <div class="tips-title">💡 How to use this hub</div>
     <div class="tips-grid">
-      <div class="tip"><span class="tip-icon">🗺</span><span>Start with the <strong>Mind Map</strong> to learn all the key facts and methods.</span></div>
+      <div class="tip"><span class="tip-icon">🗺</span><span>Start with the <strong>Mind Map</strong> to learn all the key facts.</span></div>
       <div class="tip"><span class="tip-icon">📖</span><span>Click any sub-topic for a <strong>full lesson</strong> with worked examples.</span></div>
       <div class="tip"><span class="tip-icon">✏️</span><span>Use the <strong>Quiz</strong> to test yourself — drill one topic or mix them all.</span></div>
-      <div class="tip"><span class="tip-icon">🔁</span><span><strong>Repeat</strong> the quiz until you score 90%+. Questions shuffle every time.</span></div>
+      <div class="tip"><span class="tip-icon">🔁</span><span><strong>Repeat</strong> until you score 90%+. Questions shuffle every time.</span></div>
     </div>
   </div>
 </div>
+
 <script>
 /* ============================================================
    EMILY'S REVISION HUB — MASTER DATA FILE
@@ -146,6 +148,23 @@ const SUBJECTS = {
       "House and Home":   { ...PALETTE.coral,  icon:"🏠" },
       "School":           { ...PALETTE.blue,   icon:"🎒" },
       "Grammar":          { ...PALETTE.violet, icon:"📝" },
+    }
+  },
+  science: {
+    id: "science",
+    name: "Science",
+    icon: "🔬",
+    tag: "Year 8 · Science · End of Year Revision",
+    tagline: "Acids · Reactions · Plants · Electricity · Forces · Waves",
+    gradient: ["#43b89c","#4a90d9"],
+    topicMeta: {
+      "Scientific Skills":  { ...PALETTE.teal,   icon:"📊" },
+      "Acids and Alkalis":  { ...PALETTE.green,  icon:"🧪" },
+      "Chemical Reactions": { ...PALETTE.amber,  icon:"⚗️" },
+      "Plants and Ecosystems": { ...PALETTE.green, icon:"🌿" },
+      "Electricity":        { ...PALETTE.gold,   icon:"⚡" },
+      "Forces and Motion":  { ...PALETTE.blue,   icon:"🔵" },
+      "Waves and Light":    { ...PALETTE.violet, icon:"🌈" },
     }
   }
 };
@@ -396,6 +415,89 @@ const MINDMAP_DATA = {
         { title:"IR verbs — present tense",         detail:"vivir: vivo · vives · vive · vivimos · vivís · viven",                                            lessonKey:"sp-ir-verbs",     formula:"-o -es -e -imos -ís -en" },
         { title:"Me gusta / me gustan",             detail:"Me gusta + singular noun or infinitive · Me gustan + plural noun · No me gusta/gustan for negative", lessonKey:"sp-me-gusta" },
         { title:"Near future tense",                detail:"Voy a + infinitive = I am going to… · Vas a · Va a · Vamos a · Vais a · Van a",                   lessonKey:"sp-near-future",  formula:"Voy a estudiar = I am going to study" },
+      ]
+    },
+  ],
+
+  science: [
+    {
+      topic:"Scientific Skills", icon:"📊", theme:"teal",
+      subtitle:"Variables, graphs and interpreting data",
+      quizTopic:"Scientific Skills",
+      subtopics:[
+        { title:"Types of variable",       detail:"Independent · Dependent · Control — know the difference and how to identify them",             lessonKey:"sci-variables" },
+        { title:"Drawing graphs",          detail:"SALTS: Scale · Axes · Labels · Title · Shape — scatter or line graph, always plot accurately",  lessonKey:"sci-graphs",    formula:"x-axis = independent · y-axis = dependent" },
+        { title:"Interpreting graphs",     detail:"Describe trend, quote values, identify anomalies — use data to support conclusions",             lessonKey:"sci-graphs" },
+      ]
+    },
+    {
+      topic:"Acids and Alkalis", icon:"🧪", theme:"green",
+      subtitle:"pH, indicators, neutralisation and word equations",
+      quizTopic:"Acids and Alkalis",
+      subtopics:[
+        { title:"pH scale and indicators",       detail:"pH 1–6 acid · pH 7 neutral · pH 8–14 alkali · Universal indicator colours · Litmus tests", lessonKey:"sci-ph",          formula:"pH 1 = strong acid · pH 14 = strong alkali" },
+        { title:"Neutralisation",                detail:"Acid + alkali → salt + water · the reaction that produces a neutral product",               lessonKey:"sci-neutralisation" },
+        { title:"Acids + carbonates",            detail:"Acid + carbonate → salt + water + carbon dioxide · CO₂ makes limewater turn milky",        lessonKey:"sci-acid-reactions" },
+        { title:"Acids + metal oxides",          detail:"Acid + metal oxide → salt + water · naming salts from acid used",                          lessonKey:"sci-acid-reactions",  formula:"HCl → chloride · H₂SO₄ → sulphate · HNO₃ → nitrate" },
+        { title:"Naming salts",                  detail:"The acid determines the salt name: hydrochloric → chloride, sulphuric → sulphate, nitric → nitrate", lessonKey:"sci-acid-reactions" },
+      ]
+    },
+    {
+      topic:"Chemical Reactions", icon:"⚗️", theme:"amber",
+      subtitle:"Physical vs chemical change, word equations and lab apparatus",
+      quizTopic:"Chemical Reactions",
+      subtopics:[
+        { title:"Physical vs chemical change",  detail:"Physical = reversible, no new substance · Chemical = irreversible, new product formed",    lessonKey:"sci-changes" },
+        { title:"Reactants and products",        detail:"Reactants are starting materials · Products are what is made · Arrow not equals sign",     lessonKey:"sci-word-equations" },
+        { title:"Word equations",                detail:"Reactant + reactant → product + product · oxygen→oxide, sulphur→sulphide naming rules",    lessonKey:"sci-word-equations" },
+        { title:"Energy in reactions",           detail:"Exothermic releases energy to surroundings (temp rises) · Endothermic absorbs energy (temp falls)", lessonKey:"sci-energy-reactions" },
+        { title:"Lab apparatus",                 detail:"Thermometer · Bunsen burner · Test tube · Boiling tube · Tripod · Gauze · Beaker",         lessonKey:"sci-apparatus" },
+      ]
+    },
+    {
+      topic:"Plants and Ecosystems", icon:"🌿", theme:"green",
+      subtitle:"Photosynthesis, mineral ions, food chains and bioaccumulation",
+      quizTopic:"Plants and Ecosystems",
+      subtopics:[
+        { title:"Photosynthesis",              detail:"Carbon dioxide + water → glucose + oxygen · needs light energy · chlorophyll absorbs light", lessonKey:"sci-photosynthesis",  formula:"CO₂ + H₂O → glucose + O₂" },
+        { title:"Mineral ions and deficiencies", detail:"Nitrogen (growth) · Phosphorus (roots) · Potassium (leaves/flowers) · Magnesium (chlorophyll)", lessonKey:"sci-minerals" },
+        { title:"Food chains and webs",        detail:"Producer → primary consumer → secondary consumer · arrows show energy flow",                lessonKey:"sci-food-chains" },
+        { title:"Interdependence",             detail:"Organisms in a food web depend on each other — remove one and others are affected",          lessonKey:"sci-food-chains" },
+        { title:"Bioaccumulation",             detail:"Toxins build up in organisms higher up the food chain — most concentrated in top predators", lessonKey:"sci-food-chains" },
+      ]
+    },
+    {
+      topic:"Electricity", icon:"⚡", theme:"gold",
+      subtitle:"Static electricity, circuits, current, voltage and resistance",
+      quizTopic:"Electricity",
+      subtopics:[
+        { title:"Static electricity",          detail:"Charging by rubbing insulators · electrons transfer · like charges repel · opposite attract",  lessonKey:"sci-static" },
+        { title:"Electric current",            detail:"Flow of electric charge · measured in amperes (A) with ammeter · conventional current + to −", lessonKey:"sci-current",   formula:"Current = charge ÷ time" },
+        { title:"Potential difference",        detail:"Energy per coulomb of charge · measured in volts (V) · voltmeter placed in parallel",          lessonKey:"sci-current" },
+        { title:"Resistance",                  detail:"Opposition to current flow · measured in ohms (Ω) · R = V ÷ I",                               lessonKey:"sci-resistance",  formula:"R = V ÷ I" },
+      ]
+    },
+    {
+      topic:"Forces and Motion", icon:"🔵", theme:"blue",
+      subtitle:"Turning moments, pressure and gravity",
+      quizTopic:"Forces and Motion",
+      subtopics:[
+        { title:"Turning moments",             detail:"Moment = force × distance from pivot · unit = newton-metre (Nm) · balanced = clockwise = anticlockwise", lessonKey:"sci-moments",  formula:"M = F × d" },
+        { title:"Pressure",                    detail:"Pressure = force ÷ area · unit = N/m² or pascals (Pa)",                                        lessonKey:"sci-pressure",  formula:"P = F ÷ A" },
+        { title:"Gravity",                     detail:"Gravity on Mars is less than Earth · weight = mass × gravitational field strength",             lessonKey:"sci-gravity",   formula:"W = m × g" },
+      ]
+    },
+    {
+      topic:"Waves and Light", icon:"🌈", theme:"violet",
+      subtitle:"Sound waves, the wave equation, reflection, colour and the eye",
+      quizTopic:"Waves and Light",
+      subtopics:[
+        { title:"Sound — key terms",           detail:"Amplitude · frequency · pitch · compression · rarefaction · decibel · hertz · oscilloscope",  lessonKey:"sci-sound" },
+        { title:"Wave equation",               detail:"Wave speed = frequency × wavelength · v = f × λ",                                             lessonKey:"sci-wave-equation",  formula:"v = f × λ" },
+        { title:"Light — reflection",          detail:"Law of reflection: angle of incidence = angle of reflection · normal line · virtual images",  lessonKey:"sci-reflection" },
+        { title:"Transparent, translucent, opaque", detail:"Transparent transmits · translucent scatters · opaque absorbs/reflects → shadow",       lessonKey:"sci-reflection" },
+        { title:"Colour and filters",          detail:"Primary colours: red, green, blue · filters subtract colours · white light = all colours",    lessonKey:"sci-colour",    formula:"R+G+B = white" },
+        { title:"Eyes and cameras",            detail:"Lens refracts light onto retina · inverted image · photoreceptors detect light · optic nerve", lessonKey:"sci-colour" },
       ]
     },
   ],
@@ -3576,6 +3678,799 @@ const LESSONS = {
 },
 
 
+
+/* ════════ SCIENCE — SCIENTIFIC SKILLS ════════ */
+"sci-variables": {
+  topic:"Scientific Skills", topicKey:"Scientific Skills", theme:"teal", icon:"📊",
+  title:"Types of Variable",
+  subtitle:"Identifying independent, dependent and control variables — essential for every experiment.",
+  keyIdea:{ rule:"Independent variable = what you change. Dependent variable = what you measure. Control variables = everything kept the same.", detail:"In any experiment there is only ONE independent variable and ONE dependent variable. Everything else must be controlled to make it a fair test." },
+  formulae:[
+    { main:"Independent → changed by the experimenter", note:"e.g. concentration of acid" },
+    { main:"Dependent → measured as a result", note:"e.g. volume of gas produced" },
+    { main:"Control → kept the same throughout", note:"e.g. temperature, volume of solution" },
+  ],
+  steps:[
+    { title:"Find the independent variable", detail:"Ask: what is the experimenter deliberately changing? This is the independent variable — goes on the x-axis.", formula:"" },
+    { title:"Find the dependent variable", detail:"Ask: what is being measured to see the effect? This is the dependent variable — goes on the y-axis.", formula:"" },
+    { title:"Identify control variables", detail:"Ask: what else could affect the result that must be kept constant to make it fair?", formula:"" },
+  ],
+  worked:[{ q:"Experiment: testing how temperature affects enzyme activity. Identify the variables.", lines:[
+    { step:"Independent", expr:"Temperature (°C)", why:"The experimenter changes the temperature" },
+    { step:"Dependent", expr:"Rate of reaction (e.g. time taken / gas produced)", why:"This is what is measured to see the effect" },
+    { step:"Controls", expr:"Volume and concentration of enzyme solution, pH, type of enzyme", why:"Must be kept the same to make it a fair test", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Memory trick:</strong> 'I control what I Do' — Independent = what I change, Dependent = what I measure." },
+    { icon:"⭐", text:"<strong>In exam questions:</strong> Control variables are often worth a mark — always name at least two specific ones, not just 'everything else'." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Confusing independent and dependent. Ask: does this cause the other, or is it caused by it? The cause = independent." },
+    { text:"<strong>Common mistake:</strong> Saying 'keep everything the same' — you must NAME the specific control variables." },
+  ],
+  practice:[
+    { q:"A student investigates how the length of a wire affects its resistance. What is the independent variable?", opts:["Resistance","Current","Length of wire","Voltage"], ans:2, exp:"<strong>Length of wire</strong> — this is what the student deliberately changes." },
+    { q:"In the same experiment, what is the dependent variable?", opts:["Length of wire","Resistance — this is what is measured to see the effect","Type of wire","Battery voltage"], ans:1, exp:"<strong>Resistance</strong> — this is measured to see how it changes with length." },
+    { q:"Which of these is a control variable in an experiment about plant growth and light intensity?", opts:["Light intensity","Height of plant","Volume of water given to each plant","Number of leaves at the end"], ans:2, exp:"<strong>Volume of water</strong> must be kept the same — if it varied, you couldn't know if growth was due to light or water." },
+    { q:"Why must control variables be kept constant?", opts:["To make the experiment faster","To ensure the experiment is a fair test — only the independent variable causes any change in the dependent variable","To save equipment","To make the graph easier to draw"], ans:1, exp:"Control variables ensure a <strong>fair test</strong> — if anything else changes, you cannot conclude that the independent variable caused the result." },
+  ],
+  prevLesson:null,
+  nextLesson:{ key:"sci-graphs", label:"Drawing and Interpreting Graphs" }
+},
+
+"sci-graphs": {
+  topic:"Scientific Skills", topicKey:"Scientific Skills", theme:"teal", icon:"📊",
+  title:"Drawing and Interpreting Graphs",
+  subtitle:"How to draw a correct scientific graph and describe what it shows — using the SALTS checklist.",
+  keyIdea:{ rule:"SALTS: Scale · Axes · Labels · Title · Shape. The independent variable goes on the x-axis; the dependent variable goes on the y-axis.", detail:"A graph must have a sensible scale that uses at least half the grid, correct axes with labels and units, a clear title, and the correct type of graph (line or bar)." },
+  formulae:[
+    { main:"x-axis = independent variable · y-axis = dependent variable", note:"" },
+    { main:"SALTS: Scale · Axes · Labels with units · Title · Shape (line of best fit or bar)", note:"" },
+  ],
+  steps:[
+    { title:"Choose the right graph type", detail:"Line graph: when both variables are continuous (e.g. temperature, time, concentration). Bar chart: when the independent variable is categoric (e.g. type of material, name of substance).", formula:"" },
+    { title:"Choose a scale", detail:"Use at least half the grid. Scale must be even (equal jumps). Don't use awkward scales like 1, 3, 7.", formula:"" },
+    { title:"Plot points accurately", detail:"Use a small cross (×) or dot. Don't connect every dot — draw a smooth line or curve of best fit through the general trend.", formula:"" },
+    { title:"Describe a graph", detail:"State the overall trend (as X increases, Y increases/decreases). Quote specific values with units. Identify any anomalies (points not on the line of best fit).", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Line of best fit:</strong> A straight line or smooth curve that passes through the middle of the data points — NOT connecting dot to dot. Roughly equal numbers of points above and below." },
+    { icon:"⭐", text:"<strong>Describing trends:</strong> Always say 'As [independent variable] increases, [dependent variable] increases/decreases.' Quote at least two specific values from the graph." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Plotting independent on y-axis. Always: independent = x-axis (horizontal), dependent = y-axis (vertical)." },
+    { text:"<strong>Common mistake:</strong> Connecting every dot with a zigzag line. Draw a smooth line or curve of best fit instead." },
+    { text:"<strong>Common mistake:</strong> Forgetting units on axis labels. '°C', 'cm³', 's' etc. are required." },
+  ],
+  practice:[
+    { q:"Where does the independent variable go on a graph?", opts:["y-axis (vertical)","x-axis (horizontal)","Either axis","In the title"], ans:1, exp:"<strong>Independent variable → x-axis (horizontal).</strong> Dependent variable → y-axis (vertical)." },
+    { q:"A student plots temperature (°C) against time (s). Which is the dependent variable?", opts:["Time","Temperature — this is what changes as a result","The thermometer","Rate of reaction"], ans:1, exp:"<strong>Temperature</strong> is being measured as a result of time passing — it is the dependent variable." },
+    { q:"What is a line of best fit?", opts:["A line connecting every data point","A smooth line or curve passing through the general trend of data, with roughly equal points above and below","The steepest possible line","A line through only the extreme points"], ans:1, exp:"Line of best fit = <strong>smooth line/curve through the general trend</strong>. Does NOT connect every point." },
+    { q:"When describing a graph trend, you should:", opts:["Just say 'it goes up'","State the trend AND quote specific values with units from the graph","Only describe anomalies","Draw it again"], ans:1, exp:"Always <strong>state the trend AND quote specific data values with units</strong>. e.g. 'As temperature increases from 20°C to 60°C, the rate doubles from 2 to 4 cm³/s.'" },
+  ],
+  prevLesson:{ key:"sci-variables", label:"Types of Variable" },
+  nextLesson:{ key:"sci-ph", label:"pH Scale and Indicators" }
+},
+
+/* ════════ SCIENCE — ACIDS AND ALKALIS ════════ */
+"sci-ph": {
+  topic:"Acids and Alkalis", topicKey:"Acids and Alkalis", theme:"green", icon:"🧪",
+  title:"pH Scale, Indicators and Litmus Tests",
+  subtitle:"How to measure acidity and alkalinity — universal indicator colours and litmus paper results.",
+  keyIdea:{ rule:"The pH scale runs from 0 to 14. pH 1–6 = acid. pH 7 = neutral. pH 8–14 = alkali. The lower the pH, the stronger the acid. The higher the pH, the stronger the alkali.", detail:"Universal indicator gives more information than litmus because it shows the strength (pH value) not just whether something is acid or alkali." },
+  formulae:[
+    { main:"pH 1–6 = acid · pH 7 = neutral · pH 8–14 = alkali", note:"pH 1 = strongest acid · pH 14 = strongest alkali" },
+  ],
+  steps:[
+    { title:"Universal indicator colours", detail:"pH 1–2: red (strong acid) · pH 3–4: orange (weak acid) · pH 5–6: yellow (weak acid) · pH 7: green (neutral) · pH 8–9: blue (weak alkali) · pH 10–11: dark blue/purple (weak alkali) · pH 12–14: purple (strong alkali)", formula:"" },
+    { title:"Red litmus paper", detail:"Stays red in acid · turns blue in alkali · does not change in neutral", formula:"" },
+    { title:"Blue litmus paper", detail:"Turns red in acid · stays blue in alkali · does not change in neutral", formula:"" },
+    { title:"Advantage of universal indicator over litmus", detail:"Litmus only tells you acid or alkali. Universal indicator shows the strength — gives a numerical pH value.", formula:"" },
+    { title:"pH probe", detail:"Electronic device that gives an accurate numerical pH reading — more precise than universal indicator.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Litmus memory trick:</strong> Acid turns blue litmus RED — think 'acid is aggressive, attacks blue'. Alkali turns red litmus BLUE — alkali restores blue." },
+    { icon:"⭐", text:"<strong>Advantage of UI over litmus:</strong> 'Litmus only tells you if something is an acid or alkali — it does not give a pH value or tell you the strength.'" },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying neutral turns litmus paper green. Neutral does NOT change litmus paper colour." },
+    { text:"<strong>Common mistake:</strong> Confusing which litmus changes. In acid: blue → red. In alkali: red → blue. Red stays red in acid. Blue stays blue in alkali." },
+  ],
+  practice:[
+    { q:"What colour does universal indicator turn at pH 7?", opts:["Red","Orange","Green — neutral","Purple"], ans:2, exp:"<strong>pH 7 = neutral → green</strong> on universal indicator." },
+    { q:"Blue litmus paper is dipped into lemon juice (pH 3). What happens?", opts:["Stays blue","Turns red — lemon juice is an acid","Turns green","Turns purple"], ans:1, exp:"Lemon juice is an acid → blue litmus <strong>turns red</strong>." },
+    { q:"What is the advantage of universal indicator over litmus?", opts:["It is cheaper","It is faster","It shows the strength of the acid/alkali by giving a pH value — litmus only shows acid or alkali","It is more colourful"], ans:2, exp:"Universal indicator gives a <strong>pH value indicating strength</strong>. Litmus only tells you acid or alkali — not how strong." },
+    { q:"A solution has a pH of 2. What does this tell you?", opts:["It is a weak acid","It is neutral","It is a strong acid — pH 1–2 indicates a strong acid","It is a weak alkali"], ans:2, exp:"pH 2 = <strong>strong acid</strong>. The lower the pH (below 7), the stronger the acid." },
+  ],
+  prevLesson:{ key:"sci-graphs", label:"Drawing and Interpreting Graphs" },
+  nextLesson:{ key:"sci-neutralisation", label:"Neutralisation" }
+},
+
+"sci-neutralisation": {
+  topic:"Acids and Alkalis", topicKey:"Acids and Alkalis", theme:"green", icon:"🧪",
+  title:"Neutralisation",
+  subtitle:"The reaction between an acid and an alkali — always produces a salt and water.",
+  keyIdea:{ rule:"Acid + alkali → salt + water. This is neutralisation. The products are always neutral (pH 7) if exact amounts are used.", detail:"Neutralisation is used in everyday life — antacids neutralise excess stomach acid, farmers add lime to neutralise acidic soil." },
+  formulae:[
+    { main:"acid + alkali → salt + water", note:"e.g. hydrochloric acid + sodium hydroxide → sodium chloride + water" },
+    { main:"HCl + NaOH → NaCl + H₂O", note:"" },
+  ],
+  steps:[
+    { title:"What is neutralisation?", detail:"When an acid and an alkali react together, they cancel each other out to form a salt and water. If equal amounts are used, the product is neutral (pH 7).", formula:"" },
+    { title:"Naming the salt", detail:"The name comes from the acid and the alkali/base used. The acid gives the anion: HCl → chloride, H₂SO₄ → sulphate, HNO₃ → nitrate. The metal from the alkali gives the cation.", formula:"" },
+    { title:"Real-world examples", detail:"Antacid tablets: neutralise excess hydrochloric acid in stomach · Farmers add calcium hydroxide (lime) to neutralise acidic soil · Bee stings are acidic — treat with alkali (sodium bicarbonate)", formula:"" },
+  ],
+  worked:[{ q:"Write a word equation for: hydrochloric acid + sodium hydroxide", lines:[
+    { step:"Acid", expr:"hydrochloric acid", why:"HCl — gives chloride salts" },
+    { step:"Alkali", expr:"sodium hydroxide", why:"NaOH — gives sodium salts" },
+    { step:"Salt name", expr:"sodium chloride", why:"sodium (from alkali) + chloride (from HCl)" },
+    { step:"Full equation", expr:"hydrochloric acid + sodium hydroxide → sodium chloride + water", why:"Always: acid + alkali → salt + water", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Salt naming rule:</strong> Metal name (from the base) + acid name ending: -chloride (HCl), -sulphate (H₂SO₄), -nitrate (HNO₃)." },
+    { icon:"⭐", text:"<strong>Real-world link:</strong> Common salt (sodium chloride, NaCl) is made by neutralising hydrochloric acid with sodium hydroxide." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying acid + alkali → acid + base. The products are always SALT + WATER." },
+    { text:"<strong>Common mistake:</strong> Using an equals sign in word equations. Always use an arrow →." },
+  ],
+  practice:[
+    { q:"What are always the products of neutralisation?", opts:["Acid + water","Salt + water","Salt + carbon dioxide","Base + water"], ans:1, exp:"Neutralisation: acid + alkali → <strong>salt + water</strong>. Always." },
+    { q:"Hydrochloric acid is neutralised by sodium hydroxide. What salt is formed?", opts:["Sodium sulphate","Sodium nitrate","Sodium chloride — HCl gives chloride salts, sodium comes from sodium hydroxide","Calcium chloride"], ans:2, exp:"<strong>Sodium chloride</strong>: sodium (from NaOH) + chloride (from HCl)." },
+    { q:"Why might a farmer add lime (calcium hydroxide) to a field?", opts:["To add nitrogen","To neutralise acidic soil — raises pH to neutral, improving crop growth","To kill weeds","To increase drainage"], ans:1, exp:"Lime is an alkali. It <strong>neutralises acidic soil</strong>, raising the pH towards neutral so crops grow better." },
+    { q:"What does neutralisation mean?", opts:["Making something more acidic","Making something more alkaline","An acid and alkali reacting to cancel each other out, forming a salt and water","Turning an acid into water"], ans:2, exp:"Neutralisation = <strong>acid + alkali cancelling each other out</strong>, forming a salt and water. pH moves towards 7." },
+  ],
+  prevLesson:{ key:"sci-ph", label:"pH Scale and Indicators" },
+  nextLesson:{ key:"sci-acid-reactions", label:"Acids with Carbonates and Metal Oxides" }
+},
+
+"sci-acid-reactions": {
+  topic:"Acids and Alkalis", topicKey:"Acids and Alkalis", theme:"green", icon:"🧪",
+  title:"Acids Reacting with Carbonates and Metal Oxides",
+  subtitle:"Word equations and salt naming for three types of acid reaction.",
+  keyIdea:{ rule:"Three key reactions: acid + base/alkali → salt + water. Acid + carbonate → salt + water + CO₂. Acid + metal oxide → salt + water.", detail:"Carbon dioxide is always produced when an acid reacts with a carbonate — you can test for CO₂ by bubbling it through limewater, which turns milky." },
+  formulae:[
+    { main:"acid + carbonate → salt + water + carbon dioxide", note:"e.g. HCl + calcium carbonate → calcium chloride + water + CO₂" },
+    { main:"acid + metal oxide → salt + water", note:"e.g. H₂SO₄ + copper oxide → copper sulphate + water" },
+    { main:"HCl → chloride · H₂SO₄ → sulphate · HNO₃ → nitrate", note:"Acid name determines salt anion" },
+  ],
+  steps:[
+    { title:"Acid + carbonate", detail:"Always produces three products: a salt, water AND carbon dioxide. CO₂ is the gas that causes fizzing in these reactions.", formula:"hydrochloric acid + calcium carbonate → calcium chloride + water + carbon dioxide" },
+    { title:"Acid + metal oxide", detail:"Produces two products: a salt and water. Same as neutralisation but using a metal oxide instead of a hydroxide.", formula:"sulphuric acid + copper oxide → copper sulphate + water" },
+    { title:"Naming the salt", detail:"The salt is always named: [metal from base/carbonate/oxide] + [anion from acid]. HCl → chloride. H₂SO₄ → sulphate. HNO₃ → nitrate.", formula:"" },
+    { title:"Test for CO₂", detail:"Bubble the gas through limewater (calcium hydroxide solution). If CO₂ is present, the limewater turns cloudy/milky.", formula:"" },
+  ],
+  worked:[{ q:"Write the word equation: sulphuric acid + zinc carbonate", lines:[
+    { step:"Identify type", expr:"acid + carbonate → salt + water + CO₂", why:"Carbonate reactions always produce CO₂" },
+    { step:"Salt cation", expr:"zinc (from zinc carbonate)", why:"Metal from the carbonate" },
+    { step:"Salt anion", expr:"sulphate (from sulphuric acid)", why:"H₂SO₄ always gives sulphate" },
+    { step:"Full equation", expr:"sulphuric acid + zinc carbonate → zinc sulphate + water + carbon dioxide", why:"All three products", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Carbonate reactions fizz</strong> because CO₂ gas is produced. The bubbling is your clue that a carbonate is reacting with an acid." },
+    { icon:"⭐", text:"<strong>Salt naming summary:</strong> hydrochloric acid → …chloride · sulphuric acid → …sulphate · nitric acid → …nitrate. Learn these three and you can name any salt." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Forgetting carbon dioxide in the carbonate reaction. Products are salt + water + CO₂ (not just salt + water)." },
+    { text:"<strong>Common mistake:</strong> Naming the salt wrong. The metal from the BASE gives the first word. The acid gives the ending (-chloride, -sulphate, -nitrate)." },
+  ],
+  practice:[
+    { q:"What are the products when hydrochloric acid reacts with calcium carbonate?", opts:["Calcium chloride + water","Calcium chloride + water + carbon dioxide","Calcium carbonate + water","Calcium hydroxide + CO₂"], ans:1, exp:"acid + carbonate → <strong>salt + water + carbon dioxide</strong>. HCl + CaCO₃ → calcium chloride + water + CO₂." },
+    { q:"Sulphuric acid reacts with copper oxide. What salt is formed?", opts:["Copper chloride","Copper nitrate","Copper sulphate — H₂SO₄ gives sulphate, copper comes from copper oxide","Copper carbonate"], ans:2, exp:"<strong>Copper sulphate</strong>: copper (from copper oxide) + sulphate (from sulphuric acid H₂SO₄)." },
+    { q:"How do you test for carbon dioxide gas?", opts:["It turns damp litmus paper red","Bubble it through limewater — it turns milky/cloudy if CO₂ is present","It relights a glowing splint","It turns universal indicator green"], ans:1, exp:"<strong>Limewater test for CO₂</strong>: bubble gas through limewater — turns cloudy/milky if CO₂ is present." },
+    { q:"Nitric acid reacts with sodium carbonate. What is the salt formed?", opts:["Sodium chloride","Sodium sulphate","Sodium nitrate — HNO₃ gives nitrate, sodium comes from sodium carbonate","Sodium oxide"], ans:2, exp:"<strong>Sodium nitrate</strong>: sodium (from carbonate) + nitrate (from HNO₃)." },
+  ],
+  prevLesson:{ key:"sci-neutralisation", label:"Neutralisation" },
+  nextLesson:{ key:"sci-changes", label:"Physical vs Chemical Change" }
+},
+
+
+/* ════════ SCIENCE — CHEMICAL REACTIONS ════════ */
+"sci-changes": {
+  topic:"Chemical Reactions", topicKey:"Chemical Reactions", theme:"amber", icon:"⚗️",
+  title:"Physical vs Chemical Change",
+  subtitle:"How to tell the difference — and why it matters.",
+  keyIdea:{ rule:"Physical change = reversible, no new substance formed. Chemical change = irreversible (usually), new substance(s) formed.", detail:"The key test: has a NEW substance been made? If yes → chemical change. Can it be easily reversed? If yes → physical change." },
+  formulae:[
+    { main:"Physical: reversible · no new substance · same particles rearranged", note:"e.g. melting ice, dissolving salt, boiling water" },
+    { main:"Chemical: new substance formed · usually irreversible · atoms rearranged into new molecules", note:"e.g. burning, rusting, cooking, neutralisation" },
+  ],
+  steps:[
+    { title:"Signs of a chemical change", detail:"New substance formed · colour change · gas produced · temperature change · light or sound produced · change is difficult to reverse", formula:"" },
+    { title:"Physical change examples", detail:"Melting (ice → water) · Boiling (water → steam) · Dissolving (salt → salt solution) · Bending or cutting · Mixing (can be separated again)", formula:"" },
+    { title:"Chemical change examples", detail:"Burning · Rusting · Cooking · Neutralisation · Photosynthesis · Fermentation · Any reaction that makes a new substance", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Quick test:</strong> Can you get back to exactly what you started with easily? If yes → physical. If no → chemical." },
+    { icon:"⭐", text:"<strong>Dissolving is physical</strong> — you can evaporate the water and get the salt back. Don't confuse dissolving with reacting." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying dissolving is a chemical change. It's physical — the salt can be recovered by evaporation." },
+    { text:"<strong>Common mistake:</strong> Saying all chemical changes are irreversible. Most are, but the key feature is that a NEW SUBSTANCE is formed." },
+  ],
+  practice:[
+    { q:"Burning wood is an example of:", opts:["A physical change — it can be reversed","A chemical change — new substances (CO₂, ash, water) are formed","A physical change — the wood just changes shape","Neither"], ans:1, exp:"Burning wood = <strong>chemical change</strong>. New substances (carbon dioxide, water vapour, ash) are formed and the change cannot be reversed." },
+    { q:"Melting ice is an example of:", opts:["A chemical change — new substance formed","A physical change — water is still water, just liquid not solid, and it can be frozen again","A chemical change — it involves energy","An irreversible change"], ans:1, exp:"Melting ice = <strong>physical change</strong>. No new substance is formed. The water can be frozen back to ice." },
+    { q:"Which of these is a sign of a chemical change?", opts:["A change in state","A change in shape","A gas being produced and an unexpected colour change","Dissolving in water"], ans:2, exp:"<strong>Gas production and colour change</strong> are signs that a new substance has been made — evidence of a chemical change." },
+    { q:"In a chemical change:", opts:["The same substance is kept in a different form","Atoms are rearranged to make new substances — the change is usually irreversible","Only the state changes","The mass changes"], ans:1, exp:"Chemical change = <strong>atoms rearranged to form new substances</strong>. Usually irreversible." },
+  ],
+  prevLesson:{ key:"sci-acid-reactions", label:"Acids + Carbonates and Metal Oxides" },
+  nextLesson:{ key:"sci-word-equations", label:"Reactants, Products and Word Equations" }
+},
+
+"sci-word-equations": {
+  topic:"Chemical Reactions", topicKey:"Chemical Reactions", theme:"amber", icon:"⚗️",
+  title:"Reactants, Products and Word Equations",
+  subtitle:"The language of chemical reactions — writing word equations correctly.",
+  keyIdea:{ rule:"Reactants are what you start with. Products are what you make. Word equations always use an arrow (→) not an equals sign.", detail:"In a chemical reaction, atoms are rearranged. The same atoms are present at the end — just in different arrangements. Nothing is created or destroyed." },
+  formulae:[
+    { main:"reactant + reactant → product + product", note:"Arrow shows direction of reaction" },
+    { main:"Naming products: oxygen → oxide · sulphur → sulphide", note:"e.g. iron + oxygen → iron oxide · iron + sulphur → iron sulphide" },
+  ],
+  steps:[
+    { title:"Reactants", detail:"The starting materials — on the LEFT of the arrow. These are what you put into the reaction.", formula:"" },
+    { title:"Products", detail:"What is made — on the RIGHT of the arrow. These are the new substances formed.", formula:"" },
+    { title:"The arrow", detail:"Always use → (arrow) not = (equals sign). The arrow shows the direction of the reaction.", formula:"" },
+    { title:"Naming products from elements", detail:"When a metal reacts with oxygen → metal oxide (e.g. iron oxide). When a metal reacts with sulphur → metal sulphide (e.g. iron sulphide).", formula:"" },
+  ],
+  worked:[{ q:"Write a word equation for: magnesium burning in oxygen", lines:[
+    { step:"Reactants", expr:"magnesium + oxygen", why:"These are the starting materials" },
+    { step:"Product", expr:"magnesium oxide", why:"Metal + oxygen → metal OXIDE" },
+    { step:"Arrow", expr:"→ (not =)", why:"Word equations always use an arrow" },
+    { step:"Full equation", expr:"magnesium + oxygen → magnesium oxide", why:"Correct format", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>The arrow rule:</strong> 'In a word equation, we use an ARROW not an equals sign.' This is a common exam mark — always check you've used →." },
+    { icon:"⭐", text:"<strong>Naming oxides:</strong> Any metal reacting with oxygen forms a metal OXIDE. Sulphur compounds form SULPHIDES. These naming rules are worth learning." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Using = instead of → in a word equation. Always use an arrow." },
+    { text:"<strong>Common mistake:</strong> Putting products on the left. Reactants = left, Products = right (direction of arrow)." },
+  ],
+  practice:[
+    { q:"In a word equation, which side are the reactants?", opts:["Right side","Left side — reactants are what you START with, before the arrow","Both sides","In brackets"], ans:1, exp:"<strong>Reactants on the LEFT</strong> of the arrow. Products on the right." },
+    { q:"Iron reacts with sulphur. What is the product?", opts:["Iron oxide","Iron sulphate","Iron sulphide — metal + sulphur → metal sulphide","Iron carbonate"], ans:2, exp:"Metal + sulphur → metal <strong>sulphide</strong>. Iron + sulphur → iron sulphide." },
+    { q:"Why do we use → and not = in a word equation?", opts:["It is easier to draw","It shows the direction of the reaction — reactants form products","It shows reversibility","It shows the amounts used"], ans:1, exp:"The arrow <strong>shows the direction of the reaction</strong> — reactants are converted into products. An equals sign would imply they are the same thing." },
+    { q:"Zinc reacts with oxygen. Name the product.", opts:["Zinc sulphide","Zinc hydroxide","Zinc oxide — metal + oxygen → metal oxide","Zinc carbonate"], ans:2, exp:"Metal + oxygen → metal <strong>oxide</strong>. Zinc + oxygen → zinc oxide." },
+  ],
+  prevLesson:{ key:"sci-changes", label:"Physical vs Chemical Change" },
+  nextLesson:{ key:"sci-energy-reactions", label:"Energy in Reactions" }
+},
+
+"sci-energy-reactions": {
+  topic:"Chemical Reactions", topicKey:"Chemical Reactions", theme:"amber", icon:"⚗️",
+  title:"Energy in Chemical Reactions",
+  subtitle:"Exothermic and endothermic reactions — energy transferred to or from the surroundings.",
+  keyIdea:{ rule:"Exothermic reactions release energy to the surroundings — temperature increases. Endothermic reactions absorb energy from the surroundings — temperature decreases.", detail:"'Exo' means out — energy goes OUT to surroundings. 'Endo' means in — energy goes IN from surroundings." },
+  formulae:[
+    { main:"Exothermic: releases energy → surroundings get hotter", note:"e.g. burning, neutralisation, respiration, hand warmers" },
+    { main:"Endothermic: absorbs energy → surroundings get cooler", note:"e.g. photosynthesis, thermal decomposition, sports cold packs" },
+  ],
+  steps:[
+    { title:"Exothermic reactions", detail:"Energy is released to the surroundings. The temperature of the surroundings increases. Examples: combustion (burning), neutralisation, oxidation, respiration.", formula:"" },
+    { title:"Endothermic reactions", detail:"Energy is absorbed from the surroundings. The temperature of the surroundings decreases. Examples: photosynthesis, thermal decomposition, dissolving ammonium nitrate in water.", formula:"" },
+    { title:"Measuring energy change", detail:"Use a thermometer to measure temperature change. If temperature goes up → exothermic. If temperature goes down → endothermic.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Memory trick:</strong> EXOthermic = EXits heat (energy goes OUT, surroundings get warmer). ENDOthermic = ENergy goes IN (surroundings get cooler)." },
+    { icon:"⭐", text:"<strong>Common exam trap:</strong> The question asks about energy change in the SURROUNDINGS, not the reaction mixture. Exothermic = surroundings get hotter." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying exothermic means 'energy is made'. Energy is not created — it is transferred from the reaction to the surroundings." },
+    { text:"<strong>Common mistake:</strong> Confusing endothermic and exothermic. Remember: EXO = temperature EXceeds (goes up). ENDO = ENergy absorbed (goes down)." },
+  ],
+  practice:[
+    { q:"Burning methane gas releases heat. This is:", opts:["Endothermic — energy is absorbed","Exothermic — energy is released to the surroundings, temperature rises","Neither — energy is just transferred","Endothermic — temperature falls"], ans:1, exp:"Burning = combustion = <strong>exothermic</strong>. Energy is released — surroundings get warmer." },
+    { q:"In an endothermic reaction, the temperature of the surroundings:", opts:["Increases","Stays the same","Decreases — energy is absorbed FROM the surroundings","First increases then decreases"], ans:2, exp:"Endothermic = energy <strong>absorbed from surroundings → surroundings get cooler</strong>." },
+    { q:"Photosynthesis requires light energy to proceed. This makes it:", opts:["Exothermic","Endothermic — it requires (absorbs) energy input to take place","Neutral","Reversible"], ans:1, exp:"Photosynthesis absorbs light energy — it is <strong>endothermic</strong>." },
+    { q:"A student mixes two solutions and notices the temperature rises by 8°C. This is evidence of:", opts:["An endothermic reaction","A physical change","An exothermic reaction — energy was released to the surroundings, raising temperature","No reaction occurring"], ans:2, exp:"Temperature rise = energy released to surroundings = <strong>exothermic reaction</strong>." },
+  ],
+  prevLesson:{ key:"sci-word-equations", label:"Word Equations" },
+  nextLesson:{ key:"sci-apparatus", label:"Lab Apparatus" }
+},
+
+"sci-apparatus": {
+  topic:"Chemical Reactions", topicKey:"Chemical Reactions", theme:"amber", icon:"⚗️",
+  title:"Lab Apparatus",
+  subtitle:"Key pieces of equipment, what they are used for and safety rules.",
+  keyIdea:{ rule:"Know the name, appearance and purpose of each piece of apparatus — and the safety rules for the Bunsen burner.", detail:"" },
+  formulae:[],
+  steps:[
+    { title:"Thermometer", detail:"Measures temperature in degrees Celsius (°C). Used to monitor temperature changes in reactions.", formula:"" },
+    { title:"Bunsen burner", detail:"Heats substances. Has an air hole — open = blue roaring flame (hotter) · closed = yellow safety flame. Always place on a heat-proof mat.", formula:"" },
+    { title:"Test tube", detail:"Small glass tube for holding and mixing chemicals. Heated at an angle, never pointed at people.", formula:"" },
+    { title:"Boiling tube", detail:"Larger version of test tube. Used for mixing chemicals while heating — more room so contents don't eject.", formula:"" },
+    { title:"Tripod and gauze", detail:"Tripod = metal stand placed over Bunsen burner. Gauze = wire mesh placed on top of tripod so a beaker or evaporating basin can sit on it safely.", formula:"" },
+    { title:"Beaker", detail:"Glass container for holding solutions. Not for measuring accurately — use a measuring cylinder for volumes.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Bunsen safety:</strong> When not in use, always return to the yellow safety flame (air hole closed). Never leave a blue flame unattended." },
+    { icon:"⭐", text:"<strong>Test tube vs boiling tube:</strong> Test tube = small, for cold mixing. Boiling tube = larger, for heating. The extra size prevents the contents from being ejected when heated." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Using a beaker to measure volume precisely. Always use a measuring cylinder for accurate volume measurements." },
+    { text:"<strong>Common mistake:</strong> Heating a test tube pointing at someone. Always heat at an angle pointing away from all people." },
+  ],
+  practice:[
+    { q:"What is the purpose of the gauze on a tripod?", opts:["To filter liquids","To provide a surface for a beaker to sit on safely above the Bunsen burner flame","To measure temperature","To hold test tubes"], ans:1, exp:"Gauze sits on top of the tripod and provides a <strong>stable surface for a beaker or basin above the Bunsen flame</strong>." },
+    { q:"When is the yellow (safety) flame used on a Bunsen burner?", opts:["When heating strongly","When the experiment is in progress","When the Bunsen is not actively being used — it is the safe standby flame","When the air hole is open"], ans:2, exp:"Yellow flame = air hole <strong>closed</strong> = safety/standby flame. Used when not actively heating." },
+    { q:"Why is a boiling tube used instead of a test tube when heating chemicals?", opts:["It is made of stronger glass","It is larger — provides more space so the contents are less likely to be ejected when heated","It heats more evenly","It is cheaper"], ans:1, exp:"Boiling tube is <strong>larger</strong> than a test tube — reduces risk of contents being ejected when heated." },
+    { q:"What does a thermometer measure?", opts:["Volume","Mass","Temperature in degrees Celsius","Pressure"], ans:2, exp:"A thermometer measures <strong>temperature in degrees Celsius (°C)</strong>." },
+  ],
+  prevLesson:{ key:"sci-energy-reactions", label:"Energy in Reactions" },
+  nextLesson:{ key:"sci-photosynthesis", label:"Photosynthesis" }
+},
+
+/* ════════ SCIENCE — PLANTS AND ECOSYSTEMS ════════ */
+"sci-photosynthesis": {
+  topic:"Plants and Ecosystems", topicKey:"Plants and Ecosystems", theme:"green", icon:"🌿",
+  title:"Photosynthesis",
+  subtitle:"How plants make their own food using light energy — the most important plant process.",
+  keyIdea:{ rule:"Photosynthesis uses light energy, carbon dioxide and water to make glucose and oxygen. It takes place in the chloroplasts using chlorophyll.", detail:"Plants and algae are producers — they make their own food through photosynthesis. All food chains begin with a producer." },
+  formulae:[
+    { main:"carbon dioxide + water → glucose + oxygen", note:"Requires light energy and chlorophyll" },
+    { main:"6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂ (symbol equation)", note:"" },
+  ],
+  steps:[
+    { title:"Inputs (reactants)", detail:"Carbon dioxide (CO₂) — absorbed from the air through stomata in leaves. Water (H₂O) — absorbed from the soil through roots.", formula:"" },
+    { title:"Outputs (products)", detail:"Glucose (C₆H₁₂O₆) — used for energy (respiration), growth, and stored as starch. Oxygen (O₂) — released as a by-product through stomata.", formula:"" },
+    { title:"Where it happens", detail:"In chloroplasts, inside leaf cells. Chloroplasts contain chlorophyll — the green pigment that absorbs light energy.", formula:"" },
+    { title:"Why leaves are green", detail:"Chlorophyll absorbs red and blue light for photosynthesis but reflects green light — this is why leaves appear green.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Chlorophyll</strong> absorbs light energy. Without chlorophyll, photosynthesis cannot occur — this is why plants deprived of light turn yellow and die." },
+    { icon:"⭐", text:"<strong>Word equation to memorise:</strong> carbon dioxide + water → glucose + oxygen. Make sure you can write it without the prompt." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying plants get their food from soil. Plants MAKE their own food through photosynthesis. Soil provides water and mineral ions — not food." },
+    { text:"<strong>Common mistake:</strong> Saying photosynthesis produces carbon dioxide. It USES CO₂ and PRODUCES oxygen." },
+  ],
+  practice:[
+    { q:"What are the reactants (inputs) for photosynthesis?", opts:["Glucose and oxygen","Carbon dioxide and water — plus light energy","Glucose and carbon dioxide","Water and oxygen"], ans:1, exp:"<strong>Photosynthesis inputs: carbon dioxide + water</strong> (plus light energy and chlorophyll)." },
+    { q:"Where in the plant cell does photosynthesis take place?", opts:["In the nucleus","In the cell membrane","In the chloroplasts — which contain chlorophyll","In the vacuole"], ans:2, exp:"Photosynthesis takes place in <strong>chloroplasts</strong>, which contain the green pigment chlorophyll." },
+    { q:"Why do leaves appear green?", opts:["They absorb green light","Chlorophyll absorbs red and blue light for photosynthesis but reflects green light back","They contain lots of water","They are coated in green wax"], ans:1, exp:"Chlorophyll <strong>reflects green light</strong> (which it doesn't absorb for photosynthesis), so we see the leaves as green." },
+    { q:"What is glucose used for in a plant?", opts:["Breathing only","Only structural support","Respiration for energy, growth, and stored as starch","Only for making oxygen"], ans:2, exp:"Glucose is used for <strong>respiration (energy), growth, and stored as starch</strong>." },
+  ],
+  prevLesson:{ key:"sci-apparatus", label:"Lab Apparatus" },
+  nextLesson:{ key:"sci-minerals", label:"Mineral Ions and Deficiencies" }
+},
+
+"sci-minerals": {
+  topic:"Plants and Ecosystems", topicKey:"Plants and Ecosystems", theme:"green", icon:"🌿",
+  title:"Mineral Ions and Plant Deficiencies",
+  subtitle:"Why plants need nitrogen, phosphorus, potassium and magnesium — and what happens when they are lacking.",
+  keyIdea:{ rule:"Plants absorb mineral ions from the soil through their roots. Four key minerals: Nitrogen (N), Phosphorus (P), Potassium (K), Magnesium (Mg) — each with a specific role and deficiency symptom.", detail:"Farmers add fertilisers to replace minerals that have been removed from the soil by growing crops. Without the right minerals, plants show visible deficiency symptoms." },
+  formulae:[
+    { main:"N = healthy growth · P = healthy roots · K = leaves/flowers · Mg = chlorophyll", note:"NPKMg — the four key minerals" },
+  ],
+  steps:[
+    { title:"Nitrogen (N)", detail:"Needed for healthy growth — used to make proteins and DNA. Deficiency: stunted growth, yellowing of older leaves.", formula:"" },
+    { title:"Phosphorus (P)", detail:"Needed for healthy root development and energy transfer (ATP). Deficiency: poor root growth, purple discolouration of leaves.", formula:"" },
+    { title:"Potassium (K)", detail:"Needed for healthy leaves and flowers, and to help enzymes work. Deficiency: yellow leaves with dead patches/brown edges.", formula:"" },
+    { title:"Magnesium (Mg)", detail:"Needed to make chlorophyll. Without magnesium, chlorophyll cannot be made. Deficiency: leaves turn yellow (chlorosis) — especially between the veins.", formula:"" },
+    { title:"Fertilisers", detail:"Farmers add fertilisers to replace minerals removed by crops. This increases crop yield. Natural (manure) or synthetic (NPK fertilisers).", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Memory trick:</strong> NPKMg — No Plants Keep Moving. N=growth, P=roots, K=flowers, Mg=chlorophyll." },
+    { icon:"⭐", text:"<strong>Magnesium is the key one</strong> — the only mineral directly needed to make chlorophyll. Lack of magnesium = can't make chlorophyll = leaves yellow." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying plants get nitrogen from the air. Plants absorb nitrogen as nitrate ions (NO₃⁻) from the soil through roots — not from the air (that's nitrogen-fixing bacteria)." },
+    { text:"<strong>Common mistake:</strong> Saying yellow leaves always mean lack of magnesium. Lack of nitrogen and potassium can also cause yellowing — but magnesium causes yellowing BETWEEN the veins specifically." },
+  ],
+  practice:[
+    { q:"A plant has stunted growth and yellow older leaves. Which mineral is most likely deficient?", opts:["Potassium","Phosphorus","Magnesium","Nitrogen — needed for healthy growth and protein production"], ans:3, exp:"Stunted growth and yellow leaves → <strong>nitrogen deficiency</strong>. Nitrogen is needed for healthy growth and protein production." },
+    { q:"Why do plants need magnesium?", opts:["For healthy roots","For healthy flowers","To make chlorophyll — without Mg, no chlorophyll can be produced, so leaves turn yellow","For protein production"], ans:2, exp:"Magnesium is needed <strong>to make chlorophyll</strong>. Without it, leaves cannot photosynthesise and turn yellow." },
+    { q:"A plant has purple leaves and poor root growth. Which mineral is deficient?", opts:["Nitrogen","Potassium","Phosphorus — deficiency causes poor root growth and purple discolouration","Magnesium"], ans:2, exp:"<strong>Phosphorus deficiency</strong> → poor root growth and purple leaves." },
+    { q:"Why do farmers add fertilisers?", opts:["To kill weeds","To water the crops","To replace mineral ions removed from soil by growing crops, increasing yield","To make the soil more acidic"], ans:2, exp:"Fertilisers <strong>replace mineral ions</strong> (especially N, P, K) that crops have removed from the soil, restoring fertility and increasing yield." },
+  ],
+  prevLesson:{ key:"sci-photosynthesis", label:"Photosynthesis" },
+  nextLesson:{ key:"sci-food-chains", label:"Food Chains, Webs and Bioaccumulation" }
+},
+
+"sci-food-chains": {
+  topic:"Plants and Ecosystems", topicKey:"Plants and Ecosystems", theme:"green", icon:"🌿",
+  title:"Food Chains, Food Webs and Bioaccumulation",
+  subtitle:"How energy flows through ecosystems — and why toxins concentrate in top predators.",
+  keyIdea:{ rule:"Food chains show the flow of energy from producers to consumers. Arrows show the direction of energy flow. Bioaccumulation means toxins build up and become most concentrated in top predators.", detail:"A food web shows multiple interconnected food chains — it is a more realistic picture of feeding relationships in an ecosystem." },
+  formulae:[
+    { main:"producer → primary consumer → secondary consumer → tertiary consumer", note:"Arrows show direction of energy transfer" },
+  ],
+  steps:[
+    { title:"Producers", detail:"Organisms that make their own food through photosynthesis. Plants, algae, phytoplankton. They are always at the START of a food chain.", formula:"" },
+    { title:"Primary consumers", detail:"Organisms that eat producers (herbivores). E.g. rabbits eat grass.", formula:"" },
+    { title:"Secondary consumers", detail:"Organisms that eat primary consumers. E.g. foxes eat rabbits.", formula:"" },
+    { title:"What arrows mean", detail:"Arrows show the direction of ENERGY TRANSFER — from food to feeder. 'A → B' means A is eaten by B (energy flows from A to B).", formula:"" },
+    { title:"Interdependence", detail:"All organisms in a food web depend on each other. If one population changes, others are affected — e.g. if rabbits decline, foxes decline too.", formula:"" },
+    { title:"Bioaccumulation", detail:"Toxins (e.g. pesticides) are not broken down — they accumulate in body fat. Each organism eats many of the level below, concentrating the toxin. Top predators have the highest concentration.", formula:"" },
+  ],
+  worked:[{ q:"Explain bioaccumulation of a pesticide in a food chain: grass → rabbit → fox", lines:[
+    { step:"Toxin entry", expr:"Pesticide sprayed on grass — absorbed into plant tissues", why:"Source of contamination" },
+    { step:"Primary consumer", expr:"Rabbit eats lots of grass — accumulates pesticide in its body fat", why:"Can't break it down" },
+    { step:"Secondary consumer", expr:"Fox eats many rabbits — gets all the accumulated pesticide from each rabbit", why:"Concentration multiplies at each level" },
+    { step:"Result", expr:"Fox has a much higher concentration of pesticide than the grass did originally", why:"Bioaccumulation — most toxic at top of chain", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Arrow direction:</strong> The arrow goes FROM the food TO the feeder — it shows where the energy goes. 'Grass → Rabbit' means rabbit eats grass." },
+    { icon:"⭐", text:"<strong>Bioaccumulation key point:</strong> The toxin is NOT broken down, AND each organism eats many of the level below. Both reasons together explain concentration increase up the chain." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Drawing food chain arrows the wrong way. 'Grass ← Rabbit' is wrong. Arrow goes FROM food TO feeder: 'Grass → Rabbit'." },
+    { text:"<strong>Common mistake:</strong> Saying bioaccumulation means the toxin gets more harmful. It means the CONCENTRATION increases — which is why it becomes more harmful at the top." },
+  ],
+  practice:[
+    { q:"In the food chain: grass → rabbit → fox, what is the producer?", opts:["Rabbit","Fox","Grass — it makes its own food through photosynthesis","The sun"], ans:2, exp:"<strong>Grass is the producer</strong> — it photosynthesises to make its own food. All food chains start with a producer." },
+    { q:"What do the arrows in a food chain represent?", opts:["What eats what","The direction of energy transfer — from food to feeder","Movement of animals","Population size"], ans:1, exp:"Arrows show <strong>direction of energy transfer</strong> — from food to the organism that eats it." },
+    { q:"Why do top predators have the highest concentration of toxins in bioaccumulation?", opts:["They eat the most toxic food","They cannot move away from toxins","Toxins are not broken down and accumulate at each level — top predators eat many organisms from levels below, concentrating toxins further","They spend more time near the toxin source"], ans:2, exp:"<strong>Toxins don't break down</strong> and accumulate in body fat. Each level eats many organisms from the level below, multiplying the concentration up the food chain." },
+    { q:"If the rabbit population in a food web suddenly decreases, what would likely happen to the fox population?", opts:["Increase","Stay the same","Decrease — foxes depend on rabbits as a food source (interdependence)","The foxes would eat more grass instead"], ans:2, exp:"<strong>Interdependence</strong>: foxes depend on rabbits. Fewer rabbits → less food for foxes → fox population decreases." },
+  ],
+  prevLesson:{ key:"sci-minerals", label:"Mineral Ions and Deficiencies" },
+  nextLesson:{ key:"sci-static", label:"Static Electricity" }
+},
+
+
+/* ════════ SCIENCE — ELECTRICITY ════════ */
+"sci-static": {
+  topic:"Electricity", topicKey:"Electricity", theme:"gold", icon:"⚡",
+  title:"Static Electricity",
+  subtitle:"How objects become charged by rubbing — and the rules of attraction and repulsion.",
+  keyIdea:{ rule:"Static electricity is a build-up of electric charge on the surface of an object. It is produced by rubbing two insulating materials together — electrons are transferred from one to the other.", detail:"Only electrons move — protons stay fixed in the nucleus. An object that gains electrons becomes negatively charged. An object that loses electrons becomes positively charged." },
+  formulae:[
+    { main:"Like charges repel · Opposite charges attract", note:"Same sign → push apart · Different sign → pull together" },
+    { main:"Negative charge = gained electrons · Positive charge = lost electrons", note:"Electrons are the only particles that move" },
+  ],
+  steps:[
+    { title:"How static builds up", detail:"When two insulators are rubbed together, friction causes electrons to transfer from one material to the other. The material that gains electrons becomes negatively charged. The one that loses electrons becomes positively charged.", formula:"e.g. rubbing a plastic rod with a cloth" },
+    { title:"Like charges repel", detail:"Two objects with the same type of charge (both + or both −) will push each other apart.", formula:"" },
+    { title:"Opposite charges attract", detail:"Two objects with different charges (one + and one −) will pull toward each other.", formula:"" },
+    { title:"Why insulators?", detail:"Conductors allow charge to flow away immediately. Insulators trap the charge on their surface, allowing static electricity to build up.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Only electrons move.</strong> Protons never move between objects. When you rub materials, electrons transfer — one gains (negative), one loses (positive)." },
+    { icon:"⭐", text:"<strong>Static needs insulators.</strong> If the material is a conductor, charge flows away before it can build up. That's why you don't get static on metal objects." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying positive charges move. Only ELECTRONS (negative) move in static electricity." },
+    { text:"<strong>Common mistake:</strong> Saying rubbing 'creates' charge. Rubbing TRANSFERS electrons — the total charge is conserved." },
+  ],
+  practice:[
+    { q:"What is an electrostatic charge?", opts:["A flow of electricity","A build-up of electric charge on the surface of an object","A type of current","A magnetic force"], ans:1, exp:"An electrostatic charge is <strong>a build-up of electric charge on the surface of an object</strong>." },
+    { q:"Which particles move to create static electricity?", opts:["Protons","Neutrons","Electrons — they transfer from one material to the other when rubbed","Ions"], ans:2, exp:"<strong>Electrons</strong> are the particles that move. Protons stay fixed in the nucleus." },
+    { q:"Two plastic rods are both rubbed with the same cloth. What happens when they are brought close together?", opts:["They attract","They repel — both have gained the same type of charge (negative)","Nothing happens","They discharge"], ans:1, exp:"Both rods gained the same charge (negative) → <strong>like charges repel</strong>." },
+    { q:"Why must insulators (not conductors) be used to create static electricity?", opts:["Insulators are cheaper","Insulators trap charge on their surface — conductors allow charge to flow away before it builds up","Insulators are lighter","Conductors don't get charged at all"], ans:1, exp:"<strong>Insulators trap charge</strong> on their surface. Conductors allow charge to flow away immediately, preventing static build-up." },
+  ],
+  prevLesson:{ key:"sci-food-chains", label:"Food Chains and Bioaccumulation" },
+  nextLesson:{ key:"sci-current", label:"Current and Potential Difference" }
+},
+
+"sci-current": {
+  topic:"Electricity", topicKey:"Electricity", theme:"gold", icon:"⚡",
+  title:"Electric Current and Potential Difference",
+  subtitle:"What current and voltage are — how to measure them and where to place meters in a circuit.",
+  keyIdea:{ rule:"Current = flow of electric charge (electrons). Measured in amperes (A) with an ammeter in series. Potential difference (voltage) = energy transferred per coulomb of charge. Measured in volts (V) with a voltmeter in parallel.", detail:"Conventional current flows from positive to negative — the opposite direction to actual electron flow. Voltmeters must always be placed in parallel with the component being measured." },
+  formulae:[
+    { main:"Current (A) measured with ammeter — placed IN SERIES", note:"Conventional current: + to − (opposite to electron flow)" },
+    { main:"Potential difference (V) measured with voltmeter — placed IN PARALLEL", note:"PD = energy transferred per coulomb of charge" },
+  ],
+  steps:[
+    { title:"Electric current", detail:"A flow of electric charge — specifically electrons moving through a conductor. Measured in amperes (A). Measured using an ammeter placed in series (in line) with the component.", formula:"" },
+    { title:"Conventional current direction", detail:"Conventional current is defined as flowing from + to − (positive terminal to negative terminal). In reality, electrons flow from − to +. This is a historical convention.", formula:"" },
+    { title:"Potential difference (voltage)", detail:"The energy transferred per coulomb of charge passing through a component. Measured in volts (V). Measured using a voltmeter placed in parallel (across the component).", formula:"" },
+    { title:"Where to place meters", detail:"Ammeter: IN SERIES — breaks the circuit and sits in line. If placed in parallel, it would short-circuit. Voltmeter: IN PARALLEL — connected across the component. High resistance, so barely any current flows through it.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Placement rule:</strong> Ammeter in series (in line — current flows through it). Voltmeter in parallel (across — measures energy difference either side). Wrong placement = wrong reading or damaged circuit." },
+    { icon:"⭐", text:"<strong>Conventional vs electron flow:</strong> Conventional = + to −. Electrons = − to +. Most exam questions refer to conventional current." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Placing the voltmeter in series. It must be in PARALLEL (across the component). In series, a voltmeter's high resistance would stop current flowing." },
+    { text:"<strong>Common mistake:</strong> Saying current flows from − to + (electron flow). Conventional current flows from + to −." },
+  ],
+  practice:[
+    { q:"What is electric current?", opts:["The energy stored in a battery","A flow of electric charge (electrons) through a conductor, measured in amperes","The resistance of a wire","The voltage across a component"], ans:1, exp:"Electric current = <strong>flow of electric charge (electrons)</strong>, measured in <strong>amperes (A)</strong>." },
+    { q:"Where must a voltmeter be placed in a circuit?", opts:["In series — in line with the component","In parallel — across the component it is measuring","Anywhere in the circuit","Before the battery"], ans:1, exp:"Voltmeter must be placed <strong>in parallel</strong> (across the component). This measures the potential difference either side." },
+    { q:"In which direction does conventional current flow?", opts:["From negative to positive terminal","From positive to negative terminal — this is the conventional direction (opposite to electron flow)","In both directions simultaneously","Only in AC circuits"], ans:1, exp:"<strong>Conventional current: positive → negative</strong>. (Electrons actually flow − to +, but conventional current is defined the other way.)" },
+    { q:"What does potential difference measure?", opts:["The flow of electrons","The resistance of a component","The energy transferred per coulomb of charge passing through a component, measured in volts","The power used"], ans:2, exp:"Potential difference = <strong>energy transferred per coulomb of charge</strong>, measured in <strong>volts (V)</strong>." },
+  ],
+  prevLesson:{ key:"sci-static", label:"Static Electricity" },
+  nextLesson:{ key:"sci-resistance", label:"Resistance" }
+},
+
+"sci-resistance": {
+  topic:"Electricity", topicKey:"Electricity", theme:"gold", icon:"⚡",
+  title:"Resistance",
+  subtitle:"What resistance is, how to calculate it, and how it affects current in a circuit.",
+  keyIdea:{ rule:"Resistance is the opposition to the flow of current. Measured in ohms (Ω). Calculated using R = V ÷ I (Ohm's Law).", detail:"The higher the resistance, the harder it is for current to flow. A longer, thinner wire has more resistance than a short, thick wire." },
+  formulae:[
+    { main:"R = V ÷ I", note:"R = resistance (Ω) · V = potential difference (V) · I = current (A)" },
+    { main:"V = I × R · I = V ÷ R", note:"Rearrange the triangle: V on top, I and R on bottom" },
+  ],
+  steps:[
+    { title:"What is resistance?", detail:"Resistance opposes the flow of current. In a wire, electrons collide with ions in the metal lattice — these collisions slow them down. Greater resistance = less current for same voltage.", formula:"" },
+    { title:"Ohm's Law: R = V ÷ I", detail:"Resistance (Ω) = Potential difference (V) ÷ Current (A). Rearrange to find: V = I × R · I = V ÷ R", formula:"" },
+    { title:"Using the formula triangle", detail:"Draw a triangle with V at the top, I × R at the bottom. Cover the quantity you want to find — the remaining letters show the calculation.", formula:"V on top ÷ (I × R) on bottom" },
+    { title:"Factors affecting resistance", detail:"Longer wire = more resistance · Thinner wire = more resistance · Higher temperature = more resistance (for most conductors)", formula:"" },
+  ],
+  worked:[{ q:"A bulb has a potential difference of 6V across it and a current of 2A flowing through it. Calculate the resistance.", lines:[
+    { step:"Formula", expr:"R = V ÷ I", why:"Ohm's Law" },
+    { step:"Substitute", expr:"R = 6 ÷ 2", why:"V = 6V, I = 2A" },
+    { step:"Calculate", expr:"R = 3 Ω", why:"Answer with unit (ohms, Ω)", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Units matter:</strong> V in volts (V), I in amperes (A), R in ohms (Ω). Always include the unit in your answer — it's often worth a mark." },
+    { icon:"⭐", text:"<strong>The triangle:</strong> V at top, I × R at bottom. Cover what you want. Cover V → remaining = I × R. Cover I → remaining = V ÷ R. Cover R → remaining = V ÷ I." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Using I ÷ V instead of V ÷ I. Remember: R = V ÷ I (voltage divided by current)." },
+    { text:"<strong>Common mistake:</strong> Forgetting the unit. Resistance is in ohms — symbol Ω." },
+  ],
+  practice:[
+    { q:"A resistor has 12V across it and 3A flowing through it. What is its resistance?", opts:["36 Ω","4 Ω","0.25 Ω","9 Ω"], ans:1, exp:"R = V ÷ I = 12 ÷ 3 = <strong>4 Ω</strong>." },
+    { q:"What is the unit of resistance?", opts:["Ampere (A)","Volt (V)","Ohm (Ω)","Watt (W)"], ans:2, exp:"Resistance is measured in <strong>ohms (Ω)</strong>." },
+    { q:"A circuit has a resistance of 5Ω and a current of 2A. What is the potential difference?", opts:["0.4 V","10 V","2.5 V","7 V"], ans:1, exp:"V = I × R = 2 × 5 = <strong>10 V</strong>." },
+    { q:"If resistance increases in a circuit, and voltage stays the same, what happens to the current?", opts:["Increases","Stays the same","Decreases — I = V ÷ R, so higher R means lower I","Doubles"], ans:2, exp:"I = V ÷ R. If R increases and V stays constant, I <strong>decreases</strong>." },
+  ],
+  prevLesson:{ key:"sci-current", label:"Current and Potential Difference" },
+  nextLesson:{ key:"sci-moments", label:"Turning Moments" }
+},
+
+/* ════════ SCIENCE — FORCES AND MOTION ════════ */
+"sci-moments": {
+  topic:"Forces and Motion", topicKey:"Forces and Motion", theme:"blue", icon:"🔵",
+  title:"Turning Moments",
+  subtitle:"How forces create rotation around a pivot — calculating and balancing moments.",
+  keyIdea:{ rule:"Moment = force × perpendicular distance from pivot. Unit: newton-metre (Nm). For a balanced system: total clockwise moments = total anticlockwise moments.", detail:"A moment is the turning effect of a force. The further the force is from the pivot, the larger the turning effect." },
+  formulae:[
+    { main:"Moment (Nm) = Force (N) × distance from pivot (m)", note:"M = F × d" },
+    { main:"Balanced: clockwise moments = anticlockwise moments", note:"Principle of moments" },
+  ],
+  steps:[
+    { title:"What is a moment?", detail:"The turning effect of a force about a pivot. The larger the force, or the further it is from the pivot, the greater the moment.", formula:"" },
+    { title:"Calculating a moment", detail:"Moment = Force × perpendicular distance from pivot. Unit = newton-metre (Nm).", formula:"M = F × d" },
+    { title:"Balanced moments", detail:"For a system to be in balance (equilibrium): sum of clockwise moments = sum of anticlockwise moments.", formula:"" },
+    { title:"Finding an unknown force", detail:"Use the balance equation. If moment = 240 Nm and distance = 1.6 m, then F = 240 ÷ 1.6 = 150 N.", formula:"F = M ÷ d" },
+  ],
+  worked:[{ q:"From the exam: A rope is attached 0.8m above a pivot. A force of 300N is applied. Calculate the moment.", lines:[
+    { step:"Formula", expr:"Moment = Force × distance", why:"M = F × d" },
+    { step:"Substitute", expr:"Moment = 300 × 0.8", why:"F = 300N, d = 0.8m" },
+    { step:"Calculate", expr:"Moment = 240 Nm", why:"Unit is newton-metres (Nm)", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Distance must be perpendicular</strong> — measured at right angles to the line of action of the force. If the force is horizontal, measure the vertical distance (and vice versa)." },
+    { icon:"⭐", text:"<strong>From the exam question:</strong> If moment stays the same but distance doubles (0.8m → 1.6m), force must halve. 240 ÷ 1.6 = 150N. Use M = F × d and rearrange." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Forgetting the unit. Moments are measured in newton-metres (Nm) — not just N or m alone." },
+    { text:"<strong>Common mistake:</strong> Using the wrong distance. It must be the PERPENDICULAR distance from the pivot to the line of action of the force." },
+  ],
+  practice:[
+    { q:"A force of 50N is applied 2m from a pivot. What is the moment?", opts:["25 Nm","100 Nm","52 Nm","25 N"], ans:1, exp:"M = F × d = 50 × 2 = <strong>100 Nm</strong>." },
+    { q:"What are the units for a turning moment?", opts:["Newtons (N)","Metres (m)","Newton-metres (Nm)","Joules (J)"], ans:2, exp:"Turning moments are measured in <strong>newton-metres (Nm)</strong>." },
+    { q:"A moment of 240Nm acts at 1.6m from the pivot. What force produces this?", opts:["384 N","150 N","241.6 N","120 N"], ans:1, exp:"F = M ÷ d = 240 ÷ 1.6 = <strong>150 N</strong>." },
+    { q:"For a seesaw to be balanced, what must be true?", opts:["Both sides must have the same force","Both people must have the same weight","Clockwise moments must equal anticlockwise moments (principle of moments)","The pivot must be in the centre"], ans:2, exp:"<strong>Principle of moments:</strong> total clockwise moments = total anticlockwise moments for balance." },
+  ],
+  prevLesson:{ key:"sci-resistance", label:"Resistance" },
+  nextLesson:{ key:"sci-pressure", label:"Pressure" }
+},
+
+"sci-pressure": {
+  topic:"Forces and Motion", topicKey:"Forces and Motion", theme:"blue", icon:"🔵",
+  title:"Pressure",
+  subtitle:"Calculating pressure from force and area — and understanding why smaller areas create higher pressure.",
+  keyIdea:{ rule:"Pressure = Force ÷ Area. Unit: N/m² or pascals (Pa). The same force spread over a smaller area creates greater pressure.", detail:"Pressure explains why sharp knives cut, why camels have wide feet, and why snowshoes prevent sinking." },
+  formulae:[
+    { main:"Pressure (Pa) = Force (N) ÷ Area (m²)", note:"P = F ÷ A" },
+    { main:"1 Pa = 1 N/m² = 1 Nm⁻²", note:"All equivalent units — Pa is the SI unit" },
+  ],
+  steps:[
+    { title:"What is pressure?", detail:"The force applied per unit area. The same force spread over a larger area gives lower pressure. Concentrated over a smaller area gives higher pressure.", formula:"" },
+    { title:"Formula", detail:"P = F ÷ A. Force in newtons (N), area in metres squared (m²), pressure in pascals (Pa) or N/m².", formula:"" },
+    { title:"Rearranging", detail:"F = P × A · A = F ÷ P", formula:"" },
+  ],
+  worked:[{ q:"From the exam: A broken post weighs 120N and rests on an area of 0.2m². Calculate the pressure.", lines:[
+    { step:"Formula", expr:"P = F ÷ A", why:"Pressure = Force ÷ Area" },
+    { step:"Substitute", expr:"P = 120 ÷ 0.2", why:"F = 120N, A = 0.2m²" },
+    { step:"Calculate", expr:"P = 600 N/m² (or 600 Pa)", why:"Unit: N/m² or Pa", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Units:</strong> N/m², Pa (pascals) and Nm⁻² are all the same thing and are all acceptable in exams. Pa is the SI unit." },
+    { icon:"⭐", text:"<strong>Real-world pressure:</strong> Smaller area → higher pressure for same force. Sharp knife (tiny area) cuts easily. Wide camel feet (large area) prevent sinking in sand." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Dividing area by force instead of force by area. P = F ÷ A (force divided by area)." },
+    { text:"<strong>Common mistake:</strong> Using the wrong units for area. Area must be in m² not cm². Convert if needed: 1 m² = 10,000 cm²." },
+  ],
+  practice:[
+    { q:"A force of 500N acts on an area of 0.5m². What is the pressure?", opts:["250 Pa","1000 Pa","1 Pa","0.001 Pa"], ans:1, exp:"P = F ÷ A = 500 ÷ 0.5 = <strong>1000 Pa</strong>." },
+    { q:"What are the SI units for pressure?", opts:["Newtons (N)","Metres squared (m²)","Pascals (Pa) or N/m²","Newton-metres (Nm)"], ans:2, exp:"Pressure is measured in <strong>pascals (Pa)</strong>, equivalent to N/m²." },
+    { q:"Why does a sharp knife cut more easily than a blunt one (same force applied)?", opts:["Sharp knives are harder","The sharp blade has a smaller area — the same force over a smaller area creates greater pressure","Sharp knives are lighter","Blunt knives create more friction"], ans:1, exp:"Sharp blade has a <strong>smaller area</strong> → same force ÷ smaller area = <strong>greater pressure</strong> → cuts more easily." },
+    { q:"A pressure of 200 Pa acts over an area of 3m². What is the force?", opts:["66.7 N","203 N","600 N","197 N"], ans:2, exp:"F = P × A = 200 × 3 = <strong>600 N</strong>." },
+  ],
+  prevLesson:{ key:"sci-moments", label:"Turning Moments" },
+  nextLesson:{ key:"sci-gravity", label:"Gravity and Weight" }
+},
+
+"sci-gravity": {
+  topic:"Forces and Motion", topicKey:"Forces and Motion", theme:"blue", icon:"🔵",
+  title:"Gravity and Weight",
+  subtitle:"The difference between mass and weight — and why gravity varies on different planets.",
+  keyIdea:{ rule:"Weight = mass × gravitational field strength (W = mg). Mass is constant everywhere. Weight depends on the gravitational field strength, which varies by planet.", detail:"Gravity on Mars is about 3.7 N/kg — much less than on Earth (10 N/kg). This means objects weigh less on Mars but have the same mass." },
+  formulae:[
+    { main:"W = m × g", note:"W = weight (N) · m = mass (kg) · g = gravitational field strength (N/kg)" },
+    { main:"Earth: g ≈ 10 N/kg · Mars: g ≈ 3.7 N/kg · Moon: g ≈ 1.6 N/kg", note:"" },
+  ],
+  steps:[
+    { title:"Mass vs weight", detail:"Mass = amount of matter in an object. Measured in kilograms (kg). Same everywhere in the universe. Weight = gravitational force on an object. Measured in newtons (N). Varies with gravitational field strength.", formula:"" },
+    { title:"W = mg", detail:"Weight (N) = mass (kg) × gravitational field strength (N/kg). On Earth: a 10kg object weighs 10 × 10 = 100N. On Mars: same object weighs 10 × 3.7 = 37N.", formula:"" },
+    { title:"Why gravity differs", detail:"Gravity depends on the mass of the planet and distance from its centre. Mars has less mass than Earth → weaker gravitational field → objects weigh less.", formula:"" },
+    { title:"Speed of light / light-time context", detail:"From the exam: light travels at ~300,000 km/s. Distances in space are measured in light-time — a light-year is the DISTANCE light travels in one year (not a measure of time).", formula:"300,000 km/s × 60 = ~18,000,000 km/min" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Mass vs weight:</strong> Mass is in kilograms (kg) and never changes. Weight is in newtons (N) and changes with gravity. Common exam trap: 'the astronaut's mass on the Moon is 70kg' (unchanged). Weight changes." },
+    { icon:"⭐", text:"<strong>Light-time reminder:</strong> A light-year is a DISTANCE (how far light travels in a year), not a time. The exam mark scheme specifically notes this." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Saying mass changes on different planets. Mass is constant. WEIGHT changes with gravitational field strength." },
+    { text:"<strong>Common mistake:</strong> Saying gravity is weaker on Mars because it is 'further from the Sun'. The exam mark scheme explicitly says this is insufficient — correct answer is that Mars has less mass than Earth." },
+  ],
+  practice:[
+    { q:"What is the difference between mass and weight?", opts:["No difference — they are the same thing","Mass is measured in newtons, weight in kg","Mass (kg) = amount of matter, constant everywhere. Weight (N) = gravitational force, varies by planet","Weight is always greater than mass"], ans:2, exp:"<strong>Mass (kg)</strong> = amount of matter — constant everywhere. <strong>Weight (N)</strong> = gravitational force — varies with gravitational field strength." },
+    { q:"An object has mass 5kg. What is its weight on Earth (g = 10 N/kg)?", opts:["5 N","2 N","0.5 N","50 N"], ans:3, exp:"W = m × g = 5 × 10 = <strong>50 N</strong>." },
+    { q:"Why is gravity weaker on Mars than Earth?", opts:["Mars is further from the Sun","Mars is colder","Mars has less mass than Earth — less mass means a weaker gravitational field","Mars is smaller in diameter"], ans:2, exp:"Gravity depends on the <strong>mass of the planet</strong>. Mars has less mass than Earth → weaker gravitational field → less weight. (The exam mark scheme specifically rejects 'Mars is further from the Sun'.)" },
+    { q:"A light-year is:", opts:["The time light takes to travel one year","A measure of brightness","The distance light travels in one year — it is a distance, not a time","One billion kilometres"], ans:2, exp:"A light-year is a <strong>distance</strong> — the distance light travels in one year (~9.46 × 10¹² km). It is NOT a measure of time." },
+  ],
+  prevLesson:{ key:"sci-pressure", label:"Pressure" },
+  nextLesson:{ key:"sci-sound", label:"Sound — Key Terms" }
+},
+
+
+/* ════════ SCIENCE — WAVES AND LIGHT ════════ */
+"sci-sound": {
+  topic:"Waves and Light", topicKey:"Waves and Light", theme:"violet", icon:"🌈",
+  title:"Sound — Key Terms and Properties",
+  subtitle:"The vocabulary of sound waves — amplitude, frequency, pitch, compression, rarefaction and more.",
+  keyIdea:{ rule:"Sound is a longitudinal wave — particles vibrate back and forth in the direction the wave travels, creating compressions (squashed) and rarefactions (stretched). Frequency determines pitch. Amplitude determines loudness.", detail:"You must be able to define all the key terms on the word list — these are likely to appear in the exam." },
+  formulae:[
+    { main:"Frequency (Hz) = number of waves per second · measured with oscilloscope", note:"Higher frequency = higher pitch" },
+    { main:"Amplitude = maximum displacement from equilibrium · measured in decibels (dB)", note:"Greater amplitude = louder sound" },
+  ],
+  steps:[
+    { title:"Amplitude", detail:"The maximum displacement of a particle from its rest position. Larger amplitude = more energy = louder sound. Measured in decibels (dB) for sound.", formula:"" },
+    { title:"Frequency and pitch", detail:"Frequency = number of complete waves per second. Measured in hertz (Hz). Higher frequency = higher pitch (more waves per second = squeakier sound).", formula:"" },
+    { title:"Compression and rarefaction", detail:"Sound is a longitudinal wave. Compressions = regions where air particles are pushed together (high pressure). Rarefactions = regions where particles are spread apart (low pressure).", formula:"" },
+    { title:"The ear — key structures", detail:"Pinna (outer ear) → auditory canal → eardrum (vibrates) → ossicles (tiny bones, amplify) → oval window → cochlea (converts vibrations to electrical signals) → auditory nerve → brain.", formula:"" },
+    { title:"Oscilloscope", detail:"Electronic device that displays sound waves on a screen. Shows amplitude (height of wave) and frequency (number of waves). Higher wave = louder. More waves in same space = higher frequency/pitch.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Frequency vs pitch:</strong> Frequency is a physical measurement (Hz). Pitch is what we HEAR. High frequency = high pitch. They are closely linked but not the same thing." },
+    { icon:"⭐", text:"<strong>Oscilloscope reading:</strong> Taller wave = louder (greater amplitude). More waves squashed in = higher frequency = higher pitch. This often appears in exam questions." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Confusing amplitude with frequency. Amplitude = loudness. Frequency = pitch. They are independent." },
+    { text:"<strong>Common mistake:</strong> Saying sound is a transverse wave. Sound is LONGITUDINAL — particles vibrate parallel to direction of travel (compressions and rarefactions)." },
+  ],
+  practice:[
+    { q:"What is the relationship between frequency and pitch?", opts:["Higher frequency = lower pitch","Higher frequency = higher pitch — more waves per second = squeakier sound","They are unrelated","Lower frequency = higher pitch"], ans:1, exp:"<strong>Higher frequency = higher pitch.</strong> Frequency (Hz) is the physical measure; pitch is what we perceive." },
+    { q:"What are compressions and rarefactions?", opts:["Parts of a transverse wave","Compressions = regions where air particles are pushed together. Rarefactions = regions where they are spread apart. Together these make a longitudinal sound wave.","The amplitude and frequency of a wave","Reflections of sound"], ans:1, exp:"<strong>Compressions</strong> = high pressure (particles squashed). <strong>Rarefactions</strong> = low pressure (particles spread out). These form the longitudinal sound wave." },
+    { q:"On an oscilloscope, what does a taller wave indicate?", opts:["Higher frequency","Lower frequency","Greater amplitude — the sound is louder","Lower pitch"], ans:2, exp:"Taller wave = <strong>greater amplitude = louder sound.</strong>" },
+    { q:"What is the function of the cochlea?", opts:["Amplifies sound waves","Funnels sound into the ear","Converts vibrations into electrical signals sent to the brain via the auditory nerve","Protects the eardrum"], ans:2, exp:"The <strong>cochlea</strong> converts vibrations into electrical signals, which travel to the brain via the auditory nerve." },
+  ],
+  prevLesson:{ key:"sci-gravity", label:"Gravity and Weight" },
+  nextLesson:{ key:"sci-wave-equation", label:"The Wave Equation" }
+},
+
+"sci-wave-equation": {
+  topic:"Waves and Light", topicKey:"Waves and Light", theme:"violet", icon:"🌈",
+  title:"The Wave Equation",
+  subtitle:"Calculating wave speed using frequency and wavelength — v = f × λ.",
+  keyIdea:{ rule:"Wave speed = frequency × wavelength. v = f × λ. All waves obey this equation — sound, light, water waves.", detail:"Wave speed is measured in m/s, frequency in Hz, wavelength in metres. Rearrange to find any missing value." },
+  formulae:[
+    { main:"v = f × λ", note:"v = wave speed (m/s) · f = frequency (Hz) · λ = wavelength (m)" },
+    { main:"f = v ÷ λ · λ = v ÷ f", note:"Rearranged forms" },
+  ],
+  steps:[
+    { title:"The quantities", detail:"Wave speed (v): how fast the wave travels in m/s. Frequency (f): number of waves per second in Hz. Wavelength (λ): length of one complete wave in metres.", formula:"" },
+    { title:"Using the formula", detail:"v = f × λ. Identify which two values you're given and which to find. Rearrange if necessary.", formula:"" },
+    { title:"Formula triangle", detail:"Draw triangle with v at top, f and λ at bottom. Cover what you want: cover v → f × λ. Cover f → v ÷ λ. Cover λ → v ÷ f.", formula:"" },
+  ],
+  worked:[{ q:"A wave has a frequency of 500Hz and a wavelength of 0.68m. Calculate the wave speed.", lines:[
+    { step:"Formula", expr:"v = f × λ", why:"Wave equation" },
+    { step:"Substitute", expr:"v = 500 × 0.68", why:"f = 500Hz, λ = 0.68m" },
+    { step:"Calculate", expr:"v = 340 m/s", why:"Speed of sound in air ≈ 340 m/s", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>λ is the Greek letter lambda</strong> — it always represents wavelength in physics. Don't confuse it with frequency (f) or speed (v)." },
+    { icon:"⭐", text:"<strong>Speed of light = 3 × 10⁸ m/s</strong> (300,000 km/s). Speed of sound in air ≈ 340 m/s. Light travels about 1 million times faster than sound." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Multiplying f × v or λ × v instead of f × λ. The formula is v = f × λ — speed equals frequency times wavelength." },
+    { text:"<strong>Common mistake:</strong> Getting units wrong. Speed in m/s, frequency in Hz, wavelength in metres." },
+  ],
+  practice:[
+    { q:"A wave has frequency 200Hz and wavelength 1.5m. What is the wave speed?", opts:["133 m/s","300 m/s","201.5 m/s","298.5 m/s"], ans:1, exp:"v = f × λ = 200 × 1.5 = <strong>300 m/s</strong>." },
+    { q:"The speed of sound is 340 m/s and the wavelength is 0.85m. What is the frequency?", opts:["289 Hz","28.9 Hz","400 Hz","289 m/s"], ans:2, exp:"f = v ÷ λ = 340 ÷ 0.85 = <strong>400 Hz</strong>." },
+    { q:"What does λ (lambda) represent in the wave equation?", opts:["Wave speed","Frequency","Wavelength — the length of one complete wave","Amplitude"], ans:2, exp:"<strong>λ (lambda) = wavelength</strong> — the length of one complete wave cycle, measured in metres." },
+    { q:"A wave travels at 1500 m/s with a frequency of 3000Hz. What is its wavelength?", opts:["4,500,000 m","0.5 m","2 m","0.002 m"], ans:1, exp:"λ = v ÷ f = 1500 ÷ 3000 = <strong>0.5 m</strong>." },
+  ],
+  prevLesson:{ key:"sci-sound", label:"Sound — Key Terms" },
+  nextLesson:{ key:"sci-reflection", label:"Light — Reflection and Materials" }
+},
+
+"sci-reflection": {
+  topic:"Waves and Light", topicKey:"Waves and Light", theme:"violet", icon:"🌈",
+  title:"Light — Reflection and Materials",
+  subtitle:"The law of reflection, transparent/translucent/opaque materials, and how light behaves at surfaces.",
+  keyIdea:{ rule:"Law of reflection: angle of incidence = angle of reflection (both measured from the normal). Transparent materials transmit light. Translucent materials scatter it. Opaque materials absorb/reflect it and cast shadows.", detail:"The normal is an imaginary line drawn at 90° to the surface at the point where the ray hits. All angles are measured from the normal, not the surface." },
+  formulae:[
+    { main:"Angle of incidence = angle of reflection", note:"Both measured from the NORMAL (not the surface)" },
+    { main:"Transparent → transmits · Translucent → scatters · Opaque → no transmission → shadow", note:"" },
+  ],
+  steps:[
+    { title:"The law of reflection", detail:"When light hits a mirror (or any smooth surface), it bounces off. The angle at which it hits (angle of incidence) equals the angle at which it leaves (angle of reflection). Both are measured from the normal.", formula:"i = r" },
+    { title:"The normal", detail:"An imaginary line drawn at exactly 90° (perpendicular) to the reflecting surface at the point of incidence. All reflection angles are measured from this line.", formula:"" },
+    { title:"Virtual images in mirrors", detail:"The image you see in a mirror appears to be behind the mirror — it is virtual (cannot be projected onto a screen). It is the same size as the object, same distance behind the mirror as the object is in front.", formula:"" },
+    { title:"Transparent, translucent, opaque", detail:"Transparent (glass, clear plastic): most light is transmitted through. Translucent (frosted glass, tissue paper): light passes through but is scattered — blurry. Opaque (wood, metal): no light is transmitted, a shadow is produced.", formula:"" },
+    { title:"Luminous vs non-luminous", detail:"Luminous objects produce their own light (Sun, bulb, candle). Non-luminous objects do not produce light — we see them because they reflect light.", formula:"" },
+  ],
+  tips:[
+    { icon:"💡", text:"<strong>Always measure from the normal:</strong> Students often measure from the surface by mistake. The normal is the 90° line — angles of incidence and reflection are measured from it." },
+    { icon:"⭐", text:"<strong>Virtual image:</strong> An image you cannot project onto a screen. Mirror images are virtual — they appear behind the mirror but light doesn't actually come from there." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Measuring angles from the surface instead of the normal. Always measure from the NORMAL (90° to the surface)." },
+    { text:"<strong>Common mistake:</strong> Saying opaque objects absorb all light. Opaque objects may absorb OR reflect light — they just don't TRANSMIT it through." },
+  ],
+  practice:[
+    { q:"The law of reflection states that:", opts:["The angle of incidence is always 90°","The angle of incidence equals the angle of reflection, both measured from the normal","Light always reflects at 45°","The angle of reflection is always greater than the angle of incidence"], ans:1, exp:"<strong>Angle of incidence = angle of reflection</strong>, both measured from the NORMAL." },
+    { q:"A ray of light hits a mirror at an angle of incidence of 35°. What is the angle of reflection?", opts:["55°","70°","35° — angle of reflection equals angle of incidence","90°"], ans:2, exp:"Angle of reflection = angle of incidence = <strong>35°</strong>." },
+    { q:"Frosted glass is an example of a:", opts:["Transparent material","Opaque material","Translucent material — it scatters light so you can see through but not clearly","Luminous material"], ans:2, exp:"Frosted glass is <strong>translucent</strong> — light passes through but is scattered, giving a blurry image." },
+    { q:"What is a luminous object?", opts:["Any object we can see","An object that reflects light","An object that produces its own light — e.g. the Sun, a candle, a light bulb","An object that transmits light"], ans:2, exp:"A luminous object <strong>produces its own light</strong> (Sun, stars, bulbs, candles). Non-luminous objects only reflect light." },
+  ],
+  prevLesson:{ key:"sci-wave-equation", label:"The Wave Equation" },
+  nextLesson:{ key:"sci-colour", label:"Colour, Filters and the Eye" }
+},
+
+"sci-colour": {
+  topic:"Waves and Light", topicKey:"Waves and Light", theme:"violet", icon:"🌈",
+  title:"Colour, Filters and How We See",
+  subtitle:"Primary colours of light, how filters work, seeing coloured objects, and how eyes and cameras focus light.",
+  keyIdea:{ rule:"The primary colours of light are red, green and blue (RGB). White light is a mixture of all colours. Filters SUBTRACT colours — they only transmit their own colour. We see a coloured object because it reflects that colour and absorbs all others.", detail:"Light colour mixing (additive) is different from paint colour mixing (subtractive). Red + Green + Blue light = white light." },
+  formulae:[
+    { main:"Primary colours of light: Red + Green + Blue = White", note:"Additive mixing" },
+    { main:"Red + Green = Yellow · Red + Blue = Magenta · Green + Blue = Cyan", note:"Secondary colours of light" },
+    { main:"Filter: only transmits its own colour, absorbs all others", note:"e.g. red filter → only red light passes through" },
+  ],
+  steps:[
+    { title:"Primary colours of light", detail:"Red, green and blue. These combine additively: R+G = yellow, R+B = magenta, G+B = cyan, R+G+B = white.", formula:"" },
+    { title:"How filters work", detail:"A coloured filter only transmits (lets through) its own colour — it absorbs all others. A red filter transmits red and absorbs green and blue. So white light through a red filter appears red.", formula:"" },
+    { title:"Seeing coloured objects", detail:"A red apple looks red because it reflects red light and absorbs all other colours. In green light, a red apple would look black (no red light to reflect).", formula:"" },
+    { title:"Prisms and spectra", detail:"A prism refracts different colours by different amounts — dispersing white light into a spectrum (ROYGBIV). Violet is refracted most, red least.", formula:"" },
+    { title:"How the eye focuses light", detail:"Light enters through the cornea and lens. The lens refracts light onto the retina (back of eye). The image on the retina is inverted. Photoreceptors (rods and cones) detect light and send signals via the optic nerve to the brain.", formula:"" },
+  ],
+  worked:[{ q:"A white object is lit by blue light only. What colour does it appear?", lines:[
+    { step:"White object", expr:"Reflects all colours of light", why:"White = reflects everything" },
+    { step:"Blue light only", expr:"Only blue light is present in the room", why:"No red or green light to reflect" },
+    { step:"Result", expr:"The object appears BLUE", why:"It can only reflect the blue light that is hitting it", answer:true },
+  ]}],
+  tips:[
+    { icon:"💡", text:"<strong>Filter trick:</strong> A red filter only lets RED through. Put a blue filter AND a red filter in series → no light gets through (red absorbs blue, blue absorbs red)." },
+    { icon:"⭐", text:"<strong>Seeing colour rule:</strong> An object's colour = the colour it REFLECTS. If that colour is not in the light shining on it, the object absorbs everything and looks black." },
+  ],
+  mistakes:[
+    { text:"<strong>Common mistake:</strong> Confusing light colour mixing (additive, RGB→white) with paint mixing (subtractive, RGB→black/brown)." },
+    { text:"<strong>Common mistake:</strong> Saying a red filter 'adds' red light. It does not. It ABSORBS all other colours and TRANSMITS only red." },
+  ],
+  practice:[
+    { q:"What are the three primary colours of light?", opts:["Red, yellow, blue","Red, green, blue — these combine to make white light","Cyan, magenta, yellow","Red, orange, violet"], ans:1, exp:"Primary colours of light: <strong>Red, Green, Blue (RGB)</strong>. They combine to make white light." },
+    { q:"A red filter is placed in front of white light. What colour comes through?", opts:["White","Yellow","Red — the filter absorbs all other colours and only transmits red","Green"], ans:2, exp:"A red filter <strong>absorbs all colours except red</strong> → only red light is transmitted." },
+    { q:"A green leaf is placed under red light only. What colour does it appear?", opts:["Green","Red","Black — a green object reflects green light only. In red light there is no green to reflect, so it absorbs all light and appears black","Yellow"], ans:2, exp:"Green leaf reflects green, absorbs red. Under red light: <strong>no green light to reflect → appears black</strong>." },
+    { q:"In the eye, where is the image formed?", opts:["On the lens","On the cornea","On the retina — the lens focuses light onto the back of the eye where photoreceptors detect it","On the optic nerve"], ans:2, exp:"Light is focused by the lens onto the <strong>retina</strong> — photoreceptors here detect it and send signals via the optic nerve to the brain." },
+  ],
+  prevLesson:{ key:"sci-reflection", label:"Reflection and Materials" },
+  nextLesson:null
+},
+
+
 }; // end LESSONS
 
 /* ── QUIZ QUESTIONS ─────────────────────────────────────────── */
@@ -3728,37 +4623,88 @@ const QUIZ_QUESTIONS = {
     { topic:"Grammar", q:"'Voy a estudiar teatro' — what tense is this?", opts:["Present tense","Past tense","Near future: IR conjugated (voy) + a + infinitive = I am going to study","Imperfect"], ans:2, exp:"<strong>Voy (from IR) + a + infinitive = near future.</strong> I am going to study drama." },
     { topic:"Grammar", q:"'Voy a estudio teatro' — what is wrong?", opts:["Voy is wrong","Teatro should be teatros","The infinitive must be used after 'a' — not the conjugated form: 'voy a estudiar'","Nothing is wrong"], ans:2, exp:"After 'voy a', always use the <strong>infinitive</strong>: voy a estudi-AR (not estudio)." },
     { topic:"Grammar", q:"'Me gusta nadar' — why 'gusta' not 'gustan'?", opts:["Nadar is plural","Infinitives are always treated as singular → gusta (not gustan)","Me always takes gusta","Nadar is masculine"], ans:1, exp:"<strong>Infinitives = always singular → me gusta.</strong> Me gusta + any infinitive is always gusta." },
+  ],
+
+
+  science: [
+    // SCIENTIFIC SKILLS
+    { topic:"Scientific Skills", q:"In an experiment, what is the independent variable?", opts:["What you measure","What you change deliberately","What you keep the same","The control group"], ans:1, exp:"<strong>Independent variable = what you deliberately change.</strong>" },
+    { topic:"Scientific Skills", q:"The dependent variable goes on which axis of a graph?", opts:["x-axis (horizontal)","y-axis (vertical) — it is what you measure as a result","Either axis","The title"], ans:1, exp:"Dependent variable → <strong>y-axis (vertical)</strong>. Independent → x-axis." },
+    { topic:"Scientific Skills", q:"What is a line of best fit?", opts:["A line connecting every data point","A smooth line/curve through the general trend with roughly equal points above and below","The steepest line possible","A line through the first and last points only"], ans:1, exp:"Line of best fit = <strong>smooth line through the general trend</strong> — does NOT connect every point." },
+    // ACIDS AND ALKALIS
+    { topic:"Acids and Alkalis", q:"What colour does universal indicator turn at pH 7?", opts:["Red","Orange","Green — pH 7 is neutral","Purple"], ans:2, exp:"pH 7 = neutral → <strong>green</strong> on universal indicator." },
+    { topic:"Acids and Alkalis", q:"Blue litmus paper is dipped in acid. What happens?", opts:["Stays blue","Turns red — acid changes blue litmus to red","Turns green","Turns purple"], ans:1, exp:"Acid turns blue litmus <strong>red</strong>." },
+    { topic:"Acids and Alkalis", q:"What are the products of: acid + alkali?", opts:["Salt + CO₂","Salt + water — neutralisation always gives these two products","Salt + oxygen","Base + water"], ans:1, exp:"Neutralisation: acid + alkali → <strong>salt + water</strong>." },
+    { topic:"Acids and Alkalis", q:"Hydrochloric acid reacts with calcium carbonate. Which gas is produced?", opts:["Oxygen","Hydrogen","Carbon dioxide — acid + carbonate always produces CO₂","Nitrogen"], ans:2, exp:"Acid + carbonate → salt + water + <strong>carbon dioxide</strong>." },
+    { topic:"Acids and Alkalis", q:"Sulphuric acid reacts with copper oxide. Name the salt formed.", opts:["Copper chloride","Copper sulphate — H₂SO₄ gives sulphate salts","Copper nitrate","Copper carbonate"], ans:1, exp:"H₂SO₄ → sulphate. Copper from copper oxide. Salt = <strong>copper sulphate</strong>." },
+    // CHEMICAL REACTIONS
+    { topic:"Chemical Reactions", q:"Which of these is a chemical change?", opts:["Melting butter","Dissolving sugar","Burning paper — new substances (CO₂, ash, water) are formed","Cutting wood"], ans:2, exp:"Burning = <strong>chemical change</strong>. New substances formed, irreversible." },
+    { topic:"Chemical Reactions", q:"In a word equation, what symbol is used?", opts:["=","→ (an arrow) — showing reactants convert to products","≈","±"], ans:1, exp:"Word equations use <strong>→ (an arrow)</strong>, not an equals sign." },
+    { topic:"Chemical Reactions", q:"Iron reacts with oxygen. Name the product.", opts:["Iron sulphide","Iron carbonate","Iron oxide — metal + oxygen → metal oxide","Iron hydroxide"], ans:2, exp:"Metal + oxygen → metal <strong>oxide</strong>. Iron + oxygen → iron oxide." },
+    { topic:"Chemical Reactions", q:"In an exothermic reaction, the temperature of the surroundings:", opts:["Decreases","Stays the same","Increases — energy is released to the surroundings","First decreases then increases"], ans:2, exp:"Exothermic = energy released → <strong>surroundings get hotter</strong>." },
+    { topic:"Chemical Reactions", q:"What is the purpose of the gauze on a tripod?", opts:["To filter liquids","To provide a surface for a beaker to sit on safely above the Bunsen flame","To hold test tubes","To measure temperature"], ans:1, exp:"Gauze on tripod = <strong>surface for beaker to sit on safely above the Bunsen burner</strong>." },
+    // PLANTS AND ECOSYSTEMS
+    { topic:"Plants and Ecosystems", q:"What are the reactants (inputs) for photosynthesis?", opts:["Glucose and oxygen","Carbon dioxide and water (plus light energy)","Glucose and carbon dioxide","Water and oxygen"], ans:1, exp:"Photosynthesis inputs: <strong>carbon dioxide + water</strong> + light energy." },
+    { topic:"Plants and Ecosystems", q:"A plant has purple leaves and poor root growth. Which mineral is deficient?", opts:["Nitrogen","Potassium","Phosphorus — deficiency causes poor root growth and purple leaves","Magnesium"], ans:2, exp:"<strong>Phosphorus deficiency</strong> → poor root growth and purple leaves." },
+    { topic:"Plants and Ecosystems", q:"Why do plants need magnesium?", opts:["For healthy roots","For healthy flowers","To make chlorophyll — without Mg, leaves turn yellow","For protein production"], ans:2, exp:"Magnesium is needed <strong>to make chlorophyll</strong>." },
+    { topic:"Plants and Ecosystems", q:"In a food chain, what do the arrows represent?", opts:["What eats what","The direction of energy transfer — from food to feeder","Movement of animals","Population changes"], ans:1, exp:"Arrows show <strong>direction of energy transfer</strong> — from food to the organism that eats it." },
+    { topic:"Plants and Ecosystems", q:"Why do top predators have the highest toxin concentration in bioaccumulation?", opts:["They eat the most toxic food","Toxins don't break down — they accumulate at each level, and top predators eat many prey organisms, concentrating toxins further","They live longest","They produce more toxins"], ans:1, exp:"<strong>Toxins don't break down + each level eats many from below</strong> = concentration multiplies up the food chain." },
+    // ELECTRICITY
+    { topic:"Electricity", q:"Which particles move to create static electricity?", opts:["Protons","Neutrons","Electrons — they transfer from one material to the other","Ions"], ans:2, exp:"<strong>Electrons</strong> transfer during rubbing. Protons stay fixed." },
+    { topic:"Electricity", q:"Where must a voltmeter be placed in a circuit?", opts:["In series","In parallel — across the component being measured","Anywhere","Before the battery"], ans:1, exp:"Voltmeter must be in <strong>parallel</strong> (across the component)." },
+    { topic:"Electricity", q:"A bulb has 6V across it and 2A through it. What is its resistance?", opts:["12 Ω","3 Ω","0.33 Ω","8 Ω"], ans:1, exp:"R = V ÷ I = 6 ÷ 2 = <strong>3 Ω</strong>." },
+    { topic:"Electricity", q:"In which direction does conventional current flow?", opts:["From − to +","From + to − (positive to negative terminal)","In both directions","Only in AC"], ans:1, exp:"Conventional current flows <strong>positive → negative</strong>." },
+    // FORCES AND MOTION
+    { topic:"Forces and Motion", q:"A force of 300N is applied 0.8m from a pivot. What is the moment?", opts:["375 Nm","240 Nm","300.8 Nm","37.5 Nm"], ans:1, exp:"M = F × d = 300 × 0.8 = <strong>240 Nm</strong>." },
+    { topic:"Forces and Motion", q:"A broken post weighs 120N and rests on 0.2m². Calculate the pressure.", opts:["24 Pa","120.2 Pa","600 Pa","0.0017 Pa"], ans:2, exp:"P = F ÷ A = 120 ÷ 0.2 = <strong>600 Pa</strong>." },
+    { topic:"Forces and Motion", q:"Why is weight less on Mars than Earth?", opts:["Mars is further from the Sun","Mars has less mass than Earth — less mass means a weaker gravitational field","It is colder","Mars has no atmosphere"], ans:1, exp:"Mars has <strong>less mass → weaker gravitational field → less weight</strong>." },
+    { topic:"Forces and Motion", q:"What is the difference between mass and weight?", opts:["No difference","Mass (kg) is constant everywhere. Weight (N) depends on gravitational field strength and varies by planet","Weight is constant, mass varies","Mass is measured in newtons"], ans:1, exp:"<strong>Mass (kg)</strong> = constant. <strong>Weight (N)</strong> = mass × g, varies by planet." },
+    // WAVES AND LIGHT
+    { topic:"Waves and Light", q:"Higher frequency sound has:", opts:["Lower pitch","Higher pitch — more waves per second = squeakier sound","Greater amplitude","Lower volume"], ans:1, exp:"Higher frequency = <strong>higher pitch</strong>." },
+    { topic:"Waves and Light", q:"A wave has frequency 400Hz and wavelength 0.85m. What is its speed?", opts:["470.6 m/s","340 m/s","400.85 m/s","0.002 m/s"], ans:1, exp:"v = f × λ = 400 × 0.85 = <strong>340 m/s</strong> (speed of sound)." },
+    { topic:"Waves and Light", q:"The law of reflection states:", opts:["Angle of incidence = 90°","Angle of incidence = angle of reflection (both from the normal)","Reflected ray is always horizontal","Light always reflects at 45°"], ans:1, exp:"<strong>Angle of incidence = angle of reflection</strong>, both measured from the normal." },
+    { topic:"Waves and Light", q:"What are the primary colours of light?", opts:["Red, yellow, blue","Red, green, blue — combine to make white light","Cyan, magenta, yellow","Red, orange, violet"], ans:1, exp:"Primary colours of light: <strong>Red, Green, Blue (RGB)</strong>." },
+    { topic:"Waves and Light", q:"A green object is placed under red light only. What colour does it appear?", opts:["Green","Red","Black — no green light to reflect, so it absorbs all light","Yellow"], ans:2, exp:"Green object reflects green only. Under red light: <strong>no green to reflect → appears black</strong>." },
   ]
 
 };
-
+</script>
+<script>
 (function() {
-  const grid = document.getElementById('subjects-grid');
-  const subjects = Object.values(SUBJECTS);
-  subjects.forEach(function(s, i) {
-    const topics = Object.keys(s.topicMeta || {});
-    const chips = topics.slice(0,6).map(function(t){ return '<span class="mini-chip">'+t+'</span>'; }).join('');
-    const quizCount = (QUIZ_QUESTIONS[s.id] || []).length;
-    const card = document.createElement('a');
+  var grid = document.getElementById('grid');
+  var subjects = Object.values(SUBJECTS);
+  for (var i = 0; i < subjects.length; i++) {
+    var s = subjects[i];
+    var topics = Object.keys(s.topicMeta || {});
+    var quizCount = (QUIZ_QUESTIONS[s.id] || []).length;
+    
+    var chips = '';
+    for (var t = 0; t < Math.min(topics.length, 6); t++) {
+      chips += '<span class="mini-chip">' + topics[t] + '</span>';
+    }
+    
+    var card = document.createElement('a');
     card.className = 'subject-card';
     card.href = 'mindmap.html?subject=' + s.id;
     card.style.animationDelay = (i * 0.07) + 's';
-    card.style.textDecoration = 'none';
-    card.innerHTML =
+    card.innerHTML = 
       '<div class="card-bar" style="background:linear-gradient(90deg,' + s.gradient[0] + ',' + s.gradient[1] + ')"></div>' +
       '<div class="card-body">' +
         '<div class="card-row">' +
           '<div class="card-icon">' + s.icon + '</div>' +
-          '<div><div class="card-name">' + s.name + '</div><div class="card-meta">' + topics.length + ' topics &middot; ' + quizCount + ' quiz questions</div></div>' +
+          '<div>' +
+            '<div class="card-name">' + s.name + '</div>' +
+            '<div class="card-meta">' + topics.length + ' topics &middot; ' + quizCount + ' quiz questions</div>' +
+          '</div>' +
         '</div>' +
         '<div class="topic-chips">' + chips + '</div>' +
-        '<div class="card-actions" onclick="event.stopPropagation()">' +
-          '<a class="action-btn" href="mindmap.html?subject=' + s.id + '">🗺 Mind Map</a>' +
-          '<a class="action-btn" href="quiz.html?subject=' + s.id + '">✏️ Quiz</a>' +
+        '<div class="card-actions">' +
+          '<a class="action-btn" href="mindmap.html?subject=' + s.id + '" onclick="event.stopPropagation()">🗺 Mind Map</a>' +
+          '<a class="action-btn" href="quiz.html?subject=' + s.id + '" onclick="event.stopPropagation()">✏️ Quiz</a>' +
         '</div>' +
       '</div>';
     grid.appendChild(card);
-  });
+  }
 })();
 </script>
 </body>
