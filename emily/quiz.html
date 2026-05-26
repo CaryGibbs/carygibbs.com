@@ -178,6 +178,14 @@ if (FIREBASE_CFG.apiKey !== "PASTE_YOUR_API_KEY_HERE") {
 
 var HUB_STORE    = 'emilys_hub_v1';
 var STREAK_STORE = 'emilys_streak_v1';
+
+/* ── MIGRATE OLD DATA ──────────────────────────────────── */
+(function migrateLegacy() {
+  try {
+    // Remove old results key that conflicts with the XP engine
+    localStorage.removeItem('emilys_results_v1');
+  } catch(e) {}
+})();
 var FIREBASE_CFG = null; // set by firebase-config.js when available
 
 /* ── XP VALUES ─────────────────────────────────────────── */
@@ -468,7 +476,11 @@ function trackMindmapVisit(sid) {
 
 /* ── FIREBASE SYNC ──────────────────────────────────────── */
 function _firebaseSync(d, sid, topicScores, score, total, pct) {
-  if (!window.firebase || !FIREBASE_CFG) return;
+  // If Firebase not ready yet, retry after 3 seconds
+  if (!window.firebase || !window.firebase.apps || !firebase.apps.length) {
+    setTimeout(function(){ _firebaseSync(d, sid, topicScores, score, total, pct); }, 3000);
+    return;
+  }
   try {
     var db = firebase.database();
     var ref = db.ref('emily');
@@ -570,58 +582,6 @@ function renderXPBar() {
 </script>
 
 <script>
-// ── RESULTS STORAGE ──────────────────────────────────────────────
-const STORE_KEY = 'emilys_results_v1';
-const STREAK_KEY = 'emilys_streak_v1';
-
-function loadResults() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
-}
-function saveResults(data) {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e) {}
-}
-
-function recordQuizResult(subjectId, topicScores, totalScore, totalQuestions) {
-  var data = loadResults();
-  if (!data[subjectId]) data[subjectId] = { sessions: [], topicTotals: {} };
-  var subj = data[subjectId];
-
-  // Record session
-  subj.sessions.push({
-    date: new Date().toISOString().slice(0,10),
-    ts: Date.now(),
-    score: totalScore,
-    total: totalQuestions,
-    pct: Math.round((totalScore / totalQuestions) * 100)
-  });
-  // Keep last 50 sessions per subject
-  if (subj.sessions.length > 50) subj.sessions = subj.sessions.slice(-50);
-
-  // Accumulate topic totals
-  Object.entries(topicScores).forEach(function(entry) {
-    var t = entry[0], v = entry[1];
-    if (!subj.topicTotals[t]) subj.topicTotals[t] = { correct: 0, attempted: 0 };
-    subj.topicTotals[t].correct += v.c;
-    subj.topicTotals[t].attempted += v.t;
-  });
-
-  saveResults(data);
-  updateStreak();
-}
-
-function updateStreak() {
-  try {
-    var today = new Date().toISOString().slice(0,10);
-    var streak = JSON.parse(localStorage.getItem(STREAK_KEY)) || { count: 0, lastDate: '' };
-    var last = streak.lastDate;
-    if (last === today) return; // already counted today
-    var yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
-    streak.count = (last === yesterday) ? streak.count + 1 : 1;
-    streak.lastDate = today;
-    localStorage.setItem(STREAK_KEY, JSON.stringify(streak));
-  } catch(e) {}
-}
-
 // ── QUIZ SETUP ───────────────────────────────────────────────────
 var params = new URLSearchParams(location.search);
 var sid = params.get('subject') || 'maths';

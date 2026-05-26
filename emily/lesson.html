@@ -443,7 +443,7 @@ function trackMindmapVisit(sid) {
 
 /* ── FIREBASE SYNC ──────────────────────────────────────── */
 function _firebaseSync(d, sid, topicScores, score, total, pct) {
-  if (!window.firebase || !FIREBASE_CFG) return;
+  if (!window.firebase || !window.firebase.apps || !firebase.apps.length) return;
   try {
     var db = firebase.database();
     var ref = db.ref('emily');

@@ -122,10 +122,12 @@ nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color
 <script>
 /* ─── inline gamification engine ─────────────────────── */
 var HUB_STORE='emilys_hub_v1',STREAK_STORE='emilys_streak_v1';
+(function(){try{localStorage.removeItem('emilys_results_v1');}catch(e){}})();
+
 var LEVELS=[{level:1,title:'Starter',xp:0,emoji:'🌱'},{level:2,title:'Learner',xp:100,emoji:'📖'},{level:3,title:'Scholar',xp:300,emoji:'🎓'},{level:4,title:'Expert',xp:600,emoji:'🔬'},{level:5,title:'Champion',xp:1000,emoji:'🏆'},{level:6,title:'Legend',xp:1500,emoji:'⭐'}];
 var BADGE_DEFS=[{id:'first_quiz',emoji:'🎉',title:'First Steps',desc:'Complete your first quiz'},{id:'perfect_ten',emoji:'💯',title:'Perfect Ten',desc:'Score 10/10 on any quiz'},{id:'streak_3',emoji:'🔥',title:'On Fire',desc:'3-day streak'},{id:'streak_7',emoji:'🌟',title:'Week Warrior',desc:'7-day streak'},{id:'streak_30',emoji:'🚀',title:'Unstoppable',desc:'30-day streak'},{id:'bookworm',emoji:'📚',title:'Bookworm',desc:'Read 20 lessons'},{id:'explorer',emoji:'🌍',title:'Explorer',desc:'Quiz in every subject'},{id:'sharp',emoji:'🎯',title:'Sharp Shooter',desc:'Answer 100 questions correctly'},{id:'comeback',emoji:'💪',title:'Comeback Kid',desc:'Improve a topic from below 60% to above 70%'},{id:'star_pupil',emoji:'⭐',title:'Star Pupil',desc:'Score 90%+ five times'},{id:'trending',emoji:'📈',title:'Trending Up',desc:'Improve score in same subject 3 sessions running'},{id:'all_rounder',emoji:'🎪',title:'All-Rounder',desc:'Score 70%+ in every subject at least once'},{id:'century',emoji:'💫',title:'Century',desc:'Complete 100 quizzes'},{id:'night_owl',emoji:'🦉',title:'Night Owl',desc:'Complete a quiz after 9pm'},{id:'early_bird',emoji:'🐦',title:'Early Bird',desc:'Complete a quiz before 8am'},{id:'lesson_20',emoji:'🧠',title:'Deep Diver',desc:'Read 20 different lessons'}];
 function _load(){try{return JSON.parse(localStorage.getItem(HUB_STORE))||_blank();}catch(e){return _blank();}}
-function _blank(){return{xp:0,badges:[],lessonsRead:[],quizSessions:[],topicHistory:{},subjectSessions:{},activity:{}};}
+function _blank(){return{xp:0,badges:[],lessonsRead:[],quizSessions:[],topicHistory:{},subjectSessions:{},activity:{},timeLog:{}};}
 function getLevel(xp){var lv=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].xp)lv=LEVELS[i];else break;}return lv;}
 function getNextLevel(xp){for(var i=0;i<LEVELS.length;i++){if(LEVELS[i].xp>xp)return LEVELS[i];}return null;}
 function getLevelProgress(xp){var cur=getLevel(xp),next=getNextLevel(xp);if(!next)return 100;return Math.round(((xp-cur.xp)/(next.xp-cur.xp))*100);}
@@ -194,7 +196,7 @@ function render() {
     + '<div class="level-emoji">'+lv.emoji+'</div>'
     + '<div class="level-info">'
     + '<div class="level-title">Level '+lv.level+' — '+lv.title+'</div>'
-    + '<div class="level-xp">'+d.xp+' XP total'+(streak>0?' · 🔥 '+streak+' day streak':' · No active streak')+'</div>'
+    + '<div class="level-xp">'+(d.xp||0)+' XP total'+(streak>0?' · 🔥 '+streak+' day streak':' · No active streak')+'</div>'
     + '<div class="xp-track"><div class="xp-fill" style="width:'+prog+'%"></div></div>'
     + (next ? '<div class="xp-next">'+next.emoji+' '+next.title+' in '+(next.xp-d.xp)+' XP</div>' : '<div class="xp-next" style="color:#ffd580">🏆 Maximum level reached!</div>')
     + '</div></div>';
@@ -206,7 +208,7 @@ function render() {
   var lessonsRead = (d.lessonsRead||[]).length;
 
   html += '<div class="stats-row anim">'
-    + '<div class="stat-card"><div class="stat-val" style="color:#ffd580">'+d.xp+'</div><div class="stat-lbl">Total XP</div></div>'
+    + '<div class="stat-card"><div class="stat-val" style="color:#ffd580">'+(d.xp||0)+'</div><div class="stat-lbl">Total XP</div></div>'
     + '<div class="stat-card"><div class="stat-val" style="color:#b2f0bb">'+(hasData?overallPct+'%':'—')+'</div><div class="stat-lbl">Overall Score</div></div>'
     + '<div class="stat-card"><div class="stat-val" style="color:#c4bbff">'+(d.quizSessions||[]).length+'</div><div class="stat-lbl">Quizzes Done</div></div>'
     + '<div class="stat-card"><div class="stat-val" style="color:#9ef5e2">'+lessonsRead+'</div><div class="stat-lbl">Lessons Read</div></div>'
@@ -353,7 +355,7 @@ function renderXPBar() {
   bar.innerHTML='<a href="results.html" style="display:flex;align-items:center;gap:10px;flex:1;text-decoration:none;min-width:0">'
     +'<span style="font-size:18px;flex-shrink:0">'+lv.emoji+'</span>'
     +'<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-    +'<span style="font-family:Nunito,sans-serif;font-size:12px;font-weight:800;color:#c4bbff">'+lv.title+' · '+d.xp+' XP</span>'
+    +'<span style="font-family:Nunito,sans-serif;font-size:12px;font-weight:800;color:#c4bbff">'+lv.title+' · '+(d.xp||0)+' XP</span>'
     +(next?'<span style="font-size:11px;color:var(--dim)">'+next.title+' in '+(next.xp-d.xp)+' XP</span>':'<span style="font-size:11px;color:#ffd580">MAX</span>')
     +'</div><div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+prog+'%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:3px;transition:width .6s"></div></div></div></a>'
     +(streak>0?'<span style="font-size:13px;font-weight:700;color:#ffd580;white-space:nowrap">🔥 '+streak+'</span>':'')
