@@ -517,11 +517,12 @@ function renderMain(data) {
 
 /* ── LOAD DATA ─────────────────────────────────────────── */
 function load() {
-  document.getElementById('last-updated').textContent = 'Loading…';
   if (!window.firebase || !firebase.apps || !firebase.apps.length) {
     document.getElementById('last-updated').textContent = 'Connecting…';
+    setTimeout(load, 500);  // retry in 500ms
     return;
   }
+  document.getElementById('last-updated').textContent = 'Loading…';
   var ref = firebase.database().ref('emily');
   Promise.all([
     ref.child('summary').once('value'),
@@ -543,12 +544,8 @@ function load() {
 
 setInterval(function(){ if(window.firebase&&firebase.apps&&firebase.apps.length) load(); }, 60000);
 
-// Load data on page ready
-document.addEventListener('DOMContentLoaded', function() {
-  if (window.firebase && firebase.apps && firebase.apps.length) {
-    load();
-  }
-});
+// Load data immediately - Firebase is already initialised via <head> scripts
+load();
 
 /* ── RESET ─────────────────────────────────────────────── */
 function showResetConfirm() {
