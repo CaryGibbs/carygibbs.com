@@ -5626,41 +5626,7 @@ const QUIZ_QUESTIONS = {
 };
 </script>
 
-<script>
-/* ═══════════════════════════════════════════════════════════
-   FIREBASE CONFIG — paste your config values here
-   Get these from: Firebase Console → Project Settings → Your Apps
-   ═══════════════════════════════════════════════════════════ */
 
-var FIREBASE_CFG = {
-  apiKey:            "PASTE_YOUR_API_KEY_HERE",
-  authDomain:        "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL:       "https://PASTE_YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId:         "PASTE_YOUR_PROJECT_ID",
-  storageBucket:     "PASTE_YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId:             "PASTE_YOUR_APP_ID"
-};
-
-// Initialise Firebase if config has been filled in
-if (FIREBASE_CFG.apiKey !== "PASTE_YOUR_API_KEY_HERE") {
-  var firebaseScript = document.createElement('script');
-  firebaseScript.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-  firebaseScript.onload = function() {
-    var dbScript = document.createElement('script');
-    dbScript.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
-    dbScript.onload = function() {
-      firebase.initializeApp(FIREBASE_CFG);
-      console.log('Firebase connected ✓');
-    };
-    document.head.appendChild(dbScript);
-  };
-  document.head.appendChild(firebaseScript);
-} else {
-  console.log('Firebase not configured — using localStorage only');
-}
-
-</script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    EMILY'S HUB — GAMIFICATION + TRACKING ENGINE
@@ -5670,7 +5636,6 @@ if (FIREBASE_CFG.apiKey !== "PASTE_YOUR_API_KEY_HERE") {
 
 var HUB_STORE    = 'emilys_hub_v1';
 var STREAK_STORE = 'emilys_streak_v1';
-var FIREBASE_CFG = null; // set by firebase-config.js when available
 
 /* ── XP VALUES ─────────────────────────────────────────── */
 var XP = {
@@ -5768,6 +5733,7 @@ function getStreak() {
 
 /* ── XP / LEVEL HELPERS ─────────────────────────────────── */
 function getLevel(xp) {
+  xp = xp || 0;
   var lv = LEVELS[0];
   for (var i = 0; i < LEVELS.length; i++) {
     if (xp >= LEVELS[i].xp) lv = LEVELS[i]; else break;
@@ -5775,12 +5741,14 @@ function getLevel(xp) {
   return lv;
 }
 function getNextLevel(xp) {
+  xp = xp || 0;
   for (var i = 0; i < LEVELS.length; i++) {
     if (LEVELS[i].xp > xp) return LEVELS[i];
   }
   return null;
 }
 function getLevelProgress(xp) {
+  xp = xp || 0;
   var cur = getLevel(xp), next = getNextLevel(xp);
   if (!next) return 100;
   return Math.round(((xp - cur.xp) / (next.xp - cur.xp)) * 100);
