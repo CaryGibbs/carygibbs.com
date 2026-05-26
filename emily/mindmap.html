@@ -138,8 +138,16 @@ var BADGE_DEFS = [
 
 /* ── LOCAL STORE HELPERS ───────────────────────────────── */
 function _load() {
-  try { return JSON.parse(localStorage.getItem(HUB_STORE)) || _blank(); }
-  catch(e) { return _blank(); }
+  try {
+    var d = JSON.parse(localStorage.getItem(HUB_STORE)) || _blank();
+    if (!d.xp || isNaN(d.xp)) d.xp = 0;
+    if (!d.badges) d.badges = [];
+    if (!d.quizSessions) d.quizSessions = [];
+    if (!d.topicHistory) d.topicHistory = {};
+    if (!d.subjectSessions) d.subjectSessions = {};
+    if (!d.activity) d.activity = {};
+    return d;
+  } catch(e) { return _blank(); }
 }
 function _save(d) {
   try { localStorage.setItem(HUB_STORE, JSON.stringify(d)); } catch(e) {}

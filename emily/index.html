@@ -130,8 +130,16 @@ var BADGE_DEFS = [
 
 /* ── LOCAL STORE HELPERS ───────────────────────────────── */
 function _load() {
-  try { return JSON.parse(localStorage.getItem(HUB_STORE)) || _blank(); }
-  catch(e) { return _blank(); }
+  try {
+    var d = JSON.parse(localStorage.getItem(HUB_STORE)) || _blank();
+    if (!d.xp || isNaN(d.xp)) d.xp = 0;
+    if (!d.badges) d.badges = [];
+    if (!d.quizSessions) d.quizSessions = [];
+    if (!d.topicHistory) d.topicHistory = {};
+    if (!d.subjectSessions) d.subjectSessions = {};
+    if (!d.activity) d.activity = {};
+    return d;
+  } catch(e) { return _blank(); }
 }
 function _save(d) {
   try { localStorage.setItem(HUB_STORE, JSON.stringify(d)); } catch(e) {}
@@ -462,9 +470,9 @@ function renderXPBar() {
     + '<div style="flex:1;min-width:0">'
     +   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
     +     '<span style="font-family:Nunito,sans-serif;font-size:12px;font-weight:800;color:#c4bbff;white-space:nowrap">'
-    +       lv.title + ' · ' + d.xp + ' XP'
+    +       lv.title + ' · ' + (d.xp||0) + ' XP'
     +     '</span>'
-    +     (next ? '<span style="font-size:11px;color:rgba(240,238,255,.35)">' + next.title + ' in ' + (next.xp - d.xp) + ' XP</span>' : '<span style="font-size:11px;color:#ffd580">MAX LEVEL</span>')
+    +     (next ? '<span style="font-size:11px;color:rgba(240,238,255,.35)">' + next.title + ' in ' + (next.xp - (d.xp||0)) + ' XP</span>' : '<span style="font-size:11px;color:#ffd580">MAX LEVEL</span>')
     +   '</div>'
     +   '<div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">'
     +     '<div style="height:100%;width:' + prog + '%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:3px;transition:width .6s ease"></div>'
