@@ -408,7 +408,49 @@ function renderXPBar() {
     +'<span style="font-size:11px;font-weight:700;color:rgba(240,238,255,.35);white-space:nowrap;flex-shrink:0">My Stats ›</span>';
 }
 
-render();
+// Smart load: if localStorage empty, try to restore from Firebase first
+function loadAndRender() {
+  var d = _load();
+  if ((d.quizSessions || []).length === 0 && window.firebase && firebase.apps && firebase.apps.length) {
+    // localStorage empty — try Firebase
+    firebase.database().ref('emily').once('value').then(function(snap) {
+      var fb = snap.val() || {};
+      if (fb.sessions && Object.keys(fb.sessions).length > 0) {
+        // Rebuild localStorage from Firebase data
+        var sessions = Object.values(fb.sessions).sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+        var d2 = _load();
+        d2.xp = (fb.summary && fb.summary.xp) || 0;
+        d2.badges = (fb.summary && fb.summary.badges) || [];
+        d2.quizSessions = sessions.map(function(s) {
+          return {sid:s.sid, date:s.date, ts:s.ts, score:s.score, total:s.total, pct:s.pct, topicScores:s.topicScores||{}};
+        });
+        // Rebuild topicHistory from sessions
+        d2.topicHistory = {};
+        d2.subjectSessions = {};
+        sessions.forEach(function(s) {
+          if (!d2.subjectSessions[s.sid]) d2.subjectSessions[s.sid] = [];
+          d2.subjectSessions[s.sid].push(s.pct);
+          if (s.topicScores) {
+            if (!d2.topicHistory[s.sid]) d2.topicHistory[s.sid] = {};
+            Object.entries(s.topicScores).forEach(function(e) {
+              var t=e[0],v=e[1];
+              if (!d2.topicHistory[s.sid][t]) d2.topicHistory[s.sid][t] = [];
+              if (v.t > 0) d2.topicHistory[s.sid][t].push(Math.round((v.c/v.t)*100));
+            });
+          }
+        });
+        _save(d2);
+        console.log('✅ Restored from Firebase:', sessions.length, 'sessions');
+      }
+      render();
+      renderXPBar();
+    }).catch(function() { render(); renderXPBar(); });
+  } else {
+    render();
+    renderXPBar();
+  }
+}
+loadAndRender();
 renderXPBar();
 
 /* ── TIME TRACKING ─────────────────────────────────────── */
