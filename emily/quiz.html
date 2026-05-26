@@ -134,6 +134,7 @@
   </div>
 </div>
 <script src="data.js"></script>
+<script src="firebase-config.js"></script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -458,34 +459,59 @@ function trackMindmapVisit(sid) {
 
 /* ── FIREBASE SYNC ──────────────────────────────────────── */
 function _firebaseSync(d, sid, topicScores, score, total, pct) {
-  // If Firebase not ready yet, retry after 3 seconds
+  // Wait for Firebase to be ready, retry up to 10 times
   if (!window.firebase || !window.firebase.apps || !firebase.apps.length) {
-    setTimeout(function(){ _firebaseSync(d, sid, topicScores, score, total, pct); }, 3000);
+    if (typeof _fbRetries === 'undefined') window._fbRetries = 0;
+    window._fbRetries++;
+    if (window._fbRetries < 10) {
+      console.log('Firebase not ready, retry', window._fbRetries);
+      setTimeout(function(){ _firebaseSync(d, sid, topicScores, score, total, pct); }, 2000);
+    }
     return;
   }
+  window._fbRetries = 0;
   try {
     var db = firebase.database();
     var ref = db.ref('emily');
+
+    // Flatten topicScores safely
+    var ts = {};
+    Object.keys(topicScores).forEach(function(k) {
+      ts[k] = { c: topicScores[k].c, t: topicScores[k].t };
+    });
+
     // Push quiz session
     ref.child('sessions').push({
-      sid:sid, date:_today(), ts:Date.now(),
-      score:score, total:total, pct:pct,
-      topicScores: Object.fromEntries
-        ? Object.fromEntries(Object.entries(topicScores).map(function(e){ return [e[0],{c:e[1].c,t:e[1].t}]; }))
-        : topicScores
-    });
+      sid: sid, date: _today(), ts: Date.now(),
+      score: score, total: total, pct: pct,
+      topicScores: ts
+    }).then(function(){ console.log('✅ Firebase session saved'); })
+      .catch(function(e){ console.error('❌ Firebase session error:', e); });
+
     // Update summary
     ref.child('summary').set({
-      xp: d.xp,
-      badges: d.badges,
+      xp: d.xp || 0,
+      badges: d.badges || [],
       streak: getStreak(),
       lastActive: _today(),
-      totalQuizzes: d.quizSessions.length,
+      totalQuizzes: (d.quizSessions || []).length,
       lastUpdated: Date.now()
     });
+
+    // Sync timeLog
+    var tl = d.timeLog || {};
+    var today = _today();
+    if (tl[today]) {
+      ref.child('timeLog').child(today).set(tl[today]);
+    }
+
     // Activity heatmap
     ref.child('activity').child(_today()).transaction(function(cur){ return (cur||0) + 5; });
-  } catch(e) { console.warn('Firebase sync failed:', e); }
+
+    console.log('✅ Firebase sync complete — XP:', d.xp);
+  } catch(e) {
+    console.error('❌ Firebase sync failed:', e);
+  }
 }
 
 /* ── XP TOAST (shown in quiz/lesson pages) ─────────────── */
