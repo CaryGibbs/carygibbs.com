@@ -409,60 +409,74 @@ function renderXPBar() {
 }
 
 // Smart load: if localStorage empty, try to restore from Firebase first
-function loadAndRender() {
-  // Always attempt Firebase sync on page load
-  function doRender() { render(); renderXPBar(); }
-
-  // If firebase not ready yet, wait for it
+/* v2 */ function loadAndRender() {
   if (!window.firebase || !firebase.apps || !firebase.apps.length) {
     setTimeout(loadAndRender, 300);
     return;
   }
-
-  var d = _load();
-  var hasLocal = (d.quizSessions || []).length > 0;
-
-  // Always fetch from Firebase to get latest data
+  var KEY = 'emilys_hub_v1';
   firebase.database().ref('emily').once('value').then(function(snap) {
     var fb = snap.val() || {};
     var fbSessions = fb.sessions ? Object.values(fb.sessions) : [];
-    
-    if (fbSessions.length === 0) {
-      // No Firebase data either - just render what we have
-      doRender();
-      return;
+    if (fbSessions.length > 0) {
+      var existing = JSON.parse(localStorage.getItem(KEY) || '{}');
+      var localCount = (existing.quizSessions || []).length;
+      if (fbSessions.length >= localCount) {
+        var sessions = fbSessions.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+        var d = existing;
+        if (!d.badges) d.badges = [];
+        if (!d.quizSessions) d.quizSessions = [];
+        if (!d.topicHistory) d.topicHistory = {};
+        if (!d.subjectSessions) d.subjectSessions = {};
+        if (!d.activity) d.activity = {};
+        if (!d.lessonsRead) d.lessonsRead = [];
+        if (!d.mindmapVisits) d.mindmapVisits = {};
+        // Recompute XP and badges from actual sessions (don't trust stored values)
+        var computedXP = 0;
+        var computedBadges = [];
+        sessions.forEach(function(s){
+          computedXP += 10; // base per quiz
+          if (s.score === s.total) computedXP += 20; // perfect
+          else if (s.pct >= 90) computedXP += 15; // 90%+
+        });
+        // Award badges based on computed data
+        if (sessions.length >= 1) computedBadges.push('first_quiz');
+        if (sessions.some(function(s){return s.score===s.total && s.total===10;})) computedBadges.push('perfect_ten');
+        // Keep other badges from Firebase if they exist (streaks, bookworm etc)
+        var keepBadges = ['streak_3','streak_7','streak_30','bookworm','explorer',
+                          'sharp','comeback','star_pupil','trending','all_rounder',
+                          'century','night_owl','early_bird','lesson_20'];
+        var fbBadges = (fb.summary && fb.summary.badges) || [];
+        keepBadges.forEach(function(b){ if (fbBadges.indexOf(b)>-1) computedBadges.push(b); });
+        d.xp = computedXP;
+        d.badges = computedBadges;
+        d.quizSessions = sessions.map(function(s){
+          return {sid:s.sid||'', date:s.date||'', ts:s.ts||0,
+                  score:s.score||0, total:s.total||10, pct:s.pct||0,
+                  topicScores:s.topicScores||{}};
+        });
+        d.topicHistory = {};
+        d.subjectSessions = {};
+        sessions.forEach(function(s){
+          if (!d.subjectSessions[s.sid]) d.subjectSessions[s.sid] = [];
+          d.subjectSessions[s.sid].push(s.pct||0);
+          if (s.topicScores) {
+            if (!d.topicHistory[s.sid]) d.topicHistory[s.sid] = {};
+            Object.entries(s.topicScores).forEach(function(e){
+              var t=e[0], v=e[1];
+              if (!d.topicHistory[s.sid][t]) d.topicHistory[s.sid][t]=[];
+              if (v && v.t>0) d.topicHistory[s.sid][t].push(Math.round((v.c/v.t)*100));
+            });
+          }
+        });
+        try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){}
+        console.log('✅ My Progress synced: '+sessions.length+' sessions, XP:'+d.xp);
+      }
     }
-
-    // Use whichever has more sessions (Firebase is source of truth)
-    if (fbSessions.length >= (d.quizSessions||[]).length) {
-      var sessions = fbSessions.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
-      var d2 = _load();
-      d2.xp = (fb.summary && fb.summary.xp) || 0;
-      d2.badges = (fb.summary && fb.summary.badges) || [];
-      d2.quizSessions = sessions.map(function(s){
-        return {sid:s.sid, date:s.date, ts:s.ts||0, score:s.score, total:s.total, pct:s.pct, topicScores:s.topicScores||{}};
-      });
-      d2.topicHistory = {};
-      d2.subjectSessions = {};
-      sessions.forEach(function(s){
-        if (!d2.subjectSessions[s.sid]) d2.subjectSessions[s.sid] = [];
-        d2.subjectSessions[s.sid].push(s.pct);
-        if (s.topicScores) {
-          if (!d2.topicHistory[s.sid]) d2.topicHistory[s.sid] = {};
-          Object.entries(s.topicScores).forEach(function(e){
-            var t=e[0],v=e[1];
-            if (!d2.topicHistory[s.sid][t]) d2.topicHistory[s.sid][t]=[];
-            if (v.t>0) d2.topicHistory[s.sid][t].push(Math.round((v.c/v.t)*100));
-          });
-        }
-      });
-      try { localStorage.setItem(HUB_STORE, JSON.stringify(d2)); } catch(e) {}
-      console.log('✅ Synced from Firebase: '+sessions.length+' sessions, XP: '+d2.xp);
-    }
-    doRender();
-  }).catch(function(e){ 
+    render(); renderXPBar();
+  }).catch(function(e){
     console.warn('Firebase fetch failed:', e);
-    doRender(); 
+    render(); renderXPBar();
   });
 }
 loadAndRender();
