@@ -789,6 +789,36 @@ setInterval(function() {
   _pageStart = Date.now(); // reset so we don't double-count
 }, 60000);
 
+
+/* ── REMOTE RESET CHECK ────────────────────────────────── */
+function checkRemoteReset() {
+  if (!window.firebase || !firebase.apps || !firebase.apps.length) return;
+  firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
+    if (!snap.val()) return; // no reset requested
+    console.log('🔄 Remote reset detected — clearing local data');
+    // Clear all local storage keys
+    try {
+      localStorage.removeItem('emilys_hub_v1');
+      localStorage.removeItem('emilys_streak_v1');
+      localStorage.removeItem('emilys_results_v1');
+    } catch(e) {}
+    // Remove the flag from Firebase so it only fires once
+    firebase.database().ref('emily/resetRequested').remove();
+    // Reload the page so everything starts fresh
+    console.log('✅ Local data cleared — reloading');
+    setTimeout(function(){ location.reload(); }, 500);
+  }).catch(function(e){ console.warn('Reset check failed:', e); });
+}
+
+// Run reset check once Firebase is confirmed ready
+// We hook into the existing Firebase init by polling
+var _resetCheckInterval = setInterval(function() {
+  if (window.firebase && firebase.apps && firebase.apps.length) {
+    clearInterval(_resetCheckInterval);
+    checkRemoteReset();
+  }
+}, 1000);
+
 </script>
 </body>
 </html>
