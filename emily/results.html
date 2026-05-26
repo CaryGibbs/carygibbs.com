@@ -142,7 +142,58 @@ var HUB_STORE='emilys_hub_v1',STREAK_STORE='emilys_streak_v1';
 (function(){try{localStorage.removeItem('emilys_results_v1');}catch(e){}})();
 
 var LEVELS=[{level:1,title:'Starter',xp:0,emoji:'🌱'},{level:2,title:'Learner',xp:100,emoji:'📖'},{level:3,title:'Scholar',xp:300,emoji:'🎓'},{level:4,title:'Expert',xp:600,emoji:'🔬'},{level:5,title:'Champion',xp:1000,emoji:'🏆'},{level:6,title:'Legend',xp:1500,emoji:'⭐'}];
-var BADGE_DEFS=[{id:'first_quiz',emoji:'🎉',title:'First Steps',desc:'Complete your first quiz'},{id:'perfect_ten',emoji:'💯',title:'Perfect Ten',desc:'Score 10/10 on any quiz'},{id:'streak_3',emoji:'🔥',title:'On Fire',desc:'3-day streak'},{id:'streak_7',emoji:'🌟',title:'Week Warrior',desc:'7-day streak'},{id:'streak_30',emoji:'🚀',title:'Unstoppable',desc:'30-day streak'},{id:'bookworm',emoji:'📚',title:'Bookworm',desc:'Read 20 lessons'},{id:'explorer',emoji:'🌍',title:'Explorer',desc:'Quiz in every subject'},{id:'sharp',emoji:'🎯',title:'Sharp Shooter',desc:'Answer 100 questions correctly'},{id:'comeback',emoji:'💪',title:'Comeback Kid',desc:'Improve a topic from below 60% to above 70%'},{id:'star_pupil',emoji:'⭐',title:'Star Pupil',desc:'Score 90%+ five times'},{id:'trending',emoji:'📈',title:'Trending Up',desc:'Improve score in same subject 3 sessions running'},{id:'all_rounder',emoji:'🎪',title:'All-Rounder',desc:'Score 70%+ in every subject at least once'},{id:'century',emoji:'💫',title:'Century',desc:'Complete 100 quizzes'},{id:'night_owl',emoji:'🦉',title:'Night Owl',desc:'Complete a quiz after 9pm'},{id:'early_bird',emoji:'🐦',title:'Early Bird',desc:'Complete a quiz before 8am'},{id:'lesson_20',emoji:'🧠',title:'Deep Diver',desc:'Read 20 different lessons'}];
+var BADGE_DEFS=[
+  // Original
+  {id:'first_quiz',emoji:'🎉',title:'First Steps',desc:'Complete your first quiz'},
+  {id:'perfect_ten',emoji:'💯',title:'Perfect Ten',desc:'Score 10/10 on any quiz'},
+  {id:'streak_3',emoji:'🔥',title:'On Fire',desc:'3-day streak'},
+  {id:'streak_7',emoji:'🌟',title:'Week Warrior',desc:'7-day streak'},
+  {id:'streak_30',emoji:'🚀',title:'Unstoppable',desc:'30-day streak'},
+  {id:'bookworm',emoji:'📚',title:'Bookworm',desc:'Read 20 lessons'},
+  {id:'explorer',emoji:'🌍',title:'Explorer',desc:'Quiz in every subject'},
+  {id:'sharp',emoji:'🎯',title:'Sharp Shooter',desc:'Answer 100 questions correctly'},
+  {id:'comeback',emoji:'💪',title:'Comeback Kid',desc:'Improve a topic from below 60% to above 70%'},
+  {id:'star_pupil',emoji:'⭐',title:'Star Pupil',desc:'Score 90%+ five times'},
+  {id:'trending',emoji:'📈',title:'Trending Up',desc:'Improve score in same subject 3 sessions running'},
+  {id:'all_rounder',emoji:'🎪',title:'All-Rounder',desc:'Score 70%+ in every subject at least once'},
+  {id:'century',emoji:'💫',title:'Century',desc:'Complete 100 quizzes'},
+  {id:'night_owl',emoji:'🦉',title:'Night Owl',desc:'Complete a quiz after 9pm'},
+  {id:'early_bird',emoji:'🐦',title:'Early Bird',desc:'Complete a quiz before 8am'},
+  {id:'lesson_20',emoji:'🧠',title:'Deep Diver',desc:'Read 20 different lessons'},
+  // Volume / Grind
+  {id:'quiz_25',emoji:'🎮',title:'Getting Serious',desc:'Complete 25 quizzes'},
+  {id:'quiz_50',emoji:'🏅',title:'Halfway Hero',desc:'Complete 50 quizzes'},
+  {id:'quiz_250',emoji:'🔱',title:'Quiz Machine',desc:'Complete 250 quizzes'},
+  {id:'sharp_250',emoji:'🎳',title:'Sniper',desc:'Answer 250 questions correctly'},
+  {id:'sharp_500',emoji:'💎',title:'Diamond Mind',desc:'Answer 500 questions correctly'},
+  {id:'lesson_5',emoji:'📖',title:'Page Turner',desc:'Read 5 lessons'},
+  {id:'lesson_10',emoji:'📰',title:'Study Buddy',desc:'Read 10 lessons'},
+  {id:'lesson_40',emoji:'🎒',title:'Swot',desc:'Read 40 different lessons'},
+  {id:'mindmap_5',emoji:'🗺️',title:'Map Maker',desc:'Visit 5 different mind maps'},
+  {id:'mindmap_all',emoji:'🧭',title:'Grand Tour',desc:"Visit every subject's mind map"},
+  {id:'streak_14',emoji:'⚡',title:'Fortnight Fighter',desc:'14-day streak'},
+  // Mastery
+  {id:'perfect_3',emoji:'🎯',title:'Hat-Trick',desc:'Score 10/10 three times'},
+  {id:'perfect_10',emoji:'👑',title:'Perfectionist',desc:'Score 10/10 ten times'},
+  {id:'ace',emoji:'🃏',title:'Ace',desc:'Score 90%+ ten times'},
+  {id:'flawless',emoji:'✨',title:'Flawless',desc:'Score 100% in every subject at least once'},
+  {id:'no_mistakes',emoji:'🧊',title:'Ice Cold',desc:'Complete 5 quizzes in a row without scoring below 80%'},
+  {id:'xp_500',emoji:'🌙',title:'Rising Star',desc:'Earn 500 XP'},
+  {id:'xp_1000',emoji:'🏆',title:'Champion',desc:'Earn 1000 XP'},
+  {id:'xp_2000',emoji:'🌠',title:'Legend',desc:'Earn 2000 XP'},
+  // Subject-specific
+  {id:'maths_master',emoji:'🔢',title:'Mathlete',desc:'Score 90%+ in Maths three times'},
+  {id:'english_master',emoji:'✍️',title:'Poet Laureate',desc:'Score 90%+ in English three times'},
+  {id:'geo_master',emoji:'🌐',title:'Geographer',desc:'Score 90%+ in Geography three times'},
+  {id:'spanish_master',emoji:'💃',title:'¡Olé!',desc:'Score 90%+ in Spanish three times'},
+  {id:'science_master',emoji:'🔬',title:'Lab Rat',desc:'Score 90%+ in Science three times'},
+  {id:'re_master',emoji:'🕊️',title:'Philosopher',desc:'Score 90%+ in RE three times'},
+  // Fun / Quirky
+  {id:'lunch_break',emoji:'🥪',title:'Lunch Break Hero',desc:'Complete a quiz between 12pm and 1pm'},
+  {id:'weekend',emoji:'🛋️',title:'Weekend Warrior',desc:'Complete quizzes on both Saturday and Sunday'},
+  {id:'hat_trick_day',emoji:'🎩',title:'Triple Threat',desc:'Complete 3 quizzes in one day'},
+  {id:'comeback_5',emoji:'🦋',title:'Glow Up',desc:'Improve 5 different topics from below 60% to above 70%'},
+];
 function _load(){try{var d=JSON.parse(localStorage.getItem(HUB_STORE))||_blank();if(!d.xp||isNaN(d.xp))d.xp=0;if(!d.badges)d.badges=[];if(!d.quizSessions)d.quizSessions=[];if(!d.topicHistory)d.topicHistory={};if(!d.subjectSessions)d.subjectSessions={};if(!d.activity)d.activity={};return d;}catch(e){return _blank();}}
 function _blank(){return{xp:0,badges:[],lessonsRead:[],quizSessions:[],topicHistory:{},subjectSessions:{},activity:{},timeLog:{}};}
 function getLevel(xp){xp=xp||0;var lv=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].xp)lv=LEVELS[i];else break;}return lv;}
