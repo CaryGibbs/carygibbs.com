@@ -349,7 +349,8 @@ function render() {
 
   // ── RESET ────────────────────────────────────────────────
   html += '<div class="reset-area">'
-    + '<button class="reset-btn" onclick="resetAll()">🗑 Clear all results and XP</button>'
+    + '<button class="reset-btn" onclick="resetAll()">🗑 Clear all results and XP</button>
+    <button class="reset-btn" style="margin-left:.5rem;background:rgba(52,152,219,.1);border-color:rgba(52,152,219,.3);color:#9ef5e2;" onclick="syncCheck()">🔄 Sync with server</button>'
     + '</div>';
 
   wrap.innerHTML = html;
@@ -362,6 +363,28 @@ function tog(id, cid) {
   var open = el.classList.contains('open');
   el.classList.toggle('open',!open);
   ch.classList.toggle('open',!open);
+}
+
+function syncCheck() {
+  if (!window.firebase || !firebase.apps || !firebase.apps.length) {
+    alert('Not connected to server yet — try again in a moment.');
+    return;
+  }
+  firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
+    if (snap.val()) {
+      // Reset was requested
+      try {
+        localStorage.removeItem('emilys_hub_v1');
+        localStorage.removeItem('emilys_streak_v1');
+        localStorage.removeItem('emilys_results_v1');
+      } catch(e) {}
+      firebase.database().ref('emily/resetRequested').remove();
+      alert('Progress cleared! Reloading...');
+      location.reload();
+    } else {
+      alert('No reset pending — your data is up to date.');
+    }
+  });
 }
 
 function resetAll() {
@@ -447,34 +470,47 @@ setInterval(function() {
 }, 60000);
 
 
+
+
+
 /* ── REMOTE RESET CHECK ────────────────────────────────── */
 function checkRemoteReset() {
   if (!window.firebase || !firebase.apps || !firebase.apps.length) return;
   firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
-    if (!snap.val()) return; // no reset requested
+    if (!snap.val()) return;
     console.log('🔄 Remote reset detected — clearing local data');
-    // Clear all local storage keys
     try {
       localStorage.removeItem('emilys_hub_v1');
       localStorage.removeItem('emilys_streak_v1');
       localStorage.removeItem('emilys_results_v1');
     } catch(e) {}
-    // Remove the flag from Firebase so it only fires once
     firebase.database().ref('emily/resetRequested').remove();
-    // Reload the page so everything starts fresh
-    console.log('✅ Local data cleared — reloading');
+    console.log('✅ Local data cleared');
     setTimeout(function(){ location.reload(); }, 500);
   }).catch(function(e){ console.warn('Reset check failed:', e); });
 }
 
-// Run reset check once Firebase is confirmed ready
-// We hook into the existing Firebase init by polling
-var _resetCheckInterval = setInterval(function() {
+// Check immediately when Firebase is ready, then every 30 seconds
+var _resetPollCount = 0;
+var _resetPollInterval = setInterval(function() {
   if (window.firebase && firebase.apps && firebase.apps.length) {
-    clearInterval(_resetCheckInterval);
+    checkRemoteReset();
+    _resetPollCount++;
+    // After 10 checks (5 mins), slow down to every 2 mins
+    if (_resetPollCount > 10) {
+      clearInterval(_resetPollInterval);
+      setInterval(checkRemoteReset, 120000);
+    }
+  }
+}, 30000);
+
+// Also check immediately once Firebase loads
+var _fbReadyCheck = setInterval(function() {
+  if (window.firebase && firebase.apps && firebase.apps.length) {
+    clearInterval(_fbReadyCheck);
     checkRemoteReset();
   }
-}, 1000);
+}, 500);
 
 </script>
 </body>

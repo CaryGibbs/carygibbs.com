@@ -159,20 +159,7 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
     <span class="last-updated" id="last-updated">Connecting…</span>
   </div>
   <div id="main"></div>
-  <div class="reset-section">
-    <button class="reset-btn" onclick="showResetConfirm()">🗑 Reset Emily's Progress</button>
-    <div class="reset-confirm" id="reset-confirm">
-      <p><strong style="color:#ffaab3">Are you sure?</strong><br>
-      This will wipe all of Emily's quiz results, XP, badges and streak from Firebase immediately.<br>
-      Her local data on her device will be cleared the next time she opens the hub.</p>
-      <div class="reset-confirm-btns">
-        <button class="reset-yes" id="reset-yes-btn" onclick="doReset()">Yes, reset everything</button>
-        <button class="reset-no" onclick="hideResetConfirm()">Cancel</button>
-      </div>
-    </div>
-    <div id="reset-status" style="display:none;margin-top:.75rem;font-size:13px;font-weight:700;"></div>
   </div>
-</div>
 
 <script>
 
