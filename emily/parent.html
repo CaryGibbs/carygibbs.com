@@ -130,6 +130,23 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .anim{animation:fadeUp .35s ease both;}
 </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    var _fbCfg = {
+      apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
+      authDomain:        "emilys-revision-hub.firebaseapp.com",
+      databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId:         "emilys-revision-hub",
+      storageBucket:     "emilys-revision-hub.firebasestorage.app",
+      messagingSenderId: "186424138043",
+      appId:             "1:186424138043:web:a96ba579106010be66ff1e"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(_fbCfg);
+      console.log('✅ Firebase connected (parent)');
+    }
+  </script>
 </head>
 <body>
 <div class="header">
@@ -158,34 +175,7 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 </div>
 
 <script>
-/* ── FIREBASE INLINE ───────────────────────────────────── */
-(function() {
-  var cfg = {
-    apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
-    authDomain:        "emilys-revision-hub.firebaseapp.com",
-    databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId:         "emilys-revision-hub",
-    storageBucket:     "emilys-revision-hub.firebasestorage.app",
-    messagingSenderId: "186424138043",
-    appId:             "1:186424138043:web:a96ba579106010be66ff1e"
-  };
-  function initFB() {
-    if (window.firebase && firebase.apps && !firebase.apps.length) {
-      firebase.initializeApp(cfg);
-      console.log('✅ Firebase ready (parent)');
-      load();
-    }
-  }
-  var s1 = document.createElement('script');
-  s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-  s1.onload = function() {
-    var s2 = document.createElement('script');
-    s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
-    s2.onload = initFB;
-    document.head.appendChild(s2);
-  };
-  document.head.appendChild(s1);
-})();
+
 
 /* ── CONSTANTS ─────────────────────────────────────────── */
 var BADGE_DEFS=[{id:'first_quiz',emoji:'🎉',title:'First Steps'},{id:'perfect_ten',emoji:'💯',title:'Perfect Ten'},{id:'streak_3',emoji:'🔥',title:'On Fire'},{id:'streak_7',emoji:'🌟',title:'Week Warrior'},{id:'streak_30',emoji:'🚀',title:'Unstoppable'},{id:'bookworm',emoji:'📚',title:'Bookworm'},{id:'explorer',emoji:'🌍',title:'Explorer'},{id:'sharp',emoji:'🎯',title:'Sharp Shooter'},{id:'comeback',emoji:'💪',title:'Comeback Kid'},{id:'star_pupil',emoji:'⭐',title:'Star Pupil'},{id:'trending',emoji:'📈',title:'Trending Up'},{id:'all_rounder',emoji:'🎪',title:'All-Rounder'},{id:'century',emoji:'💫',title:'Century'},{id:'night_owl',emoji:'🦉',title:'Night Owl'},{id:'early_bird',emoji:'🐦',title:'Early Bird'},{id:'lesson_20',emoji:'🧠',title:'Deep Diver'}];
@@ -552,6 +542,13 @@ function load() {
 }
 
 setInterval(function(){ if(window.firebase&&firebase.apps&&firebase.apps.length) load(); }, 60000);
+
+// Load data on page ready
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.firebase && firebase.apps && firebase.apps.length) {
+    load();
+  }
+});
 
 /* ── RESET ─────────────────────────────────────────────── */
 function showResetConfirm() {
