@@ -103,7 +103,7 @@ nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color
 .empty-title{font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:.4rem;}
 .empty-sub{font-size:14px;line-height:1.6;max-width:340px;margin:0 auto 1.5rem;}
 .go-btn{display:inline-block;padding:.75rem 1.75rem;border-radius:12px;background:linear-gradient(135deg,#9b59b6,#3498db);color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;text-decoration:none;}
-.reset-area{text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);}
+
 .reset-btn{background:rgba(224,92,106,.1);border:1px solid rgba(224,92,106,.3);color:#ffaab3;padding:.5rem 1.25rem;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito Sans',sans-serif;}
 .reset-btn:hover{background:rgba(224,92,106,.2);}
 
@@ -336,11 +336,7 @@ function render() {
     html += '</div></div>';
   });
 
-  // ── RESET ────────────────────────────────────────────────
-  html += '<div class="reset-area">'
-    + '<button class="reset-btn" onclick="resetAll()">🗑 Clear all results and XP</button>'
-    + '<button class="reset-btn" style="margin-left:.5rem;background:rgba(52,152,219,.1);border-color:rgba(52,152,219,.3);color:#9ef5e2;" onclick="syncCheck()">🔄 Sync with server</button>'
-    + '</div>';
+
 
   wrap.innerHTML = html;
   renderXPBar();
@@ -354,41 +350,9 @@ function tog(id, cid) {
   ch.classList.toggle('open',!open);
 }
 
-function syncCheck() {
-  if (!window.firebase || !firebase.apps || !firebase.apps.length) {
-    alert('Not connected to server yet — try again in a moment.');
-    return;
-  }
-  firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
-    if (snap.val()) {
-      // Reset was requested
-      try {
-        localStorage.removeItem('emilys_hub_v1');
-        localStorage.removeItem('emilys_streak_v1');
-        localStorage.removeItem('emilys_results_v1');
-      } catch(e) {}
-      firebase.database().ref('emily/resetRequested').remove();
-      alert('Progress cleared! Reloading...');
-      location.reload();
-    } else {
-      alert('No reset pending — your data is up to date.');
-    }
-  });
-}
 
-function resetAll() {
-  if (confirm('Clear ALL results, XP and badges? This cannot be undone.')) {
-    localStorage.removeItem(HUB_STORE);
-    localStorage.removeItem(STREAK_STORE);
-    // Also clear the Firebase reset flag so it doesn't keep wiping data
-    try {
-      if (window.firebase && firebase.apps && firebase.apps.length) {
-        firebase.database().ref('emily/resetRequested').remove();
-      }
-    } catch(e) {}
-    render();
-  }
-}
+
+
 
 /* ── XP BAR (bottom) ──────────────────────────────────── */
 function renderXPBar() {
@@ -431,18 +395,25 @@ function renderXPBar() {
         if (!d.activity) d.activity = {};
         if (!d.lessonsRead) d.lessonsRead = [];
         if (!d.mindmapVisits) d.mindmapVisits = {};
-        // Trust the authoritative XP/badges from Firebase summary (written by quiz/lesson/mindmap).
-        // Do NOT recompute from sessions — that path silently drops lesson XP, mindmap XP,
-        // streak bonuses, weak-topic-fixed and improve-3-in-a-row bonuses.
-        var fbSummary = fb.summary || {};
-        if (fbSummary.xp !== undefined && !isNaN(fbSummary.xp)) {
-          // Only take Firebase value if it is >= what we already have locally,
-          // to avoid a stale summary overwriting fresher localStorage data.
-          d.xp = Math.max(d.xp || 0, fbSummary.xp);
-        }
-        if (fbSummary.badges && fbSummary.badges.length >= (d.badges || []).length) {
-          d.badges = fbSummary.badges;
-        }
+        // Recompute XP and badges from actual sessions (don't trust stored values)
+        var computedXP = 0;
+        var computedBadges = [];
+        sessions.forEach(function(s){
+          computedXP += 10; // base per quiz
+          if (s.score === s.total) computedXP += 20; // perfect
+          else if (s.pct >= 90) computedXP += 15; // 90%+
+        });
+        // Award badges based on computed data
+        if (sessions.length >= 1) computedBadges.push('first_quiz');
+        if (sessions.some(function(s){return s.score===s.total && s.total===10;})) computedBadges.push('perfect_ten');
+        // Keep other badges from Firebase if they exist (streaks, bookworm etc)
+        var keepBadges = ['streak_3','streak_7','streak_30','bookworm','explorer',
+                          'sharp','comeback','star_pupil','trending','all_rounder',
+                          'century','night_owl','early_bird','lesson_20'];
+        var fbBadges = (fb.summary && fb.summary.badges) || [];
+        keepBadges.forEach(function(b){ if (fbBadges.indexOf(b)>-1) computedBadges.push(b); });
+        d.xp = computedXP;
+        d.badges = computedBadges;
         d.quizSessions = sessions.map(function(s){
           return {sid:s.sid||'', date:s.date||'', ts:s.ts||0,
                   score:s.score||0, total:s.total||10, pct:s.pct||0,
@@ -463,7 +434,7 @@ function renderXPBar() {
           }
         });
         try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){}
-        console.log('✅ My Progress synced: '+sessions.length+' sessions, XP:'+d.xp+' (from summary.xp, not recomputed)');
+        console.log('✅ My Progress synced: '+sessions.length+' sessions, XP:'+d.xp);
       }
     }
     render(); renderXPBar();
