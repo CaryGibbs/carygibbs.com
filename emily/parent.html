@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emily's Progress — Parent View</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0910;--surface:#141220;--card:#1a1825;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
+.header{background:linear-gradient(135deg,rgba(155,89,182,.25),rgba(52,152,219,.2));border-bottom:1px solid var(--border);padding:1.5rem;text-align:center;}
+.header h1{font-family:'Nunito',sans-serif;font-size:clamp(1.5rem,4vw,2.2rem);font-weight:900;background:linear-gradient(135deg,#c4bbff,#9ef5e2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header p{color:var(--muted);font-size:13px;margin-top:.3rem;}
+.wrap{max-width:960px;margin:0 auto;padding:1.5rem;}
+.no-firebase{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.3);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;font-size:14px;line-height:1.7;color:var(--muted);}
+.no-firebase strong{color:#ffd580;}
+.no-firebase code{background:rgba(255,255,255,.1);padding:1px 6px;border-radius:4px;font-size:12px;color:#c4bbff;}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.5rem;}
+@media(max-width:650px){.stats-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:400px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.9rem;text-align:center;}
+.stat-val{font-family:'Nunito',sans-serif;font-size:1.8rem;font-weight:900;line-height:1;}
+.stat-lbl{font-size:11px;color:var(--muted);margin-top:.2rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.sec-label{font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:.1rem 0 .75rem;}
+.feed{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.5rem;}
+.feed-item{display:flex;align-items:flex-start;gap:10px;padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
+.feed-item:last-child{border-bottom:none;}
+.feed-emoji{font-size:18px;flex-shrink:0;margin-top:1px;}
+.feed-text{flex:1;color:var(--muted);line-height:1.5;}
+.feed-text strong{color:var(--text);}
+.feed-date{font-size:11px;color:var(--dim);flex-shrink:0;margin-top:2px;}
+.feed-score{padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;margin-left:6px;}
+.score-good{background:rgba(91,191,106,.15);color:#b2f0bb;}
+.score-ok{background:rgba(245,166,35,.15);color:#ffd580;}
+.score-weak{background:rgba(224,92,106,.15);color:#ffaab3;}
+.subject-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem;margin-bottom:1.5rem;}
+.subj-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem;overflow:hidden;position:relative;}
+.subj-card-bar{height:4px;border-radius:2px;margin-bottom:.75rem;}
+.subj-card-name{font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;margin-bottom:.25rem;}
+.subj-card-meta{font-size:11px;color:var(--muted);margin-bottom:.6rem;}
+.subj-pct{font-family:'Nunito',sans-serif;font-size:2rem;font-weight:900;}
+.topic-list{margin-top:.6rem;border-top:1px solid rgba(255,255,255,.05);padding-top:.6rem;}
+.tl-row{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:3px;}
+.tl-name{flex:1;color:var(--muted);}
+.tl-bar-wrap{width:60px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.tl-bar{height:100%;border-radius:3px;}
+.tl-pct{width:28px;text-align:right;font-weight:700;}
+.tl-pct.w{color:#ffaab3;} .tl-pct.m{color:#ffd580;} .tl-pct.g{color:#b2f0bb;}
+.badge-list{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;}
+.bl-badge{background:var(--card);border:1px solid rgba(196,187,255,.25);border-radius:10px;padding:.35rem .75rem;font-size:12px;font-weight:700;}
+.bl-locked{opacity:.3;filter:grayscale(1);}
+.heatmap-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem;}
+.heatmap-grid{display:flex;gap:3px;flex-wrap:wrap;margin-top:.6rem;}
+.hm-cell{width:14px;height:14px;border-radius:2px;background:rgba(255,255,255,.06);}
+.hm-cell.a1{background:rgba(155,89,182,.35);}.hm-cell.a2{background:rgba(155,89,182,.6);}.hm-cell.a3{background:rgba(155,89,182,.85);}.hm-cell.a4{background:#9b59b6;}
+.refresh-row{display:flex;gap:.75rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;}
+.refresh-btn{background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.3);color:#c4bbff;padding:.45rem 1rem;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito Sans',sans-serif;}
+.refresh-btn:hover{background:rgba(155,89,182,.25);}
+.last-updated{font-size:12px;color:var(--dim);}
+.tab-row{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;}
+.tab{padding:.4rem 1rem;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid transparent;background:rgba(255,255,255,.05);color:var(--muted);transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+.tab.active{background:rgba(155,89,182,.2);border-color:rgba(155,89,182,.5);color:var(--text);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp .4s ease both;}
+.empty{text-align:center;padding:2rem;color:var(--dim);font-size:14px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>👩‍👧 Emily's Progress — Parent View</h1>
+  <p>Live dashboard · Data syncs from Emily's device via Firebase</p>
+</div>
+<div class="wrap">
+  <div id="no-fb-msg" class="no-firebase" style="display:none">
+    <strong>⚙️ Firebase not configured yet.</strong> This dashboard shows live data once Firebase is set up.<br>
+    To set up: open <code>firebase-config.js</code> and paste your Firebase project credentials.<br>
+    Until then, Emily's data is saved locally on her device — she can view her own progress at <code>results.html</code>.
+  </div>
+  <div class="refresh-row">
+    <button class="refresh-btn" onclick="load()">🔄 Refresh</button>
+    <span class="last-updated" id="last-updated">Loading…</span>
+  </div>
+  <div id="main"></div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script>
+var BADGE_DEFS=[{id:'first_quiz',emoji:'🎉',title:'First Steps'},{id:'perfect_ten',emoji:'💯',title:'Perfect Ten'},{id:'streak_3',emoji:'🔥',title:'On Fire'},{id:'streak_7',emoji:'🌟',title:'Week Warrior'},{id:'streak_30',emoji:'🚀',title:'Unstoppable'},{id:'bookworm',emoji:'📚',title:'Bookworm'},{id:'explorer',emoji:'🌍',title:'Explorer'},{id:'sharp',emoji:'🎯',title:'Sharp Shooter'},{id:'comeback',emoji:'💪',title:'Comeback Kid'},{id:'star_pupil',emoji:'⭐',title:'Star Pupil'},{id:'trending',emoji:'📈',title:'Trending Up'},{id:'all_rounder',emoji:'🎪',title:'All-Rounder'},{id:'century',emoji:'💫',title:'Century'},{id:'night_owl',emoji:'🦉',title:'Night Owl'},{id:'early_bird',emoji:'🐦',title:'Early Bird'},{id:'lesson_20',emoji:'🧠',title:'Deep Diver'}];
+var LEVELS=[{level:1,title:'Starter',xp:0,emoji:'🌱'},{level:2,title:'Learner',xp:100,emoji:'📖'},{level:3,title:'Scholar',xp:300,emoji:'🎓'},{level:4,title:'Expert',xp:600,emoji:'🔬'},{level:5,title:'Champion',xp:1000,emoji:'🏆'},{level:6,title:'Legend',xp:1500,emoji:'⭐'}];
+var SUBJECTS_INFO={maths:{name:'Mathematics',icon:'📐',gradient:['#4a90d9','#43b89c']},english:{name:'English',icon:'📗',gradient:['#e05c6a','#f5a623']},geography:{name:'Geography',icon:'🌍',gradient:['#5bbf6a','#4a90d9']},spanish:{name:'Spanish',icon:'🇪🇸',gradient:['#e05c6a','#f5a623']},science:{name:'Science',icon:'🔬',gradient:['#43b89c','#4a90d9']},re:{name:'RE',icon:'✝️',gradient:['#9b59b6','#3498db']}};
+
+function getLevel(xp){var lv=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].xp)lv=LEVELS[i];else break;}return lv;}
+function pctCls(p){return p<60?'w':p<75?'m':'g';}
+function barCol(p,c1,c2){if(p<60)return '#e05c6a';if(p<75)return '#f5a623';return 'linear-gradient(90deg,'+c1+','+c2+')';}
+function scoreClass(p){return p>=80?'score-good':p>=60?'score-ok':'score-weak';}
+function timeAgo(ts){var m=Math.round((Date.now()-ts)/60000);if(m<2)return 'just now';if(m<60)return m+'m ago';var h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago';}
+
+function drawHeatmap(activity){
+  var today=new Date(),cells='';
+  for(var i=83;i>=0;i--){var d=new Date(today);d.setDate(d.getDate()-i);var k=d.toISOString().slice(0,10);var m=activity&&activity[k]||0;var l=m===0?'':m<5?'a1':m<15?'a2':m<30?'a3':'a4';cells+='<div class="hm-cell '+l+'" title="'+k+(m>0?' ~'+m+'min':'')+'"></div>';}
+  return cells;
+}
+
+function renderData(summary, sessions, activity) {
+  var main = document.getElementById('main');
+  if (!summary && (!sessions || sessions.length === 0)) {
+    main.innerHTML = '<div class="empty">No data yet — Emily hasn\'t completed any quizzes since Firebase was connected.</div>';
+    return;
+  }
+
+  var xp = (summary&&summary.xp)||0;
+  var badges = (summary&&summary.badges)||[];
+  var streak = (summary&&summary.streak)||0;
+  var totalQ = (summary&&summary.totalQuizzes)||sessions.length;
+  var lv = getLevel(xp);
+  var lastActive = (summary&&summary.lastActive)||'—';
+
+  // Stats
+  var totalCorrect = sessions.reduce(function(a,s){return a+(s.score||0);},0);
+  var totalAns = sessions.reduce(function(a,s){return a+(s.total||0);},0);
+  var ovPct = totalAns>0?Math.round((totalCorrect/totalAns)*100):0;
+
+  var html = '<div class="stats-row anim">'
+    +'<div class="stat"><div class="stat-val" style="color:#ffd580">'+xp+'</div><div class="stat-lbl">Total XP</div></div>'
+    +'<div class="stat"><div class="stat-val">'+lv.emoji+'<span style="font-size:1.1rem;color:#c4bbff"> '+lv.title+'</span></div><div class="stat-lbl">Level</div></div>'
+    +'<div class="stat"><div class="stat-val" style="color:'+(streak>0?'#ffd580':'var(--dim)')+'">🔥 '+streak+'</div><div class="stat-lbl">Day streak</div></div>'
+    +'<div class="stat"><div class="stat-val" style="color:#b2f0bb">'+ovPct+'%</div><div class="stat-lbl">Overall score</div></div>'
+    +'<div class="stat"><div class="stat-val" style="color:#c4bbff">'+totalQ+'</div><div class="stat-lbl">Quizzes</div></div>'
+    +'</div>';
+
+  // Badges
+  html += '<div class="sec-label">Badges — '+badges.length+' / '+BADGE_DEFS.length+'</div>'
+    +'<div class="badge-list anim">';
+  BADGE_DEFS.forEach(function(b){
+    var earned = badges.indexOf(b.id)>-1;
+    html += '<div class="bl-badge '+(earned?'':'bl-locked')+'">'+b.emoji+' '+b.title+'</div>';
+  });
+  html += '</div>';
+
+  // Activity heatmap
+  html += '<div class="heatmap-wrap anim"><div class="sec-label" style="margin:0 0 .3rem">Activity — last 12 weeks</div>'
+    +'<div style="font-size:11px;color:var(--dim)">Darker squares = more time spent that day</div>'
+    +'<div class="heatmap-grid">'+drawHeatmap(activity)+'</div></div>';
+
+  // Per-subject breakdown
+  html += '<div class="sec-label">By Subject</div><div class="subject-grid anim">';
+  var subjSessions = {};
+  sessions.forEach(function(s){ if(!subjSessions[s.sid])subjSessions[s.sid]=[];subjSessions[s.sid].push(s); });
+  var subjTopics = {};
+  sessions.forEach(function(s){
+    if(!s.topicScores)return;
+    if(!subjTopics[s.sid])subjTopics[s.sid]={};
+    Object.entries(s.topicScores).forEach(function(e){
+      var t=e[0],v=e[1];
+      if(!subjTopics[s.sid][t])subjTopics[s.sid][t]={c:0,t:0};
+      subjTopics[s.sid][t].c+=v.c||0;
+      subjTopics[s.sid][t].t+=v.t||0;
+    });
+  });
+
+  Object.keys(SUBJECTS_INFO).forEach(function(sid){
+    var ss=subjSessions[sid];
+    if(!ss||ss.length===0)return;
+    var si=SUBJECTS_INFO[sid];
+    var c1=si.gradient[0],c2=si.gradient[1];
+    var last=ss[ss.length-1];
+    var avg=Math.round(ss.reduce(function(a,b){return a+b.pct;},0)/ss.length);
+    var pctCol=last.pct>=80?'#b2f0bb':last.pct>=60?'#ffd580':'#ffaab3';
+    html+='<div class="subj-card">'
+      +'<div class="subj-card-bar" style="background:linear-gradient(90deg,'+c1+','+c2+')"></div>'
+      +'<div class="subj-card-name">'+si.icon+' '+si.name+'</div>'
+      +'<div class="subj-card-meta">'+ss.length+' quiz'+(ss.length!==1?'zes':'')+' · avg '+avg+'%</div>'
+      +'<div class="subj-pct" style="color:'+pctCol+'">'+last.pct+'%</div>'
+      +'<div class="topic-list">';
+    var topics = subjTopics[sid]||{};
+    Object.entries(topics).forEach(function(e){
+      var t=e[0],v=e[1];
+      if(!v.t)return;
+      var p=Math.round((v.c/v.t)*100);
+      var bc=barCol(p,c1,c2);
+      html+='<div class="tl-row"><div class="tl-name">'+t+'</div>'
+        +'<div class="tl-bar-wrap"><div class="tl-bar" style="width:'+p+'%;background:'+bc+'"></div></div>'
+        +'<div class="tl-pct '+pctCls(p)+'">'+p+'%</div></div>';
+    });
+    html+='</div></div>';
+  });
+  html+='</div>';
+
+  // Recent activity feed (last 30 sessions)
+  html += '<div class="sec-label">Recent Activity</div><div class="feed anim">';
+  var recent = sessions.slice().sort(function(a,b){return b.ts-a.ts;}).slice(0,30);
+  if (recent.length === 0) {
+    html += '<div class="empty">No sessions recorded yet.</div>';
+  } else {
+    recent.forEach(function(s){
+      var si=SUBJECTS_INFO[s.sid]||{name:s.sid,icon:'📝'};
+      var scoreHtml='<span class="feed-score '+scoreClass(s.pct)+'">'+s.score+'/'+s.total+' ('+s.pct+'%)</span>';
+      html+='<div class="feed-item">'
+        +'<div class="feed-emoji">'+si.icon+'</div>'
+        +'<div class="feed-text"><strong>'+si.name+'</strong> quiz completed'+scoreHtml+'</div>'
+        +'<div class="feed-date">'+timeAgo(s.ts||Date.now())+'</div>'
+        +'</div>';
+    });
+  }
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+function load() {
+  document.getElementById('last-updated').textContent = 'Loading…';
+  // Check if Firebase is available
+  if (!window.firebase) {
+    document.getElementById('no-fb-msg').style.display = 'block';
+    document.getElementById('last-updated').textContent = 'Firebase not connected';
+    // Fall back to localStorage for demo
+    try {
+      var localData = JSON.parse(localStorage.getItem('emilys_hub_v1'))||{};
+      var localSessions = (localData.quizSessions||[]);
+      var localActivity = localData.activity||{};
+      var summary = {xp:localData.xp||0, badges:localData.badges||[], streak:0, totalQuizzes:localSessions.length, lastActive:'local'};
+      renderData(summary, localSessions, localActivity);
+      document.getElementById('last-updated').textContent = 'Showing local data (Firebase not configured)';
+    } catch(e) {
+      document.getElementById('main').innerHTML = '<div class="empty">Set up Firebase to see Emily\'s data here.</div>';
+    }
+    return;
+  }
+
+  document.getElementById('no-fb-msg').style.display = 'none';
+  var db = firebase.database();
+  var ref = db.ref('emily');
+
+  Promise.all([
+    ref.child('summary').once('value'),
+    ref.child('sessions').once('value'),
+    ref.child('activity').once('value')
+  ]).then(function(snaps) {
+    var summary = snaps[0].val();
+    var sessObj = snaps[1].val() || {};
+    var sessions = Object.values(sessObj);
+    var activity = snaps[2].val() || {};
+    renderData(summary, sessions, activity);
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  }).catch(function(e) {
+    document.getElementById('last-updated').textContent = 'Error loading data';
+    console.error(e);
+  });
+}
+
+// Auto-refresh every 60 seconds if Firebase is connected
+setInterval(function(){ if(window.firebase) load(); }, 60000);
+load();
+</script>
+</body>
+</html>

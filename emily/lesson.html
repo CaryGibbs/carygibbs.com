@@ -110,6 +110,441 @@
 </div>
 <script src="data.js"></script>
 <script>
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE CONFIG — paste your config values here
+   Get these from: Firebase Console → Project Settings → Your Apps
+   ═══════════════════════════════════════════════════════════ */
+
+var FIREBASE_CFG = {
+  apiKey:            "PASTE_YOUR_API_KEY_HERE",
+  authDomain:        "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL:       "https://PASTE_YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId:         "PASTE_YOUR_PROJECT_ID",
+  storageBucket:     "PASTE_YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId:             "PASTE_YOUR_APP_ID"
+};
+
+// Initialise Firebase if config has been filled in
+if (FIREBASE_CFG.apiKey !== "PASTE_YOUR_API_KEY_HERE") {
+  var firebaseScript = document.createElement('script');
+  firebaseScript.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+  firebaseScript.onload = function() {
+    var dbScript = document.createElement('script');
+    dbScript.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+    dbScript.onload = function() {
+      firebase.initializeApp(FIREBASE_CFG);
+      console.log('Firebase connected ✓');
+    };
+    document.head.appendChild(dbScript);
+  };
+  document.head.appendChild(firebaseScript);
+} else {
+  console.log('Firebase not configured — using localStorage only');
+}
+
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   EMILY'S HUB — GAMIFICATION + TRACKING ENGINE
+   Works with localStorage immediately.
+   Drop in Firebase config to sync across devices.
+   ═══════════════════════════════════════════════════════════════ */
+
+var HUB_STORE    = 'emilys_hub_v1';
+var STREAK_STORE = 'emilys_streak_v1';
+var FIREBASE_CFG = null; // set by firebase-config.js when available
+
+/* ── XP VALUES ─────────────────────────────────────────── */
+var XP = {
+  QUIZ_COMPLETE:      10,
+  QUIZ_PERFECT:       20,   // bonus on top of QUIZ_COMPLETE for 10/10
+  QUIZ_90:            15,   // bonus for 90%+
+  LESSON_READ:         5,
+  MINDMAP_VISIT:       2,
+  FIRST_QUIZ_TODAY:    5,
+  STREAK_7:           50,
+  STREAK_30:         150,
+  WEAK_TOPIC_FIXED:   25,   // topic goes from <60% to >=70%
+  IMPROVE_3_ROW:      20,   // same subject improves 3 sessions running
+};
+
+/* ── LEVELS ────────────────────────────────────────────── */
+var LEVELS = [
+  { level:1, title:'Starter',   xp:0,    emoji:'🌱' },
+  { level:2, title:'Learner',   xp:100,  emoji:'📖' },
+  { level:3, title:'Scholar',   xp:300,  emoji:'🎓' },
+  { level:4, title:'Expert',    xp:600,  emoji:'🔬' },
+  { level:5, title:'Champion',  xp:1000, emoji:'🏆' },
+  { level:6, title:'Legend',    xp:1500, emoji:'⭐' },
+];
+
+/* ── BADGES ────────────────────────────────────────────── */
+var BADGE_DEFS = [
+  { id:'first_quiz',    emoji:'🎉', title:'First Steps',      desc:'Complete your first quiz' },
+  { id:'perfect_ten',  emoji:'💯', title:'Perfect Ten',       desc:'Score 10/10 on any quiz' },
+  { id:'streak_3',     emoji:'🔥', title:'On Fire',           desc:'3-day streak' },
+  { id:'streak_7',     emoji:'🌟', title:'Week Warrior',      desc:'7-day streak' },
+  { id:'streak_30',    emoji:'🚀', title:'Unstoppable',       desc:'30-day streak' },
+  { id:'bookworm',     emoji:'📚', title:'Bookworm',          desc:'Read 20 lessons' },
+  { id:'explorer',     emoji:'🌍', title:'Explorer',          desc:'Quiz in every subject' },
+  { id:'sharp',        emoji:'🎯', title:'Sharp Shooter',     desc:'Answer 100 questions correctly' },
+  { id:'comeback',     emoji:'💪', title:'Comeback Kid',      desc:'Improve a topic from below 60% to above 70%' },
+  { id:'star_pupil',   emoji:'⭐', title:'Star Pupil',        desc:'Score 90%+ five times' },
+  { id:'trending',     emoji:'📈', title:'Trending Up',       desc:'Improve score in the same subject 3 sessions in a row' },
+  { id:'all_rounder',  emoji:'🎪', title:'All-Rounder',       desc:'Score 70%+ in every subject at least once' },
+  { id:'century',      emoji:'💫', title:'Century',           desc:'Complete 100 quizzes' },
+  { id:'night_owl',    emoji:'🦉', title:'Night Owl',         desc:'Complete a quiz after 9pm' },
+  { id:'early_bird',   emoji:'🐦', title:'Early Bird',        desc:'Complete a quiz before 8am' },
+  { id:'lesson_20',    emoji:'🧠', title:'Deep Diver',        desc:'Read 20 different lessons' },
+];
+
+/* ── LOCAL STORE HELPERS ───────────────────────────────── */
+function _load() {
+  try { return JSON.parse(localStorage.getItem(HUB_STORE)) || _blank(); }
+  catch(e) { return _blank(); }
+}
+function _save(d) {
+  try { localStorage.setItem(HUB_STORE, JSON.stringify(d)); } catch(e) {}
+}
+function _blank() {
+  return {
+    xp: 0,
+    badges: [],
+    lessonsRead: [],
+    mindmapVisits: {},
+    quizSessions: [],    // { sid, date, ts, score, total, pct, topicScores }
+    topicHistory: {},    // sid -> topic -> [pct, pct, ...]
+    subjectSessions: {}, // sid -> [pct, pct, ...]  for trend detection
+    activity: {},        // date -> minutes (approx)
+    newBadges: [],       // badges earned this session, shown as toast
+    newXP: 0,            // XP earned this session, for animation
+  };
+}
+
+/* ── STREAK ─────────────────────────────────────────────── */
+function _loadStreak() {
+  try { return JSON.parse(localStorage.getItem(STREAK_STORE)) || {count:0,lastDate:''}; }
+  catch(e) { return {count:0,lastDate:''}; }
+}
+function _saveStreak(s) {
+  try { localStorage.setItem(STREAK_STORE, JSON.stringify(s)); } catch(e) {}
+}
+function _touchStreak() {
+  var today = _today();
+  var s = _loadStreak();
+  if (s.lastDate === today) return s.count;
+  var yest = _yesterday();
+  s.count = (s.lastDate === yest) ? s.count + 1 : 1;
+  s.lastDate = today;
+  _saveStreak(s);
+  return s.count;
+}
+function _today() { return new Date().toISOString().slice(0,10); }
+function _yesterday() { return new Date(Date.now()-86400000).toISOString().slice(0,10); }
+function getStreak() {
+  var s = _loadStreak();
+  var today = _today(), yest = _yesterday();
+  if (s.lastDate !== today && s.lastDate !== yest) return 0;
+  return s.count;
+}
+
+/* ── XP / LEVEL HELPERS ─────────────────────────────────── */
+function getLevel(xp) {
+  var lv = LEVELS[0];
+  for (var i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].xp) lv = LEVELS[i]; else break;
+  }
+  return lv;
+}
+function getNextLevel(xp) {
+  for (var i = 0; i < LEVELS.length; i++) {
+    if (LEVELS[i].xp > xp) return LEVELS[i];
+  }
+  return null;
+}
+function getLevelProgress(xp) {
+  var cur = getLevel(xp), next = getNextLevel(xp);
+  if (!next) return 100;
+  return Math.round(((xp - cur.xp) / (next.xp - cur.xp)) * 100);
+}
+
+/* ── BADGE AWARDING ─────────────────────────────────────── */
+function _awardBadge(d, id) {
+  if (d.badges.indexOf(id) === -1) {
+    d.badges.push(id);
+    d.newBadges.push(id);
+    var def = BADGE_DEFS.find(function(b){ return b.id === id; });
+    if (def) console.log('🏅 Badge unlocked: ' + def.title);
+  }
+}
+
+function _checkBadges(d, context) {
+  var ctx = context || {};
+
+  // First quiz
+  if (d.quizSessions.length >= 1) _awardBadge(d, 'first_quiz');
+
+  // Perfect ten
+  if (ctx.score === 10 && ctx.total === 10) _awardBadge(d, 'perfect_ten');
+
+  // Streaks
+  var streak = getStreak();
+  if (streak >= 3)  _awardBadge(d, 'streak_3');
+  if (streak >= 7)  _awardBadge(d, 'streak_7');
+  if (streak >= 30) _awardBadge(d, 'streak_30');
+
+  // Lessons read
+  if (d.lessonsRead.length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
+
+  // Explorer — quiz in every subject
+  var subjectsQuizzed = Object.keys(d.subjectSessions || {});
+  var allSubjects = Object.keys(SUBJECTS);
+  if (allSubjects.every(function(s){ return subjectsQuizzed.indexOf(s) > -1; }))
+    _awardBadge(d, 'explorer');
+
+  // Sharp shooter — 100 correct answers total
+  var totalCorrect = d.quizSessions.reduce(function(a,s){ return a + s.score; }, 0);
+  if (totalCorrect >= 100) _awardBadge(d, 'sharp');
+
+  // Star pupil — 90%+ five times
+  var high = d.quizSessions.filter(function(s){ return s.pct >= 90; }).length;
+  if (high >= 5) _awardBadge(d, 'star_pupil');
+
+  // 100 quizzes
+  if (d.quizSessions.length >= 100) _awardBadge(d, 'century');
+
+  // Night owl / early bird
+  var hour = new Date().getHours();
+  if (hour >= 21) _awardBadge(d, 'night_owl');
+  if (hour < 8)   _awardBadge(d, 'early_bird');
+
+  // Comeback — topic fixed
+  if (ctx.topicFixed) _awardBadge(d, 'comeback');
+
+  // Trending up — same subject improved 3 in a row
+  if (ctx.improved3) _awardBadge(d, 'trending');
+
+  // All-rounder — 70%+ in every subject
+  var allGood = allSubjects.every(function(sid) {
+    var sessions = d.subjectSessions[sid] || [];
+    return sessions.some(function(p){ return p >= 70; });
+  });
+  if (allGood) _awardBadge(d, 'all_rounder');
+}
+
+/* ── MAIN TRACKING FUNCTIONS ────────────────────────────── */
+
+// Call when quiz finishes
+function trackQuizComplete(sid, topicScores, score, total) {
+  var d = _load();
+  var pct = Math.round((score / total) * 100);
+  var today = _today();
+  d.newBadges = [];
+  d.newXP = 0;
+
+  // XP
+  var earned = XP.QUIZ_COMPLETE;
+  if (score === total) earned += XP.QUIZ_PERFECT;
+  else if (pct >= 90)  earned += XP.QUIZ_90;
+
+  // First quiz today bonus
+  var todaySessions = d.quizSessions.filter(function(s){ return s.date === today; });
+  if (todaySessions.length === 0) earned += XP.FIRST_QUIZ_TODAY;
+
+  d.xp += earned;
+  d.newXP = earned;
+
+  // Record session
+  d.quizSessions.push({ sid:sid, date:today, ts:Date.now(), score:score, total:total, pct:pct });
+  if (d.quizSessions.length > 200) d.quizSessions = d.quizSessions.slice(-200);
+
+  // Subject trend
+  if (!d.subjectSessions) d.subjectSessions = {};
+  if (!d.subjectSessions[sid]) d.subjectSessions[sid] = [];
+  d.subjectSessions[sid].push(pct);
+
+  // Check improved 3 in a row
+  var subjHistory = d.subjectSessions[sid];
+  var improved3 = subjHistory.length >= 3 &&
+    subjHistory[subjHistory.length-1] > subjHistory[subjHistory.length-2] &&
+    subjHistory[subjHistory.length-2] > subjHistory[subjHistory.length-3];
+  if (improved3) { d.xp += XP.IMPROVE_3_ROW; d.newXP += XP.IMPROVE_3_ROW; }
+
+  // Topic history + weak topic check
+  if (!d.topicHistory) d.topicHistory = {};
+  if (!d.topicHistory[sid]) d.topicHistory[sid] = {};
+  var topicFixed = false;
+  Object.entries(topicScores).forEach(function(entry) {
+    var t = entry[0], v = entry[1];
+    var tpct = Math.round((v.c / v.t) * 100);
+    if (!d.topicHistory[sid][t]) d.topicHistory[sid][t] = { correct:0, attempted:0, sessions:[] };
+    var th = d.topicHistory[sid][t];
+    var prevPct = th.attempted > 0 ? Math.round((th.correct/th.attempted)*100) : null;
+    th.correct   += v.c;
+    th.attempted += v.t;
+    th.sessions.push(tpct);
+    if (prevPct !== null && prevPct < 60 && tpct >= 70) {
+      topicFixed = true;
+      d.xp += XP.WEAK_TOPIC_FIXED;
+      d.newXP += XP.WEAK_TOPIC_FIXED;
+    }
+  });
+
+  // Streak
+  var streak = _touchStreak();
+  if (streak === 7)  { d.xp += XP.STREAK_7;  d.newXP += XP.STREAK_7; }
+  if (streak === 30) { d.xp += XP.STREAK_30; d.newXP += XP.STREAK_30; }
+
+  // Activity time (rough — add 5 min per quiz)
+  if (!d.activity) d.activity = {};
+  d.activity[today] = (d.activity[today] || 0) + 5;
+
+  _checkBadges(d, { score:score, total:total, topicFixed:topicFixed, improved3:improved3 });
+  _save(d);
+  _firebaseSync(d, sid, topicScores, score, total, pct);
+  return { xp: earned, badges: d.newBadges, totalXP: d.xp };
+}
+
+// Call when lesson is opened
+function trackLessonRead(sid, lessonKey) {
+  var d = _load();
+  var key = sid + '/' + lessonKey;
+  if (d.lessonsRead.indexOf(key) === -1) {
+    d.lessonsRead.push(key);
+    d.xp += XP.LESSON_READ;
+    d.newXP = XP.LESSON_READ;
+    d.newBadges = [];
+    _checkBadges(d, {});
+    _save(d);
+    if (d.newBadges.length > 0) showXPToast(XP.LESSON_READ, d.newBadges);
+  }
+  var today = _today();
+  if (!d.activity) d.activity = {};
+  d.activity[today] = (d.activity[today] || 0) + 2;
+  _save(d);
+}
+
+// Call when mindmap is visited
+function trackMindmapVisit(sid) {
+  var d = _load();
+  var today = _today();
+  var key = sid + '_' + today;
+  if (!d.mindmapVisits) d.mindmapVisits = {};
+  if (!d.mindmapVisits[key]) {
+    d.mindmapVisits[key] = true;
+    d.xp += XP.MINDMAP_VISIT;
+    _save(d);
+  }
+  if (!d.activity) d.activity = {};
+  d.activity[today] = (d.activity[today] || 0) + 1;
+  _save(d);
+}
+
+/* ── FIREBASE SYNC ──────────────────────────────────────── */
+function _firebaseSync(d, sid, topicScores, score, total, pct) {
+  if (!window.firebase || !FIREBASE_CFG) return;
+  try {
+    var db = firebase.database();
+    var ref = db.ref('emily');
+    // Push quiz session
+    ref.child('sessions').push({
+      sid:sid, date:_today(), ts:Date.now(),
+      score:score, total:total, pct:pct,
+      topicScores: Object.fromEntries
+        ? Object.fromEntries(Object.entries(topicScores).map(function(e){ return [e[0],{c:e[1].c,t:e[1].t}]; }))
+        : topicScores
+    });
+    // Update summary
+    ref.child('summary').set({
+      xp: d.xp,
+      badges: d.badges,
+      streak: getStreak(),
+      lastActive: _today(),
+      totalQuizzes: d.quizSessions.length,
+      lastUpdated: Date.now()
+    });
+    // Activity heatmap
+    ref.child('activity').child(_today()).transaction(function(cur){ return (cur||0) + 5; });
+  } catch(e) { console.warn('Firebase sync failed:', e); }
+}
+
+/* ── XP TOAST (shown in quiz/lesson pages) ─────────────── */
+function showXPToast(xp, newBadges) {
+  var existing = document.getElementById('xp-toast');
+  if (existing) existing.remove();
+
+  var toast = document.createElement('div');
+  toast.id = 'xp-toast';
+  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;'
+    + 'background:#1a1825;border:1px solid rgba(255,215,0,.4);border-radius:14px;'
+    + 'padding:.75rem 1.1rem;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;'
+    + 'color:#ffd580;box-shadow:0 8px 32px rgba(0,0,0,.5);'
+    + 'animation:toastIn .4s ease both;max-width:280px;';
+
+  var content = '✨ +' + xp + ' XP';
+  if (newBadges && newBadges.length > 0) {
+    newBadges.forEach(function(id) {
+      var def = BADGE_DEFS.find(function(b){ return b.id === id; });
+      if (def) content += '<br><span style="font-size:12px;color:#c4bbff">' + def.emoji + ' Badge unlocked: ' + def.title + '</span>';
+    });
+  }
+  toast.innerHTML = content;
+
+  if (!document.getElementById('toast-style')) {
+    var s = document.createElement('style');
+    s.id = 'toast-style';
+    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(toast);
+  setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity .4s'; }, 3500);
+  setTimeout(function(){ toast.remove(); }, 4000);
+}
+
+/* ── XP BAR (persistent, shown on all pages) ───────────── */
+function renderXPBar() {
+  var d = _load();
+  var streak = getStreak();
+  var lv = getLevel(d.xp);
+  var next = getNextLevel(d.xp);
+  var prog = getLevelProgress(d.xp);
+
+  var bar = document.getElementById('xp-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'xp-bar';
+    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:200;'
+      + 'background:rgba(15,14,23,.92);backdrop-filter:blur(12px);'
+      + 'border-top:1px solid rgba(255,255,255,.08);'
+      + 'padding:.5rem 1.25rem;display:flex;align-items:center;gap:12px;';
+    document.body.appendChild(bar);
+  }
+
+  var streakHtml = streak > 0
+    ? '<span style="font-size:13px;font-weight:700;color:#ffd580;white-space:nowrap">🔥 ' + streak + '</span>'
+    : '';
+
+  bar.innerHTML = '<a href="results.html" style="display:flex;align-items:center;gap:10px;flex:1;text-decoration:none;min-width:0">'
+    + '<span style="font-size:18px;flex-shrink:0">' + lv.emoji + '</span>'
+    + '<div style="flex:1;min-width:0">'
+    +   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+    +     '<span style="font-family:Nunito,sans-serif;font-size:12px;font-weight:800;color:#c4bbff;white-space:nowrap">'
+    +       lv.title + ' · ' + d.xp + ' XP'
+    +     '</span>'
+    +     (next ? '<span style="font-size:11px;color:rgba(240,238,255,.35)">' + next.title + ' in ' + (next.xp - d.xp) + ' XP</span>' : '<span style="font-size:11px;color:#ffd580">MAX LEVEL</span>')
+    +   '</div>'
+    +   '<div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">'
+    +     '<div style="height:100%;width:' + prog + '%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:3px;transition:width .6s ease"></div>'
+    +   '</div>'
+    + '</div></a>'
+    + streakHtml
+    + '<a href="results.html" style="font-size:11px;font-weight:700;color:rgba(240,238,255,.4);text-decoration:none;white-space:nowrap;flex-shrink:0">My Stats ›</a>';
+}
+
+</script>
+
+<script>
 const params = new URLSearchParams(location.search);
 const key = params.get('lesson');
 const L = key ? LESSONS[key] : null;
