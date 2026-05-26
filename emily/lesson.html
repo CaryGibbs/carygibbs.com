@@ -109,7 +109,35 @@
   <p style="color:var(--muted);margin-top:2rem;">Loading lesson…</p>
 </div>
 <script src="data.js"></script>
-<script src="firebase-config.js"></script>
+<script>
+/* ── FIREBASE INIT (inline) ────────────────────────────── */
+(function() {
+  var cfg = {
+    apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
+    authDomain:        "emilys-revision-hub.firebaseapp.com",
+    databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "emilys-revision-hub",
+    storageBucket:     "emilys-revision-hub.firebasestorage.app",
+    messagingSenderId: "186424138043",
+    appId:             "1:186424138043:web:a96ba579106010be66ff1e"
+  };
+  function initFB() {
+    if (window.firebase && firebase.apps && !firebase.apps.length) {
+      firebase.initializeApp(cfg);
+      console.log('✅ Firebase ready');
+    }
+  }
+  var s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+  s1.onload = function() {
+    var s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+    s2.onload = initFB;
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+})();
+</script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
