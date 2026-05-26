@@ -564,16 +564,16 @@ function doReset() {
   btn.disabled = true;
 
   var db = firebase.database();
-  // 1. Wipe all Emily's data
+  // 1. Wipe all Emily data
   db.ref('emily').remove().then(function() {
-    // 2. Set reset flag — Emily's device will detect this and clear localStorage
+    // 2. Set reset flag — device will detect this and clear localStorage
     return db.ref('emily/resetRequested').set({
       ts: Date.now(),
       requestedBy: 'parent'
     });
   }).then(function() {
     hideResetConfirm();
-    document.getElementById('reset-status').textContent = '✅ Reset complete — Firebase wiped. Emily's local data will clear next time she opens the hub.';
+    document.getElementById('reset-status').textContent = '✅ Reset complete — Firebase wiped. Emily\'s local data will clear next time she opens the hub.';
     document.getElementById('reset-status').style.color = '#b2f0bb';
     document.getElementById('reset-status').style.display = 'block';
     btn.textContent = 'Yes, reset everything';
