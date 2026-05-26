@@ -226,6 +226,8 @@ function _load() {
     if (!d.topicHistory) d.topicHistory = {};
     if (!d.subjectSessions) d.subjectSessions = {};
     if (!d.activity) d.activity = {};
+    if (!d.lessonsRead) d.lessonsRead = [];
+    if (!d.mindmapVisits) d.mindmapVisits = {};
     return d;
   } catch(e) { return _blank(); }
 }
@@ -328,7 +330,7 @@ function _checkBadges(d, context) {
   if (streak >= 30) _awardBadge(d, 'streak_30');
 
   // Lessons read
-  if (d.lessonsRead.length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
+  if ((d.lessonsRead||[]).length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
 
   // Explorer — quiz in every subject
   var subjectsQuizzed = Object.keys(d.subjectSessions || {});

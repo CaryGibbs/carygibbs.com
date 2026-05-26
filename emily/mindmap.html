@@ -146,6 +146,8 @@ function _load() {
     if (!d.topicHistory) d.topicHistory = {};
     if (!d.subjectSessions) d.subjectSessions = {};
     if (!d.activity) d.activity = {};
+    if (!d.lessonsRead) d.lessonsRead = [];
+    if (!d.mindmapVisits) d.mindmapVisits = {};
     return d;
   } catch(e) { return _blank(); }
 }
