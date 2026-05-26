@@ -467,33 +467,6 @@ setInterval(function() {
 
 
 
-
-  }).catch(function(e){ console.warn('Reset check failed:', e); });
-}
-
-// Check immediately when Firebase is ready, then every 30 seconds
-var _resetPollCount = 0;
-var _resetPollInterval = setInterval(function() {
-  if (window.firebase && firebase.apps && firebase.apps.length) {
-    checkRemoteReset();
-    _resetPollCount++;
-    // After 10 checks (5 mins), slow down to every 2 mins
-    if (_resetPollCount > 10) {
-      clearInterval(_resetPollInterval);
-      setInterval(checkRemoteReset, 120000);
-    }
-  }
-}, 30000);
-
-// Also check immediately once Firebase loads
-var _fbReadyCheck = setInterval(function() {
-  if (window.firebase && firebase.apps && firebase.apps.length) {
-    clearInterval(_fbReadyCheck);
-    checkRemoteReset();
-  }
-}, 500);
-
-
 /* ── REMOTE RESET CHECK ────────────────────────────────── */
 var _resetChecked = false; // only check once per page load
 
