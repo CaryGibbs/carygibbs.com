@@ -110,6 +110,8 @@ nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .anim{animation:fadeUp .4s ease both;}
 </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 <nav>
@@ -119,33 +121,20 @@ nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color
 
 <script src="data.js"></script>
 <script>
-/* ── FIREBASE INIT (inline) ────────────────────────────── */
-(function() {
-  var cfg = {
-    apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
-    authDomain:        "emilys-revision-hub.firebaseapp.com",
-    databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId:         "emilys-revision-hub",
-    storageBucket:     "emilys-revision-hub.firebasestorage.app",
-    messagingSenderId: "186424138043",
-    appId:             "1:186424138043:web:a96ba579106010be66ff1e"
-  };
-  function initFB() {
-    if (window.firebase && firebase.apps && !firebase.apps.length) {
-      firebase.initializeApp(cfg);
-      console.log('✅ Firebase ready');
-    }
-  }
-  var s1 = document.createElement('script');
-  s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-  s1.onload = function() {
-    var s2 = document.createElement('script');
-    s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
-    s2.onload = initFB;
-    document.head.appendChild(s2);
-  };
-  document.head.appendChild(s1);
-})();
+/* ── FIREBASE INIT ─────────────────────────────────────── */
+var _fbCfg = {
+  apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
+  authDomain:        "emilys-revision-hub.firebaseapp.com",
+  databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "emilys-revision-hub",
+  storageBucket:     "emilys-revision-hub.firebasestorage.app",
+  messagingSenderId: "186424138043",
+  appId:             "1:186424138043:web:a96ba579106010be66ff1e"
+};
+if (window.firebase && !firebase.apps.length) {
+  firebase.initializeApp(_fbCfg);
+  console.log('✅ Firebase ready');
+}
 </script>
 <script>
 /* ─── inline gamification engine ─────────────────────── */
@@ -479,26 +468,6 @@ setInterval(function() {
 
 
 
-/* ── REMOTE RESET CHECK ────────────────────────────────── */
-function checkRemoteReset() {
-  if (!window.firebase || !firebase.apps || !firebase.apps.length) return;
-  firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
-    var val = snap.val();
-    if (!val) return;
-    // Only fire if reset was requested in the last hour (prevents stale flags)
-    if (val.ts && (Date.now() - val.ts) > 3600000) {
-      firebase.database().ref('emily/resetRequested').remove();
-      return;
-    }
-    console.log('🔄 Remote reset detected — clearing local data');
-    try {
-      localStorage.removeItem('emilys_hub_v1');
-      localStorage.removeItem('emilys_streak_v1');
-      localStorage.removeItem('emilys_results_v1');
-    } catch(e) {}
-    firebase.database().ref('emily/resetRequested').remove();
-    console.log('✅ Local data cleared');
-    setTimeout(function(){ location.reload(); }, 500);
   }).catch(function(e){ console.warn('Reset check failed:', e); });
 }
 
@@ -520,6 +489,44 @@ var _resetPollInterval = setInterval(function() {
 var _fbReadyCheck = setInterval(function() {
   if (window.firebase && firebase.apps && firebase.apps.length) {
     clearInterval(_fbReadyCheck);
+    checkRemoteReset();
+  }
+}, 500);
+
+
+/* ── REMOTE RESET CHECK ────────────────────────────────── */
+var _resetChecked = false; // only check once per page load
+
+function checkRemoteReset() {
+  if (_resetChecked) return;
+  if (!window.firebase || !firebase.apps || !firebase.apps.length) return;
+  _resetChecked = true;
+  
+  firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
+    var val = snap.val();
+    if (!val) return; // no reset flag
+    
+    // Remove flag FIRST to prevent re-triggering
+    firebase.database().ref('emily/resetRequested').remove().then(function() {
+      console.log('✅ Reset flag cleared');
+      // Now clear local storage
+      try {
+        localStorage.removeItem('emilys_hub_v1');
+        localStorage.removeItem('emilys_streak_v1');
+        localStorage.removeItem('emilys_results_v1');
+      } catch(e) {}
+      // Reload after a short delay
+      setTimeout(function(){ location.reload(); }, 800);
+    });
+  }).catch(function(e){ 
+    _resetChecked = false; // allow retry on error
+  });
+}
+
+// Run once when Firebase is ready
+var _fbWait = setInterval(function() {
+  if (window.firebase && firebase.apps && firebase.apps.length) {
+    clearInterval(_fbWait);
     checkRemoteReset();
   }
 }, 500);
