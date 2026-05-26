@@ -370,7 +370,9 @@ function _checkBadges(d, context) {
 
 // Call when quiz finishes
 function trackQuizComplete(sid, topicScores, score, total) {
+  console.log('=== trackQuizComplete called ===', sid, score, total);
   var d = _load();
+  console.log('Loaded data, current XP:', d.xp);
   var pct = Math.round((score / total) * 100);
   var today = _today();
   d.newBadges = [];
@@ -769,6 +771,10 @@ function showResults() {
   }).join('');
 
   // Save results + award XP (unless practice mode)
+  console.log('=== showResults called ===');
+  console.log('practiceMode:', practiceMode);
+  console.log('score:', score, '/ questions:', questions.length);
+  console.log('topicScores:', JSON.stringify(topicScores));
   var banner = document.getElementById('saved-banner');
   if (practiceMode) {
     banner.innerHTML = '🎮 Practice mode — results not saved';
