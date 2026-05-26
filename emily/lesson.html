@@ -413,6 +413,22 @@ function trackLessonRead(sid, lessonKey) {
     d.newBadges = [];
     _checkBadges(d, {});
     _save(d);
+    // Push updated summary to Firebase so parent.html and results.html stay in sync.
+    // lesson/mindmap XP never goes through _firebaseSync (quiz-only), so we push here.
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      try {
+        firebase.database().ref('emily/summary').update({
+          xp: d.xp || 0,
+          badges: d.badges || [],
+          lastActive: _today(),
+          lastUpdated: Date.now()
+        });
+        // Accumulate per-day XP so parent.html daily column stays accurate
+        firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
+          return (cur || 0) + XP.LESSON_READ;
+        });
+      } catch(e) { console.warn('Firebase summary update failed:', e); }
+    }
     if (d.newBadges.length > 0) showXPToast(XP.LESSON_READ, d.newBadges);
   }
   var today = _today();

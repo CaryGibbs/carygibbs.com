@@ -517,11 +517,15 @@ function _firebaseSync(d, sid, topicScores, score, total, pct) {
       lastUpdated: Date.now()
     });
 
-    // Sync timeLog
+    // Sync timeLog — write time fields and accumulate per-day XP via transaction
     var tl = d.timeLog || {};
     var today = _today();
     if (tl[today]) {
       ref.child('timeLog').child(today).set(tl[today]);
+    }
+    // Accumulate per-day XP (transaction prevents overwrite from concurrent tabs/pages)
+    if (d.newXP && d.newXP > 0) {
+      ref.child('timeLog').child(today).child('xp').transaction(function(cur) { return (cur || 0) + d.newXP; });
     }
 
     // Activity heatmap

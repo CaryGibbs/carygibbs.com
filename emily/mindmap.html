@@ -385,6 +385,21 @@ function trackMindmapVisit(sid) {
     d.mindmapVisits[key] = true;
     d.xp += XP.MINDMAP_VISIT;
     _save(d);
+    // Push updated summary to Firebase so parent.html stays in sync.
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      try {
+        firebase.database().ref('emily/summary').update({
+          xp: d.xp || 0,
+          badges: d.badges || [],
+          lastActive: _today(),
+          lastUpdated: Date.now()
+        });
+        // Accumulate per-day XP so parent.html daily column stays accurate
+        firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
+          return (cur || 0) + XP.MINDMAP_VISIT;
+        });
+      } catch(e) { console.warn('Firebase summary update failed:', e); }
+    }
   }
   if (!d.activity) d.activity = {};
   d.activity[today] = (d.activity[today] || 0) + 1;

@@ -359,6 +359,20 @@ function trackLessonRead(sid, lessonKey) {
     d.newBadges = [];
     _checkBadges(d, {});
     _save(d);
+    // Push updated summary + per-day XP to Firebase
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      try {
+        firebase.database().ref('emily/summary').update({
+          xp: d.xp || 0,
+          badges: d.badges || [],
+          lastActive: _today(),
+          lastUpdated: Date.now()
+        });
+        firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
+          return (cur || 0) + XP.LESSON_READ;
+        });
+      } catch(e) { console.warn('Firebase summary update failed:', e); }
+    }
     if (d.newBadges.length > 0) showXPToast(XP.LESSON_READ, d.newBadges);
   }
   var today = _today();
@@ -377,6 +391,20 @@ function trackMindmapVisit(sid) {
     d.mindmapVisits[key] = true;
     d.xp += XP.MINDMAP_VISIT;
     _save(d);
+    // Push updated summary + per-day XP to Firebase
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      try {
+        firebase.database().ref('emily/summary').update({
+          xp: d.xp || 0,
+          badges: d.badges || [],
+          lastActive: _today(),
+          lastUpdated: Date.now()
+        });
+        firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
+          return (cur || 0) + XP.MINDMAP_VISIT;
+        });
+      } catch(e) { console.warn('Firebase summary update failed:', e); }
+    }
   }
   if (!d.activity) d.activity = {};
   d.activity[today] = (d.activity[today] || 0) + 1;

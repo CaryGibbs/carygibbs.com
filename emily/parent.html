@@ -290,8 +290,9 @@ function buildDayByDay(sessions, timeLog) {
     var tl = (timeLog&&timeLog[d]) || {};
     var timeSecs = tl.total || 0;
     
-    // Calculate XP earned that day (rough: 10 per quiz + bonuses)
-    var dayXP = dayQuizzes.reduce(function(a,s) {
+    // Per-day XP: read from timeLog.xp written by quiz/lesson/mindmap pages.
+    // Falls back to quiz-only estimate if xp field absent (older data before this fix).
+    var dayXP = tl.xp || dayQuizzes.reduce(function(a,s) {
       var xp = 10;
       if (s.pct >= 90) xp += 15;
       if (s.score === s.total) xp += 20;

@@ -431,25 +431,18 @@ function renderXPBar() {
         if (!d.activity) d.activity = {};
         if (!d.lessonsRead) d.lessonsRead = [];
         if (!d.mindmapVisits) d.mindmapVisits = {};
-        // Recompute XP and badges from actual sessions (don't trust stored values)
-        var computedXP = 0;
-        var computedBadges = [];
-        sessions.forEach(function(s){
-          computedXP += 10; // base per quiz
-          if (s.score === s.total) computedXP += 20; // perfect
-          else if (s.pct >= 90) computedXP += 15; // 90%+
-        });
-        // Award badges based on computed data
-        if (sessions.length >= 1) computedBadges.push('first_quiz');
-        if (sessions.some(function(s){return s.score===s.total && s.total===10;})) computedBadges.push('perfect_ten');
-        // Keep other badges from Firebase if they exist (streaks, bookworm etc)
-        var keepBadges = ['streak_3','streak_7','streak_30','bookworm','explorer',
-                          'sharp','comeback','star_pupil','trending','all_rounder',
-                          'century','night_owl','early_bird','lesson_20'];
-        var fbBadges = (fb.summary && fb.summary.badges) || [];
-        keepBadges.forEach(function(b){ if (fbBadges.indexOf(b)>-1) computedBadges.push(b); });
-        d.xp = computedXP;
-        d.badges = computedBadges;
+        // Trust the authoritative XP/badges from Firebase summary (written by quiz/lesson/mindmap).
+        // Do NOT recompute from sessions — that path silently drops lesson XP, mindmap XP,
+        // streak bonuses, weak-topic-fixed and improve-3-in-a-row bonuses.
+        var fbSummary = fb.summary || {};
+        if (fbSummary.xp !== undefined && !isNaN(fbSummary.xp)) {
+          // Only take Firebase value if it is >= what we already have locally,
+          // to avoid a stale summary overwriting fresher localStorage data.
+          d.xp = Math.max(d.xp || 0, fbSummary.xp);
+        }
+        if (fbSummary.badges && fbSummary.badges.length >= (d.badges || []).length) {
+          d.badges = fbSummary.badges;
+        }
         d.quizSessions = sessions.map(function(s){
           return {sid:s.sid||'', date:s.date||'', ts:s.ts||0,
                   score:s.score||0, total:s.total||10, pct:s.pct||0,
@@ -470,7 +463,7 @@ function renderXPBar() {
           }
         });
         try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){}
-        console.log('✅ My Progress synced: '+sessions.length+' sessions, XP:'+d.xp);
+        console.log('✅ My Progress synced: '+sessions.length+' sessions, XP:'+d.xp+' (from summary.xp, not recomputed)');
       }
     }
     render(); renderXPBar();
