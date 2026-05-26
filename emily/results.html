@@ -391,6 +391,12 @@ function resetAll() {
   if (confirm('Clear ALL results, XP and badges? This cannot be undone.')) {
     localStorage.removeItem(HUB_STORE);
     localStorage.removeItem(STREAK_STORE);
+    // Also clear the Firebase reset flag so it doesn't keep wiping data
+    try {
+      if (window.firebase && firebase.apps && firebase.apps.length) {
+        firebase.database().ref('emily/resetRequested').remove();
+      }
+    } catch(e) {}
     render();
   }
 }
@@ -477,7 +483,13 @@ setInterval(function() {
 function checkRemoteReset() {
   if (!window.firebase || !firebase.apps || !firebase.apps.length) return;
   firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
-    if (!snap.val()) return;
+    var val = snap.val();
+    if (!val) return;
+    // Only fire if reset was requested in the last hour (prevents stale flags)
+    if (val.ts && (Date.now() - val.ts) > 3600000) {
+      firebase.database().ref('emily/resetRequested').remove();
+      return;
+    }
     console.log('🔄 Remote reset detected — clearing local data');
     try {
       localStorage.removeItem('emilys_hub_v1');
