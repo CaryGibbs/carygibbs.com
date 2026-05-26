@@ -456,7 +456,7 @@ function loadAndRender() {
           });
         }
       });
-      _save(d2);
+      try { localStorage.setItem(HUB_STORE, JSON.stringify(d2)); } catch(e) {}
       console.log('✅ Synced from Firebase: '+sessions.length+' sessions, XP: '+d2.xp);
     }
     doRender();
