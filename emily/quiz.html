@@ -807,6 +807,60 @@ function retryQuiz() {
   document.getElementById('results-screen').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'block';
 }
+
+/* ── TIME TRACKING ─────────────────────────────────────── */
+var _pageStart = Date.now();
+var _pageType = (function() {
+  var p = location.pathname.split('/').pop() || 'index.html';
+  if (p.includes('quiz'))    return 'quiz';
+  if (p.includes('lesson'))  return 'lesson';
+  if (p.includes('mindmap')) return 'mindmap';
+  if (p.includes('results')) return 'results';
+  if (p.includes('index') || p === '' || p === '/') return 'home';
+  return 'other';
+})();
+
+function _recordTime() {
+  var secs = Math.round((Date.now() - _pageStart) / 1000);
+  if (secs < 3 || secs > 7200) return; // ignore < 3s and > 2hr (tab left open)
+  var today = new Date().toISOString().slice(0,10);
+
+  // Save to localStorage
+  try {
+    var d = JSON.parse(localStorage.getItem('emilys_hub_v1')) || {};
+    if (!d.timeLog) d.timeLog = {};
+    if (!d.timeLog[today]) d.timeLog[today] = { total:0, quiz:0, lesson:0, mindmap:0, home:0, other:0 };
+    d.timeLog[today].total = (d.timeLog[today].total||0) + secs;
+    d.timeLog[today][_pageType] = (d.timeLog[today][_pageType]||0) + secs;
+    // Keep last 90 days only
+    var keys = Object.keys(d.timeLog).sort();
+    if (keys.length > 90) { delete d.timeLog[keys[0]]; }
+    // Update activity heatmap too (in minutes)
+    if (!d.activity) d.activity = {};
+    d.activity[today] = (d.activity[today]||0) + Math.round(secs/60);
+    localStorage.setItem('emilys_hub_v1', JSON.stringify(d));
+  } catch(e) {}
+
+  // Sync to Firebase
+  try {
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      var db = firebase.database();
+      db.ref('emily/timeLog/' + today + '/total').transaction(function(v){ return (v||0)+secs; });
+      db.ref('emily/timeLog/' + today + '/' + _pageType).transaction(function(v){ return (v||0)+secs; });
+      db.ref('emily/activity/' + today).transaction(function(v){ return (v||0)+Math.round(secs/60); });
+    }
+  } catch(e) {}
+}
+
+// Record time when leaving the page
+window.addEventListener('beforeunload', _recordTime);
+window.addEventListener('pagehide', _recordTime);
+// Also record periodically every 60s (in case tab is kept open)
+setInterval(function() {
+  _recordTime();
+  _pageStart = Date.now(); // reset so we don't double-count
+}, 60000);
+
 </script>
 </body>
 </html>
