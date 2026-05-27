@@ -202,7 +202,6 @@ var BADGE_DEFS = [
   { id:'streak_3',     emoji:'🔥', title:'On Fire',           desc:'3-day streak' },
   { id:'streak_7',     emoji:'🌟', title:'Week Warrior',      desc:'7-day streak' },
   { id:'streak_30',    emoji:'🚀', title:'Unstoppable',       desc:'30-day streak' },
-  { id:'bookworm',     emoji:'📚', title:'Bookworm',          desc:'Read 20 lessons' },
   { id:'explorer',     emoji:'🌍', title:'Explorer',          desc:'Quiz in every subject' },
   { id:'sharp',        emoji:'🎯', title:'Sharp Shooter',     desc:'Answer 100 questions correctly' },
   { id:'comeback',     emoji:'💪', title:'Comeback Kid',      desc:'Improve a topic from below 60% to above 70%' },
@@ -363,7 +362,7 @@ function _checkBadges(d, context) {
   if (streak >= 30) _awardBadge(d, 'streak_30');
 
   // Lessons read
-  if ((d.lessonsRead||[]).length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
+  if ((d.lessonsRead||[]).length >= 20) _awardBadge(d, 'lesson_20');
 
   // Explorer — quiz in every subject
   var subjectsQuizzed = Object.keys(d.subjectSessions || {});
@@ -619,7 +618,10 @@ function _firebaseSync(d, sid, topicScores, score, total, pct) {
       streak: getStreak(),
       lastActive: _today(),
       totalQuizzes: (d.quizSessions || []).length,
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      lessonsRead: d.lessonsRead || [],
+      mindmapVisits: d.mindmapVisits || {},
+      topicFixedCount: d.topicFixedCount || 0
     });
 
     // Sync timeLog — write time fields and accumulate per-day XP via transaction

@@ -169,7 +169,6 @@ var BADGE_DEFS = [
   { id:'streak_3',     emoji:'🔥', title:'On Fire',           desc:'3-day streak' },
   { id:'streak_7',     emoji:'🌟', title:'Week Warrior',      desc:'7-day streak' },
   { id:'streak_30',    emoji:'🚀', title:'Unstoppable',       desc:'30-day streak' },
-  { id:'bookworm',     emoji:'📚', title:'Bookworm',          desc:'Read 20 lessons' },
   { id:'explorer',     emoji:'🌍', title:'Explorer',          desc:'Quiz in every subject' },
   { id:'sharp',        emoji:'🎯', title:'Sharp Shooter',     desc:'Answer 100 questions correctly' },
   { id:'comeback',     emoji:'💪', title:'Comeback Kid',      desc:'Improve a topic from below 60% to above 70%' },
@@ -291,7 +290,7 @@ function _checkBadges(d, context) {
   if (streak >= 30) _awardBadge(d, 'streak_30');
 
   // Lessons read
-  if (d.lessonsRead.length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
+  if (d.lessonsRead.length >= 20) _awardBadge(d, 'lesson_20');
 
   // Explorer — quiz in every subject
   var subjectsQuizzed = Object.keys(d.subjectSessions || {});
@@ -420,8 +419,12 @@ function trackLessonRead(sid, lessonKey) {
         firebase.database().ref('emily/summary').update({
           xp: d.xp || 0,
           badges: d.badges || [],
+          streak: (typeof getStreak === 'function' ? getStreak() : 0),
           lastActive: _today(),
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
+          lessonsRead: d.lessonsRead || [],
+          mindmapVisits: d.mindmapVisits || {},
+          topicFixedCount: d.topicFixedCount || 0
         });
         // Accumulate per-day XP so parent.html daily column stays accurate
         firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
@@ -474,7 +477,10 @@ function _firebaseSync(d, sid, topicScores, score, total, pct) {
       streak: getStreak(),
       lastActive: _today(),
       totalQuizzes: d.quizSessions.length,
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      lessonsRead: d.lessonsRead || [],
+      mindmapVisits: d.mindmapVisits || {},
+      topicFixedCount: d.topicFixedCount || 0
     });
     // Activity heatmap
     ref.child('activity').child(_today()).transaction(function(cur){ return (cur||0) + 5; });
@@ -577,6 +583,16 @@ if (!L) {
   }) || 'maths';
   const S = SUBJECTS[sid];
   const pal = PALETTE[L.theme] || PALETTE.purple;
+
+  // If no practice questions, count as read immediately on page open
+  if (!L.practice || L.practice.length === 0) {
+    trackLessonRead(sid, key);
+  } else {
+    // Set globals so checkAns can fire trackLessonRead on completion
+    _lessonSid = sid;
+    _lessonKey = key;
+    _totalQs   = L.practice.length;
+  }
 
   // Update nav
   document.getElementById('nav-subject').textContent = S.name;
@@ -739,6 +755,12 @@ if (!L) {
   wrap.innerHTML = heroHTML + keyIdeaHTML + formulaeHTML + stepsHTML + compareHTML + workedHTML + tipsHTML + mistakesHTML + practiceHTML + quizCTA + `<div class="lesson-nav">${prevBtn}${nextBtn}</div>`;
 }
 
+// Track answered questions — fire trackLessonRead when all done
+var _answeredQs = new Set();
+var _totalQs = 0;    // set after render
+var _lessonSid = ''; // set after render
+var _lessonKey = ''; // set after render
+
 function checkAns(qi, chosen, correct, cardId, expId) {
   const card = document.getElementById(cardId);
   const exp = document.getElementById(expId);
@@ -749,6 +771,20 @@ function checkAns(qi, chosen, correct, cardId, expId) {
     else if (i === chosen) b.classList.add('wrong');
   });
   exp.classList.add('show');
+
+  // Mark this question as answered
+  _answeredQs.add(qi);
+
+  // If all questions answered, register lesson as complete
+  if (_totalQs > 0 && _answeredQs.size >= _totalQs) {
+    trackLessonRead(_lessonSid, _lessonKey);
+    // Show a small completion nudge
+    var banner = document.createElement('div');
+    banner.style.cssText = 'text-align:center;padding:.75rem;margin-top:1rem;border-radius:8px;background:rgba(62,207,172,.1);color:#3ecfac;font-weight:600;';
+    banner.textContent = '✓ Lesson complete — XP earned!';
+    var practiceSection = document.querySelector('.section:last-of-type');
+    if (practiceSection) practiceSection.appendChild(banner);
+  }
 }
 
 /* ── TIME TRACKING ─────────────────────────────────────── */

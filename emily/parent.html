@@ -131,6 +131,283 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 .anim{animation:fadeUp .35s ease both;}
 </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   BADGE PROGRESS MODAL — shared across index, results, parent
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── CSS (injected once) ──────────────────────────────────── */
+var BADGE_MODAL_CSS = `
+#bm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:1rem;}
+#bm-overlay.open{display:flex;}
+#bm-box{background:#141720;border:1px solid #252a38;border-radius:14px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+#bm-header{padding:1.25rem 1.5rem .75rem;display:flex;align-items:flex-start;gap:.75rem;}
+#bm-emoji{font-size:2.2rem;line-height:1;}
+#bm-meta{flex:1;}
+#bm-title{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:.2rem;}
+#bm-status{font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;}
+#bm-status.earned{background:rgba(91,191,106,.15);color:#5bbf6a;}
+#bm-status.locked{background:rgba(90,96,112,.15);color:#5a6070;}
+#bm-body{padding:.75rem 1.5rem 1.5rem;}
+#bm-desc{color:#9da3b4;font-size:.85rem;margin-bottom:1rem;line-height:1.5;}
+#bm-progress-wrap{margin-bottom:1rem;}
+#bm-progress-label{display:flex;justify-content:space-between;font-size:.75rem;color:#5a6070;margin-bottom:.4rem;}
+#bm-progress-label span:last-child{color:#d4d8e8;font-weight:600;}
+#bm-bar-bg{background:#252a38;border-radius:6px;height:8px;overflow:hidden;}
+#bm-bar{height:100%;border-radius:6px;transition:width .4s ease;}
+#bm-outstanding{background:#0d0f14;border:1px solid #252a38;border-radius:8px;padding:.75rem 1rem;font-size:.82rem;color:#9da3b4;line-height:1.6;}
+#bm-outstanding strong{color:#d4d8e8;display:block;margin-bottom:.3rem;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;}
+#bm-close{display:block;width:100%;padding:.75rem;background:none;border:none;border-top:1px solid #252a38;color:#5a6070;font-size:.85rem;cursor:pointer;transition:color .15s;}
+#bm-close:hover{color:#d4d8e8;}
+`;
+
+function _injectBadgeModal() {
+  if (document.getElementById('bm-overlay')) return;
+  var style = document.createElement('style');
+  style.textContent = BADGE_MODAL_CSS;
+  document.head.appendChild(style);
+
+  var el = document.createElement('div');
+  el.id = 'bm-overlay';
+  el.innerHTML = `
+    <div id="bm-box">
+      <div id="bm-header">
+        <div id="bm-emoji"></div>
+        <div id="bm-meta">
+          <div id="bm-title"></div>
+          <span id="bm-status"></span>
+        </div>
+      </div>
+      <div id="bm-body">
+        <div id="bm-desc"></div>
+        <div id="bm-progress-wrap">
+          <div id="bm-progress-label"><span>Progress</span><span id="bm-progress-val"></span></div>
+          <div id="bm-bar-bg"><div id="bm-bar"></div></div>
+        </div>
+        <div id="bm-outstanding"></div>
+      </div>
+      <button id="bm-close" onclick="closeBadgeModal()">Close</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', function(e) { if (e.target === el) closeBadgeModal(); });
+}
+
+function closeBadgeModal() {
+  var el = document.getElementById('bm-overlay');
+  if (el) el.classList.remove('open');
+}
+
+/* ── Progress calculator ─────────────────────────────────── */
+function getBadgeProgress(id, d) {
+  // Returns { current, target, pct, outstanding }
+  // d = the full data object from localStorage
+
+  var qs       = d.quizSessions      || [];
+  var badges   = d.badges            || [];
+  var xp       = d.xp                || 0;
+  var lessons  = d.lessonsRead       || [];
+  var mm       = d.mindmapVisits     || {};
+  var ss       = d.subjectSessions   || {};
+  var streak   = (typeof getStreak === 'function' ? getStreak() : (d.streak || 0));
+  var tfCount  = d.topicFixedCount   || 0;
+
+  var perfects     = qs.filter(function(s){ return s.score === s.total && s.total === 10; }).length;
+  var totalCorrect = qs.reduce(function(a,s){ return a + (s.score||0); }, 0);
+  var highPct      = qs.filter(function(s){ return s.pct >= 90; }).length;
+  var qCount       = qs.length;
+  var lCount       = lessons.length;
+
+  var mmSubjects   = Object.keys(mm).map(function(k){ return k.split('_')[0]; })
+                           .filter(function(v,i,a){ return a.indexOf(v)===i; });
+
+  var ALL_SUBJECTS = ['maths','english','geography','spanish','science','re'];
+
+  // Helper: subject 90%+ count
+  function subHigh(sid) {
+    return (ss[sid]||[]).filter(function(p){ return p >= 90; }).length;
+  }
+
+  // Map badge id -> { current, target, outstandingText }
+  var map = {
+    // ── Original ──
+    first_quiz:     { current: Math.min(qCount,1),    target:1,   label:'Quizzes completed' },
+    perfect_ten:    { current: Math.min(perfects,1),  target:1,   label:'10/10 scores' },
+    streak_3:       { current: Math.min(streak,3),    target:3,   label:'Day streak' },
+    streak_7:       { current: Math.min(streak,7),    target:7,   label:'Day streak' },
+    streak_14:      { current: Math.min(streak,14),   target:14,  label:'Day streak' },
+    streak_30:      { current: Math.min(streak,30),   target:30,  label:'Day streak' },
+    explorer: (function(){
+      var subs = Object.keys(ss).length;
+      return { current: Math.min(subs, ALL_SUBJECTS.length), target: ALL_SUBJECTS.length, label:'Subjects quizzed' };
+    })(),
+    sharp: (function(){
+      return { current: Math.min(totalCorrect,100), target:100, label:'Correct answers' };
+    })(),
+    comeback: (function(){
+      return { current: Math.min(tfCount,1), target:1, label:'Topics improved 60%→70%+' };
+    })(),
+    star_pupil:     { current: Math.min(highPct,5),   target:5,   label:'Scores of 90%+' },
+    trending: (function(){
+      // check if any subject has 3 improving sessions in a row
+      var done = ALL_SUBJECTS.some(function(sid){
+        var s = ss[sid]||[];
+        if (s.length < 3) return false;
+        var last3 = s.slice(-3);
+        return last3[1] > last3[0] && last3[2] > last3[1];
+      });
+      return { current: done?1:0, target:1, label:'Subjects with 3 improving scores in a row' };
+    })(),
+    all_rounder: (function(){
+      var done = ALL_SUBJECTS.filter(function(sid){
+        return (ss[sid]||[]).some(function(p){ return p >= 70; });
+      }).length;
+      return { current: done, target: ALL_SUBJECTS.length, label:'Subjects with 70%+ score' };
+    })(),
+    century:        { current: Math.min(qCount,100),  target:100, label:'Quizzes completed' },
+    lesson_20:      { current: Math.min(lCount,20),   target:20,  label:'Lessons read' },
+    night_owl:      { current: badges.indexOf('night_owl')>-1?1:0,  target:1, label:'Quiz after 9pm' },
+    early_bird:     { current: badges.indexOf('early_bird')>-1?1:0, target:1, label:'Quiz before 8am' },
+    // ── Volume ──
+    quiz_25:        { current: Math.min(qCount,25),   target:25,  label:'Quizzes completed' },
+    quiz_50:        { current: Math.min(qCount,50),   target:50,  label:'Quizzes completed' },
+    quiz_250:       { current: Math.min(qCount,250),  target:250, label:'Quizzes completed' },
+    sharp_250:      { current: Math.min(totalCorrect,250), target:250, label:'Correct answers' },
+    sharp_500:      { current: Math.min(totalCorrect,500), target:500, label:'Correct answers' },
+    lesson_5:       { current: Math.min(lCount,5),    target:5,   label:'Lessons read' },
+    lesson_10:      { current: Math.min(lCount,10),   target:10,  label:'Lessons read' },
+    lesson_40:      { current: Math.min(lCount,40),   target:40,  label:'Lessons read' },
+    mindmap_5:      { current: Math.min(mmSubjects.length,5), target:5, label:'Different mind maps visited' },
+    mindmap_all:    { current: Math.min(mmSubjects.length,ALL_SUBJECTS.length), target:ALL_SUBJECTS.length, label:'Subject mind maps visited' },
+    // ── Mastery ──
+    perfect_3:      { current: Math.min(perfects,3),  target:3,   label:'Perfect 10/10 scores' },
+    perfect_10:     { current: Math.min(perfects,10), target:10,  label:'Perfect 10/10 scores' },
+    ace:            { current: Math.min(highPct,10),  target:10,  label:'Scores of 90%+' },
+    flawless: (function(){
+      var done = ALL_SUBJECTS.filter(function(sid){
+        return (ss[sid]||[]).some(function(p){ return p >= 100; });
+      }).length;
+      return { current: done, target: ALL_SUBJECTS.length, label:'Subjects with 100% score' };
+    })(),
+    no_mistakes: (function(){
+      if (qs.length < 5) return { current: qs.length, target:5, label:'Quizzes needed (all 80%+)' };
+      var last5ok = qs.slice(-5).every(function(s){ return s.pct >= 80; });
+      return { current: last5ok?5:qs.slice(-5).filter(function(s){ return s.pct>=80; }).length, target:5, label:'Last 5 quizzes at 80%+' };
+    })(),
+    xp_500:         { current: Math.min(xp,500),   target:500,   label:'XP earned' },
+    xp_1000:        { current: Math.min(xp,1000),  target:1000,  label:'XP earned' },
+    xp_2000:        { current: Math.min(xp,2000),  target:2000,  label:'XP earned' },
+    // ── Subject ──
+    maths_master:   { current: Math.min(subHigh('maths'),3),     target:3, label:'90%+ scores in Maths' },
+    english_master: { current: Math.min(subHigh('english'),3),   target:3, label:'90%+ scores in English' },
+    geo_master:     { current: Math.min(subHigh('geography'),3), target:3, label:'90%+ scores in Geography' },
+    spanish_master: { current: Math.min(subHigh('spanish'),3),   target:3, label:'90%+ scores in Spanish' },
+    science_master: { current: Math.min(subHigh('science'),3),   target:3, label:'90%+ scores in Science' },
+    re_master:      { current: Math.min(subHigh('re'),3),        target:3, label:'90%+ scores in RE' },
+    // ── Quirky ──
+    lunch_break:    { current: badges.indexOf('lunch_break')>-1?1:0,   target:1, label:'Quiz between 12–1pm' },
+    weekend:        { current: badges.indexOf('weekend')>-1?1:0,       target:1, label:'Quiz on both Sat and Sun' },
+    hat_trick_day:  { current: badges.indexOf('hat_trick_day')>-1?1:0, target:1, label:'3 quizzes in one day' },
+    comeback_5:     { current: Math.min(tfCount,5), target:5, label:'Weak topics improved 60%→70%+' },
+  };
+
+  var p = map[id] || { current:0, target:1, label:'' };
+  var isEarned = badges.indexOf(id) > -1;
+  var pct = isEarned ? 100 : Math.min(100, Math.round((p.current / p.target) * 100));
+
+  var outstanding = '';
+  if (isEarned) {
+    outstanding = '🏆 Earned!';
+  } else {
+    var remaining = p.target - p.current;
+    outstanding = remaining + ' more ' + p.label.toLowerCase() + ' needed';
+  }
+
+  return {
+    current:     isEarned ? p.target : p.current,
+    target:      p.target,
+    pct:         pct,
+    label:       p.label,
+    outstanding: outstanding,
+    isEarned:    isEarned
+  };
+}
+
+/* ── Show modal ──────────────────────────────────────────── */
+function showBadgeModal(id, d) {
+  _injectBadgeModal();
+
+  var def = BADGE_DEFS.find(function(b){ return b.id === id; });
+  if (!def) return;
+
+  var prog = getBadgeProgress(id, d);
+
+  document.getElementById('bm-emoji').textContent   = def.emoji;
+  document.getElementById('bm-title').textContent   = def.title;
+  document.getElementById('bm-desc').textContent    = def.desc;
+
+  var statusEl = document.getElementById('bm-status');
+  statusEl.textContent  = prog.isEarned ? '✓ Earned' : 'Locked';
+  statusEl.className    = 'earned' ? '' : '';
+  statusEl.className    = prog.isEarned ? 'earned' : 'locked';
+
+  document.getElementById('bm-progress-val').textContent = prog.current + ' / ' + prog.target;
+
+  var bar = document.getElementById('bm-bar');
+  // Pick colour: green if earned, purple if in progress, grey if not started
+  var colour = prog.isEarned ? '#5bbf6a' : prog.current > 0 ? '#7c6fcd' : '#3a3f50';
+  bar.style.background = colour;
+  // Trigger transition
+  bar.style.width = '0%';
+  setTimeout(function(){ bar.style.width = prog.pct + '%'; }, 50);
+
+  var outEl = document.getElementById('bm-outstanding');
+  if (prog.isEarned) {
+    outEl.innerHTML = '<strong>Status</strong>Badge earned — well done! 🎉';
+  } else {
+    outEl.innerHTML = '<strong>What\'s needed</strong>' + prog.outstanding;
+    // Add progress detail for numeric badges
+    if (prog.target > 1) {
+      outEl.innerHTML += '<br><span style="color:#7c6fcd">' + prog.pct + '% of the way there</span>';
+    }
+  }
+
+  // Hide progress bar for binary badges (target=1, quirky/time-based)
+  var wrap = document.getElementById('bm-progress-wrap');
+  wrap.style.display = prog.target === 1 ? 'none' : 'block';
+
+  document.getElementById('bm-overlay').classList.add('open');
+}
+
+/* Helper: parent.html reads from Firebase summary, not localStorage.
+   Convert it to the same shape as the Emily-side data object so
+   getBadgeProgress works identically. */
+function _getSummaryAsD() {
+  // Read directly from _allData at call time so it's always current
+  // even if renderMain hasn't run yet (falls back to empty)
+  var summary  = (_allData && _allData.summary)  || {};
+  var sessions = (_allData && _allData.sessions) || [];
+  var subSessions = {};
+  sessions.forEach(function(s) {
+    if (s.sid) {
+      if (!subSessions[s.sid]) subSessions[s.sid] = [];
+      subSessions[s.sid].push(s.pct || 0);
+    }
+  });
+  return {
+    xp:              summary.xp              || 0,
+    badges:          summary.badges          || [],
+    quizSessions:    sessions,
+    lessonsRead:     summary.lessonsRead     || [],
+    mindmapVisits:   summary.mindmapVisits   || {},
+    subjectSessions: subSessions,
+    topicFixedCount: summary.topicFixedCount || 0,
+    streak:          summary.streak          || 0,
+  };
+}
+
+window.showBadgeModal  = showBadgeModal;
+window.closeBadgeModal = closeBadgeModal;
+</script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
     var _fbCfg = {
@@ -169,7 +446,7 @@ var BADGE_DEFS=[
   {id:'first_quiz',emoji:'🎉',title:'First Steps'},{id:'perfect_ten',emoji:'💯',title:'Perfect Ten'},
   {id:'streak_3',emoji:'🔥',title:'On Fire'},{id:'streak_7',emoji:'🌟',title:'Week Warrior'},
   {id:'streak_14',emoji:'⚡',title:'Fortnight Fighter'},{id:'streak_30',emoji:'🚀',title:'Unstoppable'},
-  {id:'bookworm',emoji:'📚',title:'Bookworm'},{id:'explorer',emoji:'🌍',title:'Explorer'},
+  {id:'explorer',emoji:'🌍',title:'Explorer'},
   {id:'sharp',emoji:'🎯',title:'Sharp Shooter'},{id:'comeback',emoji:'💪',title:'Comeback Kid'},
   {id:'star_pupil',emoji:'⭐',title:'Star Pupil'},{id:'trending',emoji:'📈',title:'Trending Up'},
   {id:'all_rounder',emoji:'🎪',title:'All-Rounder'},{id:'century',emoji:'💫',title:'Century'},
@@ -241,9 +518,8 @@ var _allData = null;
 
 function setPeriod(p){_period=p;if(_allData)renderMain(_allData);}
 
-function buildTimeSection(timeLog, sessions){
-  var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - (_period==='all'?3650:parseInt(_period)));
-  var cutStr = cutoff.toISOString().slice(0,10);
+function buildTimeSection(timeLog, sessions, cutStr){
+  cutStr = cutStr || new Date().toISOString().slice(0,10);
   var tot={total:0,quiz:0,lesson:0,mindmap:0};
   var daily=[];
   Object.entries(timeLog||{}).forEach(function(e){
@@ -263,7 +539,7 @@ function buildTimeSection(timeLog, sessions){
     +'<div class="time-tabs">'
     +['1','2','3','4','5','6','7','14','30','all'].map(function(p){
         var lbl={'1':'1d','2':'2d','3':'3d','4':'4d','5':'5d','6':'6d','7':'7d','14':'14d','30':'30d','all':'All'}[p]||p;
-        return '<div class="time-tab '+(p===_period?'active':'')+'" onclick="setPeriod(\''+p+'\')" style="padding:.25rem .45rem;font-size:11px">'+lbl+'</div>';
+        return '<div class="time-tab '+(p===_period?'active':'')+'" data-period="'+p+'" style="padding:.25rem .45rem;font-size:11px;cursor:pointer">'+lbl+'</div>';
       }).join('')
     +'</div></div>'
     +'<div class="time-grid">'
@@ -290,7 +566,8 @@ function buildTimeSection(timeLog, sessions){
 }
 
 /* ── DAY BY DAY ────────────────────────────────────────── */
-function buildDayByDay(sessions, timeLog) {
+function buildDayByDay(sessions, timeLog, cutStr) {
+  cutStr = cutStr || '1970-01-01';
   // Group sessions by date
   var byDate = {};
   (sessions||[]).forEach(function(s) {
@@ -298,9 +575,9 @@ function buildDayByDay(sessions, timeLog) {
     byDate[s.date].push(s);
   });
 
-  // Merge with timeLog dates
+  // Merge with timeLog dates — only within the period
   Object.keys(timeLog||{}).forEach(function(d) {
-    if (!byDate[d]) byDate[d] = [];
+    if (d >= cutStr && !byDate[d]) byDate[d] = [];
   });
 
   var dates = Object.keys(byDate).sort().reverse().slice(0,30); // last 30 active days
@@ -329,7 +606,7 @@ function buildDayByDay(sessions, timeLog) {
     var chevId = 'day-chev-' + idx;
 
     html += '<tr style="cursor:'+(dayQuizzes.length>0?'pointer':'default')+'" '
-      + (dayQuizzes.length>0 ? 'onclick="togDay(\''+detailId+'\',\''+chevId+'\')"' : '')+'>';
+      + (dayQuizzes.length>0 ? 'data-tog="'+detailId+','+chevId+'"' : '')+'>';
     
     // Date
     html += '<td><div class="day-date'+(d===todayStr?' today':'')+'">'+fmtDate(d)+(d===todayStr?' <span style="font-size:10px;color:#9ef5e2;font-weight:700">TODAY</span>':'')+'</div></td>';
@@ -429,9 +706,25 @@ function renderMain(data) {
   var ovPct = totalAns>0?Math.round((totalCorrect/totalAns)*100):0;
   var totalTimeSecs = Object.values(timeLog).reduce(function(a,v){return a+(v.total||0);},0);
 
+  // _allData is set above — _getSummaryAsD() reads from it directly at call time
+
+  // Filter sessions by selected period for all period-sensitive views
+  // cutStr = first date to INCLUDE. period '1' = today only, '2' = today+yesterday, etc.
+  var cutoff = new Date();
+  var _pInt = _period === 'all' ? 3650 : parseInt(_period);
+  cutoff.setDate(cutoff.getDate() - (_pInt - 1));
+  var cutStr = cutoff.toISOString().slice(0, 10);
+  var filteredSessions = _period === 'all' ? sessions
+    : sessions.filter(function(s) { return (s.date || '') >= cutStr; });
+
+  // Period label for section headings
+  var periodLabel = _period === 'all' ? 'All time'
+    : _period === '1' ? 'Today'
+    : 'Last ' + _period + ' days';
+
   var html = '';
 
-  // ── STATS ROW ──
+  // ── STATS ROW — always all-time so totals are meaningful ──
   html += '<div class="stats-row anim">'
     +'<div class="stat"><div class="stat-val" style="color:#ffd580">'+xp+'</div><div class="stat-lbl">Total XP</div></div>'
     +'<div class="stat"><div class="stat-val">'+lv.emoji+'<span style="font-size:.95rem;color:#c4bbff"> '+lv.title+'</span></div><div class="stat-lbl">Level</div></div>'
@@ -441,7 +734,7 @@ function renderMain(data) {
     +'</div>';
 
   // ── TIME SECTION ──
-  html += buildTimeSection(timeLog, sessions);
+  html += buildTimeSection(timeLog, filteredSessions, cutStr);
 
   // ── HEATMAP ──
   html += '<div class="card anim">'
@@ -461,7 +754,7 @@ function renderMain(data) {
     +'<div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800">📅 Day by Day</div>'
     +'<div style="font-size:11px;color:var(--dim)">Last 30 active days · click a row to expand</div>'
     +'</div>'
-    + buildDayByDay(sessions, timeLog)
+    + buildDayByDay(filteredSessions, timeLog, cutStr)
     +'</div>';
 
   // ── BADGES ──
@@ -469,14 +762,14 @@ function renderMain(data) {
     +'<div class="badge-list anim">';
   BADGE_DEFS.forEach(function(b){
     var earned=badges.indexOf(b.id)>-1;
-    html+='<div class="bl-badge '+(earned?'':'bl-locked')+'">'+b.emoji+' '+b.title+'</div>';
+    html+='<div class="bl-badge '+(earned?'':'bl-locked')+'" data-badge="'+b.id+'" style="cursor:pointer;" title="Click for details">'+b.emoji+' '+b.title+'</div>';
   });
   html+='</div>';
 
   // ── BY SUBJECT ──
-  html += '<div class="sec-label">By Subject</div><div class="subject-grid anim">';
+  html += '<div class="sec-label">By Subject — '+periodLabel+'</div><div class="subject-grid anim">';
   var subjSessions={}, subjTopics={};
-  sessions.forEach(function(s){
+  filteredSessions.forEach(function(s){
     if(!subjSessions[s.sid])subjSessions[s.sid]=[];
     subjSessions[s.sid].push(s);
     if(!s.topicScores)return;
@@ -512,8 +805,8 @@ function renderMain(data) {
   html+='</div>';
 
   // ── RECENT FEED ──
-  html += '<div class="sec-label">Recent Activity</div><div class="card anim">';
-  var recent=sessions.slice().sort(function(a,b){return b.ts-a.ts;}).slice(0,20);
+  html += '<div class="sec-label">Recent Activity — '+periodLabel+'</div><div class="card anim">';
+  var recent=filteredSessions.slice().sort(function(a,b){return b.ts-a.ts;}).slice(0,20);
   if(recent.length===0){html+='<div class="empty">No sessions yet.</div>';}
   else{recent.forEach(function(s){
     var si=SI[s.sid]||{name:s.sid,icon:'📝'};
@@ -525,7 +818,7 @@ function renderMain(data) {
 
   // Reset button
   html += '<div class="reset-area">'
-    +'<button class="reset-btn" onclick="resetAll()">🗑 Reset All of Emily\'s Progress</button>'
+    +'<button class="reset-btn" data-action="resetAll">🗑 Reset All of Emily\'s Progress</button>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:.5rem">Clears all quiz results, XP, badges, streak and time data from Firebase</div>'
     +'</div>';
 
@@ -622,6 +915,24 @@ function resetAll() {
       console.error(e);
     });
 }
+
+// Expose all functions called from inline onclick handlers
+window.setPeriod       = setPeriod;
+window.togDay          = togDay;
+window.resetAll        = resetAll;
+window.load            = load;
+
+// Event delegation for period tabs and day rows — avoids cross-script-block scope issues
+document.addEventListener("click", function(e) {
+  var tab = e.target.closest("[data-period]");
+  if (tab) { setPeriod(tab.getAttribute("data-period")); return; }
+  var dayRow = e.target.closest("[data-tog]");
+  if (dayRow) { var ids = dayRow.getAttribute("data-tog").split(","); togDay(ids[0], ids[1]); return; }
+  var act = e.target.closest("[data-action]");
+  if (act && act.getAttribute("data-action") === "resetAll") { resetAll(); return; }
+  var badge = e.target.closest("[data-badge]");
+  if (badge) { showBadgeModal(badge.getAttribute("data-badge"), _getSummaryAsD()); }
+});
 </script>
 </body>
 </html>
