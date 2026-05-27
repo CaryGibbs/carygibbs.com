@@ -472,8 +472,12 @@ function trackLessonRead(sid, lessonKey) {
         firebase.database().ref('emily/summary').update({
           xp: d.xp || 0,
           badges: d.badges || [],
+          streak: (typeof getStreak === 'function' ? getStreak() : 0),
           lastActive: _today(),
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
+          lessonsRead: d.lessonsRead || [],
+          mindmapVisits: d.mindmapVisits || {},
+          topicFixedCount: d.topicFixedCount || 0
         });
         firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
           return (cur || 0) + XP.LESSON_READ;
@@ -504,8 +508,12 @@ function trackMindmapVisit(sid) {
         firebase.database().ref('emily/summary').update({
           xp: d.xp || 0,
           badges: d.badges || [],
+          streak: (typeof getStreak === 'function' ? getStreak() : 0),
           lastActive: _today(),
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
+          lessonsRead: d.lessonsRead || [],
+          mindmapVisits: d.mindmapVisits || {},
+          topicFixedCount: d.topicFixedCount || 0
         });
         firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
           return (cur || 0) + XP.MINDMAP_VISIT;
@@ -539,7 +547,10 @@ function _firebaseSync(d, sid, topicScores, score, total, pct) {
       streak: getStreak(),
       lastActive: _today(),
       totalQuizzes: d.quizSessions.length,
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      lessonsRead: d.lessonsRead || [],
+      mindmapVisits: d.mindmapVisits || {},
+      topicFixedCount: d.topicFixedCount || 0
     });
     // Activity heatmap
     ref.child('activity').child(_today()).transaction(function(cur){ return (cur||0) + 5; });

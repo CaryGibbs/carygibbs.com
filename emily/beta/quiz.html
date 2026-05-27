@@ -618,7 +618,10 @@ function _firebaseSync(d, sid, topicScores, score, total, pct) {
       streak: getStreak(),
       lastActive: _today(),
       totalQuizzes: (d.quizSessions || []).length,
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
+      lessonsRead: d.lessonsRead || [],
+      mindmapVisits: d.mindmapVisits || {},
+      topicFixedCount: d.topicFixedCount || 0
     });
 
     // Sync timeLog — write time fields and accumulate per-day XP via transaction

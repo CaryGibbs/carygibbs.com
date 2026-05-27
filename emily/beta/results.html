@@ -478,6 +478,7 @@ function renderXPBar() {
           }
         });
         try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e){}
+        d.streak = fb.summary && fb.summary.streak ? fb.summary.streak : (typeof getStreak === 'function' ? getStreak() : 0);
         window._fbHydratedData = d; // cache for badge modal
         console.log('✅ My Progress synced: '+sessions.length+' sessions, XP:'+d.xp);
       }
@@ -491,6 +492,7 @@ function renderXPBar() {
       if (_fbSum.lessonsRead) _fallbackD.lessonsRead = _fbSum.lessonsRead;
       if (_fbSum.mindmapVisits) _fallbackD.mindmapVisits = _fbSum.mindmapVisits;
       if (_fbSum.topicFixedCount) _fallbackD.topicFixedCount = _fbSum.topicFixedCount;
+      _fallbackD.streak = _fbSum.streak || (typeof getStreak === 'function' ? getStreak() : 0);
       window._fbHydratedData = _fallbackD;
     }
     render(); renderXPBar();
@@ -505,6 +507,7 @@ function renderXPBar() {
       if (_fbSum.lessonsRead) _fallbackD.lessonsRead = _fbSum.lessonsRead;
       if (_fbSum.mindmapVisits) _fallbackD.mindmapVisits = _fbSum.mindmapVisits;
       if (_fbSum.topicFixedCount) _fallbackD.topicFixedCount = _fbSum.topicFixedCount;
+      _fallbackD.streak = _fbSum.streak || (typeof getStreak === 'function' ? getStreak() : 0);
       window._fbHydratedData = _fallbackD;
     }
     render(); renderXPBar();

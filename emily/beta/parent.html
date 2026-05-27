@@ -380,15 +380,26 @@ function showBadgeModal(id, d) {
    Convert it to the same shape as the Emily-side data object so
    getBadgeProgress works identically. */
 function _getSummaryAsD() {
+  // Read directly from _allData at call time so it's always current
+  // even if renderMain hasn't run yet (falls back to empty)
+  var summary  = (_allData && _allData.summary)  || {};
+  var sessions = (_allData && _allData.sessions) || [];
+  var subSessions = {};
+  sessions.forEach(function(s) {
+    if (s.sid) {
+      if (!subSessions[s.sid]) subSessions[s.sid] = [];
+      subSessions[s.sid].push(s.pct || 0);
+    }
+  });
   return {
-    xp:              window._parentSummaryXP  || 0,
-    badges:          window._parentBadges     || [],
-    quizSessions:    window._parentSessions   || [],
-    lessonsRead:     window._parentLessonsRead|| [],
-    mindmapVisits:   window._parentMM         || {},
-    subjectSessions: window._parentSubSessions|| {},
-    topicFixedCount: window._parentTFC        || 0,
-    streak:          window._parentStreak     || 0,
+    xp:              summary.xp              || 0,
+    badges:          summary.badges          || [],
+    quizSessions:    sessions,
+    lessonsRead:     summary.lessonsRead     || [],
+    mindmapVisits:   summary.mindmapVisits   || {},
+    subjectSessions: subSessions,
+    topicFixedCount: summary.topicFixedCount || 0,
+    streak:          summary.streak          || 0,
   };
 }
 
@@ -691,22 +702,7 @@ function renderMain(data) {
   var ovPct = totalAns>0?Math.round((totalCorrect/totalAns)*100):0;
   var totalTimeSecs = Object.values(timeLog).reduce(function(a,v){return a+(v.total||0);},0);
 
-  // Cache for _getSummaryAsD() used by badge modal
-  window._parentSummaryXP   = xp;
-  window._parentBadges      = badges;
-  window._parentSessions    = sessions;
-  window._parentStreak      = streak;
-  window._parentLessonsRead = summary.lessonsRead || [];
-  window._parentMM          = summary.mindmapVisits || {};
-  window._parentTFC         = summary.topicFixedCount || 0;
-  // Build subjectSessions map from flat sessions array
-  window._parentSubSessions = {};
-  sessions.forEach(function(s) {
-    if (s.sid) {
-      if (!window._parentSubSessions[s.sid]) window._parentSubSessions[s.sid] = [];
-      window._parentSubSessions[s.sid].push(s.pct || 0);
-    }
-  });
+  // _allData is set above — _getSummaryAsD() reads from it directly at call time
 
   var html = '';
 
