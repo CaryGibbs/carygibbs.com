@@ -130,7 +130,9 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .anim{animation:fadeUp .35s ease both;}
 </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">/* ═══════════════════════════════════════════════════════════
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
    BADGE PROGRESS MODAL — shared across index, results, parent
    ═══════════════════════════════════════════════════════════ */
 
@@ -403,6 +405,8 @@ function _getSummaryAsD() {
   };
 }
 
+window.showBadgeModal  = showBadgeModal;
+window.closeBadgeModal = closeBadgeModal;
 </script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
@@ -514,9 +518,8 @@ var _allData = null;
 
 function setPeriod(p){_period=p;if(_allData)renderMain(_allData);}
 
-function buildTimeSection(timeLog, sessions){
-  var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - (_period==='all'?3650:parseInt(_period)));
-  var cutStr = cutoff.toISOString().slice(0,10);
+function buildTimeSection(timeLog, sessions, cutStr){
+  cutStr = cutStr || new Date().toISOString().slice(0,10);
   var tot={total:0,quiz:0,lesson:0,mindmap:0};
   var daily=[];
   Object.entries(timeLog||{}).forEach(function(e){
@@ -536,7 +539,7 @@ function buildTimeSection(timeLog, sessions){
     +'<div class="time-tabs">'
     +['1','2','3','4','5','6','7','14','30','all'].map(function(p){
         var lbl={'1':'1d','2':'2d','3':'3d','4':'4d','5':'5d','6':'6d','7':'7d','14':'14d','30':'30d','all':'All'}[p]||p;
-        return '<div class="time-tab '+(p===_period?'active':'')+'" onclick="setPeriod(\''+p+'\')" style="padding:.25rem .45rem;font-size:11px">'+lbl+'</div>';
+        return '<div class="time-tab '+(p===_period?'active':'')+'" data-period="'+p+'" style="padding:.25rem .45rem;font-size:11px;cursor:pointer">'+lbl+'</div>';
       }).join('')
     +'</div></div>'
     +'<div class="time-grid">'
@@ -563,7 +566,8 @@ function buildTimeSection(timeLog, sessions){
 }
 
 /* ── DAY BY DAY ────────────────────────────────────────── */
-function buildDayByDay(sessions, timeLog) {
+function buildDayByDay(sessions, timeLog, cutStr) {
+  cutStr = cutStr || '1970-01-01';
   // Group sessions by date
   var byDate = {};
   (sessions||[]).forEach(function(s) {
@@ -571,9 +575,9 @@ function buildDayByDay(sessions, timeLog) {
     byDate[s.date].push(s);
   });
 
-  // Merge with timeLog dates
+  // Merge with timeLog dates — only within the period
   Object.keys(timeLog||{}).forEach(function(d) {
-    if (!byDate[d]) byDate[d] = [];
+    if (d >= cutStr && !byDate[d]) byDate[d] = [];
   });
 
   var dates = Object.keys(byDate).sort().reverse().slice(0,30); // last 30 active days
@@ -602,7 +606,7 @@ function buildDayByDay(sessions, timeLog) {
     var chevId = 'day-chev-' + idx;
 
     html += '<tr style="cursor:'+(dayQuizzes.length>0?'pointer':'default')+'" '
-      + (dayQuizzes.length>0 ? 'onclick="togDay(\''+detailId+'\',\''+chevId+'\')"' : '')+'>';
+      + (dayQuizzes.length>0 ? 'data-tog="'+detailId+','+chevId+'"' : '')+'>';
     
     // Date
     html += '<td><div class="day-date'+(d===todayStr?' today':'')+'">'+fmtDate(d)+(d===todayStr?' <span style="font-size:10px;color:#9ef5e2;font-weight:700">TODAY</span>':'')+'</div></td>';
@@ -704,9 +708,23 @@ function renderMain(data) {
 
   // _allData is set above — _getSummaryAsD() reads from it directly at call time
 
+  // Filter sessions by selected period for all period-sensitive views
+  // cutStr = first date to INCLUDE. period '1' = today only, '2' = today+yesterday, etc.
+  var cutoff = new Date();
+  var _pInt = _period === 'all' ? 3650 : parseInt(_period);
+  cutoff.setDate(cutoff.getDate() - (_pInt - 1));
+  var cutStr = cutoff.toISOString().slice(0, 10);
+  var filteredSessions = _period === 'all' ? sessions
+    : sessions.filter(function(s) { return (s.date || '') >= cutStr; });
+
+  // Period label for section headings
+  var periodLabel = _period === 'all' ? 'All time'
+    : _period === '1' ? 'Today'
+    : 'Last ' + _period + ' days';
+
   var html = '';
 
-  // ── STATS ROW ──
+  // ── STATS ROW — always all-time so totals are meaningful ──
   html += '<div class="stats-row anim">'
     +'<div class="stat"><div class="stat-val" style="color:#ffd580">'+xp+'</div><div class="stat-lbl">Total XP</div></div>'
     +'<div class="stat"><div class="stat-val">'+lv.emoji+'<span style="font-size:.95rem;color:#c4bbff"> '+lv.title+'</span></div><div class="stat-lbl">Level</div></div>'
@@ -716,7 +734,7 @@ function renderMain(data) {
     +'</div>';
 
   // ── TIME SECTION ──
-  html += buildTimeSection(timeLog, sessions);
+  html += buildTimeSection(timeLog, filteredSessions, cutStr);
 
   // ── HEATMAP ──
   html += '<div class="card anim">'
@@ -736,7 +754,7 @@ function renderMain(data) {
     +'<div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800">📅 Day by Day</div>'
     +'<div style="font-size:11px;color:var(--dim)">Last 30 active days · click a row to expand</div>'
     +'</div>'
-    + buildDayByDay(sessions, timeLog)
+    + buildDayByDay(filteredSessions, timeLog, cutStr)
     +'</div>';
 
   // ── BADGES ──
@@ -744,14 +762,14 @@ function renderMain(data) {
     +'<div class="badge-list anim">';
   BADGE_DEFS.forEach(function(b){
     var earned=badges.indexOf(b.id)>-1;
-    html+='<div class="bl-badge '+(earned?'':'bl-locked')+'" onclick="showBadgeModal(b.id,_getSummaryAsD())" style="cursor:pointer;" title="Click for details">'+b.emoji+' '+b.title+'</div>';
+    html+='<div class="bl-badge '+(earned?'':'bl-locked')+'" data-badge="'+b.id+'" style="cursor:pointer;" title="Click for details">'+b.emoji+' '+b.title+'</div>';
   });
   html+='</div>';
 
   // ── BY SUBJECT ──
-  html += '<div class="sec-label">By Subject</div><div class="subject-grid anim">';
+  html += '<div class="sec-label">By Subject — '+periodLabel+'</div><div class="subject-grid anim">';
   var subjSessions={}, subjTopics={};
-  sessions.forEach(function(s){
+  filteredSessions.forEach(function(s){
     if(!subjSessions[s.sid])subjSessions[s.sid]=[];
     subjSessions[s.sid].push(s);
     if(!s.topicScores)return;
@@ -787,8 +805,8 @@ function renderMain(data) {
   html+='</div>';
 
   // ── RECENT FEED ──
-  html += '<div class="sec-label">Recent Activity</div><div class="card anim">';
-  var recent=sessions.slice().sort(function(a,b){return b.ts-a.ts;}).slice(0,20);
+  html += '<div class="sec-label">Recent Activity — '+periodLabel+'</div><div class="card anim">';
+  var recent=filteredSessions.slice().sort(function(a,b){return b.ts-a.ts;}).slice(0,20);
   if(recent.length===0){html+='<div class="empty">No sessions yet.</div>';}
   else{recent.forEach(function(s){
     var si=SI[s.sid]||{name:s.sid,icon:'📝'};
@@ -800,7 +818,7 @@ function renderMain(data) {
 
   // Reset button
   html += '<div class="reset-area">'
-    +'<button class="reset-btn" onclick="resetAll()">🗑 Reset All of Emily\'s Progress</button>'
+    +'<button class="reset-btn" data-action="resetAll">🗑 Reset All of Emily\'s Progress</button>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:.5rem">Clears all quiz results, XP, badges, streak and time data from Firebase</div>'
     +'</div>';
 
@@ -897,6 +915,24 @@ function resetAll() {
       console.error(e);
     });
 }
+
+// Expose all functions called from inline onclick handlers
+window.setPeriod       = setPeriod;
+window.togDay          = togDay;
+window.resetAll        = resetAll;
+window.load            = load;
+
+// Event delegation for period tabs and day rows — avoids cross-script-block scope issues
+document.addEventListener("click", function(e) {
+  var tab = e.target.closest("[data-period]");
+  if (tab) { setPeriod(tab.getAttribute("data-period")); return; }
+  var dayRow = e.target.closest("[data-tog]");
+  if (dayRow) { var ids = dayRow.getAttribute("data-tog").split(","); togDay(ids[0], ids[1]); return; }
+  var act = e.target.closest("[data-action]");
+  if (act && act.getAttribute("data-action") === "resetAll") { resetAll(); return; }
+  var badge = e.target.closest("[data-badge]");
+  if (badge) { showBadgeModal(badge.getAttribute("data-badge"), _getSummaryAsD()); }
+});
 </script>
 </body>
 </html>
