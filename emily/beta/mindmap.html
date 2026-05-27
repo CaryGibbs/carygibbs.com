@@ -3,76 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emily's Revision Hub</title>
+<title>Mind Map</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.2) 0%,transparent 100%);pointer-events:none;z-index:0;}
-.wrap{max-width:1000px;margin:0 auto;padding:3rem 1.5rem 4rem;position:relative;z-index:1;}
-.hero{text-align:center;margin-bottom:3rem;}
-.hero-emoji{font-size:52px;margin-bottom:1rem;display:block;animation:float 3s ease-in-out infinite;}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.hero h1{font-family:'Nunito',sans-serif;font-size:clamp(2rem,6vw,3.5rem);font-weight:900;background:linear-gradient(135deg,#c4bbff 0%,#9ef5e2 50%,#ffd580 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem;line-height:1.1;}
-.hero p{font-size:16px;color:var(--muted);max-width:440px;margin:0 auto;line-height:1.6;}
-.section-label{font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem;}
-.subjects{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:3rem;}
-.subject-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;text-decoration:none;display:block;transition:transform .22s,box-shadow .22s,border-color .22s;animation:fadeUp .5s ease both;width:calc(33.333% - 0.667rem);}
-@media(max-width:700px){.subject-card{width:calc(50% - 0.5rem);}}
-@media(max-width:480px){.subject-card{width:100%;}}
-.subject-card:hover{transform:translateY(-5px);box-shadow:0 20px 60px rgba(0,0,0,.45);border-color:rgba(255,255,255,.15);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-.card-bar{height:7px;}
-.card-body{padding:1.25rem 1.5rem 1.375rem;}
-.card-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:.875rem;}
-.card-icon{font-size:28px;line-height:1;margin-top:2px;flex-shrink:0;}
-.card-name{font-family:'Nunito',sans-serif;font-size:19px;font-weight:800;color:var(--text);line-height:1.2;}
-.card-meta{font-size:12px;color:var(--muted);margin-top:2px;}
-.topic-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;}
-.mini-chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
-.card-actions{display:flex;gap:8px;}
-.action-btn{flex:1;padding:7px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;text-align:center;text-decoration:none;transition:opacity .15s,transform .1s;display:block;background:rgba(255,255,255,.06);color:var(--text);}
-.action-btn:hover{opacity:.85;transform:scale(.98);}
-.tips{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem 1.5rem;}
-.tips-title{font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--muted);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em;}
-.tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
-.tip{font-size:13px;color:var(--muted);line-height:1.5;display:flex;gap:8px;}
-.tip-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+  :root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 50% 90%,rgba(255,255,255,.25) 0%,transparent 100%);pointer-events:none;z-index:0;}
+  nav{position:sticky;top:0;z-index:100;background:rgba(15,14,23,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);}
+  nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color:var(--text);}
+  nav span{opacity:.45;}
+  .wrap{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 4rem;position:relative;z-index:1;}
+  .hero{margin-bottom:2.5rem;}
+  .hero-row{display:flex;align-items:center;gap:14px;margin-bottom:.5rem;}
+  .hero-icon{font-size:40px;}
+  .hero h1{font-family:'Nunito',sans-serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;line-height:1.1;}
+  .hero p{color:var(--muted);font-size:14px;margin-top:.3rem;}
+  .quiz-all-btn{display:inline-block;margin-top:1rem;padding:.55rem 1.2rem;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);transition:background .15s;}
+  .quiz-all-btn:hover{background:rgba(255,255,255,.12);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;}
+  .topic-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:fadeUp .45s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .topic-head{padding:1rem 1.25rem .8rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+  .topic-icon{font-size:22px;flex-shrink:0;}
+  .topic-name{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;}
+  .topic-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+  .subtopic-list{padding:.6rem 0 .5rem;}
+  .subtopic-item{padding:.55rem 1.25rem;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(255,255,255,.04);}
+  .subtopic-item:last-child{border-bottom:none;}
+  .st-dot{width:6px;height:6px;border-radius:50%;margin-top:7px;flex-shrink:0;}
+  .st-body{flex:1;}
+  .st-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+  .st-title a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s;}
+  .st-title a:hover{border-color:currentColor;}
+  .st-detail{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.5;}
+  .st-formula{font-size:11px;font-family:monospace;margin-top:3px;padding:2px 6px;border-radius:5px;display:inline-block;}
+  .card-footer{padding:.6rem 1.25rem .75rem;display:flex;gap:7px;}
+  .footer-btn{flex:1;text-align:center;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:6px 4px;border-radius:9px;text-decoration:none;border:1px solid rgba(255,255,255,.12);color:var(--muted);background:rgba(255,255,255,.05);transition:background .15s,color .15s;}
+  .footer-btn:hover{background:rgba(255,255,255,.1);color:var(--text);}
 </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
+<nav>
+  <a href="index.html">🏠 Home</a>
+  <span>›</span>
+  <span id="nav-subject">Mind Map</span>
+</nav>
 <div class="wrap">
   <div class="hero">
-    <span class="hero-emoji">🚀</span>
-    <h1>Emily's Revision Hub</h1>
-    <p>Year 8 End of Year exams. Mind maps to learn, quizzes to test. Pick a subject and get started.</p>
-  </div>
-  <div class="section-label">Subjects</div>
-  <div class="subjects" id="grid"></div>
-  <a href="results.html" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem 1.5rem;margin-bottom:1rem;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-  <span style="font-size:28px">📊</span>
-  <div>
-    <div style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800;color:var(--text)">My Progress</div>
-    <div style="font-size:12px;color:var(--muted);margin-top:2px">Track scores by subject and topic · streak counter · weak topic alerts</div>
-  </div>
-  <span style="margin-left:auto;color:var(--dim);font-size:18px">›</span>
-</a>
-<div class="tips">
-    <div class="tips-title">💡 How to use this hub</div>
-    <div class="tips-grid">
-      <div class="tip"><span class="tip-icon">🗺</span><span>Start with the <strong>Mind Map</strong> to learn all the key facts.</span></div>
-      <div class="tip"><span class="tip-icon">📖</span><span>Click any sub-topic for a <strong>full lesson</strong> with worked examples.</span></div>
-      <div class="tip"><span class="tip-icon">✏️</span><span>Use the <strong>Quiz</strong> to test yourself — drill one topic or mix them all.</span></div>
-      <div class="tip"><span class="tip-icon">🔁</span><span><strong>Repeat</strong> until you score 90%+. Questions shuffle every time.</span></div>
+    <div class="hero-row">
+      <span class="hero-icon" id="hero-icon"></span>
+      <div>
+        <h1 id="hero-title"></h1>
+        <p id="hero-tag"></p>
+      </div>
     </div>
+    <a class="quiz-all-btn" id="quiz-all-btn" href="#">✏️ Quiz all topics</a>
   </div>
+  <div class="grid" id="mind-grid"></div>
 </div>
-
 <script src="data.js"></script>
-
+<script>
+/* ── FIREBASE INIT ─────────────────────────────────────── */
+var _fbCfg = {
+  apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
+  authDomain:        "emilys-revision-hub.firebaseapp.com",
+  databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "emilys-revision-hub",
+  storageBucket:     "emilys-revision-hub.firebasestorage.app",
+  messagingSenderId: "186424138043",
+  appId:             "1:186424138043:web:a96ba579106010be66ff1e"
+};
+if (window.firebase && !firebase.apps.length) {
+  firebase.initializeApp(_fbCfg);
+  console.log('✅ Firebase ready');
+}
+</script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -115,6 +123,7 @@ var BADGE_DEFS = [
   { id:'streak_3',     emoji:'🔥', title:'On Fire',           desc:'3-day streak' },
   { id:'streak_7',     emoji:'🌟', title:'Week Warrior',      desc:'7-day streak' },
   { id:'streak_30',    emoji:'🚀', title:'Unstoppable',       desc:'30-day streak' },
+  { id:'bookworm',     emoji:'📚', title:'Bookworm',          desc:'Read 20 lessons' },
   { id:'explorer',     emoji:'🌍', title:'Explorer',          desc:'Quiz in every subject' },
   { id:'sharp',        emoji:'🎯', title:'Sharp Shooter',     desc:'Answer 100 questions correctly' },
   { id:'comeback',     emoji:'💪', title:'Comeback Kid',      desc:'Improve a topic from below 60% to above 70%' },
@@ -125,39 +134,6 @@ var BADGE_DEFS = [
   { id:'night_owl',    emoji:'🦉', title:'Night Owl',         desc:'Complete a quiz after 9pm' },
   { id:'early_bird',   emoji:'🐦', title:'Early Bird',        desc:'Complete a quiz before 8am' },
   { id:'lesson_20',    emoji:'🧠', title:'Deep Diver',        desc:'Read 20 different lessons' },
-  // ── VOLUME / GRIND ──────────────────────────────────────
-  { id:'quiz_25',      emoji:'🎮', title:'Getting Serious',   desc:'Complete 25 quizzes' },
-  { id:'quiz_50',      emoji:'🏅', title:'Halfway Hero',      desc:'Complete 50 quizzes' },
-  { id:'quiz_250',     emoji:'🔱', title:'Quiz Machine',      desc:'Complete 250 quizzes' },
-  { id:'sharp_250',    emoji:'🎳', title:'Sniper',            desc:'Answer 250 questions correctly' },
-  { id:'sharp_500',    emoji:'💎', title:'Diamond Mind',      desc:'Answer 500 questions correctly' },
-  { id:'lesson_5',     emoji:'📖', title:'Page Turner',       desc:'Read 5 lessons' },
-  { id:'lesson_10',    emoji:'📰', title:'Study Buddy',       desc:'Read 10 lessons' },
-  { id:'lesson_40',    emoji:'🎒', title:'Swot',              desc:'Read 40 different lessons' },
-  { id:'mindmap_5',    emoji:'🗺️',  title:'Map Maker',         desc:'Visit 5 different mind maps' },
-  { id:'mindmap_all',  emoji:'🧭', title:'Grand Tour',        desc:'Visit every subject\'s mind map' },
-  { id:'streak_14',    emoji:'⚡', title:'Fortnight Fighter', desc:'14-day streak' },
-  // ── MASTERY ─────────────────────────────────────────────
-  { id:'perfect_3',    emoji:'🎯', title:'Hat-Trick',         desc:'Score 10/10 three times' },
-  { id:'perfect_10',   emoji:'👑', title:'Perfectionist',     desc:'Score 10/10 ten times' },
-  { id:'ace',          emoji:'🃏', title:'Ace',               desc:'Score 90%+ ten times' },
-  { id:'flawless',     emoji:'✨', title:'Flawless',          desc:'Score 100% in every subject at least once' },
-  { id:'no_mistakes',  emoji:'🧊', title:'Ice Cold',          desc:'Complete 5 quizzes in a row without scoring below 80%' },
-  { id:'xp_500',       emoji:'🌙', title:'Rising Star',       desc:'Earn 500 XP' },
-  { id:'xp_1000',      emoji:'🏆', title:'Champion',          desc:'Earn 1000 XP' },
-  { id:'xp_2000',      emoji:'🌠', title:'Legend',            desc:'Earn 2000 XP' },
-  // ── SUBJECT-SPECIFIC ────────────────────────────────────
-  { id:'maths_master',    emoji:'🔢', title:'Mathlete',       desc:'Score 90%+ in Maths three times' },
-  { id:'english_master',  emoji:'✍️',  title:'Poet Laureate',  desc:'Score 90%+ in English three times' },
-  { id:'geo_master',      emoji:'🌐', title:'Geographer',     desc:'Score 90%+ in Geography three times' },
-  { id:'spanish_master',  emoji:'💃', title:'¡Olé!',          desc:'Score 90%+ in Spanish three times' },
-  { id:'science_master',  emoji:'🔬', title:'Lab Rat',        desc:'Score 90%+ in Science three times' },
-  { id:'re_master',       emoji:'🕊️',  title:'Philosopher',    desc:'Score 90%+ in RE three times' },
-  // ── FUN / QUIRKY ────────────────────────────────────────
-  { id:'lunch_break',  emoji:'🥪', title:'Lunch Break Hero',  desc:'Complete a quiz between 12pm and 1pm' },
-  { id:'weekend',      emoji:'🛋️',  title:'Weekend Warrior',   desc:'Complete quizzes on both Saturday and Sunday' },
-  { id:'hat_trick_day',emoji:'🎩', title:'Triple Threat',     desc:'Complete 3 quizzes in one day' },
-  { id:'comeback_5',   emoji:'🦋', title:'Glow Up',           desc:'Improve 5 different topics from below 60% to above 70%' },
 ];
 
 /* ── LOCAL STORE HELPERS ───────────────────────────────── */
@@ -269,7 +245,7 @@ function _checkBadges(d, context) {
   if (streak >= 30) _awardBadge(d, 'streak_30');
 
   // Lessons read
-  if (d.lessonsRead.length >= 20) _awardBadge(d, 'lesson_20');
+  if (d.lessonsRead.length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
 
   // Explorer — quiz in every subject
   var subjectsQuizzed = Object.keys(d.subjectSessions || {});
@@ -305,81 +281,6 @@ function _checkBadges(d, context) {
     return sessions.some(function(p){ return p >= 70; });
   });
   if (allGood) _awardBadge(d, 'all_rounder');
-
-  // ── VOLUME / GRIND ───────────────────────────────────────
-  var qCount = d.quizSessions.length;
-  if (qCount >= 25)  _awardBadge(d, 'quiz_25');
-  if (qCount >= 50)  _awardBadge(d, 'quiz_50');
-  if (qCount >= 250) _awardBadge(d, 'quiz_250');
-
-  if (totalCorrect >= 250) _awardBadge(d, 'sharp_250');
-  if (totalCorrect >= 500) _awardBadge(d, 'sharp_500');
-
-  var lCount = (d.lessonsRead || []).length;
-  if (lCount >= 5)  _awardBadge(d, 'lesson_5');
-  if (lCount >= 10) _awardBadge(d, 'lesson_10');
-  if (lCount >= 40) _awardBadge(d, 'lesson_40');
-
-  var mmVisited = Object.keys(d.mindmapVisits || {}).map(function(k){ return k.split('_')[0]; });
-  var uniqueMM = mmVisited.filter(function(v,i,a){ return a.indexOf(v) === i; });
-  if (uniqueMM.length >= 5) _awardBadge(d, 'mindmap_5');
-  if (allSubjects.every(function(s){ return uniqueMM.indexOf(s) > -1; })) _awardBadge(d, 'mindmap_all');
-
-  if (streak >= 14) _awardBadge(d, 'streak_14');
-
-  // ── MASTERY ──────────────────────────────────────────────
-  var perfects = d.quizSessions.filter(function(s){ return s.score === s.total && s.total === 10; }).length;
-  if (perfects >= 3)  _awardBadge(d, 'perfect_3');
-  if (perfects >= 10) _awardBadge(d, 'perfect_10');
-
-  if (high >= 10) _awardBadge(d, 'ace');
-
-  var flawless = allSubjects.every(function(sid) {
-    return (d.subjectSessions[sid] || []).some(function(p){ return p >= 100; });
-  });
-  if (flawless) _awardBadge(d, 'flawless');
-
-  // Ice Cold — last 5 quizzes all 80%+
-  if (qCount >= 5) {
-    var last5 = d.quizSessions.slice(-5);
-    if (last5.every(function(s){ return s.pct >= 80; })) _awardBadge(d, 'no_mistakes');
-  }
-
-  var xp = d.xp || 0;
-  if (xp >= 500)  _awardBadge(d, 'xp_500');
-  if (xp >= 1000) _awardBadge(d, 'xp_1000');
-  if (xp >= 2000) _awardBadge(d, 'xp_2000');
-
-  // ── SUBJECT-SPECIFIC ─────────────────────────────────────
-  var subjectBadges = [
-    { sid:'maths',     id:'maths_master'   },
-    { sid:'english',   id:'english_master' },
-    { sid:'geography', id:'geo_master'     },
-    { sid:'spanish',   id:'spanish_master' },
-    { sid:'science',   id:'science_master' },
-    { sid:'re',        id:'re_master'      },
-  ];
-  subjectBadges.forEach(function(sb) {
-    var highs = (d.subjectSessions[sb.sid] || []).filter(function(p){ return p >= 90; }).length;
-    if (highs >= 3) _awardBadge(d, sb.id);
-  });
-
-  // ── FUN / QUIRKY ─────────────────────────────────────────
-  if (hour >= 12 && hour < 13) _awardBadge(d, 'lunch_break');
-
-  // Weekend warrior — has sessions on both a Saturday and Sunday
-  var days = d.quizSessions.map(function(s){ return new Date(s.ts).getDay(); });
-  if (days.indexOf(6) > -1 && days.indexOf(0) > -1) _awardBadge(d, 'weekend');
-
-  // Triple threat — 3 quizzes in one day
-  var today = _today();
-  var todayCount = d.quizSessions.filter(function(s){ return s.date === today; }).length;
-  if (todayCount >= 3) _awardBadge(d, 'hat_trick_day');
-
-  // Glow Up — 5 comeback improvements (topicFixed count tracked in d.topicFixedCount)
-  if (!d.topicFixedCount) d.topicFixedCount = 0;
-  if (ctx.topicFixed) d.topicFixedCount += 1;
-  if (d.topicFixedCount >= 5) _awardBadge(d, 'comeback_5');
 }
 
 /* ── MAIN TRACKING FUNCTIONS ────────────────────────────── */
@@ -466,20 +367,6 @@ function trackLessonRead(sid, lessonKey) {
     d.newBadges = [];
     _checkBadges(d, {});
     _save(d);
-    // Push updated summary + per-day XP to Firebase
-    if (window.firebase && firebase.apps && firebase.apps.length) {
-      try {
-        firebase.database().ref('emily/summary').update({
-          xp: d.xp || 0,
-          badges: d.badges || [],
-          lastActive: _today(),
-          lastUpdated: Date.now()
-        });
-        firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
-          return (cur || 0) + XP.LESSON_READ;
-        });
-      } catch(e) { console.warn('Firebase summary update failed:', e); }
-    }
     if (d.newBadges.length > 0) showXPToast(XP.LESSON_READ, d.newBadges);
   }
   var today = _today();
@@ -498,7 +385,7 @@ function trackMindmapVisit(sid) {
     d.mindmapVisits[key] = true;
     d.xp += XP.MINDMAP_VISIT;
     _save(d);
-    // Push updated summary + per-day XP to Firebase
+    // Push updated summary to Firebase so parent.html stays in sync.
     if (window.firebase && firebase.apps && firebase.apps.length) {
       try {
         firebase.database().ref('emily/summary').update({
@@ -507,6 +394,7 @@ function trackMindmapVisit(sid) {
           lastActive: _today(),
           lastUpdated: Date.now()
         });
+        // Accumulate per-day XP so parent.html daily column stays accurate
         firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
           return (cur || 0) + XP.MINDMAP_VISIT;
         });
@@ -520,7 +408,7 @@ function trackMindmapVisit(sid) {
 
 /* ── FIREBASE SYNC ──────────────────────────────────────── */
 function _firebaseSync(d, sid, topicScores, score, total, pct) {
-  if (!window.firebase || !FIREBASE_CFG) return;
+  if (!window.firebase || !window.firebase.apps || !firebase.apps.length) return;
   try {
     var db = firebase.database();
     var ref = db.ref('emily');
@@ -607,9 +495,9 @@ function renderXPBar() {
     + '<div style="flex:1;min-width:0">'
     +   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
     +     '<span style="font-family:Nunito,sans-serif;font-size:12px;font-weight:800;color:#c4bbff;white-space:nowrap">'
-    +       lv.title + ' · ' + (d.xp||0) + ' XP'
+    +       lv.title + ' · ' + d.xp + ' XP'
     +     '</span>'
-    +     (next ? '<span style="font-size:11px;color:rgba(240,238,255,.35)">' + next.title + ' in ' + (next.xp - (d.xp||0)) + ' XP</span>' : '<span style="font-size:11px;color:#ffd580">MAX LEVEL</span>')
+    +     (next ? '<span style="font-size:11px;color:rgba(240,238,255,.35)">' + next.title + ' in ' + (next.xp - d.xp) + ' XP</span>' : '<span style="font-size:11px;color:#ffd580">MAX LEVEL</span>')
     +   '</div>'
     +   '<div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">'
     +     '<div style="height:100%;width:' + prog + '%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:3px;transition:width .6s ease"></div>'
@@ -619,62 +507,120 @@ function renderXPBar() {
     + '<a href="results.html" style="font-size:11px;font-weight:700;color:rgba(240,238,255,.4);text-decoration:none;white-space:nowrap;flex-shrink:0">My Stats ›</a>';
 }
 
-renderXPBar();
+</script>
 
-</script>
 <script>
-/* ── FIREBASE INIT ─────────────────────────────────────── */
-var _fbCfg = {
-  apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
-  authDomain:        "emilys-revision-hub.firebaseapp.com",
-  databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:         "emilys-revision-hub",
-  storageBucket:     "emilys-revision-hub.firebasestorage.app",
-  messagingSenderId: "186424138043",
-  appId:             "1:186424138043:web:a96ba579106010be66ff1e"
-};
-if (window.firebase && !firebase.apps.length) {
-  firebase.initializeApp(_fbCfg);
-  console.log('✅ Firebase ready');
-}
-</script>
-<script>
-(function() {
-  var grid = document.getElementById('grid');
-  var subjects = Object.values(SUBJECTS);
-  for (var i = 0; i < subjects.length; i++) {
-    var s = subjects[i];
-    var topics = Object.keys(s.topicMeta || {});
-    var quizCount = (QUIZ_QUESTIONS[s.id] || []).length;
-    
-    var chips = '';
-    for (var t = 0; t < Math.min(topics.length, 6); t++) {
-      chips += '<span class="mini-chip">' + topics[t] + '</span>';
-    }
-    
-    var card = document.createElement('a');
-    card.className = 'subject-card';
-    card.href = 'mindmap.html?subject=' + s.id;
-    card.style.animationDelay = (i * 0.07) + 's';
-    card.innerHTML = 
-      '<div class="card-bar" style="background:linear-gradient(90deg,' + s.gradient[0] + ',' + s.gradient[1] + ')"></div>' +
-      '<div class="card-body">' +
-        '<div class="card-row">' +
-          '<div class="card-icon">' + s.icon + '</div>' +
-          '<div>' +
-            '<div class="card-name">' + s.name + '</div>' +
-            '<div class="card-meta">' + topics.length + ' topics &middot; ' + quizCount + ' quiz questions</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="topic-chips">' + chips + '</div>' +
-        '<div class="card-actions">' +
-          '<a class="action-btn" href="mindmap.html?subject=' + s.id + '" onclick="event.stopPropagation()">🗺 Mind Map</a>' +
-          '<a class="action-btn" href="quiz.html?subject=' + s.id + '" onclick="event.stopPropagation()">✏️ Quiz</a>' +
-        '</div>' +
-      '</div>';
-    grid.appendChild(card);
-  }
+const params = new URLSearchParams(location.search);
+const sid = params.get('subject') || 'maths';
+const S = SUBJECTS[sid];
+const data = MINDMAP_DATA[sid] || [];
+
+document.title = S.name + ' – Mind Map';
+document.getElementById('nav-subject').textContent = S.name;
+document.getElementById('hero-icon').textContent = S.icon;
+document.getElementById('hero-title').textContent = S.name + ' – Mind Map';
+document.getElementById('hero-tag').textContent = S.tag;
+document.getElementById('quiz-all-btn').href = `quiz.html?subject=${sid}`;
+
+const [c1,c2] = S.gradient;
+document.querySelector('.hero h1').style.background = `linear-gradient(135deg,${c1},${c2})`;
+document.querySelector('.hero h1').style.webkitBackgroundClip = 'text';
+document.querySelector('.hero h1').style.webkitTextFillColor = 'transparent';
+document.querySelector('.hero h1').style.backgroundClip = 'text';
+
+const grid = document.getElementById('mind-grid');
+
+data.forEach((topic, ti) => {
+  const pal = PALETTE[topic.theme] || PALETTE.purple;
+  const meta = S.topicMeta?.[topic.topic] || {};
+
+  const subtopicsHTML = (topic.subtopics || []).map(st => {
+    const titleContent = st.lessonKey
+      ? `<a href="lesson.html?lesson=${st.lessonKey}">${st.title} →</a>`
+      : st.title;
+    const formula = st.formula
+      ? `<span class="st-formula" style="background:${pal.bg};color:${pal.light}">${st.formula}</span>`
+      : '';
+    return `
+      <div class="subtopic-item">
+        <div class="st-dot" style="background:${pal.color}"></div>
+        <div class="st-body">
+          <div class="st-title" style="color:${pal.light}">${titleContent}</div>
+          <div class="st-detail">${st.detail}</div>
+          ${formula}
+        </div>
+      </div>`;
+  }).join('');
+
+  grid.innerHTML += `
+    <div class="topic-card" style="animation-delay:${ti*.06}s;border-color:${pal.bg}">
+      <div class="topic-head" style="background:${pal.bg}">
+        <span class="topic-icon">${meta.icon || topic.icon || '📌'}</span>
+        <div>
+          <div class="topic-name" style="color:${pal.light}">${topic.topic}</div>
+          <div class="topic-sub">${topic.subtitle || ''}</div>
+        </div>
+      </div>
+      <div class="subtopic-list">${subtopicsHTML}</div>
+      <div class="card-footer">
+        <a class="footer-btn" href="quiz.html?subject=${sid}&topic=${encodeURIComponent(topic.quizTopic || topic.topic)}">✏️ Quiz this topic</a>
+      </div>
+    </div>`;
+});
+
+/* ── TIME TRACKING ─────────────────────────────────────── */
+var _pageStart = Date.now();
+var _pageType = (function() {
+  var p = location.pathname.split('/').pop() || 'index.html';
+  if (p.includes('quiz'))    return 'quiz';
+  if (p.includes('lesson'))  return 'lesson';
+  if (p.includes('mindmap')) return 'mindmap';
+  if (p.includes('results')) return 'results';
+  if (p.includes('index') || p === '' || p === '/') return 'home';
+  return 'other';
 })();
+
+function _recordTime() {
+  var secs = Math.round((Date.now() - _pageStart) / 1000);
+  if (secs < 3 || secs > 7200) return; // ignore < 3s and > 2hr (tab left open)
+  var today = new Date().toISOString().slice(0,10);
+
+  // Save to localStorage
+  try {
+    var d = JSON.parse(localStorage.getItem('emilys_hub_v1')) || {};
+    if (!d.timeLog) d.timeLog = {};
+    if (!d.timeLog[today]) d.timeLog[today] = { total:0, quiz:0, lesson:0, mindmap:0, home:0, other:0 };
+    d.timeLog[today].total = (d.timeLog[today].total||0) + secs;
+    d.timeLog[today][_pageType] = (d.timeLog[today][_pageType]||0) + secs;
+    // Keep last 90 days only
+    var keys = Object.keys(d.timeLog).sort();
+    if (keys.length > 90) { delete d.timeLog[keys[0]]; }
+    // Update activity heatmap too (in minutes)
+    if (!d.activity) d.activity = {};
+    d.activity[today] = (d.activity[today]||0) + Math.round(secs/60);
+    localStorage.setItem('emilys_hub_v1', JSON.stringify(d));
+  } catch(e) {}
+
+  // Sync to Firebase
+  try {
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      var db = firebase.database();
+      db.ref('emily/timeLog/' + today + '/total').transaction(function(v){ return (v||0)+secs; });
+      db.ref('emily/timeLog/' + today + '/' + _pageType).transaction(function(v){ return (v||0)+secs; });
+      db.ref('emily/activity/' + today).transaction(function(v){ return (v||0)+Math.round(secs/60); });
+    }
+  } catch(e) {}
+}
+
+// Record time when leaving the page
+window.addEventListener('beforeunload', _recordTime);
+window.addEventListener('pagehide', _recordTime);
+// Also record periodically every 60s (in case tab is kept open)
+setInterval(function() {
+  _recordTime();
+  _pageStart = Date.now(); // reset so we don't double-count
+}, 60000);
+
 
 
 
