@@ -32,13 +32,10 @@ nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color
 .xp-overall-ticks{position:absolute;inset:0;display:flex;}
 .xp-overall-tick{flex:1;border-right:1px solid rgba(0,0,0,.25);}
 .xp-overall-tick:last-child{border-right:none;}
-.xp-level-names{display:flex;margin-top:.3rem;}
-.xp-level-name{flex:1;display:flex;flex-direction:column;align-items:center;overflow:visible;position:relative;}
-.xp-level-name span{font-size:9px;color:var(--dim);white-space:nowrap;transform:rotate(-40deg) translateX(-30%);transform-origin:top left;display:block;margin-top:2px;line-height:1;}
-.xp-level-name.current span{color:#c4bbff;font-weight:700;}
-.xp-level-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0;}
-.xp-level-name.earned .xp-level-dot{background:#5bbf6a;}
-.xp-level-name.current .xp-level-dot{background:#c4bbff;box-shadow:0 0 4px #c4bbff;}
+.xp-level-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:.6rem;}
+.xp-level-chip{flex:0 0 calc(20% - 4px);text-align:center;padding:3px 2px;border-radius:5px;font-size:11px;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:var(--dim);line-height:1.3;}
+.xp-level-chip.earned{background:rgba(91,191,106,.12);border-color:rgba(91,191,106,.3);color:#5bbf6a;}
+.xp-level-chip.current{background:rgba(196,187,255,.15);border-color:rgba(196,187,255,.4);color:#c4bbff;box-shadow:0 0 8px rgba(196,187,255,.15);}
 .xp-next{font-size:11px;color:var(--dim);margin-top:.3rem;}
 
 /* SUMMARY STATS */
@@ -287,7 +284,7 @@ function render() {
     + '<div class="xp-overall-fill" id="xp-overall-fill" style="width:0%"></div>'
     + '<div class="xp-overall-ticks">'+LEVELS.map(function(){return '<div class="xp-overall-tick"></div>';}).join('')+'</div>'
     + '</div>'
-    + '<div class="xp-level-names">'+LEVELS.map(function(l){ var cls = l.level < lv.level ? 'earned' : l.level === lv.level ? 'current' : ''; return '<div class="xp-level-name '+cls+'"><div class="xp-level-dot"></div><span>'+l.emoji+' '+l.title+'</span></div>'; }).join('')+'</div>'
+    + '<div class="xp-level-chips">'+LEVELS.map(function(l){var cls=l.level<lv.level?'earned':l.level===lv.level?'current':'';return '<div class="xp-level-chip '+cls+'">'+l.emoji+'<br>'+l.title+'</div>';}).join('')+'</div>'
     + '</div>'
     + (next || d.xp < 1 ? (next ? '<div class="xp-next">'+next.emoji+' '+next.title+' in '+(next.xp-(d.xp||0))+' XP</div>' : '<div class="xp-next">Keep going!</div>') : '<div class="xp-next" style="color:#ffd580">🏆 Maximum level reached!</div>')
     + '</div></div>';
