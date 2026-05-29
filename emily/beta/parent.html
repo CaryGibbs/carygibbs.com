@@ -760,14 +760,14 @@ function renderMain(data) {
     + (_next ? 'Next: '+_next.emoji+' '+_next.title+' in '+(_next.xp-xp)+' XP' : '🏆 Maximum level reached!')
     + '</div>'
     + '<div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-bottom:.65rem">'
-    + '<div style="height:100%;width:'+_prog+'%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:4px;transition:width .8s"></div></div>'
+    + '<div id="parent-lv-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:4px;transition:width .8s ease"></div></div>'
     + '<div class="xp-overall-wrap">'
     + '<div class="xp-overall-label"><span>All 15 levels</span><span>Level '+lv.level+' / '+LEVELS.length+' · '+_overallPct+'% to max</span></div>'
     + '<div class="xp-overall-track">'
-    + '<div class="xp-overall-fill" style="width:'+_overallPct+'%"></div>'
+    + '<div id="parent-overall-bar" class="xp-overall-fill" style="width:0%"></div>'
     + '<div class="xp-overall-ticks">'+LEVELS.map(function(){return '<div class="xp-overall-tick"></div>';}).join('')+'</div>'
     + '</div>'
-    + '<div class="xp-level-chips">'+LEVELS.map(function(l){var cls=l.level<lv.level?'earned':l.level===lv.level?'current':'';return '<div class="xp-level-chip '+cls+'">'+l.emoji+'<br>'+l.title+'</div>';}).join('')+'</div>'
+    + '<div class="xp-level-chips">'+LEVELS.map(function(l){var cls=l.level<lv.level?'earned':l.level===lv.level?'current':'';return '<div class="xp-level-chip '+cls+'">'+l.emoji+' '+l.title+'<br><span style="font-size:10px;opacity:.7">'+l.xp+' XP</span></div>';}).join('')+'</div>'
     + '</div>'
     + '</div>';
 
@@ -861,6 +861,13 @@ function renderMain(data) {
     +'</div>';
 
   document.getElementById('main').innerHTML = html;
+  // Trigger level bar transitions after paint
+  setTimeout(function() {
+    var lb = document.getElementById('parent-lv-bar');
+    var ob = document.getElementById('parent-overall-bar');
+    if (lb) lb.style.width = _prog + '%';
+    if (ob) ob.style.width = _overallPct + '%';
+  }, 60);
 }
 
 /* ── LOAD DATA ─────────────────────────────────────────── */

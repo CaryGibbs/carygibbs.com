@@ -277,14 +277,14 @@ function render() {
     + '<div class="level-info">'
     + '<div class="level-title">Level '+lv.level+' — '+lv.title+'</div>'
     + '<div class="level-xp">'+(d.xp||0)+' XP total'+(streak>0?' · 🔥 '+streak+' day streak':' · No active streak')+'</div>'
-    + '<div class="xp-track"><div class="xp-fill" style="width:'+((d.xp||0)>0?prog:0)+'%"></div></div>'
+    + '<div class="xp-track"><div class="xp-fill" id="results-lv-bar" style="width:0%"></div></div>'
     + '<div class="xp-overall-wrap">'
     + '<div class="xp-overall-label"><span>All levels</span><span id="overall-lv-label"></span></div>'
     + '<div class="xp-overall-track">'
     + '<div class="xp-overall-fill" id="xp-overall-fill" style="width:0%"></div>'
     + '<div class="xp-overall-ticks">'+LEVELS.map(function(){return '<div class="xp-overall-tick"></div>';}).join('')+'</div>'
     + '</div>'
-    + '<div class="xp-level-chips">'+LEVELS.map(function(l){var cls=l.level<lv.level?'earned':l.level===lv.level?'current':'';return '<div class="xp-level-chip '+cls+'">'+l.emoji+'<br>'+l.title+'</div>';}).join('')+'</div>'
+    + '<div class="xp-level-chips">'+LEVELS.map(function(l){var cls=l.level<lv.level?'earned':l.level===lv.level?'current':'';return '<div class="xp-level-chip '+cls+'">'+l.emoji+' '+l.title+'<br><span style="font-size:10px;opacity:.7">'+l.xp+' XP</span></div>';}).join('')+'</div>'
     + '</div>'
     + (next || d.xp < 1 ? (next ? '<div class="xp-next">'+next.emoji+' '+next.title+' in '+(next.xp-(d.xp||0))+' XP</div>' : '<div class="xp-next">Keep going!</div>') : '<div class="xp-next" style="color:#ffd580">🏆 Maximum level reached!</div>')
     + '</div></div>';
@@ -429,11 +429,18 @@ function tog(id, cid) {
 function updateOverallBar(xp) {
   xp = xp || 0;
   var maxXP = LEVELS[LEVELS.length - 1].xp;
-  var pct = Math.min(100, Math.round((xp / maxXP) * 100));
-  var fill = document.getElementById('xp-overall-fill');
-  var lbl  = document.getElementById('overall-lv-label');
-  if (fill) { fill.style.width = '0%'; setTimeout(function(){ fill.style.width = pct + '%'; }, 100); }
-  if (lbl)  { var lv = getLevel(xp); lbl.textContent = 'Level ' + lv.level + ' / ' + LEVELS.length + ' · ' + pct + '% to max'; }
+  var overallPct = Math.min(100, Math.round((xp / maxXP) * 100));
+  var lv = getLevel(xp);
+  var next = getNextLevel(xp);
+  var lvPct = next ? Math.min(100, Math.round(((xp - lv.xp) / (next.xp - lv.xp)) * 100)) : 100;
+  setTimeout(function() {
+    var fill    = document.getElementById('xp-overall-fill');
+    var lvBar   = document.getElementById('results-lv-bar');
+    var lbl     = document.getElementById('overall-lv-label');
+    if (fill)  fill.style.width  = overallPct + '%';
+    if (lvBar) lvBar.style.width = lvPct + '%';
+    if (lbl)   lbl.textContent   = 'Level ' + lv.level + ' / ' + LEVELS.length + ' · ' + overallPct + '% to max';
+  }, 60);
 }
 function renderXPBar() {
   var d=_load(), streak=getStreak();
