@@ -105,6 +105,13 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 .xp-overall-ticks{position:absolute;inset:0;display:flex;}
 .xp-overall-tick{flex:1;border-right:1px solid rgba(0,0,0,.25);}
 .xp-overall-tick:last-child{border-right:none;}
+.xp-level-names{display:flex;margin-top:.3rem;}
+.xp-level-name{flex:1;display:flex;flex-direction:column;align-items:center;overflow:visible;position:relative;}
+.xp-level-name span{font-size:9px;color:var(--dim);white-space:nowrap;transform:rotate(-40deg) translateX(-30%);transform-origin:top left;display:block;margin-top:2px;line-height:1;}
+.xp-level-name.current span{color:#c4bbff;font-weight:700;}
+.xp-level-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0;}
+.xp-level-name.earned .xp-level-dot{background:#5bbf6a;}
+.xp-level-name.current .xp-level-dot{background:#c4bbff;box-shadow:0 0 4px #c4bbff;}
 .xp-level-bar-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;margin-bottom:.75rem;}
 
 /* FEED */
@@ -762,7 +769,9 @@ function renderMain(data) {
     + '<div class="xp-overall-track">'
     + '<div class="xp-overall-fill" style="width:'+_overallPct+'%"></div>'
     + '<div class="xp-overall-ticks">'+LEVELS.map(function(){return '<div class="xp-overall-tick"></div>';}).join('')+'</div>'
-    + '</div></div>'
+    + '</div>'
+    + '<div class="xp-level-names">'+LEVELS.map(function(l){ var cls = l.level < lv.level ? 'earned' : l.level === lv.level ? 'current' : ''; return '<div class="xp-level-name '+cls+'"><div class="xp-level-dot"></div><span>'+l.emoji+' '+l.title+'</span></div>'; }).join('')+'</div>'
+    + '</div>'
     + '</div>';
 
   // ── TIME SECTION ──
