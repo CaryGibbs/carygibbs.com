@@ -24,6 +24,14 @@ nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color
 .level-xp{font-size:13px;color:var(--muted);margin:.2rem 0 .6rem;}
 .xp-track{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden;}
 .xp-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#9b59b6,#3498db);transition:width .8s ease;}
+.xp-overall-wrap{margin-top:.55rem;}
+.xp-overall-label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:.3rem;}
+.xp-overall-label span:last-child{color:#c4bbff;font-weight:700;}
+.xp-overall-track{position:relative;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+.xp-overall-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#3498db,#9b59b6,#f39c12,#ffd580);transition:width 1s ease;}
+.xp-overall-ticks{position:absolute;inset:0;display:flex;}
+.xp-overall-tick{flex:1;border-right:1px solid rgba(0,0,0,.25);}
+.xp-overall-tick:last-child{border-right:none;}
 .xp-next{font-size:11px;color:var(--dim);margin-top:.3rem;}
 
 /* SUMMARY STATS */
@@ -266,6 +274,12 @@ function render() {
     + '<div class="level-title">Level '+lv.level+' — '+lv.title+'</div>'
     + '<div class="level-xp">'+(d.xp||0)+' XP total'+(streak>0?' · 🔥 '+streak+' day streak':' · No active streak')+'</div>'
     + '<div class="xp-track"><div class="xp-fill" style="width:'+((d.xp||0)>0?prog:0)+'%"></div></div>'
+    + '<div class="xp-overall-wrap">'
+    + '<div class="xp-overall-label"><span>All levels</span><span id="overall-lv-label"></span></div>'
+    + '<div class="xp-overall-track">'
+    + '<div class="xp-overall-fill" id="xp-overall-fill" style="width:0%"></div>'
+    + '<div class="xp-overall-ticks">'+LEVELS.map(function(){return '<div class="xp-overall-tick"></div>';}).join('')+'</div>'
+    + '</div></div>'
     + (next || d.xp < 1 ? (next ? '<div class="xp-next">'+next.emoji+' '+next.title+' in '+(next.xp-(d.xp||0))+' XP</div>' : '<div class="xp-next">Keep going!</div>') : '<div class="xp-next" style="color:#ffd580">🏆 Maximum level reached!</div>')
     + '</div></div>';
 
@@ -406,6 +420,15 @@ function tog(id, cid) {
 
 
 /* ── XP BAR (bottom) ──────────────────────────────────── */
+function updateOverallBar(xp) {
+  xp = xp || 0;
+  var maxXP = LEVELS[LEVELS.length - 1].xp;
+  var pct = Math.min(100, Math.round((xp / maxXP) * 100));
+  var fill = document.getElementById('xp-overall-fill');
+  var lbl  = document.getElementById('overall-lv-label');
+  if (fill) { fill.style.width = '0%'; setTimeout(function(){ fill.style.width = pct + '%'; }, 100); }
+  if (lbl)  { var lv = getLevel(xp); lbl.textContent = 'Level ' + lv.level + ' / ' + LEVELS.length + ' · ' + pct + '% to max'; }
+}
 function renderXPBar() {
   var d=_load(), streak=getStreak();
   var lv=getLevel(d.xp), next=getNextLevel(d.xp), prog=getLevelProgress(d.xp);
@@ -495,7 +518,7 @@ function renderXPBar() {
       _fallbackD.streak = _fbSum.streak || (typeof getStreak === 'function' ? getStreak() : 0);
       window._fbHydratedData = _fallbackD;
     }
-    render(); renderXPBar();
+    render(); renderXPBar(); updateOverallBar(d.xp);
   }).catch(function(e){
     console.warn('Firebase fetch failed:', e);
     // Ensure _fbHydratedData is always set before render, even in fallback
@@ -510,7 +533,7 @@ function renderXPBar() {
       _fallbackD.streak = _fbSum.streak || (typeof getStreak === 'function' ? getStreak() : 0);
       window._fbHydratedData = _fallbackD;
     }
-    render(); renderXPBar();
+    render(); renderXPBar(); updateOverallBar(d.xp);
   });
 }
 loadAndRender();

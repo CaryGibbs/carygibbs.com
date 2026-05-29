@@ -97,6 +97,15 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 .badge-list{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.25rem;}
 .bl-badge{background:var(--card);border:1px solid rgba(196,187,255,.25);border-radius:10px;padding:.3rem .7rem;font-size:12px;font-weight:700;}
 .bl-locked{opacity:.28;filter:grayscale(1);}
+.xp-overall-wrap{margin:.75rem 0 .25rem;}
+.xp-overall-label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:.35rem;}
+.xp-overall-label span:last-child{color:#c4bbff;font-weight:700;}
+.xp-overall-track{position:relative;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.xp-overall-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#3498db,#9b59b6,#f39c12,#ffd580);transition:width 1s ease;}
+.xp-overall-ticks{position:absolute;inset:0;display:flex;}
+.xp-overall-tick{flex:1;border-right:1px solid rgba(0,0,0,.25);}
+.xp-overall-tick:last-child{border-right:none;}
+.xp-level-bar-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;margin-bottom:.75rem;}
 
 /* FEED */
 .feed-item{display:flex;align-items:flex-start;gap:10px;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
@@ -732,6 +741,29 @@ function renderMain(data) {
     +'<div class="stat"><div class="stat-val" style="color:#b2f0bb">'+ovPct+'%</div><div class="stat-lbl">Overall score</div></div>'
     +'<div class="stat"><div class="stat-val" style="color:#9ef5e2">'+fmtTime(totalTimeSecs)+'</div><div class="stat-lbl">Total time</div></div>'
     +'</div>';
+
+  // ── LEVEL PROGRESS ──
+  var _next = (function(){ for(var i=0;i<LEVELS.length;i++){ if(LEVELS[i].xp>xp) return LEVELS[i]; } return null; })();
+  var _prog = _next ? Math.round(((xp - lv.xp) / (_next.xp - lv.xp)) * 100) : 100;
+  var _maxXP = LEVELS[LEVELS.length-1].xp;
+  var _overallPct = Math.min(100, Math.round((xp / _maxXP) * 100));
+  html += '<div class="xp-level-bar-wrap anim">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">'
+    + '<span style="font-weight:700;color:#fff;font-size:.95rem">'+lv.emoji+' Level '+lv.level+' — '+lv.title+'</span>'
+    + '<span style="font-size:12px;color:#ffd580;font-weight:700">'+xp+' XP</span>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--dim);margin-bottom:.4rem">'
+    + (_next ? 'Next: '+_next.emoji+' '+_next.title+' in '+(_next.xp-xp)+' XP' : '🏆 Maximum level reached!')
+    + '</div>'
+    + '<div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-bottom:.65rem">'
+    + '<div style="height:100%;width:'+_prog+'%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:4px;transition:width .8s"></div></div>'
+    + '<div class="xp-overall-wrap">'
+    + '<div class="xp-overall-label"><span>All 15 levels</span><span>Level '+lv.level+' / '+LEVELS.length+' · '+_overallPct+'% to max</span></div>'
+    + '<div class="xp-overall-track">'
+    + '<div class="xp-overall-fill" style="width:'+_overallPct+'%"></div>'
+    + '<div class="xp-overall-ticks">'+LEVELS.map(function(){return '<div class="xp-overall-tick"></div>';}).join('')+'</div>'
+    + '</div></div>'
+    + '</div>';
 
   // ── TIME SECTION ──
   html += buildTimeSection(timeLog, filteredSessions, cutStr);
