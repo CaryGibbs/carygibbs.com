@@ -24,6 +24,18 @@ nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color
 .level-xp{font-size:13px;color:var(--muted);margin:.2rem 0 .6rem;}
 .xp-track{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden;}
 .xp-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#9b59b6,#3498db);transition:width .8s ease;}
+.xp-overall-wrap{margin-top:.65rem;}
+.xp-overall-label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:.35rem;}
+.xp-overall-label span:last-child{color:#c4bbff;font-weight:700;}
+.xp-overall-track{position:relative;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.xp-overall-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#3498db,#9b59b6,#f39c12,#ffd580);transition:width 1s ease;}
+.xp-overall-ticks{position:absolute;inset:0;display:flex;}
+.xp-overall-tick{flex:1;border-right:1px solid rgba(0,0,0,.25);}
+.xp-overall-tick:last-child{border-right:none;}
+.xp-level-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:.6rem;}
+.xp-level-chip{flex:0 0 calc(20% - 4px);text-align:center;padding:3px 2px;border-radius:5px;font-size:11px;font-weight:600;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:var(--dim);line-height:1.3;}
+.xp-level-chip.earned{background:rgba(91,191,106,.12);border-color:rgba(91,191,106,.3);color:#5bbf6a;}
+.xp-level-chip.current{background:rgba(196,187,255,.15);border-color:rgba(196,187,255,.4);color:#c4bbff;box-shadow:0 0 8px rgba(196,187,255,.15);}
 .xp-next{font-size:11px;color:var(--dim);margin-top:.3rem;}
 
 /* SUMMARY STATS */
@@ -141,7 +153,7 @@ if (window.firebase && !firebase.apps.length) {
 var HUB_STORE='emilys_hub_v1',STREAK_STORE='emilys_streak_v1';
 (function(){try{localStorage.removeItem('emilys_results_v1');}catch(e){}})();
 
-var LEVELS=[{level:1,title:'Starter',xp:0,emoji:'🌱'},{level:2,title:'Learner',xp:100,emoji:'📖'},{level:3,title:'Scholar',xp:300,emoji:'🎓'},{level:4,title:'Expert',xp:600,emoji:'🔬'},{level:5,title:'Champion',xp:1000,emoji:'🏆'},{level:6,title:'Legend',xp:1500,emoji:'⭐'}];
+var LEVELS=[{level:1,title:'Starter',xp:0,emoji:'🌱'},{level:2,title:'Learner',xp:100,emoji:'📖'},{level:3,title:'Scholar',xp:300,emoji:'🎓'},{level:4,title:'Expert',xp:600,emoji:'🔬'},{level:5,title:'Champion',xp:1000,emoji:'🏆'},{level:6,title:'Legend',xp:1500,emoji:'⭐'},{level:7,title:'Master',xp:2000,emoji:'🔮'},{level:8,title:'Grandmaster',xp:2750,emoji:'💜'},{level:9,title:'Elite',xp:3750,emoji:'🔱'},{level:10,title:'Prodigy',xp:5000,emoji:'🧠'},{level:11,title:'Virtuoso',xp:6500,emoji:'🎯'},{level:12,title:'Genius',xp:8500,emoji:'💎'},{level:13,title:'Titan',xp:11000,emoji:'⚡'},{level:14,title:'Mythic',xp:14000,emoji:'🌟'},{level:15,title:'Unstoppable',xp:18000,emoji:'🚀'}];
 var BADGE_DEFS=[
   // Original
   {id:'first_quiz',emoji:'🎉',title:'First Steps',desc:'Complete your first quiz'},
@@ -265,7 +277,15 @@ function render() {
     + '<div class="level-info">'
     + '<div class="level-title">Level '+lv.level+' — '+lv.title+'</div>'
     + '<div class="level-xp">'+(d.xp||0)+' XP total'+(streak>0?' · 🔥 '+streak+' day streak':' · No active streak')+'</div>'
-    + '<div class="xp-track"><div class="xp-fill" style="width:'+((d.xp||0)>0?prog:0)+'%"></div></div>'
+    + '<div class="xp-track"><div class="xp-fill" id="results-lv-bar" style="width:0%"></div></div>'
+    + '<div class="xp-overall-wrap">'
+    + '<div class="xp-overall-label"><span>All levels</span><span id="overall-lv-label"></span></div>'
+    + '<div class="xp-overall-track">'
+    + '<div class="xp-overall-fill" id="xp-overall-fill" style="width:0%"></div>'
+    + '<div class="xp-overall-ticks">'+LEVELS.map(function(){return '<div class="xp-overall-tick"></div>';}).join('')+'</div>'
+    + '</div>'
+    + '<div class="xp-level-chips">'+LEVELS.map(function(l){var cls=l.level<lv.level?'earned':l.level===lv.level?'current':'';return '<div class="xp-level-chip '+cls+'">'+l.emoji+' '+l.title+'<br><span style="font-size:10px;opacity:.7">'+l.xp+' XP</span></div>';}).join('')+'</div>'
+    + '</div>'
     + (next || d.xp < 1 ? (next ? '<div class="xp-next">'+next.emoji+' '+next.title+' in '+(next.xp-(d.xp||0))+' XP</div>' : '<div class="xp-next">Keep going!</div>') : '<div class="xp-next" style="color:#ffd580">🏆 Maximum level reached!</div>')
     + '</div></div>';
 
@@ -406,6 +426,22 @@ function tog(id, cid) {
 
 
 /* ── XP BAR (bottom) ──────────────────────────────────── */
+function updateOverallBar(xp) {
+  xp = xp || 0;
+  var maxXP = LEVELS[LEVELS.length - 1].xp;
+  var overallPct = Math.min(100, Math.round((xp / maxXP) * 100));
+  var lv = getLevel(xp);
+  var next = getNextLevel(xp);
+  var lvPct = next ? Math.min(100, Math.round(((xp - lv.xp) / (next.xp - lv.xp)) * 100)) : 100;
+  setTimeout(function() {
+    var fill    = document.getElementById('xp-overall-fill');
+    var lvBar   = document.getElementById('results-lv-bar');
+    var lbl     = document.getElementById('overall-lv-label');
+    if (fill)  fill.style.width  = overallPct + '%';
+    if (lvBar) lvBar.style.width = lvPct + '%';
+    if (lbl)   lbl.textContent   = 'Level ' + lv.level + ' / ' + LEVELS.length + ' · ' + overallPct + '% to max';
+  }, 60);
+}
 function renderXPBar() {
   var d=_load(), streak=getStreak();
   var lv=getLevel(d.xp), next=getNextLevel(d.xp), prog=getLevelProgress(d.xp);
@@ -495,7 +531,7 @@ function renderXPBar() {
       _fallbackD.streak = _fbSum.streak || (typeof getStreak === 'function' ? getStreak() : 0);
       window._fbHydratedData = _fallbackD;
     }
-    render(); renderXPBar();
+    render(); renderXPBar(); updateOverallBar(d.xp);
   }).catch(function(e){
     console.warn('Firebase fetch failed:', e);
     // Ensure _fbHydratedData is always set before render, even in fallback
@@ -510,7 +546,7 @@ function renderXPBar() {
       _fallbackD.streak = _fbSum.streak || (typeof getStreak === 'function' ? getStreak() : 0);
       window._fbHydratedData = _fallbackD;
     }
-    render(); renderXPBar();
+    render(); renderXPBar(); updateOverallBar(d.xp);
   });
 }
 loadAndRender();
