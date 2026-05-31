@@ -471,8 +471,8 @@ function renderXPBar() {
     var fbSessions = fb.sessions ? Object.values(fb.sessions) : [];
     if (fbSessions.length > 0) {
       var existing = JSON.parse(localStorage.getItem(KEY) || '{}');
-      var localCount = (existing.quizSessions || []).length;
-      if (fbSessions.length >= localCount) {
+      // Always merge — even if local has more sessions, Firebase may have ones local doesn't
+      if (true) {
         var sessions = fbSessions.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
         var d = existing;
         if (!d.badges) d.badges = [];
@@ -494,11 +494,20 @@ function renderXPBar() {
         if (fbSummary.badges && fbSummary.badges.length >= (d.badges || []).length) {
           d.badges = fbSummary.badges;
         }
-        d.quizSessions = sessions.map(function(s){
-          return {sid:s.sid||'', date:s.date||'', ts:s.ts||0,
-                  score:s.score||0, total:s.total||10, pct:s.pct||0,
-                  topicScores:s.topicScores||{}};
-        });
+        // Merge Firebase sessions with local sessions — never overwrite local with older data.
+        // Use ts (timestamp) as unique key so we don't lose sessions written locally
+        // but not yet confirmed in Firebase (e.g. if results.html opened too quickly after quiz).
+        var fbSessionMap = {};
+        sessions.forEach(function(s){ if (s.ts) fbSessionMap[s.ts] = s; });
+        var localSessions = (existing.quizSessions || []);
+        localSessions.forEach(function(s){ if (s.ts && !fbSessionMap[s.ts]) fbSessionMap[s.ts] = s; });
+        d.quizSessions = Object.values(fbSessionMap)
+          .sort(function(a,b){ return (a.ts||0)-(b.ts||0); })
+          .map(function(s){
+            return {sid:s.sid||'', date:s.date||'', ts:s.ts||0,
+                    score:s.score||0, total:s.total||10, pct:s.pct||0,
+                    topicScores:s.topicScores||{}};
+          });
         d.topicHistory = {};
         d.subjectSessions = {};
         sessions.forEach(function(s){
