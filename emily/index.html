@@ -220,8 +220,19 @@ function _touchStreak() {
   _saveStreak(s);
   return s.count;
 }
-function _today() { return new Date().toISOString().slice(0,10); }
-function _yesterday() { return new Date(Date.now()-86400000).toISOString().slice(0,10); }
+function _today() {
+  var d = new Date();
+  // Use local date not UTC to avoid BST/timezone date-rollover issues
+  return d.getFullYear() + '-'
+    + String(d.getMonth()+1).padStart(2,'0') + '-'
+    + String(d.getDate()).padStart(2,'0');
+}
+function _yesterday() {
+  var d = new Date(Date.now()-86400000);
+  return d.getFullYear() + '-'
+    + String(d.getMonth()+1).padStart(2,'0') + '-'
+    + String(d.getDate()).padStart(2,'0');
+}
 function getStreak() {
   var s = _loadStreak();
   var today = _today(), yest = _yesterday();
