@@ -449,6 +449,7 @@ function trackQuizComplete(sid, topicScores, score, total) {
     var tpct = Math.round((v.c / v.t) * 100);
     if (!d.topicHistory[sid][t]) d.topicHistory[sid][t] = { correct:0, attempted:0, sessions:[] };
     var th = d.topicHistory[sid][t];
+    if (!th.sessions) th.sessions = [];
     var prevPct = th.attempted > 0 ? Math.round((th.correct/th.attempted)*100) : null;
     th.correct   += v.c;
     th.attempted += v.t;
