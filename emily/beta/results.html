@@ -269,15 +269,28 @@ function drawChart(sessions, c1, c2) {
     +'<div class="chart-labels"><span>'+pts[0].date+'</span><span style="color:rgba(224,92,106,.7)">─ 60%</span><span style="color:rgba(91,191,106,.7)">─ 90%</span><span>'+pts[n-1].date+'</span></div>';
 }
 
-function drawHeatmap(activity) {
+function drawHeatmap(activity, timeLog, quizSessions) {
   var today = new Date();
   var cells = '';
   var days = 84; // 12 weeks
+  // Build a unified activity map from all sources
+  var combined = {};
+  // 1. old activity object (date -> minutes)
+  Object.keys(activity||{}).forEach(function(k){ combined[k] = (combined[k]||0) + (activity[k]||0); });
+  // 2. timeLog (date -> {total:secs})
+  Object.keys(timeLog||{}).forEach(function(k){
+    var mins = Math.round(((timeLog[k]||{}).total||0)/60);
+    if (mins > 0) combined[k] = Math.max(combined[k]||0, mins);
+  });
+  // 3. quiz sessions as fallback — any session date gets at least 10 min
+  (quizSessions||[]).forEach(function(s){
+    if (s.date && !combined[s.date]) combined[s.date] = 10;
+  });
   for (var i = days-1; i >= 0; i--) {
     var d = new Date(today);
     d.setDate(d.getDate()-i);
-    var key = d.toISOString().slice(0,10);
-    var mins = activity[key] || 0;
+    var key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    var mins = combined[key] || 0;
     var lvl = mins === 0 ? '' : mins < 5 ? 'active-1' : mins < 15 ? 'active-2' : mins < 30 ? 'active-3' : 'active-4';
     cells += '<div class="hm-cell '+lvl+'" title="'+key+(mins>0?' · ~'+mins+'min':'')+'"></div>';
   }
@@ -376,7 +389,7 @@ function render() {
   html += '<div class="heatmap-wrap anim">'
     + '<div class="sec-label" style="margin:0 0 .5rem">Activity — last 12 weeks</div>'
     + '<div style="font-size:11px;color:var(--dim);margin-bottom:.5rem">Each square = one day · Darker = more time spent</div>'
-    + '<div class="heatmap-grid">' + drawHeatmap(d.activity||{}) + '</div>'
+    + '<div class="heatmap-grid">' + drawHeatmap(d.activity||{}, d.timeLog||{}, d.quizSessions||[]) + '</div>'
     + '</div>';
 
   // ── SUBJECT BLOCKS ───────────────────────────────────────

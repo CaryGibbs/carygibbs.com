@@ -514,7 +514,7 @@ function fmtDate(d){var parts=d.split('-');var dt=new Date(parts[0],parts[1]-1,p
 /* ── HEATMAP ───────────────────────────────────────────── */
 function drawHeatmap(timeLog){
   var t=new Date(),cells='';
-  for(var i=83;i>=0;i--){var d=new Date(t);d.setDate(d.getDate()-i);var k=d.toISOString().slice(0,10);var s=(timeLog&&timeLog[k]&&timeLog[k].total)||0;var m=Math.round(s/60);var l=m===0?'':m<5?'a1':m<15?'a2':m<30?'a3':'a4';cells+='<div class="hm-cell '+l+'" title="'+k+(m>0?' · '+fmtTimeLong(s):'')+'"></div>';}
+  for(var i=83;i>=0;i--){var d=new Date(t);d.setDate(d.getDate()-i);var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var s=(timeLog&&timeLog[k]&&timeLog[k].total)||0;var m=Math.round(s/60);var l=m===0?'':m<5?'a1':m<15?'a2':m<30?'a3':'a4';cells+='<div class="hm-cell '+l+'" title="'+k+(m>0?' · '+fmtTimeLong(s):'')+'"></div>';}
   return cells;
 }
 
@@ -939,7 +939,21 @@ function load() {
     var summary  = snaps[0].val() || {};
     var sessObj  = snaps[1].val() || {};
     var timeLog  = snaps[2].val() || {};
+    var activity = snaps[3].val() || {};
     var sessions = Object.values(sessObj).sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+    // Merge old activity data into timeLog so heatmap shows full history
+    // activity[date] = minutes; timeLog[date] = {total:secs, quiz:secs, ...}
+    Object.keys(activity).forEach(function(date) {
+      if (!timeLog[date]) {
+        timeLog[date] = { total: (activity[date] || 0) * 60 };
+      }
+    });
+    // Also build timeLog entries from sessions for any dates not yet in timeLog
+    sessions.forEach(function(s) {
+      if (s.date && !timeLog[s.date]) {
+        timeLog[s.date] = { total: 600, quiz: 600 }; // estimate 10 min per session day
+      }
+    });
     renderMain({summary:summary, sessions:sessions, timeLog:timeLog});
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
   }).catch(function(e){
