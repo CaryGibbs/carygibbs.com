@@ -526,7 +526,7 @@ function drawChart(sessions,c1,c2){
 }
 
 /* ── TIME SECTION ──────────────────────────────────────── */
-var _period = '7';
+var _period = 'all';
 var _allData = null;
 
 function setPeriod(p){_period=p;if(_allData)renderMain(_allData);}
@@ -560,7 +560,8 @@ function buildTimeSection(timeLog, sessions, cutStr){
     +'<div class="time-card"><div class="time-card-val" style="color:#9ef5e2">'+fmtTime(avg)+'</div><div class="time-card-lbl">Avg per active day</div></div>'
     +'<div class="time-card"><div class="time-card-val" style="color:#ffd580">'+active+'</div><div class="time-card-lbl">Active days</div></div>'
     +'<div class="time-card"><div class="time-card-val" style="color:#b2f0bb">'+qCount+'</div><div class="time-card-lbl">Quizzes taken</div></div>'
-    +'</div>';
+    +'</div>'
+    +(qCount===0 && tot.total>0 ? '<div style="font-size:11px;color:var(--dim);margin-top:.35rem;padding:.4rem .5rem;background:rgba(255,255,255,.04);border-radius:6px">⏱ Time today is from browsing lessons or mind maps — no quizzes completed yet</div>' : '');
 
   if(tot.total>0){
     html+='<div style="margin-top:.25rem">';
@@ -712,7 +713,38 @@ function renderMain(data) {
   var badges   = summary.badges || [];
 
   var xp = summary.xp || 0;
-  var streak = summary.streak || 0;
+  // Compute streak from actual session dates (cross-device, authoritative)
+  var streak = (function() {
+    var today = new Date();
+    var count = 0;
+    var check = new Date(today);
+    // Get unique session dates
+    var sessionDates = {};
+    sessions.forEach(function(s){ if (s.date) sessionDates[s.date] = true; });
+    // Walk backwards from today counting consecutive days with sessions
+    for (var i = 0; i < 365; i++) {
+      var y = check.getFullYear();
+      var m = String(check.getMonth()+1).padStart(2,'0');
+      var d2 = String(check.getDate()).padStart(2,'0');
+      var dateStr = y + '-' + m + '-' + d2;
+      if (sessionDates[dateStr]) {
+        count++;
+        check.setDate(check.getDate() - 1);
+      } else if (i === 0) {
+        // No sessions today — check if yesterday keeps streak alive
+        check.setDate(check.getDate() - 1);
+        var y2 = check.getFullYear();
+        var m2 = String(check.getMonth()+1).padStart(2,'0');
+        var d3 = String(check.getDate()).padStart(2,'0');
+        if (!sessionDates[y2+'-'+m2+'-'+d3]) break;
+        count++;
+        check.setDate(check.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return count;
+  })();
   var lv = getLevel(xp);
   var totalCorrect = sessions.reduce(function(a,s){return a+(s.score||0);},0);
   var totalAns = sessions.reduce(function(a,s){return a+(s.total||0);},0);
