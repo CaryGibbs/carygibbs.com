@@ -138,18 +138,18 @@ body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text)
 .refresh-btn:hover{background:rgba(155,89,182,.25);}
 .last-updated{font-size:12px;color:var(--dim);}
 .empty{text-align:center;padding:1.5rem;color:var(--dim);font-size:13px;}
-.reset-section{border-top:1px solid rgba(255,255,255,.06);margin-top:2rem;padding-top:1.5rem;text-align:center;}
-.reset-btn{background:rgba(224,92,106,.1);border:1px solid rgba(224,92,106,.3);color:#ffaab3;padding:.6rem 1.5rem;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito Sans',sans-serif;transition:background .15s;}
-.reset-btn:hover{background:rgba(224,92,106,.22);}
-.reset-confirm{display:none;margin-top:1rem;padding:1rem 1.25rem;background:rgba(224,92,106,.08);border:1px solid rgba(224,92,106,.25);border-radius:12px;}
-.reset-confirm p{font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.6;}
-.reset-confirm-btns{display:flex;gap:.75rem;justify-content:center;}
-.reset-yes{background:#e05c6a;border:none;color:#fff;padding:.5rem 1.25rem;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito Sans',sans-serif;}
-.reset-yes:hover{background:#c94d5a;}
-.reset-no{background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--muted);padding:.5rem 1.25rem;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito Sans',sans-serif;}
-.reset-area{text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);}
-.reset-btn{background:rgba(224,92,106,.1);border:1px solid rgba(224,92,106,.3);color:#ffaab3;padding:.6rem 1.5rem;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:"Nunito Sans",sans-serif;transition:background .15s;}
-.reset-btn:hover{background:rgba(224,92,106,.22);}
+
+
+
+
+
+
+
+
+
+
+
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .anim{animation:fadeUp .35s ease both;}
 </style>
@@ -905,11 +905,7 @@ function renderMain(data) {
   });}
   html+='</div>';
 
-  // Reset button
-  html += '<div class="reset-area">'
-    +'<button class="reset-btn" data-action="resetAll">🗑 Reset All of Emily\'s Progress</button>'
-    +'<div style="font-size:11px;color:var(--dim);margin-top:.5rem">Clears all quiz results, XP, badges, streak and time data from Firebase</div>'
-    +'</div>';
+
 
   document.getElementById('main').innerHTML = html;
   // Trigger level bar transitions after paint
@@ -967,69 +963,15 @@ setInterval(function(){ if(window.firebase&&firebase.apps&&firebase.apps.length)
 // Load data immediately - Firebase is already initialised via <head> scripts
 load();
 
-/* ── RESET ─────────────────────────────────────────────── */
-function showResetConfirm() {
-  document.getElementById('reset-confirm').style.display = 'block';
-}
-function hideResetConfirm() {
-  document.getElementById('reset-confirm').style.display = 'none';
-}
-function doReset() {
-  if (!window.firebase || !firebase.apps || !firebase.apps.length) {
-    alert('Firebase not connected — cannot reset remotely.');
-    return;
-  }
-  var btn = document.getElementById('reset-yes-btn');
-  btn.textContent = 'Resetting…';
-  btn.disabled = true;
 
-  var db = firebase.database();
-  // 1. Wipe all Emily data
-  db.ref('emily').remove().then(function() {
-    // 2. Set reset flag — device will detect this and clear localStorage
-    return db.ref('emily/resetRequested').set({
-      ts: Date.now(),
-      requestedBy: 'parent'
-    });
-  }).then(function() {
-    hideResetConfirm();
-    document.getElementById('reset-status').textContent = '✅ Reset complete — Firebase wiped. Emily\'s local data will clear next time she opens the hub.';
-    document.getElementById('reset-status').style.color = '#b2f0bb';
-    document.getElementById('reset-status').style.display = 'block';
-    btn.textContent = 'Yes, reset everything';
-    btn.disabled = false;
-    // Reload the dashboard after 2s
-    setTimeout(function(){ load(); }, 2000);
-  }).catch(function(e) {
-    alert('Reset failed: ' + e.message);
-    btn.textContent = 'Yes, reset everything';
-    btn.disabled = false;
-  });
-}
 
-function resetAll() {
-  if (!confirm('Reset ALL of Emily\'s progress?\n\nThis will delete:\n• All quiz results\n• XP and badges\n• Streak\n• Time tracking\n\nThis cannot be undone.')) return;
-  if (!window.firebase || !firebase.apps || !firebase.apps.length) {
-    alert('Firebase not connected — try again in a moment.');
-    return;
-  }
-  document.getElementById('last-updated').textContent = 'Resetting…';
-  firebase.database().ref('emily').remove()
-    .then(function() {
-      console.log('✅ Firebase data cleared');
-      document.getElementById('last-updated').textContent = 'Reset complete — ' + new Date().toLocaleTimeString();
-      document.getElementById('main').innerHTML = '<div class="empty" style="padding:3rem">✅ All data cleared. Emily\'s progress has been reset.</div>';
-    })
-    .catch(function(e) {
-      alert('Error resetting Firebase: ' + e.message);
-      console.error(e);
-    });
-}
+
+
+
 
 // Expose all functions called from inline onclick handlers
 window.setPeriod       = setPeriod;
 window.togDay          = togDay;
-window.resetAll        = resetAll;
 window.load            = load;
 
 // Event delegation for period tabs and day rows — avoids cross-script-block scope issues
@@ -1041,7 +983,6 @@ document.addEventListener("click", function(e) {
   var act = e.target.closest("[data-action]");
   if (act) {
     var action = act.getAttribute("data-action");
-    if (action === "resetAll") { resetAll(); return; }
     if (action === "load") { load(); return; }
   }
   var badge = e.target.closest("[data-badge]");
