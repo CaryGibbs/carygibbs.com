@@ -574,6 +574,12 @@ function renderXPBar() {
 </script>
 
 <script>
+// Globals for lesson completion tracking — must be declared before render runs
+var _answeredQs = new Set();
+var _totalQs = 0;
+var _lessonSid = '';
+var _lessonKey = '';
+
 const params = new URLSearchParams(location.search);
 const key = params.get('lesson');
 const L = key ? LESSONS[key] : null;
@@ -767,10 +773,7 @@ if (!L) {
 }
 
 // Track answered questions — fire trackLessonRead when all done
-var _answeredQs = new Set();
-var _totalQs = 0;    // set after render
-var _lessonSid = ''; // set after render
-var _lessonKey = ''; // set after render
+// globals declared before render — see top of script block
 
 function checkAns(qi, chosen, correct, cardId, expId) {
   const card = document.getElementById(cardId);
@@ -891,6 +894,7 @@ var _fbWait = setInterval(function() {
   }
 }, 500);
 
+window.checkAns = checkAns;
 </script>
 </body>
 </html>
