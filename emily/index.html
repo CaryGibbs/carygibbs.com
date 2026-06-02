@@ -282,8 +282,8 @@ function _checkBadges(d, context) {
   // Perfect ten
   if (ctx.score === 10 && ctx.total === 10) _awardBadge(d, 'perfect_ten');
 
-  // Streaks
-  var streak = getStreak();
+  // Streaks — use ctx.streak if passed (already touched in trackQuizComplete)
+  var streak = ctx.streak !== undefined ? ctx.streak : getStreak();
   if (streak >= 3)  _awardBadge(d, 'streak_3');
   if (streak >= 7)  _awardBadge(d, 'streak_7');
   if (streak >= 30) _awardBadge(d, 'streak_30');
@@ -461,7 +461,7 @@ function trackQuizComplete(sid, topicScores, score, total) {
     }
   });
 
-  // Streak
+  // Streak — touch BEFORE _checkBadges so badge check sees updated count
   var streak = _touchStreak();
   if (streak === 7)  { d.xp += XP.STREAK_7;  d.newXP += XP.STREAK_7; }
   if (streak === 30) { d.xp += XP.STREAK_30; d.newXP += XP.STREAK_30; }
@@ -470,7 +470,7 @@ function trackQuizComplete(sid, topicScores, score, total) {
   if (!d.activity) d.activity = {};
   d.activity[today] = (d.activity[today] || 0) + 5;
 
-  _checkBadges(d, { score:score, total:total, topicFixed:topicFixed, improved3:improved3 });
+  _checkBadges(d, { score:score, total:total, topicFixed:topicFixed, improved3:improved3, streak:streak });
   _save(d);
   _firebaseSync(d, sid, topicScores, score, total, pct);
   return { xp: earned, badges: d.newBadges, totalXP: d.xp };
