@@ -532,6 +532,23 @@ function renderXPBar() {
         if (fbSummary.badges && fbSummary.badges.length >= (d.badges || []).length) {
           d.badges = fbSummary.badges;
         }
+        // Merge lessonsRead and mindmapVisits from Firebase summary — these are never
+        // stored in fb.sessions (quiz-only), so they must come from fb.summary.
+        // Always take Firebase value — it is the cross-device source of truth.
+        if (fbSummary.lessonsRead && fbSummary.lessonsRead.length > 0) {
+          // Merge: keep any local entries Firebase doesn't have, plus all Firebase entries
+          var fbLessons = fbSummary.lessonsRead;
+          var localLessons = d.lessonsRead || [];
+          localLessons.forEach(function(l){ if (fbLessons.indexOf(l) === -1) fbLessons.push(l); });
+          d.lessonsRead = fbLessons;
+        }
+        if (fbSummary.mindmapVisits && Object.keys(fbSummary.mindmapVisits).length > 0) {
+          // Merge: union of Firebase and local keys
+          d.mindmapVisits = Object.assign({}, d.mindmapVisits || {}, fbSummary.mindmapVisits);
+        }
+        if (fbSummary.topicFixedCount) {
+          d.topicFixedCount = Math.max(d.topicFixedCount || 0, fbSummary.topicFixedCount);
+        }
         // Merge Firebase sessions with local sessions — never overwrite local with older data.
         // Use ts (timestamp) as unique key so we don't lose sessions written locally
         // but not yet confirmed in Firebase (e.g. if results.html opened too quickly after quiz).
