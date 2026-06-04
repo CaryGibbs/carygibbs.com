@@ -134,6 +134,39 @@ var BADGE_DEFS = [
   { id:'night_owl',    emoji:'🦉', title:'Night Owl',         desc:'Complete a quiz after 9pm' },
   { id:'early_bird',   emoji:'🐦', title:'Early Bird',        desc:'Complete a quiz before 8am' },
   { id:'lesson_20',    emoji:'🧠', title:'Deep Diver',        desc:'Read 20 different lessons' },
+  // ── VOLUME / GRIND ──────────────────────────────────────
+  { id:'quiz_25',      emoji:'🎮', title:'Getting Serious',   desc:'Complete 25 quizzes' },
+  { id:'quiz_50',      emoji:'🏅', title:'Halfway Hero',      desc:'Complete 50 quizzes' },
+  { id:'quiz_250',     emoji:'🔱', title:'Quiz Machine',      desc:'Complete 250 quizzes' },
+  { id:'sharp_250',    emoji:'🎳', title:'Sniper',            desc:'Answer 250 questions correctly' },
+  { id:'sharp_500',    emoji:'💎', title:'Diamond Mind',      desc:'Answer 500 questions correctly' },
+  { id:'lesson_5',     emoji:'📖', title:'Page Turner',       desc:'Read 5 lessons' },
+  { id:'lesson_10',    emoji:'📰', title:'Study Buddy',       desc:'Read 10 lessons' },
+  { id:'lesson_40',    emoji:'🎒', title:'Swot',              desc:'Read 40 different lessons' },
+  { id:'mindmap_5',    emoji:'🗺️',  title:'Map Maker',         desc:'Visit 5 different mind maps' },
+  { id:'mindmap_all',  emoji:'🧭', title:'Grand Tour',        desc:'Visit every subject\'s mind map' },
+  { id:'streak_14',    emoji:'⚡', title:'Fortnight Fighter', desc:'14-day streak' },
+  // ── MASTERY ─────────────────────────────────────────────
+  { id:'perfect_3',    emoji:'🎯', title:'Hat-Trick',         desc:'Score 10/10 three times' },
+  { id:'perfect_10',   emoji:'👑', title:'Perfectionist',     desc:'Score 10/10 ten times' },
+  { id:'ace',          emoji:'🃏', title:'Ace',               desc:'Score 90%+ ten times' },
+  { id:'flawless',     emoji:'✨', title:'Flawless',          desc:'Score 100% in every subject at least once' },
+  { id:'no_mistakes',  emoji:'🧊', title:'Ice Cold',          desc:'Complete 5 quizzes in a row without scoring below 80%' },
+  { id:'xp_500',       emoji:'🌙', title:'Rising Star',       desc:'Earn 500 XP' },
+  { id:'xp_1000',      emoji:'🏆', title:'Champion',          desc:'Earn 1000 XP' },
+  { id:'xp_2000',      emoji:'🌠', title:'Legend',            desc:'Earn 2000 XP' },
+  // ── SUBJECT-SPECIFIC ────────────────────────────────────
+  { id:'maths_master',    emoji:'🔢', title:'Mathlete',       desc:'Score 90%+ in Maths three times' },
+  { id:'english_master',  emoji:'✍️',  title:'Poet Laureate',  desc:'Score 90%+ in English three times' },
+  { id:'geo_master',      emoji:'🌐', title:'Geographer',     desc:'Score 90%+ in Geography three times' },
+  { id:'spanish_master',  emoji:'💃', title:'¡Olé!',          desc:'Score 90%+ in Spanish three times' },
+  { id:'science_master',  emoji:'🔬', title:'Lab Rat',        desc:'Score 90%+ in Science three times' },
+  { id:'re_master',       emoji:'🕊️',  title:'Philosopher',    desc:'Score 90%+ in RE three times' },
+  // ── FUN / QUIRKY ────────────────────────────────────────
+  { id:'lunch_break',  emoji:'🥪', title:'Lunch Break Hero',  desc:'Complete a quiz between 12pm and 1pm' },
+  { id:'weekend',      emoji:'🛋️',  title:'Weekend Warrior',   desc:'Complete quizzes on both Saturday and Sunday' },
+  { id:'hat_trick_day',emoji:'🎩', title:'Triple Threat',     desc:'Complete 3 quizzes in one day' },
+  { id:'comeback_5',   emoji:'🦋', title:'Glow Up',           desc:'Improve 5 different topics from below 60% to above 70%' },
 ];
 
 /* ── LOCAL STORE HELPERS ───────────────────────────────── */
@@ -249,14 +282,14 @@ function _checkBadges(d, context) {
   // Perfect ten
   if (ctx.score === 10 && ctx.total === 10) _awardBadge(d, 'perfect_ten');
 
-  // Streaks
-  var streak = getStreak();
+  // Streaks — use ctx.streak if passed (already touched in trackQuizComplete)
+  var streak = ctx.streak !== undefined ? ctx.streak : getStreak();
   if (streak >= 3)  _awardBadge(d, 'streak_3');
   if (streak >= 7)  _awardBadge(d, 'streak_7');
   if (streak >= 30) _awardBadge(d, 'streak_30');
 
   // Lessons read
-  if (d.lessonsRead.length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
+  if ((d.lessonsRead||[]).length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
 
   // Explorer — quiz in every subject
   var subjectsQuizzed = Object.keys(d.subjectSessions || {});
@@ -292,6 +325,78 @@ function _checkBadges(d, context) {
     return sessions.some(function(p){ return p >= 70; });
   });
   if (allGood) _awardBadge(d, 'all_rounder');
+
+  // ── VOLUME / GRIND ───────────────────────────────────────
+  var qCount = d.quizSessions.length;
+  if (qCount >= 25)  _awardBadge(d, 'quiz_25');
+  if (qCount >= 50)  _awardBadge(d, 'quiz_50');
+  if (qCount >= 250) _awardBadge(d, 'quiz_250');
+
+  if (totalCorrect >= 250) _awardBadge(d, 'sharp_250');
+  if (totalCorrect >= 500) _awardBadge(d, 'sharp_500');
+
+  var lCount = (d.lessonsRead || []).length;
+  if (lCount >= 5)  _awardBadge(d, 'lesson_5');
+  if (lCount >= 10) _awardBadge(d, 'lesson_10');
+  if (lCount >= 40) _awardBadge(d, 'lesson_40');
+
+  var mmVisited = Object.keys(d.mindmapVisits || {}).map(function(k){ return k.split('_')[0]; });
+  var uniqueMM = mmVisited.filter(function(v,i,a){ return a.indexOf(v) === i; });
+  if (uniqueMM.length >= 5) _awardBadge(d, 'mindmap_5');
+  if (allSubjects.every(function(s){ return uniqueMM.indexOf(s) > -1; })) _awardBadge(d, 'mindmap_all');
+
+  if (streak >= 14) _awardBadge(d, 'streak_14');
+
+  // ── MASTERY ──────────────────────────────────────────────
+  var perfects = d.quizSessions.filter(function(s){ return s.score === s.total && s.total === 10; }).length;
+  if (perfects >= 3)  _awardBadge(d, 'perfect_3');
+  if (perfects >= 10) _awardBadge(d, 'perfect_10');
+
+  if (high >= 10) _awardBadge(d, 'ace');
+
+  var flawless = allSubjects.every(function(sid) {
+    return (d.subjectSessions[sid] || []).some(function(p){ return p >= 100; });
+  });
+  if (flawless) _awardBadge(d, 'flawless');
+
+  // Ice Cold — last 5 quizzes all 80%+
+  if (qCount >= 5) {
+    var last5 = d.quizSessions.slice(-5);
+    if (last5.every(function(s){ return s.pct >= 80; })) _awardBadge(d, 'no_mistakes');
+  }
+
+  var xp = d.xp || 0;
+  if (xp >= 500)  _awardBadge(d, 'xp_500');
+  if (xp >= 1000) _awardBadge(d, 'xp_1000');
+  if (xp >= 2000) _awardBadge(d, 'xp_2000');
+
+  // ── SUBJECT-SPECIFIC ─────────────────────────────────────
+  var subjectBadges = [
+    { sid:'maths',     id:'maths_master'   },
+    { sid:'english',   id:'english_master' },
+    { sid:'geography', id:'geo_master'     },
+    { sid:'spanish',   id:'spanish_master' },
+    { sid:'science',   id:'science_master' },
+    { sid:'re',        id:'re_master'      },
+  ];
+  subjectBadges.forEach(function(sb) {
+    var highs = (d.subjectSessions[sb.sid] || []).filter(function(p){ return p >= 90; }).length;
+    if (highs >= 3) _awardBadge(d, sb.id);
+  });
+
+  // ── FUN / QUIRKY ─────────────────────────────────────────
+  if (hour >= 12 && hour < 13) _awardBadge(d, 'lunch_break');
+
+  var days = d.quizSessions.map(function(s){ return new Date(s.ts).getDay(); });
+  if (days.indexOf(6) > -1 && days.indexOf(0) > -1) _awardBadge(d, 'weekend');
+
+  var today = _today();
+  var todayCount = d.quizSessions.filter(function(s){ return s.date === today; }).length;
+  if (todayCount >= 3) _awardBadge(d, 'hat_trick_day');
+
+  if (!d.topicFixedCount) d.topicFixedCount = 0;
+  if (ctx.topicFixed) d.topicFixedCount += 1;
+  if (d.topicFixedCount >= 5) _awardBadge(d, 'comeback_5');
 }
 
 /* ── MAIN TRACKING FUNCTIONS ────────────────────────────── */
@@ -318,7 +423,7 @@ function trackQuizComplete(sid, topicScores, score, total) {
 
   // Record session
   d.quizSessions.push({ sid:sid, date:today, ts:Date.now(), score:score, total:total, pct:pct });
-  if (d.quizSessions.length > 200) d.quizSessions = d.quizSessions.slice(-200);
+  if (d.quizSessions.length > 300) d.quizSessions = d.quizSessions.slice(-300);
 
   // Subject trend
   if (!d.subjectSessions) d.subjectSessions = {};
@@ -395,6 +500,9 @@ function trackMindmapVisit(sid) {
   if (!d.mindmapVisits[key]) {
     d.mindmapVisits[key] = true;
     d.xp += XP.MINDMAP_VISIT;
+    d.newXP = XP.MINDMAP_VISIT;
+    d.newBadges = [];
+    _checkBadges(d, {});
     _save(d);
     // Push updated summary to Firebase so parent.html stays in sync.
     if (window.firebase && firebase.apps && firebase.apps.length) {
@@ -415,6 +523,7 @@ function trackMindmapVisit(sid) {
         });
       } catch(e) { console.warn('Firebase summary update failed:', e); }
     }
+    if (d.newBadges.length > 0) showXPToast(XP.MINDMAP_VISIT, d.newBadges);
   }
   if (!d.activity) d.activity = {};
   d.activity[today] = (d.activity[today] || 0) + 1;
