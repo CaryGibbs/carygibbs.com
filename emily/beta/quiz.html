@@ -516,7 +516,7 @@ function trackQuizComplete(sid, topicScores, score, total) {
 
   // Record session
   d.quizSessions.push({ sid:sid, date:today, ts:Date.now(), score:score, total:total, pct:pct });
-  if (d.quizSessions.length > 300) d.quizSessions = d.quizSessions.slice(-300);
+  if (d.quizSessions.length > 200) d.quizSessions = d.quizSessions.slice(-200);
 
   // Subject trend
   if (!d.subjectSessions) d.subjectSessions = {};
@@ -642,7 +642,8 @@ function _firebaseSync(d, sid, topicScores, score, total, pct) {
       lastUpdated: Date.now(),
       lessonsRead: d.lessonsRead || [],
       mindmapVisits: d.mindmapVisits || {},
-      topicFixedCount: d.topicFixedCount || 0
+      topicFixedCount: d.topicFixedCount || 0,
+      subjectSessions: d.subjectSessions || {}
     });
 
     // Sync timeLog — write time fields and accumulate per-day XP via transaction
