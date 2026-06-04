@@ -549,6 +549,23 @@ function renderXPBar() {
         if (fbSummary.topicFixedCount) {
           d.topicFixedCount = Math.max(d.topicFixedCount || 0, fbSummary.topicFixedCount);
         }
+        // Restore subjectSessions from Firebase — this is the cross-device source of truth
+        // for badge checks (subject mastery badges, all-rounder etc). Merge: for each subject,
+        // take whichever device has more entries to avoid losing local history.
+        if (fbSummary.subjectSessions && Object.keys(fbSummary.subjectSessions).length > 0) {
+          var fbSS = fbSummary.subjectSessions;
+          var localSS = d.subjectSessions || {};
+          var merged = {};
+          var allSids = Object.keys(fbSS).concat(Object.keys(localSS))
+            .filter(function(v,i,a){ return a.indexOf(v)===i; });
+          allSids.forEach(function(sid) {
+            var fb = fbSS[sid] || [];
+            var loc = localSS[sid] || [];
+            // Take whichever is longer; they should converge over time
+            merged[sid] = fb.length >= loc.length ? fb : loc;
+          });
+          d.subjectSessions = merged;
+        }
         // Merge Firebase sessions with local sessions — never overwrite local with older data.
         // Use ts (timestamp) as unique key so we don't lose sessions written locally
         // but not yet confirmed in Firebase (e.g. if results.html opened too quickly after quiz).
