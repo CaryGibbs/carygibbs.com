@@ -39,6 +39,8 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
 .tip{font-size:13px;color:var(--muted);line-height:1.5;display:flex;gap:8px;}
 .tip-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.year-card{width:calc(50% - 0.5rem);}
+@media(max-width:480px){.year-card{width:100%;}}
 </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -48,10 +50,50 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
   <div class="hero">
     <span class="hero-emoji">🚀</span>
     <h1>Emily's Revision Hub</h1>
-    <p>Year 8 End of Year exams. Mind maps to learn, quizzes to test. Pick a subject and get started.</p>
+    <p id="hero-sub">Choose a year to start revising.</p>
   </div>
-  <div class="section-label">Subjects</div>
-  <div class="subjects" id="grid"></div>
+
+  <!-- Year selector — shown when no year is active -->
+  <div id="year-selector">
+    <div class="section-label">Choose your revision set</div>
+    <div class="subjects">
+      <a class="subject-card year-card" href="?year=year8" style="animation-delay:0s">
+        <div class="card-bar" style="background:linear-gradient(90deg,#7c6fcd,#3ecfac)"></div>
+        <div class="card-body">
+          <div class="card-row">
+            <div class="card-icon">📚</div>
+            <div>
+              <div class="card-name">Year 8</div>
+              <div class="card-meta">End of Year · 6 subjects · 1,100+ questions</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.5">Maths · English · Geography · Spanish · Science · RE</div>
+        </div>
+      </a>
+      <a class="subject-card year-card" href="?year=year9" style="animation-delay:0.07s;opacity:.55;pointer-events:none">
+        <div class="card-bar" style="background:linear-gradient(90deg,#f5a623,#e05c6a)"></div>
+        <div class="card-body">
+          <div class="card-row">
+            <div class="card-icon">🔮</div>
+            <div>
+              <div class="card-name">Year 9 <span style="font-size:11px;font-weight:600;color:var(--dim);margin-left:6px">Coming soon</span></div>
+              <div class="card-meta">Content will be added when topics are confirmed</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.5">Subjects and topics TBC</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Subject grid — shown when a year is active -->
+  <div id="subject-view" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+      <a href="?" style="font-size:12px;color:var(--dim);text-decoration:none;font-weight:700;padding:.3rem .7rem;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);">← All Years</a>
+      <div class="section-label" style="margin:0" id="year-label">Subjects</div>
+    </div>
+    <div class="subjects" id="grid"></div>
+  </div>
   <a href="results.html" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem 1.5rem;margin-bottom:1rem;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,.2)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
   <span style="font-size:28px">📊</span>
   <div>
@@ -72,6 +114,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 </div>
 
 <script src="data.js"></script>
+<script src="data-year9.js" onerror="console.log('Year 9 data not yet available')"></script>
 
 
 <script>
@@ -672,40 +715,67 @@ if (window.firebase && !firebase.apps.length) {
 </script>
 <script>
 (function() {
-  var grid = document.getElementById('grid');
-  var subjects = Object.values(SUBJECTS);
-  for (var i = 0; i < subjects.length; i++) {
-    var s = subjects[i];
-    var topics = Object.keys(s.topicMeta || {});
-    var quizCount = (QUIZ_QUESTIONS[s.id] || []).length;
-    
-    var chips = '';
-    for (var t = 0; t < Math.min(topics.length, 6); t++) {
-      chips += '<span class="mini-chip">' + topics[t] + '</span>';
-    }
-    
-    var card = document.createElement('a');
-    card.className = 'subject-card';
-    card.href = 'mindmap.html?subject=' + s.id;
-    card.style.animationDelay = (i * 0.07) + 's';
-    card.innerHTML = 
-      '<div class="card-bar" style="background:linear-gradient(90deg,' + s.gradient[0] + ',' + s.gradient[1] + ')"></div>' +
-      '<div class="card-body">' +
-        '<div class="card-row">' +
-          '<div class="card-icon">' + s.icon + '</div>' +
-          '<div>' +
-            '<div class="card-name">' + s.name + '</div>' +
-            '<div class="card-meta">' + topics.length + ' topics &middot; ' + quizCount + ' quiz questions</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="topic-chips">' + chips + '</div>' +
-        '<div class="card-actions">' +
-          '<a class="action-btn" href="mindmap.html?subject=' + s.id + '" onclick="event.stopPropagation()">🗺 Mind Map</a>' +
-          '<a class="action-btn" href="quiz.html?subject=' + s.id + '" onclick="event.stopPropagation()">✏️ Quiz</a>' +
-        '</div>' +
-      '</div>';
-    grid.appendChild(card);
+  var params = new URLSearchParams(location.search);
+  var year = params.get('year');
+
+  // Determine which data set to use
+  // SUBJECTS / QUIZ_QUESTIONS = Year 8 (always loaded from data.js)
+  // SUBJECTS_Y9 / QUIZ_QUESTIONS_Y9 = Year 9 (loaded from data-year9.js if present)
+  var subjectsData, questionsData, yearLabel;
+  if (year === 'year9' && window.SUBJECTS_Y9) {
+    subjectsData  = SUBJECTS_Y9;
+    questionsData = QUIZ_QUESTIONS_Y9 || {};
+    yearLabel     = 'Year 9 Revision';
+  } else if (year === 'year8' || (year && !window.SUBJECTS_Y9)) {
+    subjectsData  = SUBJECTS;
+    questionsData = QUIZ_QUESTIONS || {};
+    yearLabel     = 'Year 8 Revision';
+    year          = 'year8';
   }
+
+  if (year && subjectsData) {
+    // Show subject view, hide year selector
+    document.getElementById('year-selector').style.display = 'none';
+    document.getElementById('subject-view').style.display  = 'block';
+    document.getElementById('year-label').textContent      = yearLabel;
+    document.getElementById('hero-sub').textContent        = yearLabel + ' · Mind maps to learn, quizzes to test.';
+
+    var grid = document.getElementById('grid');
+    var subjects = Object.values(subjectsData);
+    for (var i = 0; i < subjects.length; i++) {
+      var s = subjects[i];
+      var topics = Object.keys(s.topicMeta || {});
+      var quizCount = (questionsData[s.id] || []).length;
+
+      var chips = '';
+      for (var t = 0; t < Math.min(topics.length, 6); t++) {
+        chips += '<span class="mini-chip">' + topics[t] + '</span>';
+      }
+
+      var card = document.createElement('a');
+      card.className = 'subject-card';
+      card.href = 'mindmap.html?subject=' + s.id + '&year=' + year;
+      card.style.animationDelay = (i * 0.07) + 's';
+      card.innerHTML =
+        '<div class="card-bar" style="background:linear-gradient(90deg,' + s.gradient[0] + ',' + s.gradient[1] + ')"></div>' +
+        '<div class="card-body">' +
+          '<div class="card-row">' +
+            '<div class="card-icon">' + s.icon + '</div>' +
+            '<div>' +
+              '<div class="card-name">' + s.name + '</div>' +
+              '<div class="card-meta">' + topics.length + ' topics &middot; ' + quizCount + ' quiz questions</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="topic-chips">' + chips + '</div>' +
+          '<div class="card-actions">' +
+            '<a class="action-btn" href="mindmap.html?subject=' + s.id + '&year=' + year + '" onclick="event.stopPropagation()">🗺 Mind Map</a>' +
+            '<a class="action-btn" href="quiz.html?subject=' + s.id + '&year=' + year + '" onclick="event.stopPropagation()">✏️ Quiz</a>' +
+          '</div>' +
+        '</div>';
+      grid.appendChild(card);
+    }
+  }
+  // If no year param, year selector is shown by default (it's visible in HTML)
 })();
 
 
