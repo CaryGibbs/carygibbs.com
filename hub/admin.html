@@ -454,7 +454,13 @@
     <div class="breadcrumb" id="breadcrumb">
       <span class="breadcrumb-current">Groups</span>
     </div>
-    <div class="topbar-actions" id="topbar-actions"></div>
+    <div class="topbar-actions" id="topbar-actions">
+    <div id="preview-actions" style="display:none;align-items:center;gap:var(--space-sm);">
+      <span style="font-family:var(--font-ui);font-size:0.78rem;color:var(--color-text-muted);">Preview:</span>
+      <a id="preview-quiz-btn" href="#" target="_blank" class="btn btn-ghost" style="padding:6px 12px;font-size:0.82rem;">⚡ Quiz</a>
+      <a id="preview-mindmap-btn" href="#" target="_blank" class="btn btn-ghost" style="padding:6px 12px;font-size:0.82rem;">🗺️ Mindmap</a>
+    </div>
+  </div>
   </header>
 
   <div class="content-area page-fade">
@@ -606,20 +612,17 @@
             <button class="add-option-btn" style="margin-top:var(--space-sm);" data-action="add-keypoint-panel">＋ Add key point manually</button>
           </div>
         </div>
-        <!-- Post-generation actions -->
-        <div id="kp-post-gen-actions" style="display:none;margin-bottom:var(--space-md);">
-          <div style="background:var(--color-primary-glow);border:1px solid var(--color-primary);border-radius:var(--radius-card);padding:var(--space-md);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-sm);">
-            <div style="font-family:var(--font-ui);font-size:0.88rem;color:var(--color-primary);font-weight:600;">Key points generated — what next?</div>
-            <div style="display:flex;gap:var(--space-sm);">
-              <button class="btn btn-secondary" style="font-size:0.82rem;padding:8px 14px;" data-action="also-generate-questions">➡️ Also generate questions</button>
-              <button class="btn btn-primary" style="font-size:0.82rem;padding:8px 14px;background:var(--color-success);box-shadow:none;" data-action="generate-everything">⚡ Generate everything &amp; save</button>
-            </div>
+        <!-- Action footer — always visible -->
+        <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;justify-content:space-between;margin-top:var(--space-md);">
+          <div style="display:flex;align-items:center;gap:var(--space-sm);">
+            <label style="font-family:var(--font-ui);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;text-transform:none;letter-spacing:0;">Questions to generate:</label>
+            <input type="number" id="gen-everything-qty" value="10" min="5" max="50" style="width:70px;padding:6px 10px;font-size:0.88rem;border-radius:var(--radius-button);">
           </div>
-        </div>
-
-        <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;">
-          <button class="btn btn-secondary" data-action="save-keypoints-panel">💾 Save key points only</button>
-          <button class="btn btn-primary" data-action="generate-everything">⚡ Generate everything</button>
+          <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+            <button class="btn btn-secondary" data-action="also-generate-questions" style="font-size:0.88rem;">➡️ Questions tab</button>
+            <button class="btn btn-secondary" data-action="save-keypoints-panel" style="font-size:0.88rem;">💾 Key points only</button>
+            <button class="btn btn-primary" data-action="generate-everything" style="font-size:0.88rem;">⚡ Generate everything &amp; save</button>
+          </div>
         </div>
       </div>
     </div>
@@ -939,6 +942,7 @@ function showPanel(name) {
   currentPanel = name;
   updateBreadcrumb();
   if (name === 'users') loadUsers();
+  if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 
 function updateBreadcrumb() {
@@ -1158,6 +1162,7 @@ function openSubject(id, data) {
   document.getElementById('topics-panel-title').textContent = `${data.emoji||'📚'} ${data.name} — Topics`;
   showPanel('topics');
   loadTopics();
+  updatePreviewLinks();
 }
 
 async function openSubjectModal(id) {
@@ -1247,6 +1252,8 @@ function openTopic(id, data) {
   updateBreadcrumb();
   // show questions nav item
   document.getElementById('nav-questions-btn').style.display = 'flex';
+  // show preview links
+  updatePreviewLinks();
 }
 
 async function openTopicModal(id) {
@@ -1464,6 +1471,7 @@ async function generateEverything() {
   if (!kps.length) {
     showToast('Generate key points first', 'error'); return;
   }
+  const qty = parseInt(document.getElementById('gen-everything-qty')?.value) || 10;
 
   // Build content for question generation
   let contentForQs = '';
@@ -2006,6 +2014,26 @@ async function loadUsers() {
 /* ── Utils ───────────────────────────────────────────────── */
 function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function updatePreviewLinks() {
+  const wrap = document.getElementById('preview-actions');
+  if (!selectedGroup || !selectedSubject) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+
+  const base = location.href.replace('admin.html', '');
+  const params = new URLSearchParams({
+    groupId:     selectedGroup.id,
+    subjectId:   selectedSubject.id,
+    subjectName: selectedSubject.name,
+  });
+  if (selectedTopic) {
+    params.set('topicId',   selectedTopic.id);
+    params.set('topicName', selectedTopic.name);
+  }
+
+  document.getElementById('preview-quiz-btn').href    = `${base}quiz.html?${params}`;
+  document.getElementById('preview-mindmap-btn').href = `${base}mindmap.html?${params}`;
 }
 
 </script>
