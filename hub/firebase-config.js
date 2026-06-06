@@ -1,9 +1,7 @@
 // ============================================================
 // CLASP — Firebase Configuration
-// Database: Firestore (switched from Realtime Database)
-// Reason: Realtime Database uses WebSockets which are blocked
-//         by carygibbs.com Google Workspace org policy.
-//         Firestore uses HTTPS — no WebSocket dependency.
+// Project: clasp-revision (under clasp.hub.app@gmail.com)
+// No org policy restrictions — clean Gmail account
 // ============================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -12,13 +10,13 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebas
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyAUTgJH3KELX8B4AcTyI4zdsGzzhgSybtE",
-  authDomain:        "clasp-hub.firebaseapp.com",
-  projectId:         "clasp-hub",
-  storageBucket:     "clasp-hub.firebasestorage.app",
-  messagingSenderId: "820025085835",
-  appId:             "1:820025085835:web:fd3165045769ea492fe98e",
-  measurementId:     "G-V4ZFHVNQ73"
+  apiKey:            "AIzaSyDjkqzERaCoaGUBeQCHpaVtwPEbcWN5yB4",
+  authDomain:        "clasp-revision.firebaseapp.com",
+  projectId:         "clasp-revision",
+  storageBucket:     "clasp-revision.firebasestorage.app",
+  messagingSenderId: "572497127970",
+  appId:             "1:572497127970:web:bbb8545007c73dcfc4387b",
+  measurementId:     "G-HXB68GZGWZ"
 };
 
 const app     = initializeApp(firebaseConfig);
