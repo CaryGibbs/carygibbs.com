@@ -171,7 +171,9 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js';
+  import { app as firebaseApp, auth, db, storage } from './firebase-config.js';
+  import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
   import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -250,13 +252,16 @@
     const name     = document.getElementById('child-name').value.trim();
     const email    = document.getElementById('child-email').value.trim();
     const password = document.getElementById('child-password').value.trim();
-    if (!name)               { showErr('add-error','Please enter the child\'s name.'); return; }
+    if (!name)               { showErr('add-error',"Please enter the child's name."); return; }
     if (!email)              { showErr('add-error','Please enter an email address.'); return; }
     if (password.length < 8) { showErr('add-error','Password must be at least 8 characters.'); return; }
     const btn = document.getElementById('btn-add-child');
     btn.classList.add('loading');
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      // Use secondary app so parent stays signed in
+      const secondaryApp = initializeApp(firebaseApp.options, 'child_' + Date.now());
+      const secondaryAuth = getAuth(secondaryApp);
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
       const childUid = cred.user.uid;
       await updateProfile(cred.user, { displayName: name });
       await setDoc(doc(db, 'users', childUid), {
@@ -267,10 +272,13 @@
       await setDoc(doc(db, 'users', parentUid, 'children', childUid), {
         name, email, theme: selectedTheme, createdAt: Date.now()
       });
+      await secondaryAuth.signOut();
+      await deleteApp(secondaryApp);
       document.getElementById('modal-add').classList.remove('open');
       showToast(`${name}'s account created!`, 'success');
     } catch(e) {
-      showErr('add-error', friendlyError(e.code));
+      console.error('addChild error:', e);
+      showErr('add-error', friendlyError(e.code) || e.message);
     } finally { btn.classList.remove('loading'); }
   };
 

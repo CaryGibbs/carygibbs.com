@@ -406,7 +406,9 @@
 <script type="module">
   import { auth, db } from './firebase-config.js';
   import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
-  import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { app as firebaseApp } from './firebase-config.js';
+  import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let teacherUid = null;
@@ -587,7 +589,9 @@
     const btn = document.getElementById('btn-add-student');
     btn.classList.add('loading');
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const secondaryApp = initializeApp(firebaseApp.options, 'student_' + Date.now());
+      const secondaryAuth = getAuth(secondaryApp);
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
       const uid  = cred.user.uid;
       await updateProfile(cred.user, { displayName: name });
       await setDoc(doc(db, 'users', uid), {
@@ -597,6 +601,8 @@
         classes: { [activeClassId]: true }
       });
       await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email });
+      await secondaryAuth.signOut();
+      await deleteApp(secondaryApp);
       document.getElementById('student-name').value = '';
       document.getElementById('student-email').value = '';
       document.getElementById('student-password').value = '';
