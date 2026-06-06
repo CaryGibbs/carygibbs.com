@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="parent">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasp — Admin</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    /* ── Layout ──────────────────────────────────────────── */
+    body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
+
+    .sidebar {
+      width: 240px; min-width: 240px; background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      z-index: 50;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px var(--space-lg);
+      border-bottom: 1px solid var(--color-border);
+      font-family: var(--font-heading); font-weight: 800; font-size: 1.2rem;
+    }
+    .sidebar-logo-icon {
+      width: 32px; height: 32px; background: var(--color-primary);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .admin-badge {
+      display: inline-block; background: var(--color-primary-glow);
+      color: var(--color-primary); padding: 2px 8px;
+      border-radius: var(--radius-pill); font-size: 0.7rem;
+      font-family: var(--font-ui); font-weight: 700;
+      margin-left: 4px; vertical-align: middle;
+    }
+    .sidebar-nav { padding: var(--space-md) var(--space-sm); flex: 1; }
+    .nav-section-label {
+      font-size: 0.7rem; font-family: var(--font-ui); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--color-text-faint); padding: var(--space-sm) var(--space-sm);
+      margin-top: var(--space-md);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px var(--space-sm); border-radius: var(--radius-button);
+      font-family: var(--font-ui); font-size: 0.9rem; font-weight: 500;
+      color: var(--color-text-muted); cursor: pointer;
+      transition: all var(--transition-fast); margin-bottom: 2px;
+      border: none; background: transparent; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: var(--color-surface-2); color: var(--color-text); }
+    .nav-item.active { background: var(--color-primary-glow); color: var(--color-primary); font-weight: 600; }
+    .nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer {
+      padding: var(--space-md); border-top: 1px solid var(--color-border);
+    }
+
+    /* ── Main content ─────────────────────────────────────── */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl); height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 40;
+    }
+    .breadcrumb {
+      display: flex; align-items: center; gap: var(--space-sm);
+      font-family: var(--font-ui); font-size: 0.88rem;
+      color: var(--color-text-muted);
+    }
+    .breadcrumb-sep { color: var(--color-text-faint); }
+    .breadcrumb-current { color: var(--color-text); font-weight: 600; }
+    .topbar-actions { display: flex; align-items: center; gap: var(--space-sm); }
+
+    .content-area { padding: var(--space-xl); flex: 1; }
+
+    /* ── Section panels ───────────────────────────────────── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    .panel-title {
+      font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700;
+    }
+    .panel-subtitle { color: var(--color-text-muted); font-size: 0.9rem; margin-top: 2px; }
+
+    /* ── Cards grid ───────────────────────────────────────── */
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: var(--space-md);
+    }
+    .item-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md);
+      cursor: pointer; transition: all var(--transition-fast);
+      position: relative;
+    }
+    .item-card:hover { border-color: var(--color-primary); box-shadow: var(--shadow-glow); transform: translateY(-1px); }
+    .item-card.selected { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .item-card-emoji { font-size: 1.8rem; margin-bottom: var(--space-sm); }
+    .item-card-name {
+      font-family: var(--font-ui); font-weight: 600; font-size: 0.95rem;
+      color: var(--color-text); margin-bottom: 4px;
+    }
+    .item-card-meta { font-size: 0.8rem; color: var(--color-text-muted); }
+    .item-card-actions {
+      position: absolute; top: var(--space-sm); right: var(--space-sm);
+      display: flex; gap: 4px; opacity: 0; transition: opacity var(--transition-fast);
+    }
+    .item-card:hover .item-card-actions { opacity: 1; }
+    .icon-btn {
+      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; cursor: pointer; border: none;
+      transition: all var(--transition-fast);
+    }
+    .icon-btn-edit { background: var(--color-surface-2); color: var(--color-text-muted); }
+    .icon-btn-edit:hover { background: var(--color-primary-glow); color: var(--color-primary); }
+    .icon-btn-del { background: var(--color-surface-2); color: var(--color-text-muted); }
+    .icon-btn-del:hover { background: rgba(250,82,82,0.1); color: var(--color-danger); }
+
+    .add-card {
+      background: transparent; border: 2px dashed var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md);
+      cursor: pointer; transition: all var(--transition-fast);
+      display: flex; align-items: center; justify-content: center;
+      gap: var(--space-sm); color: var(--color-text-muted);
+      font-family: var(--font-ui); font-size: 0.9rem; font-weight: 500;
+      min-height: 100px;
+    }
+    .add-card:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-glow); }
+
+    /* ── Question list ────────────────────────────────────── */
+    .question-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .q-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md);
+      display: flex; gap: var(--space-md); align-items: flex-start;
+    }
+    .q-card.pending { border-color: var(--color-warning); background: rgba(245,159,0,0.04); }
+    .q-card.saved { border-color: var(--color-success); }
+    .q-type-badge {
+      flex-shrink: 0; padding: 3px 10px; border-radius: var(--radius-pill);
+      font-size: 0.72rem; font-family: var(--font-ui); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .q-type-mcq     { background: rgba(108,99,255,0.12); color: #6c63ff; }
+    .q-type-tf      { background: rgba(18,184,134,0.12); color: #12b886; }
+    .q-type-fill    { background: rgba(245,159,0,0.12);  color: #f59f00; }
+    .q-type-match   { background: rgba(14,165,233,0.12); color: #0ea5e9; }
+    .q-type-short   { background: rgba(250,82,82,0.12);  color: #fa5252; }
+    .q-body { flex: 1; min-width: 0; }
+    .q-text { font-size: 0.92rem; color: var(--color-text); margin-bottom: 6px; line-height: 1.5; }
+    .q-detail { font-size: 0.82rem; color: var(--color-text-muted); }
+    .q-detail span { background: var(--color-surface-2); border-radius: 4px; padding: 1px 6px; margin-right: 4px; display: inline-block; margin-bottom: 2px; }
+    .q-detail .correct { background: rgba(18,184,134,0.12); color: var(--color-success); }
+    .q-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: 2px; }
+
+    /* ── AI generation area ───────────────────────────────── */
+    .gen-container {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    .gen-header { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+    .gen-title { font-family: var(--font-ui); font-weight: 700; font-size: 1rem; }
+    .gen-subtitle { font-size: 0.85rem; color: var(--color-text-muted); }
+    .gen-textarea {
+      width: 100%; min-height: 140px; resize: vertical;
+      font-size: 0.9rem; line-height: 1.6; margin-bottom: var(--space-md);
+      border-radius: var(--radius-button);
+    }
+    .gen-options { display: flex; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-md); align-items: center; }
+    .gen-option-label { font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted); margin-right: 4px; }
+    .q-type-toggle {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill); padding: 5px 12px;
+      font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600;
+      color: var(--color-text-muted); cursor: pointer; transition: all var(--transition-fast);
+      user-select: none;
+    }
+    .q-type-toggle input { display: none; }
+    .q-type-toggle.checked { background: var(--color-primary-glow); border-color: var(--color-primary); color: var(--color-primary); }
+    .qty-input {
+      width: 70px; padding: 6px 10px; font-size: 0.88rem;
+      border-radius: var(--radius-button);
+    }
+    .gen-footer { display: flex; align-items: center; gap: var(--space-md); }
+    .gen-status { font-size: 0.85rem; color: var(--color-text-muted); flex: 1; }
+    .gen-status.generating { color: var(--color-primary); }
+    .gen-status.error { color: var(--color-danger); }
+
+    /* ── Streaming dots ───────────────────────────────────── */
+    .dots::after {
+      content: '...';
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%,20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%,100% { content: '...'; }
+    }
+
+    /* ── Modal ────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px); z-index: 1000;
+      display: flex; align-items: center; justify-content: center; padding: var(--space-lg);
+      opacity: 0; pointer-events: none; transition: opacity var(--transition-base);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-xl);
+      width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+      transform: scale(0.95); transition: transform var(--transition-base);
+      box-shadow: var(--shadow-card);
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    .modal-title { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      background: var(--color-surface-2); color: var(--color-text-muted);
+      border: none; cursor: pointer; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .modal-close:hover { background: rgba(250,82,82,0.1); color: var(--color-danger); }
+
+    .form-row { display: flex; gap: var(--space-md); }
+    .form-row .form-group { flex: 1; }
+    .form-group { margin-bottom: var(--space-md); }
+    .form-group label {
+      display: block; font-family: var(--font-ui); font-size: 0.8rem;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--color-text-muted); margin-bottom: 6px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px var(--space-md); border-radius: var(--radius-button); font-size: 0.92rem;
+    }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-hint { font-size: 0.78rem; color: var(--color-text-muted); margin-top: 4px; }
+
+    /* MCQ options builder */
+    .options-list { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+    .option-row { display: flex; align-items: center; gap: var(--space-sm); }
+    .option-row input[type="radio"] { flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer; }
+    .option-row input[type="text"] { flex: 1; padding: 8px 12px; font-size: 0.88rem; }
+    .option-row .icon-btn { flex-shrink: 0; }
+    .add-option-btn {
+      background: transparent; border: 1px dashed var(--color-border);
+      border-radius: var(--radius-button); padding: 7px var(--space-md);
+      font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
+      cursor: pointer; width: 100%; transition: all var(--transition-fast);
+    }
+    .add-option-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+    /* Match pairs builder */
+    .pairs-list { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+    .pair-row { display: flex; align-items: center; gap: var(--space-sm); }
+    .pair-row input { flex: 1; padding: 8px 12px; font-size: 0.88rem; }
+    .pair-sep { color: var(--color-text-faint); font-size: 1.1rem; flex-shrink: 0; }
+
+    /* Q type selector in manual modal */
+    .q-type-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+    }
+    .q-type-btn {
+      padding: 10px var(--space-sm); border-radius: var(--radius-button);
+      background: var(--color-surface-2); border: 2px solid var(--color-border);
+      text-align: center; cursor: pointer; transition: all var(--transition-fast);
+      font-family: var(--font-ui); font-size: 0.78rem; font-weight: 600;
+      color: var(--color-text-muted);
+    }
+    .q-type-btn .qt-icon { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+    .q-type-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .q-type-btn.active { border-color: var(--color-primary); background: var(--color-primary-glow); color: var(--color-primary); }
+
+    /* Image upload */
+    .img-upload-area {
+      border: 2px dashed var(--color-border); border-radius: var(--radius-button);
+      padding: var(--space-md); text-align: center; cursor: pointer;
+      transition: all var(--transition-fast); position: relative;
+    }
+    .img-upload-area:hover { border-color: var(--color-primary); }
+    .img-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .img-preview { max-width: 100%; max-height: 120px; border-radius: var(--radius-sm); margin-top: var(--space-sm); display: none; }
+
+    /* ── Breadcrumb nav in content area ───────────────────── */
+    .content-nav {
+      display: flex; align-items: center; gap: var(--space-sm);
+      margin-bottom: var(--space-lg); flex-wrap: wrap;
+    }
+    .content-nav-btn {
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill); padding: 5px 14px;
+      font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600;
+      color: var(--color-text-muted); cursor: pointer; transition: all var(--transition-fast);
+    }
+    .content-nav-btn:hover, .content-nav-btn.active {
+      background: var(--color-primary-glow); border-color: var(--color-primary); color: var(--color-primary);
+    }
+    .content-nav-sep { color: var(--color-text-faint); font-size: 0.9rem; }
+
+    /* ── Empty state ──────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: var(--space-2xl) var(--space-lg);
+      color: var(--color-text-muted);
+    }
+    .empty-state-icon { font-size: 3rem; margin-bottom: var(--space-md); }
+    .empty-state h3 { font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: var(--space-sm); }
+    .empty-state p { font-size: 0.9rem; max-width: 320px; margin: 0 auto; }
+
+    /* ── Tabs in questions panel ──────────────────────────── */
+    .tab-bar {
+      display: flex; gap: 2px; background: var(--color-surface-2);
+      border-radius: var(--radius-button); padding: 4px;
+      margin-bottom: var(--space-lg); width: fit-content;
+    }
+    .tab-btn {
+      padding: 8px 18px; border-radius: calc(var(--radius-button) - 2px);
+      background: transparent; color: var(--color-text-muted);
+      font-family: var(--font-ui); font-weight: 600; font-size: 0.88rem;
+      border: none; cursor: pointer; transition: all var(--transition-fast);
+    }
+    .tab-btn.active {
+      background: var(--color-surface); color: var(--color-text);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Save batch button ────────────────────────────────── */
+    .save-batch-bar {
+      position: sticky; bottom: 0; background: var(--color-surface);
+      border-top: 1px solid var(--color-border); padding: var(--space-md) var(--space-xl);
+      display: flex; align-items: center; justify-content: space-between;
+      display: none;
+    }
+    .save-batch-bar.visible { display: flex; }
+    .save-batch-count { font-family: var(--font-ui); font-size: 0.9rem; color: var(--color-text-muted); }
+    .save-batch-count strong { color: var(--color-text); }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { width: 56px; min-width: 56px; }
+      .sidebar-logo span, .nav-item span:not(.nav-icon) { display: none; }
+      .nav-section-label { display: none; }
+      .content-area { padding: var(--space-md); }
+    }
+
+    /* ── Confirm dialog ───────────────────────────────────── */
+    .confirm-dialog {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-lg);
+      width: 340px; box-shadow: var(--shadow-card);
+      transform: scale(0.95); transition: transform var(--transition-base);
+    }
+    .modal-overlay.open .confirm-dialog { transform: scale(1); }
+    .confirm-title { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: var(--space-sm); }
+    .confirm-msg { font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: var(--space-lg); }
+    .confirm-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute; inset: 0; background: rgba(255,255,255,0.6);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-card); z-index: 10;
+    }
+
+    /* Topic count chip */
+    .count-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; background: var(--color-primary-glow);
+      color: var(--color-primary); border-radius: var(--radius-pill);
+      font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700;
+      padding: 0 6px;
+    }
+  </style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">📎</div>
+    <span>Clasp <span class="admin-badge">Admin</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Content</div>
+    <button class="nav-item active" data-nav="groups">
+      <span class="nav-icon">🗂️</span><span>Groups</span>
+    </button>
+    <button class="nav-item" data-nav="questions" id="nav-questions-btn" style="display:none;">
+      <span class="nav-icon">❓</span><span>Questions</span>
+    </button>
+
+    <div class="nav-section-label">Admin</div>
+    <button class="nav-item" data-nav="users">
+      <span class="nav-icon">👥</span><span>Users</span>
+    </button>
+
+    <div class="nav-section-label">Settings</div>
+    <button class="nav-item" data-nav="settings">
+      <span class="nav-icon">⚙️</span><span>Settings</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="nav-item" onclick="doSignOut()">
+      <span class="nav-icon">🚪</span><span>Sign out</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════════════ -->
+<main class="main">
+  <header class="topbar">
+    <div class="breadcrumb" id="breadcrumb">
+      <span class="breadcrumb-current">Groups</span>
+    </div>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </header>
+
+  <div class="content-area page-fade">
+
+    <!-- ── GROUPS PANEL ──────────────────────────────────── -->
+    <div class="panel active" id="panel-groups">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Groups</div>
+          <div class="panel-subtitle">Organise content by class or cohort</div>
+        </div>
+        <button class="btn btn-primary" data-action="new-group">＋ New group</button>
+      </div>
+      <div class="cards-grid" id="groups-grid">
+        <div class="empty-state" style="grid-column:1/-1;">
+          <div class="spinner" style="margin:0 auto var(--space-md);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUBJECTS PANEL ─────────────────────────────────── -->
+    <div class="panel" id="panel-subjects">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title" id="subjects-panel-title">Subjects</div>
+          <div class="panel-subtitle">Subjects within this group</div>
+        </div>
+        <button class="btn btn-primary" data-action="new-subject">＋ New subject</button>
+      </div>
+      <div class="cards-grid" id="subjects-grid"></div>
+    </div>
+
+    <!-- ── TOPICS PANEL ───────────────────────────────────── -->
+    <div class="panel" id="panel-topics">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title" id="topics-panel-title">Topics</div>
+          <div class="panel-subtitle">Topics within this subject</div>
+        </div>
+        <button class="btn btn-primary" data-action="new-topic">＋ New topic</button>
+      </div>
+      <div class="cards-grid" id="topics-grid"></div>
+    </div>
+
+    <!-- ── QUESTIONS PANEL ────────────────────────────────── -->
+    <div class="panel" id="panel-questions">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title" id="questions-panel-title">Questions</div>
+          <div class="panel-subtitle" id="questions-panel-subtitle"></div>
+        </div>
+        <button class="btn btn-primary" data-action="new-question-manual">＋ Manual entry</button>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" data-qtab="generate">✨ AI Generate</button>
+        <button class="tab-btn" data-qtab="existing">📋 Saved questions</button>
+      </div>
+
+      <!-- AI Generate tab -->
+      <div class="tab-panel active" id="qtab-generate">
+        <div class="gen-container">
+          <div class="gen-header">
+            <span style="font-size:1.4rem;">✨</span>
+            <div>
+              <div class="gen-title">AI Question Generator</div>
+              <div class="gen-subtitle">Paste any revision content — notes, a textbook passage, bullet points</div>
+            </div>
+          </div>
+          <textarea class="gen-textarea" id="gen-content" placeholder="Paste your revision content here…&#10;&#10;e.g. The water cycle describes how water evaporates from the surface of the Earth, rises into the atmosphere, cools and condenses into rain or snow in clouds, and falls again as precipitation..."></textarea>
+          <div class="gen-options">
+            <span class="gen-option-label">Include:</span>
+            <label class="q-type-toggle checked"><input type="checkbox" value="mcq" checked> 📝 MCQ</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="tf" checked> ✅ True/False</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="fill" checked> ✏️ Fill blank</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="match" checked> 🔗 Match pairs</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="short" checked> 📖 Short written</label>
+            <span class="gen-option-label" style="margin-left:var(--space-md);">Target:</span>
+            <input type="number" class="qty-input" id="gen-qty" value="10" min="3" max="30">
+            <span class="gen-option-label">questions</span>
+          </div>
+          <div class="gen-footer">
+            <div class="gen-status" id="gen-status"></div>
+            <button class="btn btn-primary" data-action="generate-questions" id="btn-generate">✨ Generate questions</button>
+          </div>
+        </div>
+
+        <!-- Generated preview list -->
+        <div id="gen-results" style="display:none;">
+          <div class="panel-header" style="margin-bottom:var(--space-md);">
+            <div style="font-family:var(--font-ui);font-weight:700;">
+              Generated questions <span id="gen-count-badge" class="count-chip">0</span>
+            </div>
+            <div style="display:flex;gap:var(--space-sm);">
+              <button class="btn btn-secondary" data-action="clear-generated">Clear</button>
+              <button class="btn btn-primary" data-action="save-all-generated" id="btn-save-all">💾 Save all to Firestore</button>
+            </div>
+          </div>
+          <div class="question-list" id="gen-question-list"></div>
+        </div>
+      </div>
+
+      <!-- Existing questions tab -->
+      <div class="tab-panel" id="qtab-existing">
+        <div class="question-list" id="existing-question-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">❓</div>
+            <h3>No questions yet</h3>
+            <p>Use AI generation or manual entry to add questions to this topic.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USERS PANEL ─────────────────────────────────────── -->
+    <div class="panel" id="panel-users">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Users</div>
+          <div class="panel-subtitle">All registered accounts</div>
+        </div>
+      </div>
+      <div id="users-list">
+        <div class="empty-state">
+          <div class="spinner" style="margin:0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS PANEL ─────────────────────────────────── -->
+    <div class="panel" id="panel-settings">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Settings</div>
+          <div class="panel-subtitle">Platform configuration</div>
+        </div>
+      </div>
+      <div class="card" style="max-width:480px;">
+        <div class="form-group">
+          <label>Firestore rules status</label>
+          <p style="font-size:0.88rem;color:var(--color-text-muted);">Content path is <code>content/{groupId}/subjects/{subjectId}/topics/{topicId}/questions/{questionId}</code></p>
+        </div>
+        <div class="form-group">
+          <label>AI model</label>
+          <select id="ai-model-select">
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (default)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════════════ -->
+
+<!-- Group modal -->
+<div class="modal-overlay" id="modal-group">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-group-title">New group</div>
+      <button class="modal-close" data-close="modal-group">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Group name</label>
+      <input type="text" id="group-name-input" placeholder="e.g. Year 10 GCSE" maxlength="60">
+    </div>
+    <div class="form-group">
+      <label>Description <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+      <input type="text" id="group-desc-input" placeholder="e.g. Emily's revision group" maxlength="120">
+    </div>
+    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
+      <button class="btn btn-secondary" data-close="modal-group">Cancel</button>
+      <button class="btn btn-primary" data-action="save-group" id="btn-save-group">Save group</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subject modal -->
+<div class="modal-overlay" id="modal-subject">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-subject-title">New subject</div>
+      <button class="modal-close" data-close="modal-subject">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:0 0 80px;">
+        <label>Emoji</label>
+        <input type="text" id="subject-emoji-input" placeholder="📚" maxlength="2" style="text-align:center;font-size:1.4rem;">
+      </div>
+      <div class="form-group">
+        <label>Subject name</label>
+        <input type="text" id="subject-name-input" placeholder="e.g. Geography" maxlength="60">
+      </div>
+    </div>
+    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
+      <button class="btn btn-secondary" data-close="modal-subject">Cancel</button>
+      <button class="btn btn-primary" data-action="save-subject">Save subject</button>
+    </div>
+  </div>
+</div>
+
+<!-- Topic modal -->
+<div class="modal-overlay" id="modal-topic">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-topic-title">New topic</div>
+      <button class="modal-close" data-close="modal-topic">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Topic name</label>
+      <input type="text" id="topic-name-input" placeholder="e.g. The Water Cycle" maxlength="80">
+    </div>
+    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
+      <button class="btn btn-secondary" data-close="modal-topic">Cancel</button>
+      <button class="btn btn-primary" data-action="save-topic">Save topic</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manual question modal -->
+<div class="modal-overlay" id="modal-question">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-question-title">New question</div>
+      <button class="modal-close" data-close="modal-question">✕</button>
+    </div>
+    <div class="q-type-grid" id="q-type-grid">
+      <div class="q-type-btn active" data-qtype="mcq"><span class="qt-icon">📝</span>MCQ</div>
+      <div class="q-type-btn" data-qtype="tf"><span class="qt-icon">✅</span>True/False</div>
+      <div class="q-type-btn" data-qtype="fill"><span class="qt-icon">✏️</span>Fill blank</div>
+      <div class="q-type-btn" data-qtype="match"><span class="qt-icon">🔗</span>Match pairs</div>
+      <div class="q-type-btn" data-qtype="short"><span class="qt-icon">📖</span>Short written</div>
+    </div>
+
+    <!-- MCQ fields -->
+    <div id="qfields-mcq" class="qfields">
+      <div class="form-group">
+        <label>Question text</label>
+        <textarea id="mcq-question" placeholder="What is...?" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Options <span style="font-weight:400;text-transform:none;">(select the correct answer)</span></label>
+        <div class="options-list" id="mcq-options-list">
+          <div class="option-row"><input type="radio" name="mcq-correct" value="0" checked><input type="text" placeholder="Option A" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="0">✕</button></div>
+          <div class="option-row"><input type="radio" name="mcq-correct" value="1"><input type="text" placeholder="Option B" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="1">✕</button></div>
+          <div class="option-row"><input type="radio" name="mcq-correct" value="2"><input type="text" placeholder="Option C" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="2">✕</button></div>
+          <div class="option-row"><input type="radio" name="mcq-correct" value="3"><input type="text" placeholder="Option D" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="3">✕</button></div>
+        </div>
+        <button class="add-option-btn" data-action="add-option">＋ Add option</button>
+      </div>
+      <div class="form-group">
+        <label>Explanation <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+        <textarea id="mcq-explanation" placeholder="Why is this the correct answer?" rows="2"></textarea>
+      </div>
+    </div>
+
+    <!-- T/F fields -->
+    <div id="qfields-tf" class="qfields" style="display:none;">
+      <div class="form-group">
+        <label>Statement</label>
+        <textarea id="tf-question" placeholder="The Earth orbits the Sun." rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Answer</label>
+        <div style="display:flex;gap:var(--space-md);">
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;">
+            <input type="radio" name="tf-answer" value="true" checked style="width:16px;height:16px;"> ✅ True
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;">
+            <input type="radio" name="tf-answer" value="false" style="width:16px;height:16px;"> ❌ False
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Explanation <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+        <textarea id="tf-explanation" placeholder="Brief explanation..." rows="2"></textarea>
+      </div>
+    </div>
+
+    <!-- Fill blank fields -->
+    <div id="qfields-fill" class="qfields" style="display:none;">
+      <div class="form-group">
+        <label>Sentence with blank</label>
+        <textarea id="fill-sentence" placeholder="The powerhouse of the cell is the _____." rows="2"></textarea>
+        <p class="form-hint">Use _____ (five underscores) to mark the blank.</p>
+      </div>
+      <div class="form-group">
+        <label>Correct answer</label>
+        <input type="text" id="fill-answer" placeholder="mitochondria">
+      </div>
+      <div class="form-group">
+        <label>Accepted alternatives <span style="font-weight:400;text-transform:none;">(comma-separated, optional)</span></label>
+        <input type="text" id="fill-alternatives" placeholder="mitochondrion, Mitochondria">
+      </div>
+    </div>
+
+    <!-- Match pairs fields -->
+    <div id="qfields-match" class="qfields" style="display:none;">
+      <div class="form-group">
+        <label>Pairs <span style="font-weight:400;text-transform:none;">(left → right)</span></label>
+        <div class="pairs-list" id="match-pairs-list">
+          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>
+          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>
+          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>
+        </div>
+        <button class="add-option-btn" data-action="add-pair">＋ Add pair</button>
+      </div>
+    </div>
+
+    <!-- Short written fields -->
+    <div id="qfields-short" class="qfields" style="display:none;">
+      <div class="form-group">
+        <label>Question</label>
+        <textarea id="short-question" placeholder="Explain why..." rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Mark scheme / model answer</label>
+        <textarea id="short-markscheme" placeholder="Key points the student should include..." rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- Image upload (all types) -->
+    <div class="form-group" style="margin-top:var(--space-md);">
+      <label>Image <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+      <div class="img-upload-area" id="img-upload-area">
+        <input type="file" id="q-image-input" accept="image/*">
+        <div id="img-upload-prompt">
+          <div style="font-size:1.5rem;margin-bottom:4px;">🖼️</div>
+          <div style="font-size:0.82rem;color:var(--color-text-muted);">Click or drag to upload an image</div>
+        </div>
+        <img id="img-preview" class="img-preview">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-lg);">
+      <button class="btn btn-secondary" data-close="modal-question">Cancel</button>
+      <button class="btn btn-primary" data-action="save-manual-question">Save question</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit question modal (reuses question modal structure) -->
+
+<!-- Confirm delete modal -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="confirm-dialog">
+    <div class="confirm-title" id="confirm-title">Delete?</div>
+    <div class="confirm-msg" id="confirm-msg">This cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" data-close="modal-confirm">Cancel</button>
+      <button class="btn" style="background:var(--color-danger);color:#fff;" id="btn-confirm-ok">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════ -->
+<script>
+  /* Safari bridge */
+  function doSignOut() { window._doSignOut && window._doSignOut(); }
+</script>
+
+<script type="module">
+import { auth, db, storage } from './firebase-config.js';
+import { requireRole, handleSignOut, showToast } from './auth.js';
+import {
+  collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
+  query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  ref as storageRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+window._doSignOut = () => handleSignOut();
+
+/* ── State ───────────────────────────────────────────────── */
+let currentPanel  = 'groups';
+let selectedGroup   = null; // { id, name }
+let selectedSubject = null; // { id, name, emoji }
+let selectedTopic   = null; // { id, name }
+let editingItem     = null; // { type, id } for edit modals
+let generatedQs     = [];   // pending AI questions
+let confirmCallback = null;
+let currentQType    = 'mcq';
+
+/* ── Auth guard ──────────────────────────────────────────── */
+requireRole('admin', (user, profile) => {
+  loadGroups();
+});
+
+/* ── Navigation ──────────────────────────────────────────── */
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const nb = document.querySelector(`[data-nav="${name}"]`);
+  if (nb) nb.classList.add('active');
+  currentPanel = name;
+  updateBreadcrumb();
+  if (name === 'users') loadUsers();
+}
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  const parts = [];
+  if (selectedGroup)   parts.push(`<span class="breadcrumb-sep">›</span><span style="cursor:pointer;color:var(--color-primary);" data-bc="group">${selectedGroup.name}</span>`);
+  if (selectedSubject) parts.push(`<span class="breadcrumb-sep">›</span><span style="cursor:pointer;color:var(--color-primary);" data-bc="subject">${selectedSubject.emoji} ${selectedSubject.name}</span>`);
+  if (selectedTopic)   parts.push(`<span class="breadcrumb-sep">›</span><span class="breadcrumb-current">${selectedTopic.name}</span>`);
+
+  const panelLabel = { groups:'Groups', subjects:'Subjects', topics:'Topics', questions:'Questions', users:'Users', settings:'Settings' };
+  bc.innerHTML = `<span style="cursor:pointer;" data-bc="groups">Groups</span>` + parts.join('');
+}
+
+/* ── Delegation ──────────────────────────────────────────── */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-action],[data-nav],[data-close],[data-bc],[data-qtype],[data-qtab]');
+  if (!t) return;
+
+  const action = t.dataset.action;
+  const nav    = t.dataset.nav;
+  const close  = t.dataset.close;
+  const bc     = t.dataset.bc;
+  const qtype  = t.dataset.qtype;
+  const qtab   = t.dataset.qtab;
+
+  if (nav)    { showPanel(nav); return; }
+  if (close)  { closeModal(close); return; }
+  if (bc)     { handleBreadcrumb(bc); return; }
+  if (qtype)  { selectQType(qtype); return; }
+  if (qtab)   { switchQTab(qtab); return; }
+
+  if (action === 'new-group')               openGroupModal();
+  else if (action === 'save-group')         saveGroup();
+  else if (action === 'edit-group')         openGroupModal(t.dataset.id);
+  else if (action === 'del-group')          confirmDelete('group', t.dataset.id, t.dataset.name);
+
+  else if (action === 'new-subject')        openSubjectModal();
+  else if (action === 'save-subject')       saveSubject();
+  else if (action === 'edit-subject')       openSubjectModal(t.dataset.id);
+  else if (action === 'del-subject')        confirmDelete('subject', t.dataset.id, t.dataset.name);
+
+  else if (action === 'new-topic')          openTopicModal();
+  else if (action === 'save-topic')         saveTopic();
+  else if (action === 'edit-topic')         openTopicModal(t.dataset.id);
+  else if (action === 'del-topic')          confirmDelete('topic', t.dataset.id, t.dataset.name);
+
+  else if (action === 'open-group')         openGroup(t.dataset.id);
+  else if (action === 'open-subject')       openSubject(t.dataset.id);
+  else if (action === 'open-topic')         openTopic(t.dataset.id);
+
+  else if (action === 'generate-questions') runGenerate();
+  else if (action === 'clear-generated')    clearGenerated();
+  else if (action === 'save-all-generated') saveAllGenerated();
+  else if (action === 'del-gen-q')          removeGenerated(parseInt(t.dataset.idx));
+  else if (action === 'edit-gen-q')         editGenerated(parseInt(t.dataset.idx));
+
+  else if (action === 'new-question-manual') openQuestionModal();
+  else if (action === 'save-manual-question') saveManualQuestion();
+  else if (action === 'del-question')        confirmDelete('question', t.dataset.id, 'this question');
+  else if (action === 'edit-question')       openQuestionModal(t.dataset.id);
+
+  else if (action === 'add-option')         addMcqOption();
+  else if (action === 'del-option')         delMcqOption(t);
+  else if (action === 'add-pair')           addMatchPair();
+  else if (action === 'del-pair')           delMatchPair(t);
+});
+
+/* toggle label .checked on checkbox q-type-toggles */
+document.addEventListener('change', e => {
+  if (e.target.closest('.q-type-toggle')) {
+    const lbl = e.target.closest('.q-type-toggle');
+    lbl.classList.toggle('checked', e.target.checked);
+  }
+  if (e.target.id === 'q-image-input') handleImagePreview(e.target);
+});
+
+/* Enter key on text inputs in modals */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.tagName === 'TEXTAREA') return;
+  if (document.getElementById('modal-group').classList.contains('open')) saveGroup();
+  else if (document.getElementById('modal-subject').classList.contains('open')) saveSubject();
+  else if (document.getElementById('modal-topic').classList.contains('open')) saveTopic();
+});
+
+/* ── Breadcrumb nav ──────────────────────────────────────── */
+function handleBreadcrumb(bc) {
+  if (bc === 'groups')  { selectedGroup = null; selectedSubject = null; selectedTopic = null; showPanel('groups'); loadGroups(); }
+  if (bc === 'group')   { selectedSubject = null; selectedTopic = null; showPanel('subjects'); loadSubjects(); }
+  if (bc === 'subject') { selectedTopic = null; showPanel('topics'); loadTopics(); }
+}
+
+/* ── Modal helpers ───────────────────────────────────────── */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ── GROUPS ──────────────────────────────────────────────── */
+async function loadGroups() {
+  const grid = document.getElementById('groups-grid');
+  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  const snap = await getDocs(query(collection(db, 'content'), orderBy('createdAt', 'asc')));
+  grid.innerHTML = '';
+  snap.forEach(d => {
+    grid.appendChild(groupCard(d.id, d.data()));
+  });
+  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">＋ New group</div>`);
+}
+
+function groupCard(id, data) {
+  const div = document.createElement('div');
+  div.className = 'item-card';
+  div.innerHTML = `
+    <div class="item-card-actions">
+      <button class="icon-btn icon-btn-edit" data-action="edit-group" data-id="${id}" data-name="${esc(data.name)}">✏️</button>
+      <button class="icon-btn icon-btn-del" data-action="del-group" data-id="${id}" data-name="${esc(data.name)}">🗑️</button>
+    </div>
+    <div class="item-card-emoji">🗂️</div>
+    <div class="item-card-name">${esc(data.name)}</div>
+    <div class="item-card-meta">${data.description || 'No description'}</div>`;
+  div.addEventListener('click', e => {
+    if (e.target.closest('[data-action="edit-group"],[data-action="del-group"]')) return;
+    openGroup(id, data);
+  });
+  return div;
+}
+
+function openGroup(id, data) {
+  // If data not passed, look it up — for delegation-triggered case
+  if (!data) { getDoc(doc(db,'content',id)).then(s => openGroup(id, s.data())); return; }
+  selectedGroup = { id, name: data.name };
+  selectedSubject = null; selectedTopic = null;
+  document.getElementById('subjects-panel-title').textContent = data.name + ' — Subjects';
+  showPanel('subjects');
+  loadSubjects();
+}
+
+async function openGroupModal(id) {
+  editingItem = id ? { type:'group', id } : null;
+  document.getElementById('modal-group-title').textContent = id ? 'Edit group' : 'New group';
+  document.getElementById('group-name-input').value = '';
+  document.getElementById('group-desc-input').value = '';
+  if (id) {
+    const snap = await getDoc(doc(db, 'content', id));
+    if (snap.exists()) {
+      document.getElementById('group-name-input').value = snap.data().name || '';
+      document.getElementById('group-desc-input').value = snap.data().description || '';
+    }
+  }
+  openModal('modal-group');
+  setTimeout(() => document.getElementById('group-name-input').focus(), 50);
+}
+
+async function saveGroup() {
+  const name = document.getElementById('group-name-input').value.trim();
+  const desc = document.getElementById('group-desc-input').value.trim();
+  if (!name) { showToast('Group name is required', 'error'); return; }
+  const btn = document.getElementById('btn-save-group');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    if (editingItem) {
+      await updateDoc(doc(db, 'content', editingItem.id), { name, description: desc });
+    } else {
+      await addDoc(collection(db, 'content'), { name, description: desc, createdAt: serverTimestamp() });
+    }
+    closeModal('modal-group');
+    await loadGroups();
+    showToast(editingItem ? 'Group updated' : 'Group created', 'success');
+    editingItem = null;
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+
+/* ── SUBJECTS ────────────────────────────────────────────── */
+function subjectsPath() { return `content/${selectedGroup.id}/subjects`; }
+
+async function loadSubjects() {
+  updateBreadcrumb();
+  const grid = document.getElementById('subjects-grid');
+  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  const snap = await getDocs(query(collection(db, subjectsPath()), orderBy('order','asc'))).catch(() =>
+    getDocs(collection(db, subjectsPath())));
+  grid.innerHTML = '';
+  snap.forEach(d => grid.appendChild(subjectCard(d.id, d.data())));
+  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-subject">＋ New subject</div>`);
+}
+
+function subjectCard(id, data) {
+  const div = document.createElement('div');
+  div.className = 'item-card';
+  div.innerHTML = `
+    <div class="item-card-actions">
+      <button class="icon-btn icon-btn-edit" data-action="edit-subject" data-id="${id}">✏️</button>
+      <button class="icon-btn icon-btn-del" data-action="del-subject" data-id="${id}" data-name="${esc(data.name)}">🗑️</button>
+    </div>
+    <div class="item-card-emoji">${data.emoji || '📚'}</div>
+    <div class="item-card-name">${esc(data.name)}</div>
+    <div class="item-card-meta">Click to view topics</div>`;
+  div.addEventListener('click', e => {
+    if (e.target.closest('[data-action="edit-subject"],[data-action="del-subject"]')) return;
+    openSubject(id, data);
+  });
+  return div;
+}
+
+function openSubject(id, data) {
+  if (!data) { getDoc(doc(db, subjectsPath(), id)).then(s => openSubject(id, s.data())); return; }
+  selectedSubject = { id, name: data.name, emoji: data.emoji || '📚' };
+  selectedTopic = null;
+  document.getElementById('topics-panel-title').textContent = `${data.emoji||'📚'} ${data.name} — Topics`;
+  showPanel('topics');
+  loadTopics();
+}
+
+async function openSubjectModal(id) {
+  editingItem = id ? { type:'subject', id } : null;
+  document.getElementById('modal-subject-title').textContent = id ? 'Edit subject' : 'New subject';
+  document.getElementById('subject-name-input').value = '';
+  document.getElementById('subject-emoji-input').value = '';
+  if (id) {
+    const snap = await getDoc(doc(db, subjectsPath(), id));
+    if (snap.exists()) {
+      document.getElementById('subject-name-input').value = snap.data().name || '';
+      document.getElementById('subject-emoji-input').value = snap.data().emoji || '';
+    }
+  }
+  openModal('modal-subject');
+  setTimeout(() => document.getElementById('subject-name-input').focus(), 50);
+}
+
+async function saveSubject() {
+  const name  = document.getElementById('subject-name-input').value.trim();
+  const emoji = document.getElementById('subject-emoji-input').value.trim() || '📚';
+  if (!name) { showToast('Subject name is required', 'error'); return; }
+  try {
+    if (editingItem) {
+      await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji });
+    } else {
+      const snap = await getDocs(collection(db, subjectsPath()));
+      await addDoc(collection(db, subjectsPath()), { name, emoji, order: snap.size, createdAt: serverTimestamp() });
+    }
+    closeModal('modal-subject');
+    await loadSubjects();
+    showToast(editingItem ? 'Subject updated' : 'Subject created', 'success');
+    editingItem = null;
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+/* ── TOPICS ──────────────────────────────────────────────── */
+function topicsPath() { return `content/${selectedGroup.id}/subjects/${selectedSubject.id}/topics`; }
+
+async function loadTopics() {
+  updateBreadcrumb();
+  const grid = document.getElementById('topics-grid');
+  grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  const snap = await getDocs(collection(db, topicsPath())).catch(() => ({ forEach: ()=>{} }));
+  grid.innerHTML = '';
+  const counts = {};
+  // Count questions per topic
+  const countPromises = [];
+  snap.forEach(d => {
+    countPromises.push(
+      getDocs(collection(db, topicsPath() + '/' + d.id + '/questions'))
+        .then(qs => { counts[d.id] = qs.size; })
+        .catch(() => { counts[d.id] = 0; })
+    );
+  });
+  await Promise.all(countPromises);
+  snap.forEach(d => grid.appendChild(topicCard(d.id, d.data(), counts[d.id] || 0)));
+  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-topic">＋ New topic</div>`);
+}
+
+function topicCard(id, data, qCount) {
+  const div = document.createElement('div');
+  div.className = 'item-card';
+  div.innerHTML = `
+    <div class="item-card-actions">
+      <button class="icon-btn icon-btn-edit" data-action="edit-topic" data-id="${id}">✏️</button>
+      <button class="icon-btn icon-btn-del" data-action="del-topic" data-id="${id}" data-name="${esc(data.name)}">🗑️</button>
+    </div>
+    <div class="item-card-emoji">📝</div>
+    <div class="item-card-name">${esc(data.name)}</div>
+    <div class="item-card-meta"><span class="count-chip">${qCount}</span> questions</div>`;
+  div.addEventListener('click', e => {
+    if (e.target.closest('[data-action="edit-topic"],[data-action="del-topic"]')) return;
+    openTopic(id, data);
+  });
+  return div;
+}
+
+function openTopic(id, data) {
+  if (!data) { getDoc(doc(db, topicsPath(), id)).then(s => openTopic(id, s.data())); return; }
+  selectedTopic = { id, name: data.name };
+  document.getElementById('questions-panel-title').textContent = data.name;
+  document.getElementById('questions-panel-subtitle').textContent =
+    `${selectedSubject.emoji} ${selectedSubject.name} › ${data.name}`;
+  showPanel('questions');
+  loadExistingQuestions();
+  updateBreadcrumb();
+  // show questions nav item
+  document.getElementById('nav-questions-btn').style.display = 'flex';
+}
+
+async function openTopicModal(id) {
+  editingItem = id ? { type:'topic', id } : null;
+  document.getElementById('modal-topic-title').textContent = id ? 'Edit topic' : 'New topic';
+  document.getElementById('topic-name-input').value = '';
+  if (id) {
+    const snap = await getDoc(doc(db, topicsPath(), id));
+    if (snap.exists()) document.getElementById('topic-name-input').value = snap.data().name || '';
+  }
+  openModal('modal-topic');
+  setTimeout(() => document.getElementById('topic-name-input').focus(), 50);
+}
+
+async function saveTopic() {
+  const name = document.getElementById('topic-name-input').value.trim();
+  if (!name) { showToast('Topic name is required', 'error'); return; }
+  try {
+    if (editingItem) {
+      await updateDoc(doc(db, topicsPath(), editingItem.id), { name });
+    } else {
+      await addDoc(collection(db, topicsPath()), { name, createdAt: serverTimestamp() });
+    }
+    closeModal('modal-topic');
+    await loadTopics();
+    showToast(editingItem ? 'Topic updated' : 'Topic created', 'success');
+    editingItem = null;
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+/* ── QUESTIONS path ──────────────────────────────────────── */
+function questionsPath() {
+  return `content/${selectedGroup.id}/subjects/${selectedSubject.id}/topics/${selectedTopic.id}/questions`;
+}
+
+/* ── EXISTING QUESTIONS ──────────────────────────────────── */
+async function loadExistingQuestions() {
+  const list = document.getElementById('existing-question-list');
+  list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  const snap = await getDocs(collection(db, questionsPath())).catch(() => ({ forEach: ()=>{} }));
+  const qs = [];
+  snap.forEach(d => qs.push({ id: d.id, ...d.data() }));
+  if (qs.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">❓</div><h3>No questions yet</h3><p>Use AI generation or manual entry to add questions.</p></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  qs.forEach(q => list.appendChild(buildQCard(q, false)));
+}
+
+/* ── AI GENERATION ───────────────────────────────────────── */
+async function runGenerate() {
+  const content = document.getElementById('gen-content').value.trim();
+  if (!content) { showToast('Please paste some content first', 'error'); return; }
+  if (!selectedTopic) { showToast('Select a topic first', 'error'); return; }
+
+  const types = [...document.querySelectorAll('.q-type-toggle input:checked')].map(i => i.value);
+  if (types.length === 0) { showToast('Select at least one question type', 'error'); return; }
+
+  const qty = parseInt(document.getElementById('gen-qty').value) || 10;
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  const statusEl = document.getElementById('gen-status');
+  statusEl.className = 'gen-status generating';
+  statusEl.innerHTML = `<span class="dots">Generating ${qty} questions</span>`;
+
+  const typeDescriptions = {
+    mcq:   'MCQ: {"type":"mcq","question":"...","options":[{"text":"...","correct":false},{"text":"...","correct":true},{"text":"...","correct":false},{"text":"...","correct":false}],"explanation":"..."}',
+    tf:    'True/False: {"type":"tf","question":"...","answer":true,"explanation":"..."}',
+    fill:  'Fill-in-the-blank: {"type":"fill","sentence":"The _____ is ...","answer":"...","alternatives":[]}',
+    match: 'Match pairs: {"type":"match","instruction":"Match each term to its definition","pairs":[{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."}]}',
+    short: 'Short written: {"type":"short","question":"...","markScheme":"Key points: 1) ... 2) ..."}'
+  };
+
+  const typeExamples = types.map(t => typeDescriptions[t]).join('\n');
+
+  const prompt = `You are a GCSE revision question writer. Generate exactly ${qty} questions from the content below.
+Use these types in roughly equal proportions from: ${types.join(', ')}.
+
+For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
+For Fill-in-the-blank: use _____ (five underscores) for the gap.
+For Match pairs: include exactly 4 pairs.
+
+Return ONLY a JSON array with no markdown, no preamble, no backticks. Each element must follow one of these schemas:
+${typeExamples}
+
+Revision content:
+${content.substring(0, 3000)}`;
+
+  try {
+    const response = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const raw = data.content.map(c => c.text || '').join('');
+    // Strip any accidental markdown fences
+    const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/```$/,'').trim();
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch(pe) {
+      // Try to extract JSON array from anywhere in the string
+      const match = cleaned.match(/\[[\s\S]*\]/);
+      if (match) parsed = JSON.parse(match[0]);
+      else throw new Error('Could not parse AI response as JSON');
+    }
+
+    if (!Array.isArray(parsed)) throw new Error('AI returned unexpected format');
+
+    generatedQs = parsed;
+    renderGeneratedQuestions();
+    statusEl.className = 'gen-status';
+    statusEl.textContent = `✅ ${parsed.length} questions generated`;
+  } catch(e) {
+    statusEl.className = 'gen-status error';
+    statusEl.textContent = '❌ ' + e.message;
+  }
+  btn.disabled = false;
+}
+
+function renderGeneratedQuestions() {
+  const list   = document.getElementById('gen-question-list');
+  const badge  = document.getElementById('gen-count-badge');
+  const results = document.getElementById('gen-results');
+  results.style.display = 'block';
+  badge.textContent = generatedQs.length;
+  list.innerHTML = '';
+  generatedQs.forEach((q, i) => {
+    const card = buildQCard(q, true, i);
+    list.appendChild(card);
+  });
+}
+
+function buildQCard(q, isPending, idx) {
+  const div = document.createElement('div');
+  div.className = 'q-card' + (isPending ? ' pending' : '');
+
+  const typeLabel = { mcq:'MCQ', tf:'True/False', fill:'Fill blank', match:'Match pairs', short:'Short written' };
+  const typeClass = { mcq:'q-type-mcq', tf:'q-type-tf', fill:'q-type-fill', match:'q-type-match', short:'q-type-short' };
+
+  let detail = '';
+  if (q.type === 'mcq') {
+    const opts = (q.options||[]).map(o => `<span class="${o.correct?'correct':''}">${esc(o.text)}</span>`).join('');
+    detail = opts;
+  } else if (q.type === 'tf') {
+    detail = `<span>Answer: ${q.answer ? '✅ True' : '❌ False'}</span>`;
+  } else if (q.type === 'fill') {
+    detail = `<span class="correct">Answer: ${esc(q.answer)}</span>`;
+  } else if (q.type === 'match') {
+    detail = (q.pairs||[]).map(p => `<span>${esc(p.left)} → ${esc(p.right)}</span>`).join('');
+  } else if (q.type === 'short') {
+    detail = `<span>${esc((q.markScheme||'').substring(0,80))}…</span>`;
+  }
+
+  const questionText = q.question || q.sentence || q.instruction || '';
+  const actionsHtml = isPending
+    ? `<button class="icon-btn icon-btn-del" data-action="del-gen-q" data-idx="${idx}" title="Remove">✕</button>`
+    : `<button class="icon-btn icon-btn-del" data-action="del-question" data-id="${q.id}" title="Delete">🗑️</button>`;
+
+  div.innerHTML = `
+    <span class="q-type-badge ${typeClass[q.type]||''}">${typeLabel[q.type]||q.type}</span>
+    <div class="q-body">
+      <div class="q-text">${esc(questionText)}</div>
+      <div class="q-detail">${detail}</div>
+    </div>
+    <div class="q-actions">${actionsHtml}</div>`;
+
+  if (q.imageUrl) {
+    div.querySelector('.q-body').insertAdjacentHTML('beforeend', `<img src="${q.imageUrl}" style="max-height:80px;border-radius:4px;margin-top:6px;">`);
+  }
+  return div;
+}
+
+function removeGenerated(idx) {
+  generatedQs.splice(idx, 1);
+  renderGeneratedQuestions();
+}
+
+function clearGenerated() {
+  generatedQs = [];
+  document.getElementById('gen-results').style.display = 'none';
+  document.getElementById('gen-status').textContent = '';
+}
+
+async function saveAllGenerated() {
+  if (!generatedQs.length) return;
+  const btn = document.getElementById('btn-save-all');
+  btn.disabled = true; btn.textContent = '⏳ Saving…';
+  try {
+    const colRef = collection(db, questionsPath());
+    const promises = generatedQs.map(q => addDoc(colRef, { ...q, createdAt: serverTimestamp(), source: 'ai' }));
+    await Promise.all(promises);
+    showToast(`${generatedQs.length} questions saved!`, 'success');
+    clearGenerated();
+    loadExistingQuestions();
+    switchQTab('existing');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = '💾 Save all to Firestore';
+}
+
+/* ── QUESTION TABS ───────────────────────────────────────── */
+function switchQTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.qtab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'qtab-' + name));
+}
+
+/* ── MANUAL QUESTION ─────────────────────────────────────── */
+function selectQType(type) {
+  currentQType = type;
+  document.querySelectorAll('.q-type-btn').forEach(b => b.classList.toggle('active', b.dataset.qtype === type));
+  document.querySelectorAll('.qfields').forEach(f => f.style.display = 'none');
+  const el = document.getElementById('qfields-' + type);
+  if (el) el.style.display = 'block';
+}
+
+function openQuestionModal(id) {
+  editingItem = id ? { type:'question', id } : null;
+  document.getElementById('modal-question-title').textContent = id ? 'Edit question' : 'New question';
+  // Reset
+  selectQType('mcq');
+  document.getElementById('mcq-question').value = '';
+  document.getElementById('mcq-explanation').value = '';
+  document.getElementById('tf-question').value = '';
+  document.getElementById('tf-explanation').value = '';
+  document.getElementById('fill-sentence').value = '';
+  document.getElementById('fill-answer').value = '';
+  document.getElementById('fill-alternatives').value = '';
+  document.getElementById('short-question').value = '';
+  document.getElementById('short-markscheme').value = '';
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('img-upload-prompt').style.display = 'block';
+  document.getElementById('q-image-input').value = '';
+  resetMcqOptions();
+  resetMatchPairs();
+
+  if (id) {
+    // Load existing for editing
+    getDoc(doc(db, questionsPath(), id)).then(snap => {
+      if (!snap.exists()) return;
+      const q = snap.data();
+      selectQType(q.type);
+      if (q.type === 'mcq') {
+        document.getElementById('mcq-question').value = q.question || '';
+        document.getElementById('mcq-explanation').value = q.explanation || '';
+        populateMcqOptions(q.options || []);
+      } else if (q.type === 'tf') {
+        document.getElementById('tf-question').value = q.question || '';
+        document.getElementById('tf-explanation').value = q.explanation || '';
+        document.querySelector(`input[name="tf-answer"][value="${q.answer}"]`).checked = true;
+      } else if (q.type === 'fill') {
+        document.getElementById('fill-sentence').value = q.sentence || '';
+        document.getElementById('fill-answer').value = q.answer || '';
+        document.getElementById('fill-alternatives').value = (q.alternatives||[]).join(', ');
+      } else if (q.type === 'match') {
+        populateMatchPairs(q.pairs || []);
+      } else if (q.type === 'short') {
+        document.getElementById('short-question').value = q.question || '';
+        document.getElementById('short-markscheme').value = q.markScheme || '';
+      }
+      if (q.imageUrl) {
+        document.getElementById('img-preview').src = q.imageUrl;
+        document.getElementById('img-preview').style.display = 'block';
+        document.getElementById('img-upload-prompt').style.display = 'none';
+      }
+    });
+  }
+  openModal('modal-question');
+}
+
+function resetMcqOptions() {
+  const list = document.getElementById('mcq-options-list');
+  list.innerHTML = '';
+  ['Option A','Option B','Option C','Option D'].forEach((ph,i) => {
+    list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}" ${i===0?'checked':''}><input type="text" placeholder="${ph}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}">✕</button></div>`);
+  });
+}
+
+function populateMcqOptions(options) {
+  const list = document.getElementById('mcq-options-list');
+  list.innerHTML = '';
+  options.forEach((o,i) => {
+    list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}" ${o.correct?'checked':''}><input type="text" value="${esc(o.text)}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}">✕</button></div>`);
+  });
+}
+
+function addMcqOption() {
+  const list = document.getElementById('mcq-options-list');
+  const i = list.children.length;
+  list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}"><input type="text" placeholder="Option ${String.fromCharCode(65+i)}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}">✕</button></div>`);
+}
+
+function delMcqOption(btn) {
+  const row = btn.closest('.option-row');
+  if (document.getElementById('mcq-options-list').children.length <= 2) { showToast('Need at least 2 options','error'); return; }
+  row.remove();
+  // Renumber
+  document.querySelectorAll('#mcq-options-list .option-row').forEach((r,i) => {
+    r.querySelector('input[type="radio"]').value = i;
+    r.querySelector('[data-idx]').dataset.idx = i;
+  });
+}
+
+function resetMatchPairs() {
+  const list = document.getElementById('match-pairs-list');
+  list.innerHTML = '';
+  for (let i=0;i<3;i++) addMatchPair();
+}
+
+function populateMatchPairs(pairs) {
+  const list = document.getElementById('match-pairs-list');
+  list.innerHTML = '';
+  pairs.forEach(p => {
+    list.insertAdjacentHTML('beforeend', `<div class="pair-row"><input type="text" value="${esc(p.left)}" class="pair-left" placeholder="Left item"><span class="pair-sep">→</span><input type="text" value="${esc(p.right)}" class="pair-right" placeholder="Right item"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>`);
+  });
+}
+
+function addMatchPair() {
+  document.getElementById('match-pairs-list').insertAdjacentHTML('beforeend',
+    `<div class="pair-row"><input type="text" class="pair-left" placeholder="Left item"><span class="pair-sep">→</span><input type="text" class="pair-right" placeholder="Right item"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>`);
+}
+
+function delMatchPair(btn) {
+  const list = document.getElementById('match-pairs-list');
+  if (list.children.length <= 2) { showToast('Need at least 2 pairs','error'); return; }
+  btn.closest('.pair-row').remove();
+}
+
+async function saveManualQuestion() {
+  let qData = null;
+  try { qData = buildQuestionData(); } catch(e) { showToast(e.message, 'error'); return; }
+
+  // Handle image upload
+  const imgFile = document.getElementById('q-image-input').files[0];
+  if (imgFile) {
+    try {
+      const path = `content/${selectedGroup.id}/${selectedTopic.id}/${Date.now()}_${imgFile.name}`;
+      const sRef = storageRef(storage, path);
+      const snap = await uploadBytes(sRef, imgFile);
+      qData.imageUrl = await getDownloadURL(snap.ref);
+    } catch(e) { showToast('Image upload failed: ' + e.message, 'error'); return; }
+  }
+
+  try {
+    if (editingItem && editingItem.type === 'question') {
+      await updateDoc(doc(db, questionsPath(), editingItem.id), { ...qData, updatedAt: serverTimestamp() });
+      showToast('Question updated', 'success');
+    } else {
+      await addDoc(collection(db, questionsPath()), { ...qData, createdAt: serverTimestamp(), source: 'manual' });
+      showToast('Question saved', 'success');
+    }
+    closeModal('modal-question');
+    loadExistingQuestions();
+    switchQTab('existing');
+    editingItem = null;
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function buildQuestionData() {
+  if (currentQType === 'mcq') {
+    const q = document.getElementById('mcq-question').value.trim();
+    if (!q) throw new Error('Question text is required');
+    const rows = [...document.querySelectorAll('#mcq-options-list .option-row')];
+    const options = rows.map((r,i) => ({
+      text: r.querySelector('.mcq-option-text').value.trim(),
+      correct: r.querySelector('input[type="radio"]').checked
+    }));
+    if (options.some(o => !o.text)) throw new Error('All options must have text');
+    if (!options.some(o => o.correct)) throw new Error('Select the correct answer');
+    return { type:'mcq', question:q, options, explanation: document.getElementById('mcq-explanation').value.trim() };
+  }
+  if (currentQType === 'tf') {
+    const q = document.getElementById('tf-question').value.trim();
+    if (!q) throw new Error('Statement is required');
+    const answer = document.querySelector('input[name="tf-answer"]:checked')?.value === 'true';
+    return { type:'tf', question:q, answer, explanation: document.getElementById('tf-explanation').value.trim() };
+  }
+  if (currentQType === 'fill') {
+    const sentence = document.getElementById('fill-sentence').value.trim();
+    const answer   = document.getElementById('fill-answer').value.trim();
+    if (!sentence) throw new Error('Sentence is required');
+    if (!answer)   throw new Error('Answer is required');
+    if (!sentence.includes('_____')) throw new Error('Use _____ in the sentence to mark the blank');
+    const alts = document.getElementById('fill-alternatives').value.split(',').map(s=>s.trim()).filter(Boolean);
+    return { type:'fill', sentence, answer, alternatives: alts };
+  }
+  if (currentQType === 'match') {
+    const rows = [...document.querySelectorAll('#match-pairs-list .pair-row')];
+    const pairs = rows.map(r => ({ left: r.querySelector('.pair-left').value.trim(), right: r.querySelector('.pair-right').value.trim() }));
+    if (pairs.some(p => !p.left || !p.right)) throw new Error('All pairs must be complete');
+    return { type:'match', instruction:'Match each term to its definition', pairs };
+  }
+  if (currentQType === 'short') {
+    const q  = document.getElementById('short-question').value.trim();
+    const ms = document.getElementById('short-markscheme').value.trim();
+    if (!q)  throw new Error('Question is required');
+    if (!ms) throw new Error('Mark scheme is required');
+    return { type:'short', question:q, markScheme:ms };
+  }
+  throw new Error('Unknown question type');
+}
+
+/* ── IMAGE PREVIEW ───────────────────────────────────────── */
+function handleImagePreview(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('img-preview').src = e.target.result;
+    document.getElementById('img-preview').style.display = 'block';
+    document.getElementById('img-upload-prompt').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ── DELETE ──────────────────────────────────────────────── */
+function confirmDelete(type, id, name) {
+  document.getElementById('confirm-title').textContent = `Delete ${type}?`;
+  document.getElementById('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone.`;
+  confirmCallback = async () => {
+    try {
+      if (type === 'group')    await deleteDoc(doc(db, 'content', id));
+      if (type === 'subject')  await deleteDoc(doc(db, subjectsPath(), id));
+      if (type === 'topic')    await deleteDoc(doc(db, topicsPath(), id));
+      if (type === 'question') { await deleteDoc(doc(db, questionsPath(), id)); loadExistingQuestions(); }
+      closeModal('modal-confirm');
+      showToast(`${type.charAt(0).toUpperCase()+type.slice(1)} deleted`, 'success');
+      if (type === 'group')   loadGroups();
+      if (type === 'subject') loadSubjects();
+      if (type === 'topic')   loadTopics();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  };
+  openModal('modal-confirm');
+}
+
+document.getElementById('btn-confirm-ok').addEventListener('click', () => {
+  if (confirmCallback) confirmCallback();
+});
+
+/* ── USERS (basic list) ───────────────────────────────────── */
+async function loadUsers() {
+  const list = document.getElementById('users-list');
+  list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','asc'))).catch(() => ({ forEach:()=>{} }));
+  const users = [];
+  snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+  if (!users.length) { list.innerHTML = `<div class="empty-state"><h3>No users yet</h3></div>`; return; }
+  const roleIcon = { parent:'👨‍👩‍👧', student:'🎓', teacher:'🏫', admin:'⚙️' };
+  const roleColour = { parent:'badge-primary', student:'badge-success', teacher:'badge-warning', admin:'badge-primary' };
+  list.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:var(--font-ui);font-size:0.88rem;">
+    <thead><tr style="border-bottom:2px solid var(--color-border);">
+      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Name</th>
+      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Email</th>
+      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Role</th>
+      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Joined</th>
+    </tr></thead>
+    <tbody>${users.map(u => `<tr style="border-bottom:1px solid var(--color-border);">
+      <td style="padding:10px 12px;">${roleIcon[u.role]||'👤'} ${esc(u.name||'—')}</td>
+      <td style="padding:10px 12px;color:var(--color-text-muted);">${esc(u.email||'—')}</td>
+      <td style="padding:10px 12px;"><span class="badge ${roleColour[u.role]||'badge-primary'}">${u.role||'?'}</span></td>
+      <td style="padding:10px 12px;color:var(--color-text-muted);">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+/* ── Utils ───────────────────────────────────────────────── */
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+</script>
+<script>
+/* Toast — bridge for module-level showToast calls */
+window.showToast = function(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3500);
+};
+</script>
+</body>
+</html>
