@@ -171,11 +171,10 @@
 </script>
 
 <script type="module">
-  import { app as firebaseApp, auth, db, storage } from './firebase-config.js';
-  import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { auth, db } from './firebase-config.js';
+
   import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
-  import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let parentUid = null;
@@ -258,12 +257,25 @@
     const btn = document.getElementById('btn-add-child');
     btn.classList.add('loading');
     try {
-      // Use secondary app so parent stays signed in
-      const secondaryApp = initializeApp(firebaseApp.options, 'child_' + Date.now());
-      const secondaryAuth = getAuth(secondaryApp);
-      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-      const childUid = cred.user.uid;
-      await updateProfile(cred.user, { displayName: name });
+      // Use Firebase REST API to create child without affecting parent auth state
+      const apiKey = 'AIzaSyDjkqzERaCoaGUBeQCHpaVtwPEbcWN5yB4';
+      const signupRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, returnSecureToken: true })
+      });
+      const signupData = await signupRes.json();
+      if (signupData.error) throw new Error(signupData.error.message);
+      const childUid = signupData.localId;
+
+      // Update display name
+      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: signupData.idToken, displayName: name, returnSecureToken: false })
+      });
+
+      // Write Firestore profiles
       await setDoc(doc(db, 'users', childUid), {
         name, email, role: 'student', parentUid,
         theme: selectedTheme, createdAt: Date.now(),
@@ -272,8 +284,6 @@
       await setDoc(doc(db, 'users', parentUid, 'children', childUid), {
         name, email, theme: selectedTheme, createdAt: Date.now()
       });
-      await secondaryAuth.signOut();
-      await deleteApp(secondaryApp);
       document.getElementById('modal-add').classList.remove('open');
       showToast(`${name}'s account created!`, 'success');
     } catch(e) {
