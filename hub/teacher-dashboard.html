@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="parent">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasp — Teacher Dashboard</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { min-height: 100vh; background: var(--color-bg); }
+    .topnav {
+      background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl); height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-heading); font-weight: 800;
+      font-size: 1.3rem; color: var(--color-text); text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px; background: var(--color-primary);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .nav-badge {
+      background: rgba(59,91,219,0.1); color: var(--color-primary);
+      border-radius: var(--radius-pill); padding: 2px 10px;
+      font-size: 0.75rem; font-family: var(--font-ui); font-weight: 600;
+    }
+    .nav-right { display: flex; align-items: center; gap: var(--space-md); }
+    .nav-user { font-family: var(--font-ui); font-size: 0.9rem; color: var(--color-text-muted); }
+    .nav-user strong { color: var(--color-text); }
+    .page { max-width: 960px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+    .page-header { margin-bottom: var(--space-xl); }
+    .page-header h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: var(--space-xs); }
+    .page-header p { color: var(--color-text-muted); font-size: 0.95rem; }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    .section-header h2 { font-size: 1.1rem; font-weight: 700; }
+
+    /* ── Classes grid ─────────────────────────────────────── */
+    .classes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-lg);
+    }
+    .class-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-lg);
+      box-shadow: var(--shadow-card);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+      cursor: pointer;
+    }
+    .class-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card), 0 8px 24px rgba(0,0,0,0.08); }
+    .class-icon {
+      width: 48px; height: 48px; border-radius: var(--radius-card);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: var(--space-md);
+      background: var(--color-primary-glow);
+    }
+    .class-name { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+    .class-meta { font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: var(--space-md); }
+    .class-stats { display: flex; gap: var(--space-md); margin-bottom: var(--space-md); }
+    .class-stat { text-align: center; }
+    .class-stat-value { font-family: var(--font-ui); font-weight: 700; font-size: 1.1rem; color: var(--color-text); }
+    .class-stat-label { font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .join-code {
+      display: flex; align-items: center; gap: var(--space-sm);
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); padding: 8px 12px;
+      margin-bottom: var(--space-md);
+    }
+    .join-code-label { font-size: 0.75rem; color: var(--color-text-muted); font-family: var(--font-ui); }
+    .join-code-value { font-family: var(--font-ui); font-weight: 700; font-size: 1rem; color: var(--color-primary); letter-spacing: 0.1em; flex: 1; }
+    .copy-btn {
+      background: none; border: none; cursor: pointer; font-size: 0.8rem;
+      color: var(--color-text-muted); font-family: var(--font-ui);
+      padding: 2px 6px; border-radius: var(--radius-sm);
+      transition: all var(--transition-fast);
+    }
+    .copy-btn:hover { color: var(--color-primary); background: var(--color-primary-glow); }
+    .class-actions { display: flex; gap: var(--space-sm); }
+    .class-actions .btn { flex: 1; padding: 8px 12px; font-size: 0.82rem; }
+
+    /* ── Empty state ──────────────────────────────────────── */
+    .empty-state {
+      grid-column: 1 / -1; text-align: center;
+      padding: var(--space-2xl) var(--space-lg);
+      background: var(--color-surface);
+      border: 2px dashed var(--color-border); border-radius: var(--radius-card);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: var(--space-md); }
+    .empty-state h3 { font-size: 1.1rem; margin-bottom: var(--space-sm); }
+    .empty-state p { color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: var(--space-lg); }
+
+    /* ── Modals ───────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: var(--space-lg);
+      opacity: 0; pointer-events: none; transition: opacity var(--transition-base);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-xl);
+      width: 100%; max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      transform: translateY(16px); transition: transform var(--transition-base);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    .modal-header h2 { font-size: 1.2rem; font-weight: 700; }
+    .modal-close {
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; cursor: pointer; color: var(--color-text-muted);
+      transition: all var(--transition-fast);
+    }
+    .modal-close:hover { color: var(--color-text); background: var(--color-border); }
+    .form-group { margin-bottom: var(--space-md); }
+    .form-group label {
+      display: block; font-family: var(--font-ui); font-size: 0.82rem;
+      font-weight: 600; color: var(--color-text-muted); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .form-group input, .form-group select {
+      padding: 12px var(--space-md); border-radius: var(--radius-button); font-size: 0.95rem;
+    }
+    .modal-footer { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); }
+    .modal-footer .btn { flex: 1; padding: 12px; }
+    .error-msg {
+      background: rgba(250,82,82,0.1); border: 1px solid rgba(250,82,82,0.3);
+      border-radius: var(--radius-sm); color: var(--color-danger);
+      padding: var(--space-sm) var(--space-md); font-size: 0.875rem;
+      margin-bottom: var(--space-md); display: none;
+    }
+    .error-msg.visible { display: block; }
+    .btn.loading { opacity: 0.7; pointer-events: none; }
+    .btn.loading::after {
+      content: ''; display: inline-block; width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      margin-left: 8px; vertical-align: middle;
+    }
+
+    /* ── Students modal ───────────────────────────────────── */
+    .modal-wide { max-width: 640px; }
+    .students-tabs {
+      display: flex; background: var(--color-surface-2);
+      border-radius: var(--radius-button); padding: 4px;
+      margin-bottom: var(--space-lg); gap: 4px;
+    }
+    .students-tab {
+      flex: 1; padding: 8px;
+      border-radius: calc(var(--radius-button) - 2px);
+      background: transparent; color: var(--color-text-muted);
+      font-family: var(--font-ui); font-weight: 600; font-size: 0.85rem;
+      transition: all var(--transition-base);
+    }
+    .students-tab.active {
+      background: var(--color-surface); color: var(--color-text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .students-panel { display: none; }
+    .students-panel.active { display: block; }
+    .student-list { max-height: 280px; overflow-y: auto; }
+    .student-row {
+      display: flex; align-items: center; gap: var(--space-md);
+      padding: 10px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .student-row:last-child { border-bottom: none; }
+    .student-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--color-primary-glow); color: var(--color-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .student-info { flex: 1; }
+    .student-name { font-weight: 600; font-size: 0.9rem; }
+    .student-email { font-size: 0.78rem; color: var(--color-text-muted); }
+    .empty-students {
+      text-align: center; padding: var(--space-xl);
+      color: var(--color-text-muted); font-size: 0.9rem;
+    }
+    .password-row { display: flex; gap: var(--space-sm); }
+    .password-row input { flex: 1; }
+    .btn-generate {
+      padding: 12px var(--space-md); border-radius: var(--radius-button);
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      color: var(--color-text-muted); font-family: var(--font-ui);
+      font-size: 0.82rem; font-weight: 600; white-space: nowrap; cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .btn-generate:hover { color: var(--color-primary); border-color: var(--color-primary); }
+    .password-reveal {
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md);
+      margin-top: var(--space-sm); font-family: var(--font-ui); font-size: 0.9rem;
+      display: none;
+    }
+    .password-reveal.visible { display: flex; align-items: center; justify-content: space-between; }
+    .pw-value { font-weight: 700; color: var(--color-primary); letter-spacing: 0.05em; }
+    .pw-note { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
+    .theme-options { display: flex; gap: var(--space-sm); }
+    .theme-option {
+      flex: 1; padding: 10px var(--space-sm); border-radius: var(--radius-card);
+      border: 2px solid var(--color-border); background: var(--color-surface-2);
+      cursor: pointer; text-align: center; font-family: var(--font-ui);
+      font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted);
+      transition: all var(--transition-base);
+    }
+    .theme-option .t-icon { display: block; font-size: 1.3rem; margin-bottom: 4px; }
+    .theme-option.selected { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-glow); }
+    .danger-zone {
+      border-top: 1px solid var(--color-border);
+      margin-top: var(--space-lg); padding-top: var(--space-lg);
+    }
+    .danger-zone p { font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: var(--space-sm); }
+    .btn-danger { background: rgba(250,82,82,0.1); color: var(--color-danger); border: 1px solid rgba(250,82,82,0.3); }
+    .btn-danger:hover { background: var(--color-danger); color: #fff; }
+
+    @media (max-width: 600px) {
+      .topnav { padding: 0 var(--space-md); }
+      .page { padding: var(--space-lg) var(--space-md); }
+      .nav-user { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<nav class="topnav">
+  <a href="teacher-dashboard.html" class="nav-logo">
+    <div class="nav-logo-icon">📎</div>
+    Clasp
+    <span class="nav-badge">Teacher</span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-user">Welcome, <strong id="nav-name">...</strong></span>
+    <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+  </div>
+</nav>
+
+<div class="page page-fade">
+  <div class="page-header">
+    <h1>Your classes</h1>
+    <p id="school-name" style="color:var(--color-text-muted); font-size:0.95rem;">Loading...</p>
+  </div>
+  <div class="section-header">
+    <h2 id="classes-count">Loading...</h2>
+    <button class="btn btn-primary" onclick="openCreateClass()" style="padding:10px 20px; font-size:0.9rem;">+ Create class</button>
+  </div>
+  <div class="classes-grid" id="classes-grid"></div>
+</div>
+
+<!-- Create class modal -->
+<div class="modal-overlay" id="modal-create-class">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Create a class</h2>
+      <button class="modal-close" onclick="closeModal('modal-create-class')">✕</button>
+    </div>
+    <div class="error-msg" id="create-class-error"></div>
+    <div class="form-group">
+      <label>Class name</label>
+      <input type="text" id="class-name" placeholder="e.g. Year 10 Geography">
+    </div>
+    <div class="form-group">
+      <label>Subject</label>
+      <input type="text" id="class-subject" placeholder="e.g. Geography">
+    </div>
+    <div class="form-group">
+      <label>How do students join?</label>
+      <select id="class-join-method">
+        <option value="code">Self-signup with class code</option>
+        <option value="teacher">Teacher creates all accounts</option>
+        <option value="both">Either method</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-create-class')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-class" onclick="createClass()">Create class</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage students modal -->
+<div class="modal-overlay" id="modal-students">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2 id="students-modal-title">Class students</h2>
+      <button class="modal-close" onclick="closeModal('modal-students')">✕</button>
+    </div>
+    <div class="students-tabs">
+      <button class="students-tab active" onclick="switchStudentsTab('list')">Students</button>
+      <button class="students-tab" onclick="switchStudentsTab('add')">Add student</button>
+      <button class="students-tab" onclick="switchStudentsTab('code')">Join code</button>
+    </div>
+
+    <!-- Student list -->
+    <div class="students-panel active" id="tab-list">
+      <div class="student-list" id="student-list"></div>
+    </div>
+
+    <!-- Add student -->
+    <div class="students-panel" id="tab-add">
+      <div class="error-msg" id="add-student-error"></div>
+      <div class="form-group">
+        <label>Student name</label>
+        <input type="text" id="student-name" placeholder="e.g. Jamie Smith">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="student-email" placeholder="jamie@example.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-row">
+          <input type="text" id="student-password" placeholder="Set a password">
+          <button class="btn-generate" onclick="generateStudentPw()">✨ Generate</button>
+        </div>
+        <div class="password-reveal" id="student-pw-reveal">
+          <div>
+            <div class="pw-value" id="student-pw-value"></div>
+            <div class="pw-note">Share this with the student — it won't be shown again.</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Theme</label>
+        <div class="theme-options">
+          <div class="theme-option" id="st-spark" onclick="selectStudentTheme('spark')"><span class="t-icon">🌟</span>Spark</div>
+          <div class="theme-option selected" id="st-edge" onclick="selectStudentTheme('edge')"><span class="t-icon">⚡</span>Edge</div>
+          <div class="theme-option" id="st-focus" onclick="selectStudentTheme('focus')"><span class="t-icon">🎯</span>Focus</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-add-student" onclick="addStudent()" style="width:100%; padding:12px; margin-top:var(--space-sm);">Add to class</button>
+    </div>
+
+    <!-- Join code -->
+    <div class="students-panel" id="tab-code">
+      <p style="font-size:0.9rem; color:var(--color-text-muted); margin-bottom:var(--space-lg);">
+        Share this code with students. They can enter it when creating their account at <strong>carygibbs.com/hub</strong>.
+      </p>
+      <div style="text-align:center; padding: var(--space-xl) 0;">
+        <div style="font-family:var(--font-heading); font-size:3rem; font-weight:800; letter-spacing:0.2em; color:var(--color-primary);" id="modal-join-code">––––––</div>
+        <p style="font-size:0.8rem; color:var(--color-text-muted); margin-top:var(--space-sm);">Class join code</p>
+        <button class="btn btn-secondary" onclick="copyJoinCode()" style="margin-top:var(--space-lg); padding:10px 24px;">Copy code</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit class modal -->
+<div class="modal-overlay" id="modal-edit-class">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Edit class</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit-class')">✕</button>
+    </div>
+    <div class="error-msg" id="edit-class-error"></div>
+    <div class="form-group">
+      <label>Class name</label>
+      <input type="text" id="edit-class-name">
+    </div>
+    <div class="form-group">
+      <label>Subject</label>
+      <input type="text" id="edit-class-subject">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-class')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-class" onclick="saveClass()">Save changes</button>
+    </div>
+    <div class="danger-zone">
+      <p>Deleting this class removes all student links but does not delete student accounts.</p>
+      <button class="btn btn-danger" style="width:100%; padding:10px;" onclick="confirmDeleteClass()">Delete class</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js';
+  import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
+  import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { ref, set, get, update, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  let teacherUid = null;
+  let teacherProfile = null;
+  let classesData = {};
+  let activeClassId = null;
+  let activeClassStudents = {};
+  let studentTheme = 'edge';
+
+  function generateClassCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  requireRole('teacher', (user, profile) => {
+    teacherUid = user.uid;
+    teacherProfile = profile;
+    document.getElementById('nav-name').textContent = profile.name.split(' ')[0];
+    document.getElementById('school-name').textContent = profile.school || '';
+    loadClasses();
+  });
+
+  window.doSignOut = () => handleSignOut();
+
+  function loadClasses() {
+    onValue(ref(db, `users/${teacherUid}/classes`), (snap) => {
+      classesData = snap.val() || {};
+      renderClasses();
+    });
+  }
+
+  function renderClasses() {
+    const grid = document.getElementById('classes-grid');
+    const count = Object.keys(classesData).length;
+    document.getElementById('classes-count').textContent =
+      count === 0 ? 'No classes yet' : `${count} class${count > 1 ? 'es' : ''}`;
+
+    if (count === 0) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🏫</div>
+          <h3>No classes yet</h3>
+          <p>Create your first class to start adding students and tracking their progress.</p>
+          <button class="btn btn-primary" onclick="openCreateClass()">+ Create your first class</button>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = Object.entries(classesData).map(([id, cls]) => {
+      const studentCount = cls.students ? Object.keys(cls.students).length : 0;
+      return `
+        <div class="class-card">
+          <div class="class-icon">📚</div>
+          <div class="class-name">${cls.name}</div>
+          <div class="class-meta">${cls.subject || ''}</div>
+          <div class="class-stats">
+            <div class="class-stat">
+              <div class="class-stat-value">${studentCount}</div>
+              <div class="class-stat-label">Students</div>
+            </div>
+          </div>
+          <div class="join-code">
+            <div>
+              <div class="join-code-label">Join code</div>
+              <div class="join-code-value">${cls.joinCode}</div>
+            </div>
+            <button class="copy-btn" onclick="event.stopPropagation(); copyCode('${cls.joinCode}')">Copy</button>
+          </div>
+          <div class="class-actions">
+            <button class="btn btn-secondary" onclick="openStudentsModal('${id}')">Students</button>
+            <button class="btn btn-ghost" onclick="openEditClass('${id}')">Edit</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Create class ──────────────────────────────────────────
+  window.openCreateClass = function() {
+    document.getElementById('class-name').value = '';
+    document.getElementById('class-subject').value = '';
+    document.getElementById('create-class-error').classList.remove('visible');
+    openModal('modal-create-class');
+  };
+
+  window.createClass = async function() {
+    const name    = document.getElementById('class-name').value.trim();
+    const subject = document.getElementById('class-subject').value.trim();
+    const method  = document.getElementById('class-join-method').value;
+    if (!name) { showModalError('create-class-error', 'Please enter a class name.'); return; }
+    const btn = document.getElementById('btn-create-class');
+    btn.classList.add('loading');
+    try {
+      const joinCode = generateClassCode();
+      const classId  = push(ref(db, `users/${teacherUid}/classes`)).key;
+      await set(ref(db, `users/${teacherUid}/classes/${classId}`), {
+        name, subject, joinCode, joinMethod: method,
+        createdAt: Date.now(), students: {}
+      });
+      // Register join code globally so students can look it up
+      await set(ref(db, `classCodes/${joinCode}`), { classId, teacherUid, className: name });
+      closeModal('modal-create-class');
+      showToast(`Class "${name}" created!`, 'success');
+    } catch(e) {
+      showModalError('create-class-error', 'Failed to create class. Please try again.');
+    } finally {
+      btn.classList.remove('loading');
+    }
+  };
+
+  // ── Students modal ────────────────────────────────────────
+  window.openStudentsModal = async function(classId) {
+    activeClassId = classId;
+    const cls = classesData[classId];
+    document.getElementById('students-modal-title').textContent = cls.name;
+    document.getElementById('modal-join-code').textContent = cls.joinCode;
+    switchStudentsTab('list');
+    openModal('modal-students');
+    loadStudentList(classId);
+  };
+
+  async function loadStudentList(classId) {
+    const snap = await get(ref(db, `users/${teacherUid}/classes/${classId}/students`));
+    activeClassStudents = snap.val() || {};
+    const list = document.getElementById('student-list');
+    const entries = Object.entries(activeClassStudents);
+    if (entries.length === 0) {
+      list.innerHTML = '<div class="empty-students">No students in this class yet.</div>';
+      return;
+    }
+    list.innerHTML = entries.map(([uid, s]) => {
+      const initials = s.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      return `
+        <div class="student-row">
+          <div class="student-avatar">${initials}</div>
+          <div class="student-info">
+            <div class="student-name">${s.name}</div>
+            <div class="student-email">${s.email}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  window.switchStudentsTab = function(tab) {
+    document.querySelectorAll('.students-tab').forEach((b, i) => {
+      const tabs = ['list','add','code'];
+      b.classList.toggle('active', tabs[i] === tab);
+    });
+    document.querySelectorAll('.students-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  };
+
+  window.selectStudentTheme = function(t) {
+    studentTheme = t;
+    ['spark','edge','focus'].forEach(x => {
+      document.getElementById(`st-${x}`).classList.toggle('selected', x === t);
+    });
+  };
+
+  window.generateStudentPw = function() {
+    const pw = generatePassword();
+    document.getElementById('student-password').value = pw;
+    document.getElementById('student-pw-value').textContent = pw;
+    document.getElementById('student-pw-reveal').classList.add('visible');
+  };
+
+  window.addStudent = async function() {
+    const name     = document.getElementById('student-name').value.trim();
+    const email    = document.getElementById('student-email').value.trim();
+    const password = document.getElementById('student-password').value.trim();
+    if (!name)               { showModalError('add-student-error','Please enter the student\'s name.'); return; }
+    if (!email)              { showModalError('add-student-error','Please enter an email address.'); return; }
+    if (password.length < 8) { showModalError('add-student-error','Password must be at least 8 characters.'); return; }
+    const btn = document.getElementById('btn-add-student');
+    btn.classList.add('loading');
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid  = cred.user.uid;
+      await updateProfile(cred.user, { displayName: name });
+      await set(ref(db, `users/${uid}`), {
+        name, email, role: 'student',
+        teacherUid, theme: studentTheme,
+        createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
+        classes: { [activeClassId]: true }
+      });
+      await set(ref(db, `users/${teacherUid}/classes/${activeClassId}/students/${uid}`), { name, email });
+      document.getElementById('student-name').value = '';
+      document.getElementById('student-email').value = '';
+      document.getElementById('student-password').value = '';
+      document.getElementById('student-pw-reveal').classList.remove('visible');
+      loadStudentList(activeClassId);
+      switchStudentsTab('list');
+      showToast(`${name} added to class!`, 'success');
+    } catch(e) {
+      showModalError('add-student-error', friendlyError(e.code));
+    } finally {
+      btn.classList.remove('loading');
+    }
+  };
+
+  window.copyJoinCode = function() {
+    const code = document.getElementById('modal-join-code').textContent;
+    copyCode(code);
+  };
+
+  window.copyCode = function(code) {
+    navigator.clipboard.writeText(code).then(() => showToast('Code copied!', 'success'));
+  };
+
+  // ── Edit class ────────────────────────────────────────────
+  window.openEditClass = function(classId) {
+    activeClassId = classId;
+    const cls = classesData[classId];
+    document.getElementById('edit-class-name').value = cls.name;
+    document.getElementById('edit-class-subject').value = cls.subject || '';
+    document.getElementById('edit-class-error').classList.remove('visible');
+    openModal('modal-edit-class');
+  };
+
+  window.saveClass = async function() {
+    const name    = document.getElementById('edit-class-name').value.trim();
+    const subject = document.getElementById('edit-class-subject').value.trim();
+    if (!name) { showModalError('edit-class-error', 'Please enter a class name.'); return; }
+    const btn = document.getElementById('btn-save-class');
+    btn.classList.add('loading');
+    try {
+      await update(ref(db, `users/${teacherUid}/classes/${activeClassId}`), { name, subject });
+      closeModal('modal-edit-class');
+      showToast('Class updated.', 'success');
+    } catch(e) {
+      showModalError('edit-class-error', 'Failed to save. Please try again.');
+    } finally {
+      btn.classList.remove('loading');
+    }
+  };
+
+  window.confirmDeleteClass = function() {
+    const cls = classesData[activeClassId];
+    if (!confirm(`Delete "${cls.name}"? Students will not be deleted.`)) return;
+    deleteClass();
+  };
+
+  async function deleteClass() {
+    const cls = classesData[activeClassId];
+    try {
+      await remove(ref(db, `users/${teacherUid}/classes/${activeClassId}`));
+      await remove(ref(db, `classCodes/${cls.joinCode}`));
+      closeModal('modal-edit-class');
+      showToast('Class deleted.', 'info');
+    } catch(e) {
+      showModalError('edit-class-error', 'Failed to delete. Please try again.');
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  window.openModal  = (id) => document.getElementById(id).classList.add('open');
+  window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+  });
+
+  function showModalError(id, msg) {
+    const el = document.getElementById(id); el.textContent=msg; el.classList.add('visible');
+  }
+  function friendlyError(code) {
+    const map = {
+      'auth/email-already-in-use':'An account with that email already exists.',
+      'auth/invalid-email':'Please enter a valid email address.',
+      'auth/weak-password':'Password must be at least 8 characters.',
+    };
+    return map[code] || 'Something went wrong. Please try again.';
+  }
+</script>
+<script>
+  window.showToast = function(msg, type='info') {
+    const c=document.getElementById('toast-container');
+    const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg;
+    c.appendChild(t); setTimeout(()=>t.remove(),3500);
+  };
+</script>
+</body>
+</html>

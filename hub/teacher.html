@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="parent">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasp — Teacher Portal</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      background: var(--color-bg); overflow-x: hidden;
+    }
+    .bg-shape {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .bg-shape::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(59,91,219,0.08) 0%, transparent 70%);
+      top: -150px; right: -100px;
+    }
+    .bg-shape::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(18,184,134,0.06) 0%, transparent 70%);
+      bottom: -100px; left: -50px;
+    }
+    .container {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh;
+      padding: var(--space-xl) var(--space-lg);
+    }
+    .logo-wrap {
+      text-align: center; margin-bottom: var(--space-xl);
+      animation: fadeIn 0.6s ease both;
+    }
+    .logo-mark {
+      display: inline-flex; align-items: center;
+      gap: 12px; margin-bottom: var(--space-sm);
+    }
+    .logo-icon {
+      width: 48px; height: 48px;
+      background: var(--color-primary);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-glow); font-size: 24px;
+    }
+    .logo-text {
+      font-family: var(--font-heading);
+      font-size: 2.4rem; font-weight: 800;
+      color: var(--color-text); letter-spacing: -0.02em;
+    }
+    .logo-text span { color: var(--color-primary); }
+    .tagline { font-family: var(--font-ui); color: var(--color-text-muted); font-size: 1rem; }
+    .teacher-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(59,91,219,0.1);
+      color: var(--color-primary);
+      border: 1px solid rgba(59,91,219,0.2);
+      border-radius: var(--radius-pill);
+      padding: 4px 14px;
+      font-size: 0.8rem; font-family: var(--font-ui); font-weight: 600;
+      margin-top: var(--space-sm);
+    }
+    .auth-card {
+      width: 100%; max-width: 420px;
+      animation: fadeIn 0.6s 0.15s ease both;
+    }
+    .tab-row {
+      display: flex; background: var(--color-surface-2);
+      border-radius: var(--radius-button);
+      padding: 4px; margin-bottom: var(--space-lg); gap: 4px;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px;
+      border-radius: calc(var(--radius-button) - 2px);
+      background: transparent; color: var(--color-text-muted);
+      font-family: var(--font-ui); font-weight: 600; font-size: 0.9rem;
+      transition: all var(--transition-base);
+    }
+    .tab-btn.active {
+      background: var(--color-surface); color: var(--color-text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+    .form-group { margin-bottom: var(--space-md); }
+    .form-group label {
+      display: block; font-family: var(--font-ui); font-size: 0.82rem;
+      font-weight: 600; color: var(--color-text-muted); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .form-group input {
+      padding: 14px var(--space-md); border-radius: var(--radius-button); font-size: 1rem;
+    }
+    .form-hint { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px; }
+    .btn-submit { width: 100%; padding: 14px; margin-top: var(--space-sm); font-size: 1rem; border-radius: var(--radius-button); }
+    .divider {
+      text-align: center; position: relative; margin: var(--space-lg) 0;
+      color: var(--color-text-faint); font-size: 0.8rem; font-family: var(--font-ui);
+    }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%;
+      width: calc(50% - 20px); height: 1px; background: var(--color-border);
+    }
+    .divider::before { left: 0; } .divider::after { right: 0; }
+    .error-msg {
+      background: rgba(250,82,82,0.1); border: 1px solid rgba(250,82,82,0.3);
+      border-radius: var(--radius-sm); color: var(--color-danger);
+      padding: var(--space-sm) var(--space-md); font-size: 0.875rem;
+      margin-bottom: var(--space-md); display: none;
+    }
+    .error-msg.visible { display: block; }
+    .btn-submit.loading { opacity: 0.7; pointer-events: none; }
+    .btn-submit.loading::after {
+      content: ''; display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      margin-left: 8px; vertical-align: middle;
+    }
+    .auth-footer {
+      text-align: center; margin-top: var(--space-lg);
+      font-size: 0.8rem; color: var(--color-text-faint); font-family: var(--font-ui);
+    }
+    .back-link {
+      text-align: center; margin-top: var(--space-md);
+      font-size: 0.85rem; color: var(--color-text-muted); font-family: var(--font-ui);
+    }
+  </style>
+</head>
+<body>
+<div class="bg-shape"></div>
+<div id="toast-container"></div>
+<div class="container page-fade">
+  <div class="logo-wrap">
+    <div class="logo-mark">
+      <div class="logo-icon">📎</div>
+      <div class="logo-text">Cl<span>a</span>sp</div>
+    </div>
+    <p class="tagline">Revision that sticks.</p>
+    <div class="teacher-badge">🏫 Teacher Portal</div>
+  </div>
+
+  <div class="auth-card card">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">Sign in</button>
+      <button class="tab-btn" onclick="switchTab('signup')">Register</button>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+
+    <!-- LOGIN -->
+    <div class="form-panel active" id="panel-login">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@school.ac.uk" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary btn-submit" id="btn-login" onclick="handleLogin()">Sign in</button>
+      <div class="divider">or</div>
+      <p style="text-align:center; font-size:0.85rem; color:var(--color-text-muted);">
+        <a href="#" onclick="showForgotPassword()" style="color:var(--color-primary);">Forgot your password?</a>
+      </p>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="form-panel" id="panel-signup">
+      <div class="form-group">
+        <label>Your name</label>
+        <input type="text" id="signup-name" placeholder="e.g. Ms Johnson" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>School name</label>
+        <input type="text" id="signup-school" placeholder="e.g. Westfield Academy">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="you@school.ac.uk" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
+        <p class="form-hint">Minimum 8 characters</p>
+      </div>
+      <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create teacher account</button>
+    </div>
+  </div>
+
+  <div class="back-link">
+    Not a teacher? <a href="index.html" style="color:var(--color-primary);">Student / parent login →</a>
+  </div>
+  <div class="auth-footer">
+    By signing in you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>
+  </div>
+</div>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js';
+  import {
+    signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    sendPasswordResetEmail, onAuthStateChanged, updateProfile
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (tab==='login'&&i===0)||(tab==='signup'&&i===1));
+    });
+    document.getElementById('panel-login').classList.toggle('active', tab==='login');
+    document.getElementById('panel-signup').classList.toggle('active', tab==='signup');
+    hideError();
+  };
+
+  window.handleLogin = async function() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) { showError('Please enter your email and password.'); return; }
+    setLoading('btn-login', true);
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const snap = await get(ref(db, `users/${cred.user.uid}/role`));
+      if (snap.val() !== 'teacher') {
+        showError('This account is not a teacher account. Use the main login page.');
+        setLoading('btn-login', false);
+        return;
+      }
+      window.location.href = 'teacher-dashboard.html';
+    } catch(e) {
+      showError(friendlyError(e.code));
+      setLoading('btn-login', false);
+    }
+  };
+
+  window.handleSignup = async function() {
+    const name     = document.getElementById('signup-name').value.trim();
+    const school   = document.getElementById('signup-school').value.trim();
+    const email    = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    if (!name)               { showError('Please enter your name.'); return; }
+    if (!school)             { showError('Please enter your school name.'); return; }
+    if (!email)              { showError('Please enter your email.'); return; }
+    if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
+    setLoading('btn-signup', true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
+      await set(ref(db, `users/${cred.user.uid}`), {
+        name, email, school,
+        role: 'teacher',
+        theme: 'parent',
+        createdAt: Date.now(),
+        classes: {}
+      });
+      window.location.href = 'teacher-dashboard.html';
+    } catch(e) {
+      showError(friendlyError(e.code));
+      setLoading('btn-signup', false);
+    }
+  };
+
+  window.showForgotPassword = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) { showError('Enter your email above first.'); return; }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showToast('Password reset email sent!', 'success');
+    } catch(e) { showError(friendlyError(e.code)); }
+  };
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+    const snap = await get(ref(db, `users/${user.uid}/role`));
+    if (snap.val() === 'teacher') window.location.href = 'teacher-dashboard.html';
+  });
+
+  function showError(msg) { const el=document.getElementById('error-msg'); el.textContent=msg; el.classList.add('visible'); }
+  function hideError() { document.getElementById('error-msg').classList.remove('visible'); }
+  function setLoading(id,v) { document.getElementById(id).classList.toggle('loading',v); }
+  function friendlyError(code) {
+    const map = {
+      'auth/user-not-found':'No account found with that email.',
+      'auth/wrong-password':'Incorrect password. Please try again.',
+      'auth/email-already-in-use':'An account with that email already exists.',
+      'auth/invalid-email':'Please enter a valid email address.',
+      'auth/weak-password':'Password must be at least 8 characters.',
+      'auth/too-many-requests':'Too many attempts. Please try again later.',
+      'auth/invalid-credential':'Incorrect email or password.',
+    };
+    return map[code] || 'Something went wrong. Please try again.';
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (document.getElementById('panel-login').classList.contains('active')) window.handleLogin();
+    else window.handleSignup();
+  });
+</script>
+<script>
+  window.showToast = function(msg, type='info') {
+    const c=document.getElementById('toast-container');
+    const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg;
+    c.appendChild(t); setTimeout(()=>t.remove(),3500);
+  };
+</script>
+</body>
+</html>
