@@ -77,7 +77,10 @@
   <a href="parent.html" class="nav-logo"><div class="nav-logo-icon">📎</div>Clasp</a>
   <div class="nav-right">
     <span class="nav-user">Welcome, <strong id="nav-name">...</strong></span>
-    <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+    <div style="display:flex;gap:var(--space-sm);">
+      <a href="admin.html" id="admin-link" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;display:none;">⚙️ Admin</a>
+      <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+    </div>
   </div>
 </nav>
 
@@ -173,7 +176,7 @@
 <script type="module">
   import { auth, db } from './firebase-config.js';
 
-  import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
+  import { requireAuth, handleSignOut, generatePassword, showToast } from './auth.js';
 
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -183,9 +186,13 @@
   let managingChildId = null;
   let childrenData = {};
 
-  requireRole('parent', (user, profile) => {
+  requireAuth((user, profile) => {
+    if (profile.role !== 'parent' && profile.role !== 'admin') {
+      window.location.href = 'index.html'; return;
+    }
     parentUid = user.uid;
     document.getElementById('nav-name').textContent = profile.name.split(' ')[0];
+    if (profile.role === 'admin') document.getElementById('admin-link').style.display = 'inline-flex';
     loadChildren();
   });
 
