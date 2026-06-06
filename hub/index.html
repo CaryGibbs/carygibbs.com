@@ -169,7 +169,7 @@
       const cred = await signInWithEmailAndPassword(auth, email, password);
       await redirectByRole(cred.user.uid);
     } catch(e) {
-      showError(friendlyError(e.code));
+      console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
       setLoading('btn-login', false);
     }
   };
@@ -216,7 +216,7 @@
       }
       await redirectByRole(uid);
     } catch(e) {
-      showError(friendlyError(e.code));
+      console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
       setLoading('btn-signup', false);
     }
   };
@@ -227,7 +227,7 @@
     try {
       await sendPasswordResetEmail(auth, email);
       showToast('Password reset email sent!', 'success');
-    } catch(e) { showError(friendlyError(e.code)); }
+    } catch(e) { console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code); }
   };
 
   onAuthStateChanged(auth, async (user) => {
