@@ -14,10 +14,16 @@ export async function getUserProfile(uid) {
 export function requireAuth(callback) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'index.html'; return; }
-    const profile = await getUserProfile(user.uid);
-    if (!profile) { await signOut(auth); window.location.href = 'index.html'; return; }
-    if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
-    callback(user, profile);
+    try {
+      const profile = await getUserProfile(user.uid);
+      if (!profile) { await signOut(auth); window.location.href = 'index.html'; return; }
+      if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
+      callback(user, profile);
+    } catch(e) {
+      console.error('requireAuth failed:', e);
+      await signOut(auth);
+      window.location.href = 'index.html';
+    }
   });
 }
 
@@ -34,13 +40,18 @@ export async function handleSignOut() {
 }
 
 export async function redirectByRole(uid) {
-  const profile = await getUserProfile(uid);
-  if (!profile) { window.location.href = 'index.html'; return; }
-  const role = profile.role;
-  if (role === 'parent')  { window.location.href = 'parent.html'; return; }
-  if (role === 'teacher') { window.location.href = 'teacher-dashboard.html'; return; }
-  if (role === 'admin')   { window.location.href = 'admin.html'; return; }
-  window.location.href = 'hub.html';
+  try {
+    const profile = await getUserProfile(uid);
+    if (!profile) { await signOut(auth); window.location.href = 'index.html'; return; }
+    const role = profile.role;
+    if (role === 'parent')  { window.location.href = 'parent.html'; return; }
+    if (role === 'teacher') { window.location.href = 'teacher-dashboard.html'; return; }
+    if (role === 'admin')   { window.location.href = 'admin.html'; return; }
+    window.location.href = 'hub.html';
+  } catch(e) {
+    console.error('redirectByRole failed:', e.message);
+    await signOut(auth);
+  }
 }
 
 export function generatePassword() {
