@@ -407,7 +407,7 @@
   import { auth, db } from './firebase-config.js';
   import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
   import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { ref, set, get, update, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let teacherUid = null;
   let teacherProfile = null;
@@ -434,8 +434,10 @@
   window._doSignOut = () => handleSignOut();
 
   function loadClasses() {
-    onValue(ref(db, `users/${teacherUid}/classes`), (snap) => {
-      classesData = snap.val() || {};
+    const classesRef = collection(db, 'users', teacherUid, 'classes');
+    onSnapshot(classesRef, (snap) => {
+      classesData = {};
+      snap.forEach(d => { classesData[d.id] = d.data(); });
       renderClasses();
     });
   }
@@ -502,13 +504,13 @@
     btn.classList.add('loading');
     try {
       const joinCode = generateClassCode();
-      const classId  = push(ref(db, `users/${teacherUid}/classes`)).key;
-      await set(ref(db, `users/${teacherUid}/classes/${classId}`), {
+      const classRef = doc(collection(db, 'users', teacherUid, 'classes'));
+      const classId  = classRef.id;
+      await setDoc(classRef, {
         name, subject, joinCode, joinMethod: method,
-        createdAt: Date.now(), students: {}
+        createdAt: Date.now()
       });
-      // Register join code globally so students can look it up
-      await set(ref(db, `classCodes/${joinCode}`), { classId, teacherUid, className: name });
+      await setDoc(doc(db, 'classCodes', joinCode), { classId, teacherUid, className: name });
       closeModal('modal-create-class');
       showToast(`Class "${name}" created!`, 'success');
     } catch(e) {
@@ -530,8 +532,9 @@
   };
 
   async function loadStudentList(classId) {
-    const snap = await get(ref(db, `users/${teacherUid}/classes/${classId}/students`));
-    activeClassStudents = snap.val() || {};
+    const snap = await getDocs(collection(db, 'users', teacherUid, 'classes', classId, 'students'));
+    activeClassStudents = {};
+    snap.forEach(d => { activeClassStudents[d.id] = d.data(); });
     const list = document.getElementById('student-list');
     const entries = Object.entries(activeClassStudents);
     if (entries.length === 0) {
@@ -587,13 +590,13 @@
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const uid  = cred.user.uid;
       await updateProfile(cred.user, { displayName: name });
-      await set(ref(db, `users/${uid}`), {
+      await setDoc(doc(db, 'users', uid), {
         name, email, role: 'student',
         teacherUid, theme: studentTheme,
         createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
         classes: { [activeClassId]: true }
       });
-      await set(ref(db, `users/${teacherUid}/classes/${activeClassId}/students/${uid}`), { name, email });
+      await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email });
       document.getElementById('student-name').value = '';
       document.getElementById('student-email').value = '';
       document.getElementById('student-password').value = '';
@@ -634,7 +637,7 @@
     const btn = document.getElementById('btn-save-class');
     btn.classList.add('loading');
     try {
-      await update(ref(db, `users/${teacherUid}/classes/${activeClassId}`), { name, subject });
+      await updateDoc(doc(db, 'users', teacherUid, 'classes', activeClassId), { name, subject });
       closeModal('modal-edit-class');
       showToast('Class updated.', 'success');
     } catch(e) {
@@ -653,8 +656,8 @@
   async function deleteClass() {
     const cls = classesData[activeClassId];
     try {
-      await remove(ref(db, `users/${teacherUid}/classes/${activeClassId}`));
-      await remove(ref(db, `classCodes/${cls.joinCode}`));
+      await deleteDoc(doc(db, 'users', teacherUid, 'classes', activeClassId));
+      await deleteDoc(doc(db, 'classCodes', cls.joinCode));
       closeModal('modal-edit-class');
       showToast('Class deleted.', 'info');
     } catch(e) {

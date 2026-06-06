@@ -93,7 +93,6 @@
           <span class="icon">🎓</span>Student
         </div>
       </div>
-
       <div class="form-group">
         <label>Your name</label>
         <input type="text" id="signup-name" placeholder="Your full name" autocomplete="name">
@@ -107,14 +106,11 @@
         <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
         <p class="form-hint">Minimum 8 characters</p>
       </div>
-
-      <!-- Class code — shown only for students -->
       <div class="form-group" id="class-code-group" style="display:none;">
         <label>Class code <span class="optional-label">(optional)</span></label>
         <input type="text" id="signup-class-code" placeholder="e.g. XK7P2M" maxlength="6" class="code-input">
         <p class="form-hint">Enter the code your teacher gave you, or leave blank.</p>
       </div>
-
       <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create account</button>
     </div>
   </div>
@@ -127,6 +123,14 @@
   </div>
 </div>
 
+<script>
+  function switchTab(t) { window._switchTab && window._switchTab(t); }
+  function selectType(t) { window._selectType && window._selectType(t); }
+  function handleLogin() { window._handleLogin && window._handleLogin(); }
+  function handleSignup() { window._handleSignup && window._handleSignup(); }
+  function showForgotPassword() { window._showForgotPassword && window._showForgotPassword(); }
+</script>
+
 <script type="module">
   import { auth, db } from './firebase-config.js';
   import { redirectByRole } from './auth.js';
@@ -134,11 +138,13 @@
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import {
+    doc, setDoc, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let signupType = 'parent';
 
-  window.switchTab = function(tab) {
+  window._switchTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach((b,i) => {
       b.classList.toggle('active',(tab==='login'&&i===0)||(tab==='signup'&&i===1));
     });
@@ -147,14 +153,14 @@
     hideError();
   };
 
-  window.selectType = function(type) {
+  window._selectType = function(type) {
     signupType = type;
     document.getElementById('type-parent').classList.toggle('selected', type==='parent');
     document.getElementById('type-student').classList.toggle('selected', type==='student');
     document.getElementById('class-code-group').style.display = type==='student' ? 'block' : 'none';
   };
 
-  window.handleLogin = async function() {
+  window._handleLogin = async function() {
     const email    = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     if (!email || !password) { showError('Please enter your email and password.'); return; }
@@ -168,7 +174,7 @@
     }
   };
 
-  window.handleSignup = async function() {
+  window._handleSignup = async function() {
     const name     = document.getElementById('signup-name').value.trim();
     const email    = document.getElementById('signup-email').value.trim();
     const password = document.getElementById('signup-password').value;
@@ -181,9 +187,9 @@
     // Validate class code if provided
     let classInfo = null;
     if (signupType === 'student' && code) {
-      const codeSnap = await get(ref(db, `classCodes/${code}`));
+      const codeSnap = await getDoc(doc(db, 'classCodes', code));
       if (!codeSnap.exists()) { showError('Class code not found. Please check and try again.'); return; }
-      classInfo = codeSnap.val();
+      classInfo = codeSnap.data();
     }
 
     setLoading('btn-signup', true);
@@ -193,7 +199,7 @@
       await updateProfile(cred.user, { displayName: name });
 
       if (signupType === 'parent') {
-        await set(ref(db, `users/${uid}`), {
+        await setDoc(doc(db, 'users', uid), {
           name, email, role: 'parent', theme: 'parent',
           createdAt: Date.now(), children: {}
         });
@@ -201,15 +207,11 @@
         const profile = {
           name, email, role: 'student', theme: 'edge',
           createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
-          classes: {}
+          classes: classInfo ? { [classInfo.classId]: true } : {}
         };
+        await setDoc(doc(db, 'users', uid), profile);
         if (classInfo) {
-          profile.classes[classInfo.classId] = true;
-        }
-        await set(ref(db, `users/${uid}`), profile);
-        // Link student into teacher's class
-        if (classInfo) {
-          await set(ref(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students/${uid}`), { name, email });
+          await setDoc(doc(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students`, uid), { name, email });
         }
       }
       await redirectByRole(uid);
@@ -219,7 +221,7 @@
     }
   };
 
-  window.showForgotPassword = async function() {
+  window._showForgotPassword = async function() {
     const email = document.getElementById('login-email').value.trim();
     if (!email) { showError('Enter your email above first.'); return; }
     try {
@@ -249,8 +251,8 @@
   }
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
-    if (document.getElementById('panel-login').classList.contains('active')) window.handleLogin();
-    else window.handleSignup();
+    if (document.getElementById('panel-login').classList.contains('active')) window._handleLogin();
+    else window._handleSignup();
   });
 </script>
 <script>

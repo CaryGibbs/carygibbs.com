@@ -1,0 +1,13 @@
+rules_version = '2';
+// ============================================================
+// CLASP — Firestore Security Rules
+// Phase 2: Open rules for development
+// Phase 3+: Replace with proper auth-based rules
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

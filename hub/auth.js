@@ -1,14 +1,14 @@
 // ============================================================
-// CLASP — Shared Auth Utilities
+// CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export async function getUserProfile(uid) {
-  const snap = await get(ref(db, `users/${uid}`));
-  return snap.exists() ? snap.val() : null;
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? snap.data() : null;
 }
 
 export function requireAuth(callback) {
@@ -33,10 +33,10 @@ export async function handleSignOut() {
   window.location.href = 'index.html';
 }
 
-// Route user to the right page after login
 export async function redirectByRole(uid) {
-  const snap = await get(ref(db, `users/${uid}/role`));
-  const role = snap.val();
+  const profile = await getUserProfile(uid);
+  if (!profile) { window.location.href = 'index.html'; return; }
+  const role = profile.role;
   if (role === 'parent')  { window.location.href = 'parent.html'; return; }
   if (role === 'teacher') { window.location.href = 'teacher-dashboard.html'; return; }
   if (role === 'admin')   { window.location.href = 'admin.html'; return; }

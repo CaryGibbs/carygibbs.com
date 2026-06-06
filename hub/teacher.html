@@ -207,7 +207,7 @@
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   window.switchTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach((b, i) => {
@@ -225,8 +225,8 @@
     setLoading('btn-login', true);
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      const snap = await get(ref(db, `users/${cred.user.uid}/role`));
-      if (snap.val() !== 'teacher') {
+      const snap = await getDoc(doc(db, 'users', cred.user.uid));
+      if (!snap.exists() || snap.data().role !== 'teacher') {
         showError('This account is not a teacher account. Use the main login page.');
         setLoading('btn-login', false);
         return;
@@ -251,7 +251,7 @@
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(cred.user, { displayName: name });
-      await set(ref(db, `users/${cred.user.uid}`), {
+      await setDoc(doc(db, 'users', cred.user.uid), {
         name, email, school,
         role: 'teacher',
         theme: 'parent',
@@ -276,8 +276,8 @@
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
-    const snap = await get(ref(db, `users/${user.uid}/role`));
-    if (snap.val() === 'teacher') window.location.href = 'teacher-dashboard.html';
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists() && snap.data().role === 'teacher') window.location.href = 'teacher-dashboard.html';
   });
 
   function showError(msg) { const el=document.getElementById('error-msg'); el.textContent=msg; el.classList.add('visible'); }

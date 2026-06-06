@@ -7,78 +7,25 @@
   <link rel="stylesheet" href="theme.css">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
-    .topnav {
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-border);
-      padding: 0 var(--space-xl);
-      height: 64px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-    }
-    .nav-logo {
-      display: flex; align-items: center; gap: 10px;
-      font-family: var(--font-heading); font-weight: 800;
-      font-size: 1.3rem; color: var(--color-text);
-      text-decoration: none;
-    }
-    .nav-logo-icon {
-      width: 32px; height: 32px;
-      background: var(--color-primary);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-    }
-    .container {
-      max-width: 700px; margin: 0 auto;
-      padding: var(--space-2xl) var(--space-lg);
-      text-align: center;
-    }
+    .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem; color: var(--color-text); text-decoration: none; }
+    .nav-logo-icon { width: 32px; height: 32px; background: var(--color-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .container { max-width: 700px; margin: 0 auto; padding: var(--space-2xl) var(--space-lg); text-align: center; }
     .welcome-icon { font-size: 3.5rem; margin-bottom: var(--space-lg); }
-    .welcome-title {
-      font-size: 2rem; font-weight: 800;
-      margin-bottom: var(--space-sm);
-    }
+    .welcome-title { font-size: 2rem; font-weight: 800; margin-bottom: var(--space-sm); }
     .welcome-title span { color: var(--color-primary); }
-    .welcome-sub {
-      color: var(--color-text-muted); font-size: 1rem;
-      margin-bottom: var(--space-xl);
-      max-width: 420px; margin-left: auto; margin-right: auto;
-    }
-    .coming-soon {
-      display: inline-block;
-      background: var(--color-primary-glow);
-      color: var(--color-primary);
-      padding: 6px 18px;
-      border-radius: var(--radius-pill);
-      font-size: 0.85rem;
-      font-family: var(--font-ui); font-weight: 600;
-      margin-bottom: var(--space-xl);
-    }
-    .subjects-preview {
-      display: flex; flex-wrap: wrap; gap: var(--space-sm);
-      justify-content: center; margin-bottom: var(--space-xl);
-    }
-    .subject-chip {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-pill);
-      padding: 8px 16px;
-      font-size: 0.85rem; font-family: var(--font-ui);
-      color: var(--color-text-muted);
-    }
+    .welcome-sub { color: var(--color-text-muted); font-size: 1rem; margin-bottom: var(--space-xl); max-width: 420px; margin-left: auto; margin-right: auto; }
+    .coming-soon { display: inline-block; background: var(--color-primary-glow); color: var(--color-primary); padding: 6px 18px; border-radius: var(--radius-pill); font-size: 0.85rem; font-family: var(--font-ui); font-weight: 600; margin-bottom: var(--space-xl); }
+    .subjects-preview { display: flex; flex-wrap: wrap; gap: var(--space-sm); justify-content: center; margin-bottom: var(--space-xl); }
+    .subject-chip { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 8px 16px; font-size: 0.85rem; font-family: var(--font-ui); color: var(--color-text-muted); }
   </style>
 </head>
 <body>
 <div id="toast-container"></div>
-
 <nav class="topnav">
-  <a href="hub.html" class="nav-logo">
-    <div class="nav-logo-icon">📎</div>
-    Clasp
-  </a>
+  <a href="hub.html" class="nav-logo"><div class="nav-logo-icon">📎</div>Clasp</a>
   <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
 </nav>
-
 <div class="container page-fade">
   <div class="welcome-icon">🎓</div>
   <div class="coming-soon">Phases 4 & 5 — Coming soon</div>
@@ -93,7 +40,6 @@
     <span class="subject-chip">✝️ RE</span>
   </div>
 </div>
-
 <script>
   function doSignOut() { window._doSignOut && window._doSignOut(); }
 </script>
