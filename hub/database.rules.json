@@ -1,0 +1,31 @@
+{
+  "rules": {
+    // ============================================================
+    // CLASP — Firebase Realtime Database Security Rules
+    // Phase 1: Open read/write for development (test mode)
+    // Phase 2: These will be replaced with proper auth rules
+    // ============================================================
+
+    ".read": true,
+    ".write": true
+
+    // ── Phase 2 rules (replace above with these) ──────────────
+    //
+    // "users": {
+    //   "$uid": {
+    //     ".read":  "$uid === auth.uid",
+    //     ".write": "$uid === auth.uid"
+    //   }
+    // },
+    // "content": {
+    //   ".read": "auth !== null",
+    //   ".write": "auth !== null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    // },
+    // "progress": {
+    //   "$uid": {
+    //     ".read":  "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'parent'",
+    //     ".write": "$uid === auth.uid"
+    //   }
+    // }
+  }
+}
