@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="edge">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasp — Mindmap</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { min-height: 100vh; background: var(--color-bg); }
+
+    /* ── Top nav ─────────────────────────────────────────── */
+    .topnav {
+      background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl); height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; gap: var(--space-md);
+    }
+    .nav-back {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600;
+      color: var(--color-text-muted); text-decoration: none; flex-shrink: 0;
+      transition: color var(--transition-fast);
+    }
+    .nav-back:hover { color: var(--color-primary); }
+    .nav-title {
+      font-family: var(--font-heading); font-size: 1rem; font-weight: 700;
+      color: var(--color-text); flex: 1; text-align: center;
+    }
+    .view-toggle {
+      display: flex; gap: 4px; background: var(--color-surface-2);
+      border-radius: var(--radius-button); padding: 3px; flex-shrink: 0;
+    }
+    .view-btn {
+      padding: 6px 12px; border-radius: calc(var(--radius-button) - 2px);
+      background: transparent; color: var(--color-text-muted);
+      font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600;
+      border: none; cursor: pointer; transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .view-btn.active {
+      background: var(--color-surface); color: var(--color-text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    /* ── Loading ─────────────────────────────────────────── */
+    .loading-wrap {
+      display: flex; align-items: center; justify-content: center;
+      min-height: calc(100vh - 64px); flex-direction: column; gap: var(--space-md);
+    }
+    .loading-wrap p { color: var(--color-text-muted); font-family: var(--font-ui); }
+
+    /* ── View panels ─────────────────────────────────────── */
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    /* ══════════════════════════════════════════════════════
+       VIEW 1: SPIDER DIAGRAM (SVG canvas)
+    ══════════════════════════════════════════════════════ */
+    #view-spider {
+      width: 100%; height: calc(100vh - 64px);
+      overflow: hidden; position: relative; cursor: grab;
+    }
+    #view-spider:active { cursor: grabbing; }
+    #spider-canvas {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .spider-hint {
+      position: absolute; bottom: var(--space-lg); left: 50%; transform: translateX(-50%);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill); padding: 6px 16px;
+      font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted);
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       VIEW 2: OUTLINE / ACCORDION
+    ══════════════════════════════════════════════════════ */
+    #view-outline { padding: var(--space-xl) var(--space-lg); max-width: 720px; margin: 0 auto; }
+    .outline-subject {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); margin-bottom: var(--space-md);
+      overflow: hidden;
+    }
+    .outline-subject-header {
+      display: flex; align-items: center; gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg); cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    .outline-subject-header:hover { background: var(--color-surface-2); }
+    .outline-subject-emoji { font-size: 1.4rem; }
+    .outline-subject-name { font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; flex: 1; }
+    .outline-chevron { color: var(--color-text-faint); transition: transform var(--transition-fast); font-size: 1.1rem; }
+    .outline-subject.open .outline-chevron { transform: rotate(90deg); }
+    .outline-topics { display: none; border-top: 1px solid var(--color-border); }
+    .outline-subject.open .outline-topics { display: block; }
+    .outline-topic {
+      border-bottom: 1px solid var(--color-border); overflow: hidden;
+    }
+    .outline-topic:last-child { border-bottom: none; }
+    .outline-topic-header {
+      display: flex; align-items: center; gap: var(--space-md);
+      padding: var(--space-sm) var(--space-lg) var(--space-sm) calc(var(--space-lg) + 24px);
+      cursor: pointer; transition: background var(--transition-fast);
+    }
+    .outline-topic-header:hover { background: var(--color-surface-2); }
+    .outline-topic-name {
+      font-family: var(--font-ui); font-size: 0.92rem; font-weight: 600; flex: 1;
+      color: var(--color-text);
+    }
+    .outline-topic-count {
+      font-size: 0.78rem; color: var(--color-text-muted); font-family: var(--font-ui);
+    }
+    .outline-topic-chevron { color: var(--color-text-faint); transition: transform var(--transition-fast); font-size: 0.9rem; }
+    .outline-topic.open .outline-topic-chevron { transform: rotate(90deg); }
+    .outline-keypoints { display: none; padding: var(--space-sm) var(--space-lg) var(--space-md) calc(var(--space-lg) + 48px); }
+    .outline-topic.open .outline-keypoints { display: block; }
+    .keypoint-item {
+      display: flex; align-items: flex-start; gap: var(--space-sm);
+      padding: 6px 0; border-bottom: 1px solid var(--color-border);
+      font-size: 0.88rem; color: var(--color-text); line-height: 1.5;
+    }
+    .keypoint-item:last-child { border-bottom: none; }
+    .keypoint-dot { color: var(--color-primary); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .keypoint-type {
+      font-size: 0.7rem; font-family: var(--font-ui); font-weight: 700;
+      text-transform: uppercase; color: var(--color-text-faint); flex-shrink: 0;
+      min-width: 36px; margin-top: 2px;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       VIEW 3: FLASHCARDS
+    ══════════════════════════════════════════════════════ */
+    #view-flashcards {
+      display: flex; flex-direction: column; align-items: center;
+      padding: var(--space-xl) var(--space-lg); min-height: calc(100vh - 64px);
+    }
+    .flashcard-meta {
+      font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
+      margin-bottom: var(--space-lg);
+    }
+    .flashcard-wrap {
+      width: 100%; max-width: 560px; perspective: 1000px; margin-bottom: var(--space-xl);
+    }
+    .flashcard {
+      width: 100%; min-height: 260px;
+      position: relative; transform-style: preserve-3d;
+      transition: transform 0.5s ease; cursor: pointer;
+    }
+    .flashcard.flipped { transform: rotateY(180deg); }
+    .flashcard-face {
+      position: absolute; inset: 0;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-xl);
+      backface-visibility: hidden;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      box-shadow: var(--shadow-card);
+    }
+    .flashcard-back {
+      transform: rotateY(180deg);
+      background: var(--color-primary-glow);
+      border-color: var(--color-primary);
+    }
+    .flashcard-label {
+      font-family: var(--font-ui); font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--color-text-faint); margin-bottom: var(--space-md);
+    }
+    .flashcard-back .flashcard-label { color: var(--color-primary); }
+    .flashcard-content {
+      font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700;
+      color: var(--color-text); line-height: 1.4;
+    }
+    .flashcard-back .flashcard-content { color: var(--color-text); font-size: 1rem; font-weight: 400; font-family: var(--font-body); }
+    .flashcard-hint {
+      font-size: 0.78rem; color: var(--color-text-faint); margin-top: var(--space-md);
+      font-family: var(--font-ui);
+    }
+    .flashcard-type {
+      position: absolute; top: var(--space-md); right: var(--space-md);
+      font-size: 0.7rem; font-family: var(--font-ui); font-weight: 700;
+      text-transform: uppercase; color: var(--color-text-faint);
+    }
+
+    .flashcard-nav {
+      display: flex; align-items: center; gap: var(--space-lg);
+    }
+    .fc-nav-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast); color: var(--color-text);
+    }
+    .fc-nav-btn:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+    .fc-nav-btn:disabled { opacity: 0.3; cursor: default; }
+    .fc-counter {
+      font-family: var(--font-ui); font-size: 0.9rem; color: var(--color-text-muted);
+      min-width: 70px; text-align: center;
+    }
+    .fc-topic-label {
+      font-family: var(--font-ui); font-size: 0.82rem; color: var(--color-text-muted);
+      margin-top: var(--space-md); text-align: center;
+    }
+
+    /* ── Empty state ─────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: var(--space-2xl); color: var(--color-text-muted);
+    }
+    .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
+  </style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<nav class="topnav">
+  <a href="hub.html" class="nav-back">← Back</a>
+  <div class="nav-title" id="nav-title">Mindmap</div>
+  <div class="view-toggle">
+    <button class="view-btn active" data-view="spider" onclick="switchView('spider')">🕸️ Spider</button>
+    <button class="view-btn" data-view="outline" onclick="switchView('outline')">📋 Outline</button>
+    <button class="view-btn" data-view="flashcards" onclick="switchView('flashcards')">🃏 Cards</button>
+  </div>
+</nav>
+
+<!-- Loading -->
+<div id="loading-wrap" class="loading-wrap">
+  <div class="spinner" style="width:48px;height:48px;"></div>
+  <p>Loading content…</p>
+</div>
+
+<!-- Spider view -->
+<div class="view-panel" id="view-spider">
+  <canvas id="spider-canvas"></canvas>
+  <div class="spider-hint">Drag to pan · Scroll to zoom</div>
+</div>
+
+<!-- Outline view -->
+<div class="view-panel" id="view-outline"></div>
+
+<!-- Flashcards view -->
+<div class="view-panel" id="view-flashcards">
+  <div class="flashcard-meta" id="fc-meta"></div>
+  <div class="flashcard-wrap">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="flashcard-face flashcard-front">
+        <div class="flashcard-label">Question / Term</div>
+        <div class="flashcard-content" id="fc-front">Loading…</div>
+        <div class="flashcard-hint">Tap to reveal answer</div>
+        <div class="flashcard-type" id="fc-type"></div>
+      </div>
+      <div class="flashcard-face flashcard-back">
+        <div class="flashcard-label">Answer</div>
+        <div class="flashcard-content" id="fc-back"></div>
+      </div>
+    </div>
+  </div>
+  <div class="flashcard-nav">
+    <button class="fc-nav-btn" id="fc-prev" onclick="prevCard()" disabled>‹</button>
+    <div class="fc-counter" id="fc-counter">1 / 1</div>
+    <button class="fc-nav-btn" id="fc-next" onclick="nextCard()">›</button>
+  </div>
+  <div class="fc-topic-label" id="fc-topic-label"></div>
+</div>
+
+<script>
+  function switchView(v) { window._switchView && window._switchView(v); }
+  function flipCard() { window._flipCard && window._flipCard(); }
+  function prevCard() { window._prevCard && window._prevCard(); }
+  function nextCard() { window._nextCard && window._nextCard(); }
+</script>
+
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { requireRole, showToast } from './auth.js';
+import {
+  collection, getDocs, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const params    = new URLSearchParams(location.search);
+const groupId   = params.get('groupId');
+const subjectId = params.get('subjectId');
+const topicId   = params.get('topicId');
+const subjectName = params.get('subjectName') || 'Subject';
+const topicName   = params.get('topicName') || '';
+
+/* ── Data model ──────────────────────────────────────────── */
+// subjects = [{ id, name, emoji, topics: [{ id, name, questions: [...] }] }]
+let subjects = [];
+let allFlashcards = []; // flat list for flashcard view
+let currentView = 'spider';
+let fcIdx = 0;
+let fcFlipped = false;
+
+/* ── Spider canvas state ─────────────────────────────────── */
+let spiderNodes = [];
+let spiderEdges = [];
+let panX = 0, panY = 0, zoom = 1;
+let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
+
+requireRole('student', async (user, profile) => {
+  if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
+  document.getElementById('nav-title').textContent = topicName || subjectName;
+  await loadData();
+});
+
+async function loadData() {
+  try {
+    if (topicId) {
+      // Single topic mode
+      const subSnap = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}`));
+      const topSnap = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}/topics/${topicId}`));
+      const qSnap   = await getDocs(collection(db, `content/${groupId}/subjects/${subjectId}/topics/${topicId}/questions`));
+      const qs = [];
+      qSnap.forEach(d => qs.push({ id: d.id, ...d.data() }));
+      subjects = [{
+        id: subjectId,
+        name: subSnap.exists() ? subSnap.data().name : subjectName,
+        emoji: subSnap.exists() ? subSnap.data().emoji || '📚' : '📚',
+        topics: [{ id: topicId, name: topSnap.exists() ? topSnap.data().name : topicName, questions: qs }]
+      }];
+    } else {
+      // Whole subject mode
+      const subSnap  = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}`));
+      const topSnap  = await getDocs(collection(db, `content/${groupId}/subjects/${subjectId}/topics`));
+      const topicList = [];
+      topSnap.forEach(d => topicList.push({ id: d.id, ...d.data() }));
+
+      const topicsWithQ = await Promise.all(topicList.map(async t => {
+        const qSnap = await getDocs(collection(db,
+          `content/${groupId}/subjects/${subjectId}/topics/${t.id}/questions`)).catch(() => null);
+        const qs = [];
+        if (qSnap) qSnap.forEach(d => qs.push({ id: d.id, ...d.data() }));
+        return { ...t, questions: qs };
+      }));
+
+      subjects = [{
+        id: subjectId,
+        name: subSnap.exists() ? subSnap.data().name : subjectName,
+        emoji: subSnap.exists() ? subSnap.data().emoji || '📚' : '📚',
+        topics: topicsWithQ
+      }];
+    }
+
+    buildFlashcards();
+    document.getElementById('loading-wrap').style.display = 'none';
+    showView('spider');
+    buildSpider();
+    buildOutline();
+  } catch(e) {
+    document.getElementById('loading-wrap').innerHTML =
+      `<div class="empty-state"><h3>Failed to load</h3><p>${e.message}</p></div>`;
+  }
+}
+
+/* ── Flashcard data ──────────────────────────────────────── */
+function buildFlashcards() {
+  allFlashcards = [];
+  subjects.forEach(s => {
+    s.topics.forEach(t => {
+      (t.questions || []).forEach(q => {
+        const card = questionToFlashcard(q, t.name);
+        if (card) allFlashcards.push(card);
+      });
+    });
+  });
+  shuffle(allFlashcards);
+}
+
+function questionToFlashcard(q, topicName) {
+  if (q.type === 'mcq') {
+    const correct = (q.options||[]).find(o => o.correct);
+    return { front: q.question, back: correct?.text || '?', type: 'MCQ', topic: topicName };
+  }
+  if (q.type === 'tf') {
+    return { front: q.question, back: (q.answer ? '✅ True' : '❌ False') + (q.explanation ? '\n\n' + q.explanation : ''), type: 'T/F', topic: topicName };
+  }
+  if (q.type === 'fill') {
+    const front = (q.sentence||'').replace('_____', '_____');
+    return { front, back: q.answer, type: 'Fill', topic: topicName };
+  }
+  if (q.type === 'match') {
+    // One card per pair
+    return (q.pairs||[]).map(p => ({ front: p.left, back: p.right, type: 'Match', topic: topicName }));
+  }
+  if (q.type === 'short') {
+    return { front: q.question, back: q.markScheme, type: 'Short', topic: topicName };
+  }
+  return null;
+}
+
+/* ── View switching ──────────────────────────────────────── */
+window._switchView = function(v) {
+  currentView = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  showView(v);
+  if (v === 'flashcards') renderFlashcard();
+  if (v === 'spider') buildSpider();
+};
+
+function showView(v) {
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════════════
+   SPIDER DIAGRAM
+══════════════════════════════════════════════════════════ */
+function buildSpider() {
+  const canvas = document.getElementById('spider-canvas');
+  const wrap   = document.getElementById('view-spider');
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  const ctx = canvas.getContext('2d');
+
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+
+  spiderNodes = [];
+  spiderEdges = [];
+
+  // Centre node: subject
+  const sub = subjects[0];
+  spiderNodes.push({ x: cx, y: cy, label: (sub.emoji || '📚') + ' ' + sub.name, type: 'root', r: 52 });
+
+  // Topic nodes in a ring
+  const topics = sub.topics || [];
+  const topicR = Math.min(canvas.width, canvas.height) * 0.28;
+  topics.forEach((t, i) => {
+    const angle = (i / topics.length) * Math.PI * 2 - Math.PI / 2;
+    const tx = cx + Math.cos(angle) * topicR;
+    const ty = cy + Math.sin(angle) * topicR;
+    spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 38, topicIdx: i });
+    spiderEdges.push({ from: 0, to: spiderNodes.length - 1 });
+
+    // Question count satellite
+    const qCount = (t.questions||[]).length;
+    if (qCount > 0) {
+      const satAngle = angle + 0.35;
+      const satR = topicR + 60;
+      spiderNodes.push({
+        x: cx + Math.cos(satAngle) * satR,
+        y: cy + Math.sin(satAngle) * satR,
+        label: `${qCount} Q`, type: 'count', r: 20
+      });
+      spiderEdges.push({ from: spiderNodes.length - 2, to: spiderNodes.length - 1 });
+    }
+  });
+
+  panX = 0; panY = 0; zoom = 1;
+  drawSpider(ctx, canvas);
+  setupSpiderInteraction(canvas, ctx);
+}
+
+function drawSpider(ctx, canvas) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(panX, panY);
+  ctx.scale(zoom, zoom);
+
+  // Edges
+  spiderEdges.forEach(e => {
+    const a = spiderNodes[e.from];
+    const b = spiderNodes[e.to];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-border') || '#2a2a4a';
+    ctx.lineWidth = b.type === 'count' ? 1 : 2;
+    ctx.setLineDash(b.type === 'count' ? [4,4] : []);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Nodes
+  spiderNodes.forEach(n => {
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c63ff';
+    const surfaceColor = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#16162a';
+    const textColor    = getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim() || '#f0f0ff';
+    const mutedColor   = getComputedStyle(document.documentElement).getPropertyValue('--color-text-muted').trim() || '#8888aa';
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+    if (n.type === 'root') {
+      ctx.fillStyle = primaryColor;
+    } else if (n.type === 'topic') {
+      ctx.fillStyle = surfaceColor;
+      ctx.strokeStyle = primaryColor;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = 'rgba(108,99,255,0.15)';
+    }
+    ctx.fill();
+
+    // Label
+    ctx.fillStyle = n.type === 'root' ? '#fff' : (n.type === 'count' ? primaryColor : textColor);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (n.type === 'count') {
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(n.label, n.x, n.y);
+    } else {
+      // Word wrap
+      const words = n.label.split(' ');
+      const maxWidth = n.r * 1.6;
+      ctx.font = n.type === 'root' ? 'bold 13px sans-serif' : '12px sans-serif';
+      const lines = [];
+      let current = '';
+      words.forEach(w => {
+        const test = current ? current + ' ' + w : w;
+        if (ctx.measureText(test).width > maxWidth && current) {
+          lines.push(current); current = w;
+        } else { current = test; }
+      });
+      if (current) lines.push(current);
+      const lineH = 14;
+      const startY = n.y - ((lines.length - 1) * lineH) / 2;
+      lines.forEach((line, i) => ctx.fillText(line, n.x, startY + i * lineH));
+    }
+  });
+
+  ctx.restore();
+}
+
+function setupSpiderInteraction(canvas, ctx) {
+  // Remove old listeners by replacing canvas
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+  const c = newCanvas;
+  const drawFn = () => drawSpider(c.getContext('2d'), c);
+
+  c.addEventListener('mousedown', e => { dragging = true; dragStartX = e.clientX; dragStartY = e.clientY; panStartX = panX; panStartY = panY; });
+  c.addEventListener('mousemove', e => { if (!dragging) return; panX = panStartX + (e.clientX - dragStartX); panY = panStartY + (e.clientY - dragStartY); drawFn(); });
+  c.addEventListener('mouseup', () => dragging = false);
+  c.addEventListener('mouseleave', () => dragging = false);
+  c.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    zoom = Math.max(0.3, Math.min(3, zoom * delta));
+    drawFn();
+  }, { passive: false });
+
+  // Touch
+  let lastTouchDist = 0;
+  c.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) { dragging = true; dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY; panStartX = panX; panStartY = panY; }
+    if (e.touches.length === 2) { lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+  });
+  c.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && dragging) { panX = panStartX + (e.touches[0].clientX - dragStartX); panY = panStartY + (e.touches[0].clientY - dragStartY); drawFn(); }
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      zoom = Math.max(0.3, Math.min(3, zoom * (dist / lastTouchDist)));
+      lastTouchDist = dist; drawFn();
+    }
+  }, { passive: false });
+  c.addEventListener('touchend', () => dragging = false);
+
+  window.addEventListener('resize', () => {
+    const wrap = document.getElementById('view-spider');
+    c.width = wrap.clientWidth; c.height = wrap.clientHeight;
+    buildSpider();
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   OUTLINE VIEW
+══════════════════════════════════════════════════════════ */
+function buildOutline() {
+  const wrap = document.getElementById('view-outline');
+  wrap.innerHTML = '';
+
+  if (!subjects.length) {
+    wrap.innerHTML = `<div class="empty-state"><h3>No content</h3></div>`;
+    return;
+  }
+
+  subjects.forEach(s => {
+    const subEl = document.createElement('div');
+    subEl.className = 'outline-subject';
+
+    const topics = s.topics || [];
+    const totalQ = topics.reduce((acc, t) => acc + (t.questions||[]).length, 0);
+
+    subEl.innerHTML = `
+      <div class="outline-subject-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="outline-subject-emoji">${s.emoji || '📚'}</span>
+        <span class="outline-subject-name">${esc(s.name)}</span>
+        <span style="font-size:0.8rem;color:var(--color-text-muted);margin-right:8px;">${topics.length} topics · ${totalQ} questions</span>
+        <span class="outline-chevron">›</span>
+      </div>
+      <div class="outline-topics" id="outline-topics-${s.id}"></div>`;
+    wrap.appendChild(subEl);
+
+    const topicsWrap = subEl.querySelector('.outline-topics');
+    topics.forEach(t => {
+      const qs = t.questions || [];
+      const topicEl = document.createElement('div');
+      topicEl.className = 'outline-topic';
+
+      // Extract key points from questions
+      const keypoints = qs.map(q => questionToKeypoint(q)).filter(Boolean);
+
+      topicEl.innerHTML = `
+        <div class="outline-topic-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="outline-topic-name">📝 ${esc(t.name)}</span>
+          <span class="outline-topic-count">${qs.length} Q</span>
+          <span class="outline-topic-chevron">›</span>
+        </div>
+        <div class="outline-keypoints">
+          ${keypoints.length
+            ? keypoints.map(kp => `
+              <div class="keypoint-item">
+                <span class="keypoint-dot">•</span>
+                <span class="keypoint-type">${kp.type}</span>
+                <span>${esc(kp.text)}</span>
+              </div>`).join('')
+            : '<div style="font-size:0.85rem;color:var(--color-text-muted);padding:8px 0;">No questions yet</div>'
+          }
+        </div>`;
+      topicsWrap.appendChild(topicEl);
+    });
+  });
+}
+
+function questionToKeypoint(q) {
+  if (q.type === 'mcq')   return { type: 'MCQ', text: q.question };
+  if (q.type === 'tf')    return { type: 'T/F', text: q.question + ' → ' + (q.answer ? 'True' : 'False') };
+  if (q.type === 'fill')  return { type: 'Fill', text: (q.sentence||'').replace('_____', `[${q.answer}]`) };
+  if (q.type === 'match') return { type: 'Match', text: (q.pairs||[]).map(p => `${p.left} → ${p.right}`).join(' | ') };
+  if (q.type === 'short') return { type: 'Short', text: q.question };
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════
+   FLASHCARDS
+══════════════════════════════════════════════════════════ */
+function renderFlashcard() {
+  const cards = flattenFlashcards();
+  if (!cards.length) {
+    document.getElementById('fc-front').textContent = 'No cards available';
+    document.getElementById('fc-back').textContent = 'Add some questions first';
+    return;
+  }
+
+  document.getElementById('fc-meta').textContent = `${cards.length} cards`;
+  const card = cards[fcIdx];
+  document.getElementById('fc-front').textContent = card.front;
+  document.getElementById('fc-back').textContent = card.back;
+  document.getElementById('fc-type').textContent = card.type || '';
+  document.getElementById('fc-topic-label').textContent = card.topic || '';
+  document.getElementById('fc-counter').textContent = `${fcIdx + 1} / ${cards.length}`;
+  document.getElementById('fc-prev').disabled = fcIdx === 0;
+  document.getElementById('fc-next').disabled = fcIdx === cards.length - 1;
+
+  // Reset flip
+  document.getElementById('flashcard').classList.remove('flipped');
+  fcFlipped = false;
+}
+
+function flattenFlashcards() {
+  const cards = [];
+  allFlashcards.forEach(fc => {
+    if (Array.isArray(fc)) cards.push(...fc);
+    else if (fc) cards.push(fc);
+  });
+  return cards;
+}
+
+window._flipCard  = () => { fcFlipped = !fcFlipped; document.getElementById('flashcard').classList.toggle('flipped', fcFlipped); };
+window._prevCard  = () => { if (fcIdx > 0) { fcIdx--; renderFlashcard(); } };
+window._nextCard  = () => { const cards = flattenFlashcards(); if (fcIdx < cards.length - 1) { fcIdx++; renderFlashcard(); } };
+
+/* ── Utils ───────────────────────────────────────────────── */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+<script>
+window.showToast = function(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3500);
+};
+</script>
+</body>
+</html>

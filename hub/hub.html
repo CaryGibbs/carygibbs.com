@@ -7,48 +7,323 @@
   <link rel="stylesheet" href="theme.css">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
-    .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .nav-logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem; color: var(--color-text); text-decoration: none; }
-    .nav-logo-icon { width: 32px; height: 32px; background: var(--color-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-    .container { max-width: 700px; margin: 0 auto; padding: var(--space-2xl) var(--space-lg); text-align: center; }
-    .welcome-icon { font-size: 3.5rem; margin-bottom: var(--space-lg); }
-    .welcome-title { font-size: 2rem; font-weight: 800; margin-bottom: var(--space-sm); }
-    .welcome-title span { color: var(--color-primary); }
-    .welcome-sub { color: var(--color-text-muted); font-size: 1rem; margin-bottom: var(--space-xl); max-width: 420px; margin-left: auto; margin-right: auto; }
-    .coming-soon { display: inline-block; background: var(--color-primary-glow); color: var(--color-primary); padding: 6px 18px; border-radius: var(--radius-pill); font-size: 0.85rem; font-family: var(--font-ui); font-weight: 600; margin-bottom: var(--space-xl); }
-    .subjects-preview { display: flex; flex-wrap: wrap; gap: var(--space-sm); justify-content: center; margin-bottom: var(--space-xl); }
-    .subject-chip { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 8px 16px; font-size: 0.85rem; font-family: var(--font-ui); color: var(--color-text-muted); }
+
+    /* ── Top nav ─────────────────────────────────────────── */
+    .topnav {
+      background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl); height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem;
+      color: var(--color-text); text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px; background: var(--color-primary);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .nav-right { display: flex; align-items: center; gap: var(--space-md); }
+    .nav-user {
+      font-family: var(--font-ui); font-size: 0.88rem;
+      color: var(--color-text-muted);
+    }
+    .nav-user strong { color: var(--color-text); }
+
+    /* ── Page layout ─────────────────────────────────────── */
+    .page { max-width: 900px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+
+    /* ── Welcome banner ──────────────────────────────────── */
+    .welcome-banner {
+      margin-bottom: var(--space-xl);
+      animation: fadeIn 0.5s ease both;
+    }
+    .welcome-greeting {
+      font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800;
+      margin-bottom: var(--space-xs);
+    }
+    .welcome-greeting span { color: var(--color-primary); }
+    .welcome-sub { color: var(--color-text-muted); font-size: 0.95rem; }
+
+    /* ── Section header ──────────────────────────────────── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-md);
+    }
+    .section-title {
+      font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;
+    }
+
+    /* ── Subject cards ───────────────────────────────────── */
+    .subjects-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: var(--space-md); margin-bottom: var(--space-2xl);
+    }
+    .subject-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-lg);
+      transition: all var(--transition-base);
+      animation: fadeIn 0.4s ease both;
+    }
+    .subject-card:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+    .subject-card-header {
+      display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);
+    }
+    .subject-emoji {
+      font-size: 2rem; width: 52px; height: 52px;
+      background: var(--color-surface-2); border-radius: var(--radius-card);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .subject-name {
+      font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700;
+    }
+    .subject-meta { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 2px; }
+    .subject-actions {
+      display: flex; gap: var(--space-sm);
+    }
+    .subject-actions .btn {
+      flex: 1; padding: 9px var(--space-sm); font-size: 0.82rem;
+      border-radius: var(--radius-button);
+    }
+
+    /* ── Topics expandable ───────────────────────────────── */
+    .topics-section { margin-top: var(--space-md); border-top: 1px solid var(--color-border); padding-top: var(--space-md); }
+    .topics-toggle {
+      background: none; border: none; color: var(--color-text-muted);
+      font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+      padding: 0; transition: color var(--transition-fast);
+    }
+    .topics-toggle:hover { color: var(--color-primary); }
+    .topics-toggle .chevron { transition: transform var(--transition-fast); display: inline-block; }
+    .topics-toggle.open .chevron { transform: rotate(90deg); }
+    .topics-list {
+      display: none; flex-direction: column; gap: 6px; margin-top: var(--space-sm);
+    }
+    .topics-list.open { display: flex; }
+    .topic-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--color-surface-2); border-radius: var(--radius-button);
+      padding: 8px 12px;
+    }
+    .topic-row-name { font-size: 0.85rem; color: var(--color-text); font-family: var(--font-ui); }
+    .topic-row-actions { display: flex; gap: 6px; }
+    .topic-btn {
+      padding: 4px 10px; border-radius: var(--radius-pill);
+      font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600;
+      border: none; cursor: pointer; transition: all var(--transition-fast);
+    }
+    .topic-btn-quiz { background: var(--color-primary-glow); color: var(--color-primary); }
+    .topic-btn-quiz:hover { background: var(--color-primary); color: #fff; }
+    .topic-btn-map { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-muted); }
+    .topic-btn-map:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+    /* ── Empty / loading states ──────────────────────────── */
+    .empty-state {
+      text-align: center; padding: var(--space-2xl) var(--space-lg);
+      color: var(--color-text-muted); grid-column: 1/-1;
+    }
+    .empty-state-icon { font-size: 3rem; margin-bottom: var(--space-md); }
+    .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
+
+    /* ── No group assigned ───────────────────────────────── */
+    .no-group-banner {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-xl);
+      text-align: center; margin-bottom: var(--space-xl);
+    }
+    .no-group-banner h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
+    .no-group-banner p { color: var(--color-text-muted); font-size: 0.9rem; }
   </style>
 </head>
 <body>
 <div id="toast-container"></div>
+
 <nav class="topnav">
-  <a href="hub.html" class="nav-logo"><div class="nav-logo-icon">📎</div>Clasp</a>
-  <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+  <a href="hub.html" class="nav-logo">
+    <div class="nav-logo-icon">📎</div>Clasp
+  </a>
+  <div class="nav-right">
+    <span class="nav-user">Hey, <strong id="nav-name">...</strong></span>
+    <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+  </div>
 </nav>
-<div class="container page-fade">
-  <div class="welcome-icon">🎓</div>
-  <div class="coming-soon">Phases 4 & 5 — Coming soon</div>
-  <h1 class="welcome-title">Hey, <span id="student-name">...</span>!</h1>
-  <p class="welcome-sub">Your revision hub is being built. Quizzes, lessons, badges and streaks are on their way.</p>
-  <div class="subjects-preview">
-    <span class="subject-chip">📐 Maths</span>
-    <span class="subject-chip">📖 English</span>
-    <span class="subject-chip">🌍 Geography</span>
-    <span class="subject-chip">🇪🇸 Spanish</span>
-    <span class="subject-chip">🔬 Science</span>
-    <span class="subject-chip">✝️ RE</span>
+
+<div class="page page-fade">
+  <div class="welcome-banner">
+    <div class="welcome-greeting">Hey, <span id="student-name">...</span>! 👋</div>
+    <div class="welcome-sub" id="welcome-sub">Loading your subjects…</div>
+  </div>
+
+  <div id="hub-content">
+    <div class="subjects-grid">
+      <div class="empty-state">
+        <div class="spinner" style="margin:0 auto var(--space-md);"></div>
+      </div>
+    </div>
   </div>
 </div>
+
 <script>
   function doSignOut() { window._doSignOut && window._doSignOut(); }
+  function goQuiz(params) { window._goQuiz && window._goQuiz(params); }
+  function goMindmap(params) { window._goMindmap && window._goMindmap(params); }
+  function toggleTopics(btn) { window._toggleTopics && window._toggleTopics(btn); }
 </script>
+
 <script type="module">
-  import { requireRole, handleSignOut } from './auth.js';
-  window._doSignOut = () => handleSignOut();
-  requireRole('student', (user, profile) => {
-    document.getElementById('student-name').textContent = profile.name.split(' ')[0];
+import { auth, db } from './firebase-config.js';
+import { requireRole, handleSignOut, showToast } from './auth.js';
+import {
+  collection, getDocs, doc, getDoc, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+window._doSignOut = () => handleSignOut();
+
+window._goQuiz = (params) => {
+  const url = new URL('quiz.html', location.href);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  location.href = url.toString();
+};
+
+window._goMindmap = (params) => {
+  const url = new URL('mindmap.html', location.href);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  location.href = url.toString();
+};
+
+window._toggleTopics = (btn) => {
+  btn.classList.toggle('open');
+  const list = btn.nextElementSibling;
+  list.classList.toggle('open');
+};
+
+requireRole('student', async (user, profile) => {
+  const firstName = (profile.name || 'there').split(' ')[0];
+  document.getElementById('student-name').textContent = firstName;
+  document.getElementById('nav-name').textContent = firstName;
+
+  // Find which group(s) this student belongs to
+  // Students have profile.groupId set by parent, or profile.classes from teacher
+  const groupId = profile.groupId || null;
+
+  if (!groupId) {
+    document.getElementById('welcome-sub').textContent = 'Your revision content will appear here once your parent assigns you to a group.';
+    document.getElementById('hub-content').innerHTML = `
+      <div class="no-group-banner">
+        <div style="font-size:2.5rem;margin-bottom:var(--space-md);">📚</div>
+        <h3>No group assigned yet</h3>
+        <p>Ask your parent to assign you to a revision group so your subjects appear here.</p>
+      </div>`;
+    return;
+  }
+
+  await loadSubjects(user, groupId);
+});
+
+async function loadSubjects(user, groupId) {
+  const grid = document.getElementById('hub-content');
+
+  // Get group info
+  const groupSnap = await getDoc(doc(db, 'content', groupId));
+  if (!groupSnap.exists()) {
+    grid.innerHTML = `<div class="no-group-banner"><h3>Group not found</h3><p>Ask your parent to reassign you.</p></div>`;
+    return;
+  }
+
+  document.getElementById('welcome-sub').textContent = `Revising: ${groupSnap.data().name}`;
+
+  // Get subjects
+  const subjectsSnap = await getDocs(query(collection(db, `content/${groupId}/subjects`), orderBy('order','asc')))
+    .catch(() => getDocs(collection(db, `content/${groupId}/subjects`)));
+
+  const subjects = [];
+  subjectsSnap.forEach(d => subjects.push({ id: d.id, ...d.data() }));
+
+  if (subjects.length === 0) {
+    grid.innerHTML = `<div class="subjects-grid"><div class="empty-state"><div class="empty-state-icon">📭</div><h3>No subjects yet</h3><p>Your admin is still adding content.</p></div></div>`;
+    return;
+  }
+
+  // For each subject, load topics
+  const subjectTopics = {};
+  await Promise.all(subjects.map(async s => {
+    const tSnap = await getDocs(collection(db, `content/${groupId}/subjects/${s.id}/topics`)).catch(() => null);
+    subjectTopics[s.id] = [];
+    if (tSnap) tSnap.forEach(d => subjectTopics[s.id].push({ id: d.id, ...d.data() }));
+  }));
+
+  grid.innerHTML = `
+    <div class="section-header">
+      <div class="section-title">Your subjects</div>
+    </div>
+    <div class="subjects-grid" id="subjects-grid"></div>`;
+
+  const sgrid = document.getElementById('subjects-grid');
+
+  subjects.forEach((s, i) => {
+    const topics = subjectTopics[s.id] || [];
+    const topicCount = topics.length;
+
+    const topicRowsHtml = topics.map(t => `
+      <div class="topic-row">
+        <span class="topic-row-name">📝 ${esc(t.name)}</span>
+        <div class="topic-row-actions">
+          <button class="topic-btn topic-btn-quiz"
+            onclick="goQuiz({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
+            ⚡ Quiz
+          </button>
+          <button class="topic-btn topic-btn-map"
+            onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
+            🗺️ Map
+          </button>
+        </div>
+      </div>`).join('');
+
+    const card = document.createElement('div');
+    card.className = 'subject-card';
+    card.style.animationDelay = `${i * 0.07}s`;
+    card.innerHTML = `
+      <div class="subject-card-header">
+        <div class="subject-emoji">${s.emoji || '📚'}</div>
+        <div>
+          <div class="subject-name">${esc(s.name)}</div>
+          <div class="subject-meta">${topicCount} topic${topicCount !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+      <div class="subject-actions">
+        <button class="btn btn-primary"
+          onclick="goQuiz({groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'})">
+          ⚡ Quiz whole subject
+        </button>
+        <button class="btn btn-secondary"
+          onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'})">
+          🗺️ Subject map
+        </button>
+      </div>
+      ${topicCount > 0 ? `
+      <div class="topics-section">
+        <button class="topics-toggle" onclick="toggleTopics(this)">
+          <span class="chevron">›</span> Topics
+        </button>
+        <div class="topics-list">${topicRowsHtml}</div>
+      </div>` : ''}`;
+    sgrid.appendChild(card);
   });
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+<script>
+window.showToast = function(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3500);
+};
 </script>
 </body>
 </html>

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="edge">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasp — Quiz</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { min-height: 100vh; background: var(--color-bg); }
+
+    /* ── Top nav ─────────────────────────────────────────── */
+    .topnav {
+      background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl); height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-back {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600;
+      color: var(--color-text-muted); text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+    .nav-back:hover { color: var(--color-primary); }
+    .nav-title {
+      font-family: var(--font-heading); font-size: 1rem; font-weight: 700;
+      color: var(--color-text);
+    }
+    .nav-progress {
+      font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
+    }
+
+    /* ── Progress bar ────────────────────────────────────── */
+    .progress-bar-wrap {
+      height: 4px; background: var(--color-surface-2);
+      position: sticky; top: 64px; z-index: 90;
+    }
+    .progress-bar-fill {
+      height: 100%; background: var(--color-primary);
+      transition: width 0.4s ease; border-radius: 0 2px 2px 0;
+    }
+
+    /* ── Main layout ─────────────────────────────────────── */
+    .page { max-width: 680px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+
+    /* ── Quiz screens ────────────────────────────────────── */
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeIn 0.3s ease both; }
+
+    /* ── Loading screen ──────────────────────────────────── */
+    .loading-screen {
+      text-align: center; padding: var(--space-2xl) 0;
+    }
+    .loading-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
+    .loading-screen p { color: var(--color-text-muted); }
+
+    /* ── Question card ───────────────────────────────────── */
+    .q-header { margin-bottom: var(--space-lg); }
+    .q-number {
+      font-family: var(--font-ui); font-size: 0.8rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--color-text-muted); margin-bottom: var(--space-sm);
+    }
+    .q-type-pill {
+      display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill);
+      font-size: 0.72rem; font-family: var(--font-ui); font-weight: 700;
+      text-transform: uppercase; margin-left: var(--space-sm);
+    }
+    .q-type-mcq   { background: rgba(108,99,255,0.12); color: #6c63ff; }
+    .q-type-tf    { background: rgba(18,184,134,0.12); color: #12b886; }
+    .q-type-fill  { background: rgba(245,159,0,0.12);  color: #f59f00; }
+    .q-type-match { background: rgba(14,165,233,0.12); color: #0ea5e9; }
+    .q-type-short { background: rgba(250,82,82,0.12);  color: #fa5252; }
+
+    .q-text {
+      font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700;
+      line-height: 1.4; color: var(--color-text);
+    }
+    .q-image { max-width: 100%; border-radius: var(--radius-card); margin-top: var(--space-md); }
+
+    /* ── MCQ options ─────────────────────────────────────── */
+    .options-list { display: flex; flex-direction: column; gap: var(--space-sm); margin-top: var(--space-lg); }
+    .option-btn {
+      display: flex; align-items: center; gap: var(--space-md);
+      background: var(--color-surface); border: 2px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md);
+      cursor: pointer; transition: all var(--transition-fast);
+      font-family: var(--font-body); font-size: 0.95rem; text-align: left;
+      color: var(--color-text); width: 100%;
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .option-btn.selected { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .option-btn.correct  { border-color: var(--color-success); background: rgba(107,203,119,0.1); }
+    .option-btn.wrong    { border-color: var(--color-danger);  background: rgba(255,107,107,0.1); }
+    .option-btn:disabled { cursor: default; }
+    .option-letter {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--color-surface-2); color: var(--color-text-muted);
+      font-family: var(--font-ui); font-weight: 700; font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--transition-fast);
+    }
+    .option-btn.selected .option-letter { background: var(--color-primary); color: #fff; }
+    .option-btn.correct  .option-letter { background: var(--color-success); color: #fff; }
+    .option-btn.wrong    .option-letter { background: var(--color-danger);  color: #fff; }
+
+    /* ── T/F buttons ─────────────────────────────────────── */
+    .tf-row { display: flex; gap: var(--space-md); margin-top: var(--space-lg); }
+    .tf-btn {
+      flex: 1; padding: var(--space-lg); border-radius: var(--radius-card);
+      background: var(--color-surface); border: 2px solid var(--color-border);
+      font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;
+      cursor: pointer; transition: all var(--transition-fast); color: var(--color-text);
+    }
+    .tf-btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .tf-btn.true-btn:hover:not(:disabled)  { border-color: var(--color-success); background: rgba(107,203,119,0.1); }
+    .tf-btn.false-btn:hover:not(:disabled) { border-color: var(--color-danger);  background: rgba(255,107,107,0.1); }
+    .tf-btn.correct  { border-color: var(--color-success); background: rgba(107,203,119,0.12); }
+    .tf-btn.wrong    { border-color: var(--color-danger);  background: rgba(255,107,107,0.12); }
+    .tf-btn.selected { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .tf-btn:disabled { cursor: default; transform: none; }
+
+    /* ── Fill blank ──────────────────────────────────────── */
+    .fill-wrap { margin-top: var(--space-lg); }
+    .fill-sentence {
+      font-size: 1.1rem; line-height: 1.8; color: var(--color-text);
+      margin-bottom: var(--space-md); font-family: var(--font-body);
+    }
+    .fill-blank {
+      display: inline-block; min-width: 120px;
+      border-bottom: 2px solid var(--color-primary);
+      padding: 0 var(--space-sm);
+      font-family: var(--font-ui); font-weight: 700;
+      color: var(--color-primary); vertical-align: bottom;
+    }
+    .fill-input {
+      width: 100%; padding: 12px var(--space-md);
+      border-radius: var(--radius-button); font-size: 1rem;
+      font-family: var(--font-ui);
+    }
+    .fill-input.correct { border-color: var(--color-success); background: rgba(107,203,119,0.08); }
+    .fill-input.wrong   { border-color: var(--color-danger);  background: rgba(255,107,107,0.08); }
+
+    /* ── Match pairs ─────────────────────────────────────── */
+    .match-wrap { margin-top: var(--space-lg); }
+    .match-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+    .match-col-label {
+      font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--color-text-faint); margin-bottom: var(--space-sm);
+    }
+    .match-items { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .match-item {
+      background: var(--color-surface); border: 2px solid var(--color-border);
+      border-radius: var(--radius-button); padding: 10px var(--space-md);
+      font-family: var(--font-ui); font-size: 0.88rem; cursor: pointer;
+      transition: all var(--transition-fast); color: var(--color-text);
+      min-height: 44px; display: flex; align-items: center;
+    }
+    .match-item:hover:not(.matched):not(.used) { border-color: var(--color-primary); }
+    .match-item.selected { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .match-item.matched-correct { border-color: var(--color-success); background: rgba(107,203,119,0.1); color: var(--color-success); }
+    .match-item.matched-wrong   { border-color: var(--color-danger);  background: rgba(255,107,107,0.1); color: var(--color-danger); }
+    .match-item.used { opacity: 0.4; cursor: default; }
+    .match-lines { display: none; } /* visual lines — handled by colour */
+
+    /* ── Short written ───────────────────────────────────── */
+    .short-wrap { margin-top: var(--space-lg); }
+    .short-textarea {
+      width: 100%; min-height: 140px; resize: vertical;
+      font-size: 0.95rem; line-height: 1.6; border-radius: var(--radius-button);
+      padding: var(--space-md);
+    }
+    .short-hint { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 6px; }
+    .ai-marking-wrap {
+      margin-top: var(--space-md); background: var(--color-surface);
+      border: 1px solid var(--color-border); border-radius: var(--radius-card);
+      padding: var(--space-md); display: none;
+    }
+    .ai-marking-wrap.visible { display: block; }
+    .ai-score-row {
+      display: flex; align-items: center; gap: var(--space-md);
+      margin-bottom: var(--space-sm);
+    }
+    .ai-score-badge {
+      font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800;
+      color: var(--color-primary);
+    }
+    .ai-score-label { font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted); }
+    .ai-feedback { font-size: 0.9rem; color: var(--color-text); line-height: 1.6; }
+    .ai-thinking {
+      display: flex; align-items: center; gap: var(--space-sm);
+      color: var(--color-text-muted); font-family: var(--font-ui); font-size: 0.88rem;
+    }
+
+    /* ── Feedback banner ─────────────────────────────────── */
+    .feedback-banner {
+      margin-top: var(--space-lg); border-radius: var(--radius-card);
+      padding: var(--space-md) var(--space-lg); display: none;
+      animation: fadeIn 0.3s ease both;
+    }
+    .feedback-banner.correct { background: rgba(107,203,119,0.1); border: 1px solid rgba(107,203,119,0.3); }
+    .feedback-banner.wrong   { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); }
+    .feedback-banner.visible { display: block; }
+    .feedback-result {
+      font-family: var(--font-heading); font-size: 1rem; font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .feedback-result.correct { color: var(--color-success); }
+    .feedback-result.wrong   { color: var(--color-danger); }
+    .feedback-explanation { font-size: 0.88rem; color: var(--color-text-muted); line-height: 1.5; }
+    .feedback-correct-answer { font-size: 0.88rem; color: var(--color-text); margin-top: 4px; }
+    .feedback-correct-answer strong { color: var(--color-success); }
+
+    /* ── Action footer ───────────────────────────────────── */
+    .q-footer {
+      margin-top: var(--space-xl); display: flex;
+      justify-content: flex-end; gap: var(--space-sm);
+    }
+    .btn-next { min-width: 140px; }
+
+    /* ── Results screen ──────────────────────────────────── */
+    .results-screen { text-align: center; padding: var(--space-xl) 0; }
+    .results-icon { font-size: 4rem; margin-bottom: var(--space-md); }
+    .results-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; margin-bottom: var(--space-sm); }
+    .results-sub { color: var(--color-text-muted); margin-bottom: var(--space-xl); }
+    .score-ring-wrap { display: flex; justify-content: center; margin-bottom: var(--space-xl); }
+    .score-ring {
+      width: 140px; height: 140px; border-radius: 50%;
+      background: conic-gradient(var(--color-primary) calc(var(--pct) * 1%), var(--color-surface-2) 0);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .score-ring::before {
+      content: ''; position: absolute;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: var(--color-bg);
+    }
+    .score-ring-inner {
+      position: relative; z-index: 1; text-align: center;
+    }
+    .score-pct { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--color-text); }
+    .score-label { font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted); }
+    .results-stats {
+      display: flex; gap: var(--space-md); justify-content: center;
+      margin-bottom: var(--space-xl); flex-wrap: wrap;
+    }
+    .result-stat {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md) var(--space-lg);
+      text-align: center; min-width: 100px;
+    }
+    .result-stat-val { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; }
+    .result-stat-label { font-size: 0.78rem; color: var(--color-text-muted); font-family: var(--font-ui); margin-top: 2px; }
+    .results-actions { display: flex; gap: var(--space-sm); justify-content: center; flex-wrap: wrap; }
+
+    /* ── No questions screen ─────────────────────────────── */
+    .no-q-screen { text-align: center; padding: var(--space-2xl) 0; }
+    .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
+    .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
+  </style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<nav class="topnav">
+  <a href="hub.html" class="nav-back">← Back</a>
+  <div class="nav-title" id="nav-title">Quiz</div>
+  <div class="nav-progress" id="nav-progress"></div>
+</nav>
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+</div>
+
+<div class="page">
+
+  <!-- Loading -->
+  <div class="screen active" id="screen-loading">
+    <div class="loading-screen">
+      <div class="spinner" style="margin:0 auto var(--space-lg);width:48px;height:48px;"></div>
+      <h2>Loading questions…</h2>
+      <p>Picking 10 questions for you</p>
+    </div>
+  </div>
+
+  <!-- No questions -->
+  <div class="screen" id="screen-no-questions">
+    <div class="no-q-screen">
+      <div style="font-size:3rem;margin-bottom:var(--space-md);">📭</div>
+      <h2>No questions yet</h2>
+      <p>This topic doesn't have any questions yet. Ask your admin to add some!</p>
+      <a href="hub.html" class="btn btn-primary">← Back to hub</a>
+    </div>
+  </div>
+
+  <!-- Question -->
+  <div class="screen" id="screen-question">
+    <div class="q-header">
+      <div class="q-number">
+        Question <span id="q-num">1</span> of <span id="q-total">10</span>
+        <span class="q-type-pill" id="q-type-pill"></span>
+      </div>
+      <div class="q-text" id="q-text"></div>
+      <img id="q-image" class="q-image" style="display:none;">
+    </div>
+
+    <!-- MCQ -->
+    <div id="input-mcq" class="q-input" style="display:none;">
+      <div class="options-list" id="mcq-options"></div>
+    </div>
+
+    <!-- T/F -->
+    <div id="input-tf" class="q-input" style="display:none;">
+      <div class="tf-row">
+        <button class="tf-btn true-btn" data-val="true" onclick="submitTF(this)">✅ True</button>
+        <button class="tf-btn false-btn" data-val="false" onclick="submitTF(this)">❌ False</button>
+      </div>
+    </div>
+
+    <!-- Fill blank -->
+    <div id="input-fill" class="q-input" style="display:none;">
+      <div class="fill-wrap">
+        <div class="fill-sentence" id="fill-sentence-display"></div>
+        <input type="text" class="fill-input" id="fill-input" placeholder="Type your answer…" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+
+    <!-- Match pairs -->
+    <div id="input-match" class="q-input" style="display:none;">
+      <div class="match-wrap">
+        <p style="font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">Click a left item, then click the matching right item.</p>
+        <div class="match-cols">
+          <div>
+            <div class="match-col-label">Terms</div>
+            <div class="match-items" id="match-left"></div>
+          </div>
+          <div>
+            <div class="match-col-label">Definitions</div>
+            <div class="match-items" id="match-right"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Short written -->
+    <div id="input-short" class="q-input" style="display:none;">
+      <div class="short-wrap">
+        <textarea class="short-textarea" id="short-input" placeholder="Write your answer here…"></textarea>
+        <p class="short-hint">Write as much detail as you can. AI will mark your answer.</p>
+        <div class="ai-marking-wrap" id="ai-marking-wrap">
+          <div class="ai-thinking" id="ai-thinking">
+            <div class="spinner" style="width:16px;height:16px;border-width:2px;"></div>
+            Marking your answer…
+          </div>
+          <div id="ai-result" style="display:none;">
+            <div class="ai-score-row">
+              <div class="ai-score-badge" id="ai-score-badge"></div>
+              <div class="ai-score-label" id="ai-score-label"></div>
+            </div>
+            <div class="ai-feedback" id="ai-feedback"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="feedback-banner" id="feedback-banner">
+      <div class="feedback-result" id="feedback-result"></div>
+      <div class="feedback-explanation" id="feedback-explanation"></div>
+      <div class="feedback-correct-answer" id="feedback-correct-answer"></div>
+    </div>
+
+    <div class="q-footer">
+      <button class="btn btn-primary btn-next" id="btn-submit" onclick="submitAnswer()">Check answer</button>
+      <button class="btn btn-primary btn-next" id="btn-next" style="display:none;" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="screen" id="screen-results">
+    <div class="results-screen">
+      <div class="results-icon" id="results-icon">🎉</div>
+      <div class="results-title" id="results-title">Quiz complete!</div>
+      <div class="results-sub" id="results-sub"></div>
+      <div class="score-ring-wrap">
+        <div class="score-ring" id="score-ring" style="--pct:0">
+          <div class="score-ring-inner">
+            <div class="score-pct" id="score-pct">0%</div>
+            <div class="score-label">score</div>
+          </div>
+        </div>
+      </div>
+      <div class="results-stats">
+        <div class="result-stat">
+          <div class="result-stat-val" id="stat-correct" style="color:var(--color-success);">0</div>
+          <div class="result-stat-label">Correct</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-val" id="stat-wrong" style="color:var(--color-danger);">0</div>
+          <div class="result-stat-label">Wrong</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-val" id="stat-total">10</div>
+          <div class="result-stat-label">Questions</div>
+        </div>
+      </div>
+      <div class="results-actions">
+        <button class="btn btn-primary" onclick="restartQuiz()">🔄 Try again</button>
+        <a href="hub.html" class="btn btn-secondary">← Back to hub</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  function submitAnswer() { window._submitAnswer && window._submitAnswer(); }
+  function nextQuestion() { window._nextQuestion && window._nextQuestion(); }
+  function restartQuiz() { window._restartQuiz && window._restartQuiz(); }
+  function submitTF(btn) { window._submitTF && window._submitTF(btn); }
+</script>
+
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { requireRole, showToast } from './auth.js';
+import {
+  collection, getDocs, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
+const QUIZ_SIZE = 10;
+
+/* ── URL params ──────────────────────────────────────────── */
+const params   = new URLSearchParams(location.search);
+const groupId  = params.get('groupId');
+const subjectId = params.get('subjectId');
+const topicId  = params.get('topicId');
+const subjectName = params.get('subjectName') || 'Quiz';
+const topicName   = params.get('topicName') || '';
+
+/* ── State ───────────────────────────────────────────────── */
+let questions    = [];
+let currentIdx   = 0;
+let score        = 0;
+let answered     = false;
+let matchState   = { selectedLeft: null, matched: [] }; // for match pairs
+
+/* ── Auth ────────────────────────────────────────────────── */
+requireRole('student', async (user, profile) => {
+  if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
+  document.getElementById('nav-title').textContent =
+    topicName ? `${topicName}` : subjectName;
+  await loadQuestions();
+});
+
+/* ── Load & shuffle questions ────────────────────────────── */
+async function loadQuestions() {
+  try {
+    let allQs = [];
+
+    if (topicId) {
+      // Single topic
+      const snap = await getDocs(collection(db,
+        `content/${groupId}/subjects/${subjectId}/topics/${topicId}/questions`));
+      snap.forEach(d => allQs.push({ id: d.id, ...d.data() }));
+    } else {
+      // Whole subject — gather from all topics
+      const topicsSnap = await getDocs(collection(db,
+        `content/${groupId}/subjects/${subjectId}/topics`));
+      const topicIds = [];
+      topicsSnap.forEach(d => topicIds.push(d.id));
+
+      await Promise.all(topicIds.map(async tid => {
+        const qSnap = await getDocs(collection(db,
+          `content/${groupId}/subjects/${subjectId}/topics/${tid}/questions`));
+        qSnap.forEach(d => allQs.push({ id: d.id, topicId: tid, ...d.data() }));
+      }));
+    }
+
+    if (allQs.length === 0) {
+      showScreen('no-questions'); return;
+    }
+
+    // Shuffle and take up to QUIZ_SIZE
+    allQs = shuffle(allQs).slice(0, QUIZ_SIZE);
+    questions = allQs;
+
+    document.getElementById('q-total').textContent = questions.length;
+    document.getElementById('stat-total').textContent = questions.length;
+    showScreen('question');
+    renderQuestion();
+  } catch(e) {
+    showToast('Failed to load questions: ' + e.message, 'error');
+    showScreen('no-questions');
+  }
+}
+
+/* ── Render current question ─────────────────────────────── */
+function renderQuestion() {
+  const q = questions[currentIdx];
+  answered = false;
+
+  // Progress
+  const pct = Math.round((currentIdx / questions.length) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('nav-progress').textContent = `${currentIdx + 1} / ${questions.length}`;
+  document.getElementById('q-num').textContent = currentIdx + 1;
+
+  // Type pill
+  const typeLabels = { mcq:'MCQ', tf:'True/False', fill:'Fill blank', match:'Match pairs', short:'Short written' };
+  const typePill = document.getElementById('q-type-pill');
+  typePill.textContent = typeLabels[q.type] || q.type;
+  typePill.className = 'q-type-pill q-type-' + q.type;
+
+  // Question text
+  const questionText = q.question || q.sentence || q.instruction || '';
+  document.getElementById('q-text').textContent = questionText;
+
+  // Image
+  const imgEl = document.getElementById('q-image');
+  if (q.imageUrl) { imgEl.src = q.imageUrl; imgEl.style.display = 'block'; }
+  else imgEl.style.display = 'none';
+
+  // Hide all inputs
+  document.querySelectorAll('.q-input').forEach(el => el.style.display = 'none');
+  document.getElementById('feedback-banner').classList.remove('visible','correct','wrong');
+  document.getElementById('btn-submit').style.display = 'inline-flex';
+  document.getElementById('btn-next').style.display = 'none';
+
+  // Reset AI marking
+  document.getElementById('ai-marking-wrap').classList.remove('visible');
+  document.getElementById('ai-thinking').style.display = 'flex';
+  document.getElementById('ai-result').style.display = 'none';
+
+  // Render type-specific input
+  if (q.type === 'mcq')   renderMCQ(q);
+  if (q.type === 'tf')    renderTF(q);
+  if (q.type === 'fill')  renderFill(q);
+  if (q.type === 'match') renderMatch(q);
+  if (q.type === 'short') renderShort(q);
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderMCQ(q) {
+  document.getElementById('input-mcq').style.display = 'block';
+  const list = document.getElementById('mcq-options');
+  list.innerHTML = '';
+  const letters = ['A','B','C','D','E','F'];
+  (q.options || []).forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.dataset.idx = i;
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${esc(opt.text)}</span>`;
+    btn.addEventListener('click', () => selectMCQ(btn, i));
+    list.appendChild(btn);
+  });
+}
+
+function renderTF(q) {
+  document.getElementById('input-tf').style.display = 'block';
+  document.querySelectorAll('.tf-btn').forEach(b => {
+    b.className = 'tf-btn ' + (b.dataset.val === 'true' ? 'true-btn' : 'false-btn');
+    b.disabled = false;
+  });
+}
+
+function renderFill(q) {
+  document.getElementById('input-fill').style.display = 'block';
+  // Show sentence with blank highlighted
+  const parts = (q.sentence || '').split('_____');
+  const display = document.getElementById('fill-sentence-display');
+  display.innerHTML = parts.map((p, i) =>
+    i < parts.length - 1 ? esc(p) + '<span class="fill-blank">_____</span>' : esc(p)
+  ).join('');
+  const inp = document.getElementById('fill-input');
+  inp.value = '';
+  inp.className = 'fill-input';
+  inp.disabled = false;
+  inp.focus();
+}
+
+function renderMatch(q) {
+  document.getElementById('input-match').style.display = 'block';
+  matchState = { selectedLeft: null, matched: 0, total: (q.pairs||[]).length, pairs: q.pairs };
+
+  const leftEl  = document.getElementById('match-left');
+  const rightEl = document.getElementById('match-right');
+  leftEl.innerHTML = ''; rightEl.innerHTML = '';
+
+  // Shuffle right side
+  const rightItems = shuffle([...(q.pairs||[]).map((p,i) => ({ text: p.right, pairIdx: i }))]);
+
+  (q.pairs||[]).forEach((pair, i) => {
+    const lItem = document.createElement('div');
+    lItem.className = 'match-item';
+    lItem.dataset.pairIdx = i;
+    lItem.dataset.side = 'left';
+    lItem.textContent = pair.left;
+    lItem.addEventListener('click', () => handleMatchClick(lItem, 'left'));
+    leftEl.appendChild(lItem);
+  });
+
+  rightItems.forEach(item => {
+    const rItem = document.createElement('div');
+    rItem.className = 'match-item';
+    rItem.dataset.pairIdx = item.pairIdx;
+    rItem.dataset.side = 'right';
+    rItem.textContent = item.text;
+    rItem.addEventListener('click', () => handleMatchClick(rItem, 'right'));
+    rightEl.appendChild(rItem);
+  });
+
+  // Hide submit until all matched
+  document.getElementById('btn-submit').style.display = 'none';
+}
+
+function renderShort(q) {
+  document.getElementById('input-short').style.display = 'block';
+  const inp = document.getElementById('short-input');
+  inp.value = '';
+  inp.disabled = false;
+  inp.focus();
+}
+
+/* ── MCQ selection ───────────────────────────────────────── */
+let selectedMCQIdx = null;
+function selectMCQ(btn, idx) {
+  if (answered) return;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedMCQIdx = idx;
+}
+
+/* ── T/F ─────────────────────────────────────────────────── */
+window._submitTF = function(btn) {
+  if (answered) return;
+  const q = questions[currentIdx];
+  const userVal = btn.dataset.val === 'true';
+  const correct = userVal === q.answer;
+  answered = true;
+
+  document.querySelectorAll('.tf-btn').forEach(b => b.disabled = true);
+  btn.classList.add('selected');
+
+  if (correct) {
+    btn.classList.add('correct');
+    score++;
+    showFeedback(true, q.explanation || '');
+  } else {
+    btn.classList.add('wrong');
+    // Highlight correct
+    document.querySelectorAll('.tf-btn').forEach(b => {
+      if ((b.dataset.val === 'true') === q.answer) b.classList.add('correct');
+    });
+    showFeedback(false, q.explanation || '', `The correct answer is ${q.answer ? 'True' : 'False'}.`);
+  }
+  showNextBtn();
+};
+
+/* ── Match pairs interaction ─────────────────────────────── */
+function handleMatchClick(item, side) {
+  if (item.classList.contains('matched-correct') || item.classList.contains('matched-wrong') || item.classList.contains('used')) return;
+
+  if (side === 'left') {
+    // Deselect any other left
+    document.querySelectorAll('#match-left .match-item').forEach(el => el.classList.remove('selected'));
+    item.classList.add('selected');
+    matchState.selectedLeft = item;
+  } else if (side === 'right') {
+    if (!matchState.selectedLeft) return;
+    const leftItem  = matchState.selectedLeft;
+    const leftIdx   = parseInt(leftItem.dataset.pairIdx);
+    const rightIdx  = parseInt(item.dataset.pairIdx);
+    const correct   = leftIdx === rightIdx;
+
+    leftItem.classList.remove('selected');
+    leftItem.classList.add(correct ? 'matched-correct' : 'matched-wrong');
+    item.classList.add(correct ? 'matched-correct' : 'matched-wrong');
+    leftItem.style.pointerEvents = 'none';
+    item.style.pointerEvents = 'none';
+    matchState.selectedLeft = null;
+
+    if (correct) matchState.matched = (matchState.matched || 0) + 1;
+    else matchState.wrongMatches = (matchState.wrongMatches || 0) + 1;
+
+    const totalDone = (matchState.matched || 0) + (matchState.wrongMatches || 0);
+    if (totalDone >= matchState.total) {
+      // All matched
+      answered = true;
+      const allCorrect = matchState.matched === matchState.total;
+      if (allCorrect) score++;
+      showFeedback(allCorrect,
+        allCorrect ? 'All pairs matched correctly!' : 'Some pairs were incorrect.',
+        allCorrect ? '' : 'Review the correct matches above.');
+      showNextBtn();
+    }
+  }
+}
+
+/* ── Submit answer ───────────────────────────────────────── */
+window._submitAnswer = function() {
+  const q = questions[currentIdx];
+  if (answered) return;
+
+  if (q.type === 'mcq') {
+    if (selectedMCQIdx === null) { showToast('Select an answer first', 'error'); return; }
+    const opts = q.options || [];
+    const correct = opts[selectedMCQIdx]?.correct === true;
+    answered = true;
+
+    document.querySelectorAll('.option-btn').forEach((btn, i) => {
+      btn.disabled = true;
+      if (opts[i]?.correct) btn.classList.add('correct');
+      else if (i === selectedMCQIdx) btn.classList.add('wrong');
+    });
+
+    const correctOpt = opts.find(o => o.correct);
+    if (correct) { score++; showFeedback(true, q.explanation || ''); }
+    else showFeedback(false, q.explanation || '', `Correct answer: ${correctOpt?.text || ''}`);
+    showNextBtn();
+  }
+
+  else if (q.type === 'fill') {
+    const inp = document.getElementById('fill-input');
+    const userAns = inp.value.trim().toLowerCase();
+    if (!userAns) { showToast('Type your answer first', 'error'); return; }
+
+    const correctAns = (q.answer || '').toLowerCase();
+    const alts = (q.alternatives || []).map(a => a.toLowerCase());
+    const correct = userAns === correctAns || alts.includes(userAns);
+    answered = true;
+    inp.disabled = true;
+    inp.classList.add(correct ? 'correct' : 'wrong');
+
+    if (correct) { score++; showFeedback(true, ''); }
+    else showFeedback(false, '', `Correct answer: ${q.answer}`);
+    showNextBtn();
+  }
+
+  else if (q.type === 'short') {
+    const inp = document.getElementById('short-input');
+    const userAns = inp.value.trim();
+    if (!userAns) { showToast('Write your answer first', 'error'); return; }
+    inp.disabled = true;
+    answered = true;
+    document.getElementById('btn-submit').style.display = 'none';
+    markShortWritten(q, userAns);
+  }
+
+  else if (q.type === 'match') {
+    // Match submits automatically when all pairs done
+  }
+};
+
+/* ── AI marking for short written ───────────────────────── */
+async function markShortWritten(q, userAnswer) {
+  const wrap = document.getElementById('ai-marking-wrap');
+  wrap.classList.add('visible');
+  document.getElementById('ai-thinking').style.display = 'flex';
+  document.getElementById('ai-result').style.display = 'none';
+
+  const prompt = `You are marking a GCSE student's short answer question.
+
+Question: ${q.question}
+Mark scheme / model answer: ${q.markScheme}
+Student's answer: ${userAnswer}
+
+Score the student's answer out of 5 marks. Be fair but rigorous.
+
+Respond ONLY with a JSON object in this exact format (no markdown, no backticks):
+{"score":3,"outOf":5,"feedback":"Specific feedback in 2-3 sentences. What they got right. What was missing or could be improved."}`;
+
+  try {
+    const resp = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const raw = (data.content || []).map(c => c.text || '').join('');
+    const cleaned = raw.replace(/```[a-z]*\n?/gi,'').replace(/```/g,'').trim();
+    const result = JSON.parse(cleaned);
+
+    document.getElementById('ai-thinking').style.display = 'none';
+    document.getElementById('ai-result').style.display = 'block';
+    document.getElementById('ai-score-badge').textContent = `${result.score}/${result.outOf}`;
+    document.getElementById('ai-score-label').textContent = `marks`;
+    document.getElementById('ai-feedback').textContent = result.feedback;
+
+    // Count as correct if ≥ 60%
+    if (result.score / result.outOf >= 0.6) score++;
+  } catch(e) {
+    document.getElementById('ai-thinking').style.display = 'none';
+    document.getElementById('ai-result').style.display = 'block';
+    document.getElementById('ai-score-badge').textContent = '?/5';
+    document.getElementById('ai-feedback').textContent = 'Could not mark automatically. Check with your teacher.';
+  }
+  showNextBtn();
+}
+
+/* ── Feedback helpers ────────────────────────────────────── */
+function showFeedback(correct, explanation, correctAnswer) {
+  const banner = document.getElementById('feedback-banner');
+  banner.classList.add('visible', correct ? 'correct' : 'wrong');
+
+  const resultEl = document.getElementById('feedback-result');
+  resultEl.textContent = correct ? '✅ Correct!' : '❌ Incorrect';
+  resultEl.className = 'feedback-result ' + (correct ? 'correct' : 'wrong');
+
+  document.getElementById('feedback-explanation').textContent = explanation || '';
+  const caEl = document.getElementById('feedback-correct-answer');
+  caEl.innerHTML = correctAnswer ? `<strong>Answer:</strong> ${esc(correctAnswer)}` : '';
+}
+
+function showNextBtn() {
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'inline-flex';
+  document.getElementById('btn-next').textContent =
+    currentIdx < questions.length - 1 ? 'Next →' : 'See results';
+}
+
+/* ── Next question ───────────────────────────────────────── */
+window._nextQuestion = function() {
+  currentIdx++;
+  selectedMCQIdx = null;
+  if (currentIdx >= questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+    document.getElementById('screen-question').classList.remove('active');
+    void document.getElementById('screen-question').offsetWidth;
+    document.getElementById('screen-question').classList.add('active');
+  }
+};
+
+/* ── Results ─────────────────────────────────────────────── */
+function showResults() {
+  showScreen('results');
+  const total = questions.length;
+  const pct   = Math.round((score / total) * 100);
+
+  document.getElementById('progress-bar').style.width = '100%';
+  document.getElementById('score-ring').style.setProperty('--pct', pct);
+  document.getElementById('score-pct').textContent = pct + '%';
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = total - score;
+  document.getElementById('stat-total').textContent = total;
+
+  const resultTitle = pct >= 80 ? '🎉 Excellent work!' : pct >= 60 ? '👍 Good effort!' : pct >= 40 ? '📚 Keep practising' : '💪 Don\'t give up!';
+  document.getElementById('results-title').textContent = resultTitle;
+  document.getElementById('results-sub').textContent =
+    `You scored ${score} out of ${total} on ${topicName || subjectName}`;
+  document.getElementById('results-icon').textContent = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+}
+
+window._restartQuiz = function() {
+  currentIdx = 0; score = 0; selectedMCQIdx = null;
+  questions = shuffle(questions);
+  showScreen('question');
+  renderQuestion();
+};
+
+/* ── Screens ─────────────────────────────────────────────── */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+/* ── Utils ───────────────────────────────────────────────── */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+<script>
+window.showToast = function(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3500);
+};
+</script>
+</body>
+</html>
