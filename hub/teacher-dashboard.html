@@ -386,6 +386,23 @@
   </div>
 </div>
 
+<script>
+  function doSignOut()             { window._doSignOut && window._doSignOut(); }
+  function openCreateClass()       { window._openCreateClass && window._openCreateClass(); }
+  function createClass()           { window._createClass && window._createClass(); }
+  function closeModal(id)          { window._closeModal && window._closeModal(id); }
+  function openStudentsModal(id)   { window._openStudentsModal && window._openStudentsModal(id); }
+  function switchStudentsTab(t)    { window._switchStudentsTab && window._switchStudentsTab(t); }
+  function selectStudentTheme(t)   { window._selectStudentTheme && window._selectStudentTheme(t); }
+  function generateStudentPw()     { window._generateStudentPw && window._generateStudentPw(); }
+  function addStudent()            { window._addStudent && window._addStudent(); }
+  function copyJoinCode()          { window._copyJoinCode && window._copyJoinCode(); }
+  function copyCode(code)          { window._copyCode && window._copyCode(code); }
+  function openEditClass(id)       { window._openEditClass && window._openEditClass(id); }
+  function saveClass()             { window._saveClass && window._saveClass(); }
+  function confirmDeleteClass()    { window._confirmDeleteClass && window._confirmDeleteClass(); }
+</script>
+
 <script type="module">
   import { auth, db } from './firebase-config.js';
   import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
@@ -414,7 +431,7 @@
     loadClasses();
   });
 
-  window.doSignOut = () => handleSignOut();
+  window._doSignOut = () => handleSignOut();
 
   function loadClasses() {
     onValue(ref(db, `users/${teacherUid}/classes`), (snap) => {
@@ -469,14 +486,14 @@
   }
 
   // ── Create class ──────────────────────────────────────────
-  window.openCreateClass = function() {
+  window._openCreateClass = function() {
     document.getElementById('class-name').value = '';
     document.getElementById('class-subject').value = '';
     document.getElementById('create-class-error').classList.remove('visible');
     openModal('modal-create-class');
   };
 
-  window.createClass = async function() {
+  window._createClass = async function() {
     const name    = document.getElementById('class-name').value.trim();
     const subject = document.getElementById('class-subject').value.trim();
     const method  = document.getElementById('class-join-method').value;
@@ -502,7 +519,7 @@
   };
 
   // ── Students modal ────────────────────────────────────────
-  window.openStudentsModal = async function(classId) {
+  window._openStudentsModal = async function(classId) {
     activeClassId = classId;
     const cls = classesData[classId];
     document.getElementById('students-modal-title').textContent = cls.name;
@@ -534,7 +551,7 @@
     }).join('');
   }
 
-  window.switchStudentsTab = function(tab) {
+  window._switchStudentsTab = function(tab) {
     document.querySelectorAll('.students-tab').forEach((b, i) => {
       const tabs = ['list','add','code'];
       b.classList.toggle('active', tabs[i] === tab);
@@ -543,21 +560,21 @@
     document.getElementById(`tab-${tab}`).classList.add('active');
   };
 
-  window.selectStudentTheme = function(t) {
+  window._selectStudentTheme = function(t) {
     studentTheme = t;
     ['spark','edge','focus'].forEach(x => {
       document.getElementById(`st-${x}`).classList.toggle('selected', x === t);
     });
   };
 
-  window.generateStudentPw = function() {
+  window._generateStudentPw = function() {
     const pw = generatePassword();
     document.getElementById('student-password').value = pw;
     document.getElementById('student-pw-value').textContent = pw;
     document.getElementById('student-pw-reveal').classList.add('visible');
   };
 
-  window.addStudent = async function() {
+  window._addStudent = async function() {
     const name     = document.getElementById('student-name').value.trim();
     const email    = document.getElementById('student-email').value.trim();
     const password = document.getElementById('student-password').value.trim();
@@ -591,17 +608,17 @@
     }
   };
 
-  window.copyJoinCode = function() {
+  window._copyJoinCode = function() {
     const code = document.getElementById('modal-join-code').textContent;
     copyCode(code);
   };
 
-  window.copyCode = function(code) {
+  window._copyCode = function(code) {
     navigator.clipboard.writeText(code).then(() => showToast('Code copied!', 'success'));
   };
 
   // ── Edit class ────────────────────────────────────────────
-  window.openEditClass = function(classId) {
+  window._openEditClass = function(classId) {
     activeClassId = classId;
     const cls = classesData[classId];
     document.getElementById('edit-class-name').value = cls.name;
@@ -610,7 +627,7 @@
     openModal('modal-edit-class');
   };
 
-  window.saveClass = async function() {
+  window._saveClass = async function() {
     const name    = document.getElementById('edit-class-name').value.trim();
     const subject = document.getElementById('edit-class-subject').value.trim();
     if (!name) { showModalError('edit-class-error', 'Please enter a class name.'); return; }
@@ -627,7 +644,7 @@
     }
   };
 
-  window.confirmDeleteClass = function() {
+  window._confirmDeleteClass = function() {
     const cls = classesData[activeClassId];
     if (!confirm(`Delete "${cls.name}"? Students will not be deleted.`)) return;
     deleteClass();
@@ -646,8 +663,8 @@
   }
 
   // ── Helpers ───────────────────────────────────────────────
-  window.openModal  = (id) => document.getElementById(id).classList.add('open');
-  window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+  window._openModal = (id) => document.getElementById(id).classList.add('open');
+  window._closeModal = (id) => document.getElementById(id).classList.remove('open');
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); });
   });

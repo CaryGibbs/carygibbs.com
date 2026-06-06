@@ -6,39 +6,682 @@
   <title>Clasp — Parent Dashboard</title>
   <link rel="stylesheet" href="theme.css">
   <style>
-    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
-    .stub {
-      text-align: center;
-      padding: var(--space-2xl);
+    body { min-height: 100vh; background: var(--color-bg); }
+
+    /* ── Top nav ─────────────────────────────────────────── */
+    .topnav {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl);
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow-card);
     }
-    .stub h1 { font-size: 2rem; margin-bottom: var(--space-md); }
-    .stub p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
-    .phase-badge {
-      display: inline-block;
-      background: var(--color-primary-glow);
-      color: var(--color-primary);
-      padding: 4px 14px;
-      border-radius: var(--radius-pill);
-      font-size: 0.8rem;
-      font-family: var(--font-ui);
-      font-weight: 600;
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-heading); font-weight: 800;
+      font-size: 1.3rem; color: var(--color-text);
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--color-primary);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .nav-right {
+      display: flex; align-items: center; gap: var(--space-md);
+    }
+    .nav-user {
+      font-family: var(--font-ui); font-size: 0.9rem;
+      color: var(--color-text-muted);
+    }
+    .nav-user strong { color: var(--color-text); }
+
+    /* ── Page layout ─────────────────────────────────────── */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-xl) var(--space-lg);
+    }
+
+    /* ── Page header ─────────────────────────────────────── */
+    .page-header {
+      margin-bottom: var(--space-xl);
+    }
+    .page-header h1 {
+      font-size: 1.8rem; font-weight: 800;
+      margin-bottom: var(--space-xs);
+    }
+    .page-header p {
+      color: var(--color-text-muted); font-size: 0.95rem;
+    }
+
+    /* ── Section header ──────────────────────────────────── */
+    .section-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
       margin-bottom: var(--space-lg);
+    }
+    .section-header h2 {
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--color-text);
+    }
+
+    /* ── Children grid ───────────────────────────────────── */
+    .children-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    /* ── Child card ──────────────────────────────────────── */
+    .child-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-card);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+    .child-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card), 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .child-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: var(--space-md);
+      font-weight: 800;
+    }
+    .child-name {
+      font-family: var(--font-heading);
+      font-size: 1.1rem; font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .child-email {
+      font-size: 0.8rem; color: var(--color-text-muted);
+      margin-bottom: var(--space-md);
+    }
+    .child-meta {
+      display: flex; gap: var(--space-sm);
+      flex-wrap: wrap; margin-bottom: var(--space-md);
+    }
+    .child-actions {
+      display: flex; gap: var(--space-sm);
+    }
+    .child-actions .btn { flex: 1; padding: 8px 12px; font-size: 0.82rem; }
+
+    /* Theme badge colours */
+    .theme-spark  { background: rgba(255,107,53,0.12); color: #ff6b35; }
+    .theme-edge   { background: rgba(108,99,255,0.12); color: #6c63ff; }
+    .theme-focus  { background: rgba(37,99,235,0.12);  color: #2563eb; }
+
+    /* ── Empty state ─────────────────────────────────────── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: var(--space-2xl) var(--space-lg);
+      background: var(--color-surface);
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-card);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: var(--space-md); }
+    .empty-state h3 {
+      font-size: 1.1rem; margin-bottom: var(--space-sm);
+      color: var(--color-text);
+    }
+    .empty-state p {
+      color: var(--color-text-muted); font-size: 0.9rem;
+      margin-bottom: var(--space-lg);
+    }
+
+    /* ── Modal ───────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: var(--space-lg);
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--transition-base);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: var(--space-xl);
+      width: 100%; max-width: 460px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      transform: translateY(16px);
+      transition: transform var(--transition-base);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    .modal-header h2 { font-size: 1.2rem; font-weight: 700; }
+    .modal-close {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; cursor: pointer; color: var(--color-text-muted);
+      transition: all var(--transition-fast);
+    }
+    .modal-close:hover { color: var(--color-text); background: var(--color-border); }
+
+    .form-group { margin-bottom: var(--space-md); }
+    .form-group label {
+      display: block;
+      font-family: var(--font-ui); font-size: 0.82rem;
+      font-weight: 600; color: var(--color-text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .form-group input, .form-group select {
+      padding: 12px var(--space-md);
+      border-radius: var(--radius-button);
+      font-size: 0.95rem;
+    }
+
+    /* ── Password row ────────────────────────────────────── */
+    .password-row {
+      display: flex; gap: var(--space-sm);
+    }
+    .password-row input { flex: 1; }
+    .btn-generate {
+      padding: 12px var(--space-md);
+      border-radius: var(--radius-button);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600;
+      white-space: nowrap; cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .btn-generate:hover { color: var(--color-primary); border-color: var(--color-primary); }
+
+    /* ── Generated password display ──────────────────────── */
+    .password-reveal {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-sm) var(--space-md);
+      margin-top: var(--space-sm);
+      font-family: var(--font-ui); font-size: 0.9rem;
+      display: none;
+    }
+    .password-reveal.visible { display: flex; align-items: center; justify-content: space-between; }
+    .password-reveal .pw-value { font-weight: 700; color: var(--color-primary); letter-spacing: 0.05em; }
+    .password-reveal .pw-note { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
+
+    /* ── Theme selector ──────────────────────────────────── */
+    .theme-options {
+      display: flex; gap: var(--space-sm);
+    }
+    .theme-option {
+      flex: 1; padding: 10px var(--space-sm);
+      border-radius: var(--radius-card);
+      border: 2px solid var(--color-border);
+      background: var(--color-surface-2);
+      cursor: pointer; text-align: center;
+      font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600;
+      color: var(--color-text-muted);
+      transition: all var(--transition-base);
+    }
+    .theme-option .t-icon { display: block; font-size: 1.3rem; margin-bottom: 4px; }
+    .theme-option.selected { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-glow); }
+
+    /* ── Modal footer ────────────────────────────────────── */
+    .modal-footer {
+      display: flex; gap: var(--space-sm);
+      margin-top: var(--space-lg);
+    }
+    .modal-footer .btn { flex: 1; padding: 12px; }
+
+    .error-msg {
+      background: rgba(250,82,82,0.1);
+      border: 1px solid rgba(250,82,82,0.3);
+      border-radius: var(--radius-sm);
+      color: var(--color-danger);
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.875rem; margin-bottom: var(--space-md);
+      display: none;
+    }
+    .error-msg.visible { display: block; }
+
+    .btn.loading { opacity: 0.7; pointer-events: none; }
+    .btn.loading::after {
+      content: '';
+      display: inline-block; width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 8px; vertical-align: middle;
+    }
+
+    /* ── Delete confirm modal ────────────────────────────── */
+    .danger-zone {
+      border-top: 1px solid var(--color-border);
+      margin-top: var(--space-lg);
+      padding-top: var(--space-lg);
+    }
+    .danger-zone p {
+      font-size: 0.82rem; color: var(--color-text-muted);
+      margin-bottom: var(--space-sm);
+    }
+    .btn-danger {
+      background: rgba(250,82,82,0.1);
+      color: var(--color-danger);
+      border: 1px solid rgba(250,82,82,0.3);
+    }
+    .btn-danger:hover { background: var(--color-danger); color: #fff; }
+
+    @media (max-width: 600px) {
+      .topnav { padding: 0 var(--space-md); }
+      .page { padding: var(--space-lg) var(--space-md); }
+      .nav-user { display: none; }
     }
   </style>
 </head>
-<body class="page-fade">
-  <div class="stub">
-    <div class="phase-badge">Phase 6 — Coming soon</div>
-    <h1>👨‍👩‍👧 Parent Dashboard</h1>
-    <p>This is where parents will monitor their children's progress.</p>
-    <a href="index.html" class="btn btn-secondary">← Back to login</a>
+<body>
+<div id="toast-container"></div>
+
+<!-- Top nav -->
+<nav class="topnav">
+  <a href="parent.html" class="nav-logo">
+    <div class="nav-logo-icon">📎</div>
+    Clasp
+  </a>
+  <div class="nav-right">
+    <span class="nav-user">Welcome, <strong id="nav-name">...</strong></span>
+    <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
   </div>
-  <script type="module">
-    import { auth } from './firebase-config.js';
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    onAuthStateChanged(auth, (user) => {
-      if (!user) window.location.href = 'index.html';
+</nav>
+
+<!-- Page -->
+<div class="page page-fade">
+  <div class="page-header">
+    <h1>Your children</h1>
+    <p>Manage your children's accounts and monitor their progress.</p>
+  </div>
+
+  <div class="section-header">
+    <h2 id="children-count">Loading...</h2>
+    <button class="btn btn-primary" onclick="openAddModal()" style="padding:10px 20px; font-size:0.9rem;">
+      + Add child
+    </button>
+  </div>
+
+  <div class="children-grid" id="children-grid">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<!-- Add child modal -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add a child</h2>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+    </div>
+
+    <div class="error-msg" id="add-error"></div>
+
+    <div class="form-group">
+      <label>Child's name</label>
+      <input type="text" id="child-name" placeholder="e.g. Emily">
+    </div>
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="child-email" placeholder="emily@example.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <div class="password-row">
+        <input type="text" id="child-password" placeholder="Set a password">
+        <button class="btn-generate" onclick="generatePw()">✨ Generate</button>
+      </div>
+      <div class="password-reveal" id="pw-reveal">
+        <div>
+          <div class="pw-value" id="pw-value"></div>
+          <div class="pw-note">Share this with your child — it won't be shown again.</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Theme</label>
+      <div class="theme-options">
+        <div class="theme-option" id="theme-spark" onclick="selectTheme('spark')">
+          <span class="t-icon">🌟</span>Spark
+        </div>
+        <div class="theme-option selected" id="theme-edge" onclick="selectTheme('edge')">
+          <span class="t-icon">⚡</span>Edge
+        </div>
+        <div class="theme-option" id="theme-focus" onclick="selectTheme('focus')">
+          <span class="t-icon">🎯</span>Focus
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn btn-primary" id="btn-add-child" onclick="addChild()">Create account</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage child modal -->
+<div class="modal-overlay" id="modal-manage">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="manage-title">Manage child</h2>
+      <button class="modal-close" onclick="closeModal('modal-manage')">✕</button>
+    </div>
+
+    <div class="error-msg" id="manage-error"></div>
+
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="manage-name">
+    </div>
+    <div class="form-group">
+      <label>Theme</label>
+      <div class="theme-options">
+        <div class="theme-option" id="manage-theme-spark" onclick="selectManageTheme('spark')">
+          <span class="t-icon">🌟</span>Spark
+        </div>
+        <div class="theme-option" id="manage-theme-edge" onclick="selectManageTheme('edge')">
+          <span class="t-icon">⚡</span>Edge
+        </div>
+        <div class="theme-option" id="manage-theme-focus" onclick="selectManageTheme('focus')">
+          <span class="t-icon">🎯</span>Focus
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-manage')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-child" onclick="saveChild()">Save changes</button>
+    </div>
+
+    <div class="danger-zone">
+      <p>Removing a child will delete their account and all progress data. This cannot be undone.</p>
+      <button class="btn btn-danger" style="width:100%; padding:10px;" onclick="confirmRemoveChild()">Remove child</button>
+    </div>
+  </div>
+</div>
+
+<!-- Safari fix: module functions are not visible to onclick attributes.
+     This bridge script lets onclick handlers call into the module. -->
+<script>
+  function doSignOut()         { window._doSignOut && window._doSignOut(); }
+  function openAddModal()      { window._openAddModal && window._openAddModal(); }
+  function closeModal(id)      { window._closeModal && window._closeModal(id); }
+  function openModal(id)       { window._openModal && window._openModal(id); }
+  function selectTheme(t)      { window._selectTheme && window._selectTheme(t); }
+  function generatePw()        { window._generatePw && window._generatePw(); }
+  function addChild()          { window._addChild && window._addChild(); }
+  function openManageModal(id) { window._openManageModal && window._openManageModal(id); }
+  function selectManageTheme(t){ window._selectManageTheme && window._selectManageTheme(t); }
+  function saveChild()         { window._saveChild && window._saveChild(); }
+  function confirmRemoveChild(){ window._confirmRemoveChild && window._confirmRemoveChild(); }
+</script>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js';
+  import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
+  import {
+    createUserWithEmailAndPassword,
+    updateProfile,
+    deleteUser
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    ref, set, get, update, remove, onValue
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  let currentParentUid = null;
+  let currentParentProfile = null;
+  let selectedTheme = 'edge';
+  let manageTheme = 'edge';
+  let managingChildId = null;
+  let childrenData = {};
+
+  // ── Boot ─────────────────────────────────────────────────
+  requireRole('parent', (user, profile) => {
+    currentParentUid = user.uid;
+    currentParentProfile = profile;
+    document.getElementById('nav-name').textContent = profile.name.split(' ')[0];
+    loadChildren();
+  });
+
+  window._doSignOut = () => handleSignOut();
+  window._openAddModal = window.openAddModal || function(){}; // ensure window scope
+
+  // ── Load children ─────────────────────────────────────────
+  function loadChildren() {
+    const childrenRef = ref(db, `users/${currentParentUid}/children`);
+    onValue(childrenRef, (snap) => {
+      childrenData = snap.val() || {};
+      renderChildren();
     });
-  </script>
+  }
+
+  function renderChildren() {
+    const grid = document.getElementById('children-grid');
+    const count = Object.keys(childrenData).length;
+    document.getElementById('children-count').textContent =
+      count === 0 ? 'No children yet' : `${count} child${count > 1 ? 'ren' : ''}`;
+
+    if (count === 0) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">👧👦</div>
+          <h3>No children added yet</h3>
+          <p>Create an account for your child and they'll be able to log in and start revising.</p>
+          <button class="btn btn-primary" onclick="openAddModal()">+ Add your first child</button>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = Object.entries(childrenData).map(([uid, child]) => {
+      const themeLabel = { spark: '🌟 Spark', edge: '⚡ Edge', focus: '🎯 Focus' }[child.theme] || child.theme;
+      const themeClass = `theme-${child.theme}`;
+      const initials = child.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+      const avatarBg = child.theme === 'spark' ? '#ff6b35' : child.theme === 'focus' ? '#2563eb' : '#6c63ff';
+      return `
+        <div class="child-card">
+          <div class="child-avatar" style="background:${avatarBg}22; color:${avatarBg}">${initials}</div>
+          <div class="child-name">${child.name}</div>
+          <div class="child-email">${child.email}</div>
+          <div class="child-meta">
+            <span class="badge ${themeClass}">${themeLabel}</span>
+          </div>
+          <div class="child-actions">
+            <button class="btn btn-secondary" onclick="openManageModal('${uid}')">Manage</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Add child modal ───────────────────────────────────────
+  window._openAddModal = function() {
+    document.getElementById('child-name').value = '';
+    document.getElementById('child-email').value = '';
+    document.getElementById('child-password').value = '';
+    document.getElementById('pw-reveal').classList.remove('visible');
+    document.getElementById('add-error').classList.remove('visible');
+    selectedTheme = 'edge';
+    ['spark','edge','focus'].forEach(t => {
+      document.getElementById(`theme-${t}`).classList.toggle('selected', t === 'edge');
+    });
+    openModal('modal-add');
+  };
+
+  window._selectTheme = function(t) {
+    selectedTheme = t;
+    ['spark','edge','focus'].forEach(x => {
+      document.getElementById(`theme-${x}`).classList.toggle('selected', x === t);
+    });
+  };
+
+  window._generatePw = function() {
+    const pw = generatePassword();
+    document.getElementById('child-password').value = pw;
+    const reveal = document.getElementById('pw-reveal');
+    document.getElementById('pw-value').textContent = pw;
+    reveal.classList.add('visible');
+  };
+
+  window._addChild = async function() {
+    const name     = document.getElementById('child-name').value.trim();
+    const email    = document.getElementById('child-email').value.trim();
+    const password = document.getElementById('child-password').value.trim();
+
+    if (!name)               { showAddError('Please enter the child\'s name.'); return; }
+    if (!email)              { showAddError('Please enter an email address.'); return; }
+    if (password.length < 8) { showAddError('Password must be at least 8 characters.'); return; }
+
+    const btn = document.getElementById('btn-add-child');
+    btn.classList.add('loading');
+
+    try {
+      // Create Firebase Auth account for child
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const childUid = cred.user.uid;
+      await updateProfile(cred.user, { displayName: name });
+
+      // Write child's user profile
+      await set(ref(db, `users/${childUid}`), {
+        name, email,
+        role: 'student',
+        parentUid: currentParentUid,
+        theme: selectedTheme,
+        createdAt: Date.now(),
+        xp: 0,
+        level: 1,
+        streak: 0,
+        sessions: []
+      });
+
+      // Link child under parent
+      await set(ref(db, `users/${currentParentUid}/children/${childUid}`), {
+        name, email, theme: selectedTheme, createdAt: Date.now()
+      });
+
+      closeModal('modal-add');
+      showToast(`${name}'s account created!`, 'success');
+    } catch(e) {
+      showAddError(friendlyError(e.code));
+    } finally {
+      btn.classList.remove('loading');
+    }
+  };
+
+  // ── Manage child modal ────────────────────────────────────
+  window._openManageModal = function(uid) {
+    managingChildId = uid;
+    const child = childrenData[uid];
+    document.getElementById('manage-title').textContent = `Manage ${child.name}`;
+    document.getElementById('manage-name').value = child.name;
+    document.getElementById('manage-error').classList.remove('visible');
+    manageTheme = child.theme || 'edge';
+    ['spark','edge','focus'].forEach(t => {
+      document.getElementById(`manage-theme-${t}`).classList.toggle('selected', t === manageTheme);
+    });
+    openModal('modal-manage');
+  };
+
+  window._selectManageTheme = function(t) {
+    manageTheme = t;
+    ['spark','edge','focus'].forEach(x => {
+      document.getElementById(`manage-theme-${x}`).classList.toggle('selected', x === t);
+    });
+  };
+
+  window._saveChild = async function() {
+    const name = document.getElementById('manage-name').value.trim();
+    if (!name) { showManageError('Please enter a name.'); return; }
+    const btn = document.getElementById('btn-save-child');
+    btn.classList.add('loading');
+    try {
+      await update(ref(db, `users/${managingChildId}`), { name, theme: manageTheme });
+      await update(ref(db, `users/${currentParentUid}/children/${managingChildId}`), { name, theme: manageTheme });
+      closeModal('modal-manage');
+      showToast('Changes saved.', 'success');
+    } catch(e) {
+      showManageError('Failed to save. Please try again.');
+    } finally {
+      btn.classList.remove('loading');
+    }
+  };
+
+  window._confirmRemoveChild = function() {
+    const child = childrenData[managingChildId];
+    if (!confirm(`Remove ${child.name}? This will delete their account and all progress data.`)) return;
+    removeChild();
+  };
+
+  async function removeChild() {
+    try {
+      await remove(ref(db, `users/${managingChildId}`));
+      await remove(ref(db, `users/${currentParentUid}/children/${managingChildId}`));
+      closeModal('modal-manage');
+      showToast('Child account removed.', 'info');
+    } catch(e) {
+      showManageError('Failed to remove. Please try again.');
+    }
+  }
+
+  // ── Modal helpers ─────────────────────────────────────────
+  window._openModal = (id) => document.getElementById(id).classList.add('open');
+  window._closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  });
+
+  // ── Error helpers ─────────────────────────────────────────
+  function showAddError(msg) {
+    const el = document.getElementById('add-error');
+    el.textContent = msg; el.classList.add('visible');
+  }
+  function showManageError(msg) {
+    const el = document.getElementById('manage-error');
+    el.textContent = msg; el.classList.add('visible');
+  }
+  function friendlyError(code) {
+    const map = {
+      'auth/email-already-in-use': 'An account with that email already exists.',
+      'auth/invalid-email':        'Please enter a valid email address.',
+      'auth/weak-password':        'Password must be at least 8 characters.',
+    };
+    return map[code] || 'Something went wrong. Please try again.';
+  }
+</script>
+
+<script>
+  window.showToast = function(msg, type = 'info') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`; t.textContent = msg;
+    c.appendChild(t); setTimeout(() => t.remove(), 3500);
+  };
+</script>
 </body>
 </html>
