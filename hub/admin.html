@@ -359,6 +359,24 @@
       .content-area { padding: var(--space-md); }
     }
 
+
+    /* ── Key points builder ───────────────────────────────── */
+    .kp-list { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+    .kp-row { display: flex; gap: var(--space-sm); align-items: flex-start; }
+    .kp-term { flex: 0 0 160px; }
+    .kp-term input { padding: 8px 10px; font-size: 0.88rem; font-weight: 600; }
+    .kp-explanation input { padding: 8px 10px; font-size: 0.88rem; }
+    .kp-explanation { flex: 1; }
+    .kp-gen-btn {
+      background: var(--color-primary-glow); border: 1px solid var(--color-primary);
+      border-radius: var(--radius-button); padding: 7px 14px;
+      font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600;
+      color: var(--color-primary); cursor: pointer; transition: all var(--transition-fast);
+      display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    }
+    .kp-gen-btn:hover { background: var(--color-primary); color: #fff; }
+    .kp-gen-btn:disabled { opacity: 0.6; cursor: default; }
+    .kp-gen-status { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px; }
     /* ── Confirm dialog ───────────────────────────────────── */
     .confirm-dialog {
       background: var(--color-surface); border: 1px solid var(--color-border);
@@ -494,6 +512,7 @@
       <div class="tab-bar">
         <button class="tab-btn active" data-qtab="generate">✨ AI Generate</button>
         <button class="tab-btn" data-qtab="existing">📋 Saved questions</button>
+        <button class="tab-btn" data-qtab="keypoints">🗺️ Key points</button>
       </div>
 
       <!-- AI Generate tab -->
@@ -547,6 +566,48 @@
             <h3>No questions yet</h3>
             <p>Use AI generation or manual entry to add questions to this topic.</p>
           </div>
+        </div>
+      </div>
+
+      <!-- Key points tab -->
+      <div class="tab-panel" id="qtab-keypoints">
+        <div class="gen-container" style="margin-bottom:var(--space-lg);">
+          <div class="gen-header">
+            <span style="font-size:1.4rem;">🗺️</span>
+            <div>
+              <div class="gen-title">Key Points</div>
+              <div class="gen-subtitle">These appear in mindmaps as the primary revision content</div>
+            </div>
+          </div>
+
+          <!-- AI generation options -->
+          <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
+            <button class="tab-btn active" data-kptab="paste" onclick="switchKpTab('paste')">📋 Paste content</button>
+            <button class="tab-btn" data-kptab="research" onclick="switchKpTab('research')">🔍 Research topic</button>
+          </div>
+
+          <div id="kptab-paste">
+            <textarea class="gen-textarea" id="kp-paste-content" placeholder="Paste your revision notes, textbook passage, or any content here…" style="min-height:100px;margin-bottom:var(--space-sm);"></textarea>
+            <button class="kp-gen-btn" data-action="gen-keypoints-panel" id="btn-gen-kp-panel">✨ Generate from content</button>
+          </div>
+
+          <div id="kptab-research" style="display:none;">
+            <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm);">
+              <input type="text" id="kp-research-topic" placeholder="e.g. GCSE Geography — Antarctica and climate change" style="flex:1;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.92rem;">
+              <button class="kp-gen-btn" data-action="research-keypoints-panel" id="btn-research-kp">🔍 Research &amp; generate</button>
+            </div>
+            <p style="font-size:0.78rem;color:var(--color-text-muted);">AI will write GCSE-level key points from its own knowledge. Be specific — include subject and topic name.</p>
+          </div>
+
+          <div id="kp-gen-status-panel" class="kp-gen-status" style="margin-top:var(--space-sm);"></div>
+
+          <div style="margin-top:var(--space-lg);">
+            <div class="kp-list" id="kp-list-panel"></div>
+            <button class="add-option-btn" style="margin-top:var(--space-sm);" data-action="add-keypoint-panel">＋ Add key point manually</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary" data-action="save-keypoints-panel">💾 Save key points</button>
         </div>
       </div>
     </div>
@@ -643,7 +704,7 @@
 
 <!-- Topic modal -->
 <div class="modal-overlay" id="modal-topic">
-  <div class="modal">
+  <div class="modal" style="max-width:680px;">
     <div class="modal-header">
       <div class="modal-title" id="modal-topic-title">New topic</div>
       <button class="modal-close" data-close="modal-topic">✕</button>
@@ -652,7 +713,28 @@
       <label>Topic name</label>
       <input type="text" id="topic-name-input" placeholder="e.g. The Water Cycle" maxlength="80">
     </div>
-    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
+    <div class="form-group" style="margin-top:var(--space-lg);">
+      <label style="margin-bottom:var(--space-sm);display:block;">Key points <span style="font-weight:400;text-transform:none;">(for mindmaps)</span></label>
+      <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
+        <button class="tab-btn active" data-kptab-modal="paste" onclick="switchKpTabModal('paste')">📋 Paste</button>
+        <button class="tab-btn" data-kptab-modal="research" onclick="switchKpTabModal('research')">🔍 Research</button>
+      </div>
+      <div id="kptab-modal-paste" style="margin-bottom:var(--space-sm);">
+        <textarea id="kp-modal-paste-content" placeholder="Paste content to generate key points from…" style="min-height:80px;resize:vertical;width:100%;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.88rem;margin-bottom:var(--space-sm);"></textarea>
+        <button class="kp-gen-btn" data-action="gen-keypoints" id="btn-gen-kp">✨ Generate from content</button>
+      </div>
+      <div id="kptab-modal-research" style="display:none;margin-bottom:var(--space-sm);">
+        <div style="display:flex;gap:var(--space-sm);">
+          <input type="text" id="kp-modal-research-topic" placeholder="e.g. GCSE Biology — Cell Division" style="flex:1;padding:8px 12px;border-radius:var(--radius-button);font-size:0.88rem;">
+          <button class="kp-gen-btn" data-action="research-keypoints" id="btn-research-kp-modal">🔍 Research</button>
+        </div>
+        <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:6px;">Be specific — include subject and topic name for best results.</p>
+      </div>
+      <div id="kp-gen-status" class="kp-gen-status" style="margin-bottom:var(--space-sm);"></div>
+      <div class="kp-list" id="kp-list"></div>
+      <button class="add-option-btn" data-action="add-keypoint">＋ Add key point</button>
+    </div>
+    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-lg);">
       <button class="btn btn-secondary" data-close="modal-topic">Cancel</button>
       <button class="btn btn-primary" data-action="save-topic">Save topic</button>
     </div>
@@ -801,6 +883,8 @@
 <script>
   /* Safari bridge */
   function doSignOut() { window._doSignOut && window._doSignOut(); }
+  function switchKpTab(t) { window._switchKpTab && window._switchKpTab(t); }
+  function switchKpTabModal(t) { window._switchKpTabModal && window._switchKpTabModal(t); }
 </script>
 
 <script type="module">
@@ -815,6 +899,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 window._doSignOut = () => handleSignOut();
+window._switchKpTab = switchKpTab;
+window._switchKpTabModal = switchKpTabModal;
 
 /* ── State ───────────────────────────────────────────────── */
 let currentPanel  = 'groups';
@@ -886,6 +972,13 @@ document.addEventListener('click', e => {
   else if (action === 'save-topic')         saveTopic();
   else if (action === 'edit-topic')         openTopicModal(t.dataset.id);
   else if (action === 'del-topic')          confirmDelete('topic', t.dataset.id, t.dataset.name);
+  else if (action === 'add-keypoint')       addKpRow('kp-list');
+  else if (action === 'add-keypoint-panel') addKpRow('kp-list-panel');
+  else if (action === 'gen-keypoints')      genKpFromModal();
+  else if (action === 'research-keypoints') researchKpModal();
+  else if (action === 'research-keypoints-panel') researchKpPanel();
+  else if (action === 'gen-keypoints-panel') genKpFromPanel();
+  else if (action === 'save-keypoints-panel') saveKpPanel();
 
   else if (action === 'open-group')         openGroup(t.dataset.id);
   else if (action === 'open-subject')       openSubject(t.dataset.id);
@@ -1146,10 +1239,16 @@ async function openTopicModal(id) {
   editingItem = id ? { type:'topic', id } : null;
   document.getElementById('modal-topic-title').textContent = id ? 'Edit topic' : 'New topic';
   document.getElementById('topic-name-input').value = '';
+  document.getElementById('kp-gen-status').textContent = '';
+  let kps = [];
   if (id) {
     const snap = await getDoc(doc(db, topicsPath(), id));
-    if (snap.exists()) document.getElementById('topic-name-input').value = snap.data().name || '';
+    if (snap.exists()) {
+      document.getElementById('topic-name-input').value = snap.data().name || '';
+      kps = snap.data().keyPoints || [];
+    }
   }
+  renderKpList('kp-list', kps);
   openModal('modal-topic');
   setTimeout(() => document.getElementById('topic-name-input').focus(), 50);
 }
@@ -1157,17 +1256,166 @@ async function openTopicModal(id) {
 async function saveTopic() {
   const name = document.getElementById('topic-name-input').value.trim();
   if (!name) { showToast('Topic name is required', 'error'); return; }
+  const keyPoints = readKpList('kp-list');
   try {
     if (editingItem) {
-      await updateDoc(doc(db, topicsPath(), editingItem.id), { name });
+      await updateDoc(doc(db, topicsPath(), editingItem.id), { name, keyPoints });
     } else {
-      await addDoc(collection(db, topicsPath()), { name, createdAt: serverTimestamp() });
+      await addDoc(collection(db, topicsPath()), { name, keyPoints, createdAt: serverTimestamp() });
     }
     closeModal('modal-topic');
     await loadTopics();
     showToast(editingItem ? 'Topic updated' : 'Topic created', 'success');
     editingItem = null;
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+/* ── KEY POINTS helpers ──────────────────────────────────── */
+function renderKpList(listId, kps) {
+  const list = document.getElementById(listId);
+  list.innerHTML = '';
+  (kps.length ? kps : [{ term: '', explanation: '' }]).forEach(kp => addKpRow(listId, kp.term, kp.explanation));
+}
+
+function addKpRow(listId, term='', explanation='') {
+  const list = document.getElementById(listId);
+  const row = document.createElement('div');
+  row.className = 'kp-row';
+  row.innerHTML = `
+    <div class="kp-term"><input type="text" placeholder="Term / heading" value="${esc(term)}" class="kp-term-input"></div>
+    <div class="kp-explanation"><input type="text" placeholder="Explanation / detail" value="${esc(explanation)}" class="kp-exp-input"></div>
+    <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-row').remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function readKpList(listId) {
+  return [...document.querySelectorAll(`#${listId} .kp-row`)].map(r => ({
+    term: r.querySelector('.kp-term-input').value.trim(),
+    explanation: r.querySelector('.kp-exp-input').value.trim()
+  })).filter(kp => kp.term || kp.explanation);
+}
+
+async function generateKeyPoints(contentText, statusId, listId) {
+  if (!contentText) { showToast('Paste some content first', 'error'); return; }
+  const statusEl = document.getElementById(statusId);
+  statusEl.textContent = 'Generating…';
+  const prompt = `Extract as many key points as the content requires (typically 10-30 for a full GCSE topic). Each key point should have a short term/heading and a clear explanation suitable for GCSE revision. Cover all key concepts, definitions, processes, and facts — do not truncate or summarise.
+
+Return ONLY a JSON array, no markdown, no backticks:
+[{"term":"Photosynthesis","explanation":"Process by which plants convert sunlight, water and CO2 into glucose and oxygen"},...]
+
+Content:
+${contentText.substring(0, 6000)}`;
+  try {
+    const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const raw = (data.content || []).map(c => c.text || '').join('');
+    const cleaned = raw.replace(/^```[a-z]*\n?/i,'').replace(/```$/,'').trim();
+    let parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch { const m = cleaned.match(/\[\s\S]*\]/); parsed = m ? JSON.parse(m[0]) : []; }
+    renderKpList(listId, parsed);
+    statusEl.textContent = `✅ ${parsed.length} key points generated`;
+  } catch(e) {
+    statusEl.textContent = '❌ ' + e.message;
+  }
+}
+
+/* ── KEY POINTS modal/panel wiring ──────────────────────── */
+async function researchKeyPoints(topic, statusId, listId) {
+  const statusEl = document.getElementById(statusId);
+  statusEl.textContent = 'Researching…';
+  const prompt = `You are an expert GCSE teacher. Write comprehensive key points for the following GCSE topic. Cover all key concepts, definitions, processes, people, dates, and facts a student needs to know for their exam. Aim for 15-25 key points depending on the topic's breadth.
+
+Topic: ${topic}
+
+Return ONLY a JSON array, no markdown, no backticks:
+[{"term":"Term or heading","explanation":"Clear, concise GCSE-level explanation"},...]`;
+  try {
+    const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const raw = (data.content || []).map(c => c.text || '').join('');
+    const cleaned = raw.replace(/^\`\`\`[a-z]*\n?/i,'').replace(/\`\`\`$/,'').trim();
+    let parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch { const m = cleaned.match(/\[\s\S]*\]/); parsed = m ? JSON.parse(m[0]) : []; }
+    renderKpList(listId, parsed);
+    statusEl.textContent = `✅ ${parsed.length} key points generated for "${topic}"`;
+  } catch(e) {
+    statusEl.textContent = '❌ ' + e.message;
+  }
+}
+
+function switchKpTab(tab) {
+  document.querySelectorAll('[data-kptab]').forEach(b => b.classList.toggle('active', b.dataset.kptab === tab));
+  document.getElementById('kptab-paste').style.display   = tab === 'paste'    ? 'block' : 'none';
+  document.getElementById('kptab-research').style.display = tab === 'research' ? 'block' : 'none';
+}
+
+function switchKpTabModal(tab) {
+  document.querySelectorAll('[data-kptab-modal]').forEach(b => b.classList.toggle('active', b.dataset.kptabModal === tab));
+  document.getElementById('kptab-modal-paste').style.display    = tab === 'paste'    ? 'block' : 'none';
+  document.getElementById('kptab-modal-research').style.display = tab === 'research' ? 'block' : 'none';
+}
+
+async function genKpFromModal() {
+  const text = document.getElementById('kp-modal-paste-content')?.value.trim() || '';
+  if (!text) { showToast('Paste some content first', 'error'); return; }
+  const btn = document.getElementById('btn-gen-kp');
+  btn.disabled = true;
+  await generateKeyPoints(text, 'kp-gen-status', 'kp-list');
+  btn.disabled = false;
+}
+
+async function researchKpModal() {
+  const topic = document.getElementById('kp-modal-research-topic')?.value.trim() || '';
+  if (!topic) { showToast('Enter a topic name first', 'error'); return; }
+  const btn = document.getElementById('btn-research-kp-modal');
+  btn.disabled = true;
+  await researchKeyPoints(topic, 'kp-gen-status', 'kp-list');
+  btn.disabled = false;
+}
+
+async function genKpFromPanel() {
+  const text = document.getElementById('kp-paste-content')?.value.trim() || '';
+  if (!text) { showToast('Paste some content first', 'error'); return; }
+  const btn = document.getElementById('btn-gen-kp-panel');
+  btn.disabled = true;
+  await generateKeyPoints(text, 'kp-gen-status-panel', 'kp-list-panel');
+  btn.disabled = false;
+}
+
+async function researchKpPanel() {
+  const topic = document.getElementById('kp-research-topic')?.value.trim() || '';
+  if (!topic) { showToast('Enter a topic name first', 'error'); return; }
+  const btn = document.getElementById('btn-research-kp');
+  btn.disabled = true;
+  await researchKeyPoints(topic, 'kp-gen-status-panel', 'kp-list-panel');
+  btn.disabled = false;
+}
+
+async function saveKpPanel() {
+  if (!selectedTopic) { showToast('No topic selected', 'error'); return; }
+  const keyPoints = readKpList('kp-list-panel');
+  try {
+    await updateDoc(doc(db, topicsPath(), selectedTopic.id), { keyPoints });
+    showToast('Key points saved', 'success');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function loadKpPanel() {
+  if (!selectedTopic) return;
+  const snap = await getDoc(doc(db, topicsPath(), selectedTopic.id)).catch(() => null);
+  const kps = snap?.data()?.keyPoints || [];
+  renderKpList('kp-list-panel', kps);
 }
 
 /* ── QUESTIONS path ──────────────────────────────────────── */
@@ -1353,6 +1601,7 @@ async function saveAllGenerated() {
 function switchQTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.qtab === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'qtab-' + name));
+  if (name === 'keypoints') loadKpPanel();
 }
 
 /* ── MANUAL QUESTION ─────────────────────────────────────── */
