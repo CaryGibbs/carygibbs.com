@@ -606,8 +606,20 @@
             <button class="add-option-btn" style="margin-top:var(--space-sm);" data-action="add-keypoint-panel">＋ Add key point manually</button>
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;">
-          <button class="btn btn-primary" data-action="save-keypoints-panel">💾 Save key points</button>
+        <!-- Post-generation actions -->
+        <div id="kp-post-gen-actions" style="display:none;margin-bottom:var(--space-md);">
+          <div style="background:var(--color-primary-glow);border:1px solid var(--color-primary);border-radius:var(--radius-card);padding:var(--space-md);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-sm);">
+            <div style="font-family:var(--font-ui);font-size:0.88rem;color:var(--color-primary);font-weight:600;">Key points generated — what next?</div>
+            <div style="display:flex;gap:var(--space-sm);">
+              <button class="btn btn-secondary" style="font-size:0.82rem;padding:8px 14px;" data-action="also-generate-questions">➡️ Also generate questions</button>
+              <button class="btn btn-primary" style="font-size:0.82rem;padding:8px 14px;background:var(--color-success);box-shadow:none;" data-action="generate-everything">⚡ Generate everything &amp; save</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;">
+          <button class="btn btn-secondary" data-action="save-keypoints-panel">💾 Save key points only</button>
+          <button class="btn btn-primary" data-action="generate-everything">⚡ Generate everything</button>
         </div>
       </div>
     </div>
@@ -978,7 +990,9 @@ document.addEventListener('click', e => {
   else if (action === 'research-keypoints') researchKpModal();
   else if (action === 'research-keypoints-panel') researchKpPanel();
   else if (action === 'gen-keypoints-panel') genKpFromPanel();
-  else if (action === 'save-keypoints-panel') saveKpPanel();
+  else if (action === 'save-keypoints-panel')   saveKpPanel();
+  else if (action === 'also-generate-questions') alsoGenerateQuestions();
+  else if (action === 'generate-everything')     generateEverything();
 
   else if (action === 'open-group')         openGroup(t.dataset.id);
   else if (action === 'open-subject')       openSubject(t.dataset.id);
@@ -1320,6 +1334,7 @@ ${contentText.substring(0, 6000)}`;
     catch { const m = cleaned.match(/\[\s\S]*\]/); parsed = m ? JSON.parse(m[0]) : []; }
     renderKpList(listId, parsed);
     statusEl.textContent = `✅ ${parsed.length} key points generated`;
+    if (listId === 'kp-list-panel') showKpPostGenActions();
   } catch(e) {
     statusEl.textContent = '❌ ' + e.message;
   }
@@ -1349,6 +1364,7 @@ Return ONLY a JSON array, no markdown, no backticks:
     catch { const m = cleaned.match(/\[\s\S]*\]/); parsed = m ? JSON.parse(m[0]) : []; }
     renderKpList(listId, parsed);
     statusEl.textContent = `✅ ${parsed.length} key points generated for "${topic}"`;
+    if (listId === 'kp-list-panel') showKpPostGenActions();
   } catch(e) {
     statusEl.textContent = '❌ ' + e.message;
   }
@@ -1400,6 +1416,131 @@ async function researchKpPanel() {
   btn.disabled = true;
   await researchKeyPoints(topic, 'kp-gen-status-panel', 'kp-list-panel');
   btn.disabled = false;
+}
+
+/* ── Generate everything ─────────────────────────────────── */
+function getKpSourceText() {
+  // Returns the current paste/research text being used
+  const pasteEl = document.getElementById('kp-paste-content');
+  const researchEl = document.getElementById('kp-research-topic');
+  const pasteVisible = document.getElementById('kptab-paste')?.style.display !== 'none';
+  return pasteVisible ? (pasteEl?.value.trim() || '') : (researchEl?.value.trim() || '');
+}
+
+function getKpSourceType() {
+  return document.getElementById('kptab-paste')?.style.display !== 'none' ? 'paste' : 'research';
+}
+
+async function alsoGenerateQuestions() {
+  // Pre-fill the AI generate textarea with source content and switch to that tab
+  const sourceText = getKpSourceText();
+  const sourceType = getKpSourceType();
+  let contentForQuestions = '';
+
+  if (sourceType === 'paste' && sourceText) {
+    contentForQuestions = sourceText;
+  } else if (sourceType === 'research' && sourceText) {
+    // Build content from generated key points
+    const kps = readKpList('kp-list-panel');
+    contentForQuestions = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+  }
+
+  if (contentForQuestions) {
+    const genTextarea = document.getElementById('gen-content');
+    if (genTextarea) genTextarea.value = contentForQuestions;
+  }
+  switchQTab('generate');
+  showToast('Content pre-filled — click Generate questions', 'success');
+}
+
+async function generateEverything() {
+  if (!selectedTopic) { showToast('No topic selected', 'error'); return; }
+  const sourceText = getKpSourceText();
+  const sourceType = getKpSourceType();
+  const statusEl = document.getElementById('kp-gen-status-panel');
+
+  // Step 1: Get/confirm key points
+  let kps = readKpList('kp-list-panel');
+  if (!kps.length) {
+    showToast('Generate key points first', 'error'); return;
+  }
+
+  // Build content for question generation
+  let contentForQs = '';
+  if (sourceType === 'paste' && sourceText) {
+    contentForQs = sourceText;
+  } else {
+    contentForQs = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+  }
+
+  // Disable all buttons
+  document.querySelectorAll('[data-action="generate-everything"]').forEach(b => { b.disabled = true; b.textContent = '⏳ Generating…'; });
+  statusEl.textContent = 'Step 1/3: Saving key points…';
+
+  try {
+    // Save key points
+    await updateDoc(doc(db, topicsPath(), selectedTopic.id), { keyPoints: kps });
+    statusEl.textContent = 'Step 2/3: Generating questions (this may take 10–20s)…';
+
+    // Generate questions
+    const qty = 10;
+    const prompt = buildQuestionPrompt(contentForQs, qty);
+    const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const raw = (data.content || []).map(c => c.text || '').join('');
+    const cleaned = raw.replace(/^\`\`\`[a-z]*\n?/i,'').replace(/\`\`\`$/,'').trim();
+    let questions;
+    try { questions = JSON.parse(cleaned); }
+    catch { const m = cleaned.match(/\[\s\S]*\]/); questions = m ? JSON.parse(m[0]) : []; }
+
+    if (!questions.length) throw new Error('No questions returned');
+
+    statusEl.textContent = `Step 3/3: Saving ${questions.length} questions…`;
+
+    // Save questions
+    const colRef = collection(db, questionsPath());
+    await Promise.all(questions.map(q => addDoc(colRef, { ...q, createdAt: serverTimestamp(), source: 'ai' })));
+
+    statusEl.className = 'kp-gen-status';
+    statusEl.textContent = `✅ Done! ${kps.length} key points + ${questions.length} questions saved.`;
+    showToast(`Everything saved! ${kps.length} key points + ${questions.length} questions`, 'success');
+
+    // Refresh questions list
+    loadExistingQuestions();
+  } catch(e) {
+    statusEl.textContent = '❌ ' + e.message;
+    showToast('Error: ' + e.message, 'error');
+  }
+  document.querySelectorAll('[data-action="generate-everything"]').forEach(b => { b.disabled = false; b.textContent = '⚡ Generate everything'; });
+}
+
+function buildQuestionPrompt(contentText, qty) {
+  return `You are a GCSE revision question writer. Generate exactly ${qty} questions from the content below.
+Use these types in roughly equal proportions: mcq, tf, fill, match, short.
+
+For MCQ: make all options similar in length. 4 options per MCQ.
+For Fill-in-the-blank: use _____ (five underscores) for the gap.
+For Match pairs: include exactly 4 pairs.
+
+Return ONLY a JSON array with no markdown, no preamble, no backticks. Schemas:
+{"type":"mcq","question":"...","options":[{"text":"...","correct":false},{"text":"...","correct":true},{"text":"...","correct":false},{"text":"...","correct":false}],"explanation":"..."}
+{"type":"tf","question":"...","answer":true,"explanation":"..."}
+{"type":"fill","sentence":"The _____ is ...","answer":"...","alternatives":[]}
+{"type":"match","instruction":"Match each term to its definition","pairs":[{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."}]}
+{"type":"short","question":"...","markScheme":"Key points: 1) ... 2) ..."}
+
+Content:
+${contentText.substring(0, 4000)}`;
+}
+
+// Show post-gen action bar after key points are generated
+function showKpPostGenActions() {
+  const el = document.getElementById('kp-post-gen-actions');
+  if (el) el.style.display = 'block';
 }
 
 async function saveKpPanel() {
