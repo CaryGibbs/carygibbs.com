@@ -264,7 +264,7 @@
 <div id="toast-container"></div>
 
 <nav class="topnav">
-  <a href="hub.html" class="nav-back">← Back</a>
+  <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
   <div class="nav-title" id="nav-title">Quiz</div>
   <div class="nav-progress" id="nav-progress"></div>
 </nav>
@@ -422,7 +422,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireRole, showToast } from './auth.js';
+import { requireAuth, showToast } from './auth.js';
 import {
   collection, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -446,7 +446,13 @@ let answered     = false;
 let matchState   = { selectedLeft: null, matched: [] }; // for match pairs
 
 /* ── Auth ────────────────────────────────────────────────── */
-requireRole('student', async (user, profile) => {
+requireAuth(async (user, profile) => {
+  if (!['student','admin','parent'].includes(profile.role)) { location.href = 'hub.html'; return; }
+  // Set smart back link
+  if (profile.role === 'admin' || profile.role === 'parent') {
+    const bl = document.getElementById('nav-back-link');
+    if (bl) { bl.href = 'admin.html'; bl.textContent = '← Admin'; }
+  }
   if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
   document.getElementById('nav-title').textContent =
     topicName ? `${topicName}` : subjectName;

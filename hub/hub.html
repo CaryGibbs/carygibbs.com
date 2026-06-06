@@ -174,7 +174,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireRole, handleSignOut, showToast } from './auth.js';
+import { requireAuth, handleSignOut, showToast } from './auth.js';
 import {
   collection, getDocs, doc, getDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -199,13 +199,29 @@ window._toggleTopics = (btn) => {
   list.classList.toggle('open');
 };
 
-requireRole('student', async (user, profile) => {
+requireAuth(async (user, profile) => {
+  // Allow student, parent, admin — parents/admins can preview hub
   const firstName = (profile.name || 'there').split(' ')[0];
   document.getElementById('student-name').textContent = firstName;
   document.getElementById('nav-name').textContent = firstName;
 
-  // Find which group(s) this student belongs to
-  // Students have profile.groupId set by parent, or profile.classes from teacher
+  // Admin/parent: show admin link and load first available group for preview
+  if (profile.role === 'admin' || profile.role === 'parent') {
+    document.getElementById('welcome-sub').textContent = 'Previewing student hub';
+    const adminBar = document.createElement('div');
+    adminBar.style.cssText = 'background:var(--color-primary-glow);border:1px solid var(--color-primary);border-radius:var(--radius-card);padding:10px 16px;margin-bottom:var(--space-lg);display:flex;align-items:center;justify-content:space-between;font-family:var(--font-ui);font-size:0.85rem;';
+    adminBar.innerHTML = `<span style="color:var(--color-primary);font-weight:600;">👁️ Preview mode — viewing as student</span><a href="admin.html" style="color:var(--color-primary);font-weight:700;">← Back to admin</a>`;
+    document.getElementById('hub-content').before(adminBar);
+    // Load first group for preview
+    const groupsSnap = await getDocs(collection(db, 'content'));
+    let firstGroupId = null;
+    groupsSnap.forEach(d => { if (!firstGroupId) firstGroupId = d.id; });
+    if (firstGroupId) await loadSubjects(user, firstGroupId);
+    else document.getElementById('hub-content').innerHTML = `<div class="no-group-banner"><h3>No groups yet</h3><p>Create a group in the admin panel first.</p></div>`;
+    return;
+  }
+
+  // Student: get groupId from profile
   const groupId = profile.groupId || null;
 
   if (!groupId) {

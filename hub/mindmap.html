@@ -52,6 +52,8 @@
     /* ── View panels ─────────────────────────────────────── */
     .view-panel { display: none; }
     .view-panel.active { display: block; }
+    #view-spider { display: block; visibility: hidden; position: absolute; pointer-events: none; }
+    #view-spider.active { visibility: visible; position: relative; pointer-events: all; }
 
     /* ══════════════════════════════════════════════════════
        VIEW 1: SPIDER DIAGRAM (SVG canvas)
@@ -214,7 +216,7 @@
 <div id="toast-container"></div>
 
 <nav class="topnav">
-  <a href="hub.html" class="nav-back">← Back</a>
+  <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
   <div class="nav-title" id="nav-title">Mindmap</div>
   <div class="view-toggle">
     <button class="view-btn active" data-view="spider" onclick="switchView('spider')">🕸️ Spider</button>
@@ -230,8 +232,8 @@
 </div>
 
 <!-- Spider view -->
-<div class="view-panel" id="view-spider">
-  <canvas id="spider-canvas"></canvas>
+<div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;">
+  <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
   <div class="spider-hint">Drag to pan · Scroll to zoom</div>
 </div>
 
@@ -272,7 +274,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireRole, showToast } from './auth.js';
+import { requireAuth, showToast } from './auth.js';
 import {
   collection, getDocs, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -298,7 +300,13 @@ let spiderEdges = [];
 let panX = 0, panY = 0, zoom = 1;
 let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
 
-requireRole('student', async (user, profile) => {
+requireAuth(async (user, profile) => {
+  if (!['student','admin','parent'].includes(profile.role)) { location.href = 'hub.html'; return; }
+  // Set smart back link
+  if (profile.role === 'admin' || profile.role === 'parent') {
+    const bl = document.getElementById('nav-back-link');
+    if (bl) { bl.href = 'admin.html'; bl.textContent = '← Admin'; }
+  }
   if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
   document.getElementById('nav-title').textContent = topicName || subjectName;
   await loadData();
@@ -313,11 +321,12 @@ async function loadData() {
       const qSnap   = await getDocs(collection(db, `content/${groupId}/subjects/${subjectId}/topics/${topicId}/questions`));
       const qs = [];
       qSnap.forEach(d => qs.push({ id: d.id, ...d.data() }));
+      const topData = topSnap.exists() ? topSnap.data() : {};
       subjects = [{
         id: subjectId,
         name: subSnap.exists() ? subSnap.data().name : subjectName,
         emoji: subSnap.exists() ? subSnap.data().emoji || '📚' : '📚',
-        topics: [{ id: topicId, name: topSnap.exists() ? topSnap.data().name : topicName, questions: qs }]
+        topics: [{ id: topicId, name: topData.name || topicName, keyPoints: topData.keyPoints || [], questions: qs }]
       }];
     } else {
       // Whole subject mode
@@ -331,7 +340,7 @@ async function loadData() {
           `content/${groupId}/subjects/${subjectId}/topics/${t.id}/questions`)).catch(() => null);
         const qs = [];
         if (qSnap) qSnap.forEach(d => qs.push({ id: d.id, ...d.data() }));
-        return { ...t, questions: qs };
+        return { ...t, keyPoints: t.keyPoints || [], questions: qs };
       }));
 
       subjects = [{
@@ -345,8 +354,9 @@ async function loadData() {
     buildFlashcards();
     document.getElementById('loading-wrap').style.display = 'none';
     showView('spider');
-    buildSpider();
     buildOutline();
+    // Defer spider build until after layout
+    requestAnimationFrame(() => { requestAnimationFrame(() => buildSpider()); });
   } catch(e) {
     document.getElementById('loading-wrap').innerHTML =
       `<div class="empty-state"><h3>Failed to load</h3><p>${e.message}</p></div>`;
@@ -358,10 +368,21 @@ function buildFlashcards() {
   allFlashcards = [];
   subjects.forEach(s => {
     s.topics.forEach(t => {
-      (t.questions || []).forEach(q => {
-        const card = questionToFlashcard(q, t.name);
-        if (card) allFlashcards.push(card);
-      });
+      const kps = t.keyPoints || [];
+      if (kps.length) {
+        // Key points → flashcards (primary)
+        kps.forEach(kp => {
+          if (kp.term || kp.explanation) {
+            allFlashcards.push({ front: kp.term || kp.explanation, back: kp.explanation || kp.term, type: 'Key point', topic: t.name });
+          }
+        });
+      } else {
+        // Fallback to questions
+        (t.questions || []).forEach(q => {
+          const card = questionToFlashcard(q, t.name);
+          if (card) allFlashcards.push(card);
+        });
+      }
     });
   });
   shuffle(allFlashcards);
@@ -409,8 +430,11 @@ function showView(v) {
 function buildSpider() {
   const canvas = document.getElementById('spider-canvas');
   const wrap   = document.getElementById('view-spider');
-  canvas.width  = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
+  // If panel is hidden clientWidth is 0 — use offsetParent size or defer
+  const w = wrap.offsetWidth || window.innerWidth;
+  const h = wrap.offsetHeight || (window.innerHeight - 64);
+  canvas.width  = w;
+  canvas.height = h;
   const ctx = canvas.getContext('2d');
 
   const cx = canvas.width / 2;
@@ -433,15 +457,18 @@ function buildSpider() {
     spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 38, topicIdx: i });
     spiderEdges.push({ from: 0, to: spiderNodes.length - 1 });
 
-    // Question count satellite
-    const qCount = (t.questions||[]).length;
-    if (qCount > 0) {
+    // Key points / question count satellites
+    const kpCount = (t.keyPoints||[]).length;
+    const qCount  = (t.questions||[]).length;
+    const satCount = kpCount || qCount;
+    const satLabel = kpCount ? `${kpCount} pts` : `${qCount} Q`;
+    if (satCount > 0) {
       const satAngle = angle + 0.35;
       const satR = topicR + 60;
       spiderNodes.push({
         x: cx + Math.cos(satAngle) * satR,
         y: cy + Math.sin(satAngle) * satR,
-        label: `${qCount} Q`, type: 'count', r: 20
+        label: satLabel, type: 'count', r: 22
       });
       spiderEdges.push({ from: spiderNodes.length - 2, to: spiderNodes.length - 1 });
     }
@@ -526,9 +553,10 @@ function drawSpider(ctx, canvas) {
 
 function setupSpiderInteraction(canvas, ctx) {
   // Remove old listeners by replacing canvas
-  const newCanvas = canvas.cloneNode(true);
-  canvas.parentNode.replaceChild(newCanvas, canvas);
-  const c = newCanvas;
+  // Don't clone — just remove old listeners by using a flag
+  const c = canvas;
+  if (c._spiderSetup) return; // already set up, drawSpider handles redraws
+  c._spiderSetup = true;
   const drawFn = () => drawSpider(c.getContext('2d'), c);
 
   c.addEventListener('mousedown', e => { dragging = true; dragStartX = e.clientX; dragStartY = e.clientY; panStartX = panX; panStartY = panY; });
@@ -593,34 +621,45 @@ function buildOutline() {
         <span class="outline-chevron">›</span>
       </div>
       <div class="outline-topics" id="outline-topics-${s.id}"></div>`;
+    // Auto-open first subject
+    if (subjects.indexOf(s) === 0) subEl.classList.add('open');
     wrap.appendChild(subEl);
 
     const topicsWrap = subEl.querySelector('.outline-topics');
     topics.forEach(t => {
       const qs = t.questions || [];
+      const kps = t.keyPoints || [];
       const topicEl = document.createElement('div');
       topicEl.className = 'outline-topic';
 
-      // Extract key points from questions
-      const keypoints = qs.map(q => questionToKeypoint(q)).filter(Boolean);
-
-      topicEl.innerHTML = `
-        <div class="outline-topic-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="outline-topic-name">📝 ${esc(t.name)}</span>
-          <span class="outline-topic-count">${qs.length} Q</span>
-          <span class="outline-topic-chevron">›</span>
-        </div>
-        <div class="outline-keypoints">
-          ${keypoints.length
-            ? keypoints.map(kp => `
+      // Use key points if available, otherwise fall back to questions
+      let pointsHtml = '';
+      if (kps.length) {
+        pointsHtml = kps.map(kp => `
+          <div class="keypoint-item">
+            <span class="keypoint-dot">•</span>
+            <span class="keypoint-type" style="min-width:80px;color:var(--color-primary);font-weight:700;">${esc(kp.term)}</span>
+            <span>${esc(kp.explanation)}</span>
+          </div>`).join('');
+      } else {
+        const derived = qs.map(q => questionToKeypoint(q)).filter(Boolean);
+        pointsHtml = derived.length
+          ? derived.map(kp => `
               <div class="keypoint-item">
                 <span class="keypoint-dot">•</span>
                 <span class="keypoint-type">${kp.type}</span>
                 <span>${esc(kp.text)}</span>
               </div>`).join('')
-            : '<div style="font-size:0.85rem;color:var(--color-text-muted);padding:8px 0;">No questions yet</div>'
-          }
-        </div>`;
+          : '<div style="font-size:0.85rem;color:var(--color-text-muted);padding:8px 0;">No content yet</div>';
+      }
+
+      topicEl.innerHTML = `
+        <div class="outline-topic-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="outline-topic-name">📝 ${esc(t.name)}</span>
+          <span class="outline-topic-count">${kps.length ? kps.length + ' pts' : qs.length + ' Q'}</span>
+          <span class="outline-topic-chevron">›</span>
+        </div>
+        <div class="outline-keypoints">${pointsHtml}</div>`;
       topicsWrap.appendChild(topicEl);
     });
   });
