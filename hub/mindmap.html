@@ -467,6 +467,14 @@ window._closeSpiderDetail = function() {
   drawSpider(canvas.getContext('2d'), canvas);
 };
 
+// Outline accordion delegation
+document.addEventListener('click', e => {
+  const sh = e.target.closest('[data-action="toggle-subject"]');
+  if (sh) { sh.parentElement.classList.toggle('open'); return; }
+  const th = e.target.closest('[data-action="toggle-topic"]');
+  if (th) { th.parentElement.classList.toggle('open'); return; }
+});
+
 window._switchView = function(v) {
   currentView = v;
   document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
@@ -828,11 +836,13 @@ function buildOutline() {
     const topics = s.topics || [];
     const totalQ = topics.reduce((acc, t) => acc + (t.questions||[]).length, 0);
 
+    const totalPts = topics.reduce((acc, t) => acc + (t.keyPoints||[]).length, 0);
+    const metaLabel = totalPts ? `${topics.length} topics · ${totalPts} key points` : `${topics.length} topics · ${totalQ} questions`;
     subEl.innerHTML = `
-      <div class="outline-subject-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="outline-subject-header" data-action="toggle-subject">
         <span class="outline-subject-emoji">${s.emoji || '📚'}</span>
         <span class="outline-subject-name">${esc(s.name)}</span>
-        <span style="font-size:0.8rem;color:var(--color-text-muted);margin-right:8px;">${topics.length} topics · ${totalQ} questions</span>
+        <span style="font-size:0.8rem;color:var(--color-text-muted);margin-right:8px;">${metaLabel}</span>
         <span class="outline-chevron">›</span>
       </div>
       <div class="outline-topics" id="outline-topics-${s.id}"></div>`;
@@ -869,12 +879,14 @@ function buildOutline() {
       }
 
       topicEl.innerHTML = `
-        <div class="outline-topic-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="outline-topic-header" data-action="toggle-topic">
           <span class="outline-topic-name">📝 ${esc(t.name)}</span>
           <span class="outline-topic-count">${kps.length ? kps.length + ' pts' : qs.length + ' Q'}</span>
           <span class="outline-topic-chevron">›</span>
         </div>
         <div class="outline-keypoints">${pointsHtml}</div>`;
+      // Auto-open topic if single topic view
+      if (topics.length === 1) topicEl.classList.add('open');
       topicsWrap.appendChild(topicEl);
     });
   });
@@ -893,10 +905,13 @@ function questionToKeypoint(q) {
    FLASHCARDS
 ══════════════════════════════════════════════════════════ */
 function renderFlashcard() {
+  // Rebuild if empty (e.g. first switch to cards tab)
+  if (!allFlashcards.length) buildFlashcards();
   const cards = flattenFlashcards();
   if (!cards.length) {
     document.getElementById('fc-front').textContent = 'No cards available';
-    document.getElementById('fc-back').textContent = 'Add some questions first';
+    document.getElementById('fc-back').textContent = 'Add key points to this topic first';
+    document.getElementById('fc-counter').textContent = '0 / 0';
     return;
   }
 
@@ -918,15 +933,15 @@ function renderFlashcard() {
 function flattenFlashcards() {
   const cards = [];
   allFlashcards.forEach(fc => {
-    if (Array.isArray(fc)) cards.push(...fc);
+    if (Array.isArray(fc)) cards.push(...fc.filter(Boolean));
     else if (fc) cards.push(fc);
   });
-  return cards;
+  return cards.filter(c => c && c.front);
 }
 
 window._flipCard  = () => { fcFlipped = !fcFlipped; document.getElementById('flashcard').classList.toggle('flipped', fcFlipped); };
-window._prevCard  = () => { if (fcIdx > 0) { fcIdx--; renderFlashcard(); } };
-window._nextCard  = () => { const cards = flattenFlashcards(); if (fcIdx < cards.length - 1) { fcIdx++; renderFlashcard(); } };
+window._prevCard  = () => { if (fcIdx > 0) { fcIdx--; fcFlipped = false; document.getElementById('flashcard').classList.remove('flipped'); renderFlashcard(); } };
+window._nextCard  = () => { const cards = flattenFlashcards(); if (fcIdx < cards.length - 1) { fcIdx++; fcFlipped = false; document.getElementById('flashcard').classList.remove('flipped'); renderFlashcard(); } };
 
 /* ── Utils ───────────────────────────────────────────────── */
 function shuffle(arr) {
