@@ -50,10 +50,11 @@
     .loading-wrap p { color: var(--color-text-muted); font-family: var(--font-ui); }
 
     /* ── View panels ─────────────────────────────────────── */
-    .view-panel { display: none; height: calc(100vh - 64px); overflow-y: auto; }
-    .view-panel.active { display: block; }
-    #view-spider { display: block; visibility: hidden; position: absolute; pointer-events: none; overflow: hidden; }
-    #view-spider.active { visibility: visible; position: relative; pointer-events: all; }
+    .view-panel { display: none !important; height: calc(100vh - 64px); overflow-y: auto; }
+    .view-panel.active { display: block !important; }
+    .view-panel.active#view-flashcards { display: flex !important; }
+    #view-spider { display: block !important; visibility: hidden; position: absolute; pointer-events: none; overflow: hidden; }
+    #view-spider.active { visibility: visible !important; position: relative; pointer-events: all; }
 
     /* ══════════════════════════════════════════════════════
        VIEW 1: SPIDER DIAGRAM (SVG canvas)
@@ -591,17 +592,45 @@ function getTopicItems(t) {
 }
 
 function layoutBranches(cx, cy, items, startIdx, C, w, h) {
-  // Spread items evenly in a full circle around centre
   const count = items.length;
   if (!count) return;
-  // Vary radius based on label length
+
+  // Pill dimensions — estimate average pill width
+  const pillW = 160; // approximate max pill width in px
+  const pillH = 32;
+  const rootR = 60; // centre node radius
+
+  // The circumference needed to fit all pills without overlap
+  // Each pill needs ~pillW + gap pixels of arc space
+  const gapBetween = 24;
+  const arcPerItem = pillW + gapBetween;
+  const minCircumference = count * arcPerItem;
+  const minRadius = minCircumference / (2 * Math.PI);
+
+  // Also must leave margin from edges
+  const margin = pillW / 2 + 16;
+  const maxRadius = Math.min(w / 2, h / 2) - margin;
+
+  // Use whichever is larger — fit all pills, but cap to canvas
+  const r = Math.min(Math.max(minRadius, rootR + 120), maxRadius);
+
+  // If items still won't fit at maxRadius, scale down pill rendering (handled in draw)
+  const scaleFactor = r === maxRadius && minRadius > maxRadius
+    ? maxRadius / minRadius
+    : 1;
+
   items.forEach((item, i) => {
     const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
-    const r = 200 + Math.min((item.term||'').length * 2, 80);
     const bx = cx + Math.cos(angle) * r;
     const by = cy + Math.sin(angle) * r;
     const nodeIdx = spiderNodes.length;
-    spiderNodes.push({ x: bx, y: by, label: item.term || '', detail: item.detail || '', type: 'leaf', angle });
+    spiderNodes.push({
+      x: bx, y: by,
+      label: item.term || '',
+      detail: item.detail || '',
+      type: 'leaf', angle,
+      scaleFactor
+    });
     spiderEdges.push({ from: startIdx, to: nodeIdx });
   });
 }
@@ -678,9 +707,18 @@ function drawSpider(ctx, canvas) {
       const rx = n.x - pw/2;
       const ry = n.y - ph/2;
 
+      // Scale pill for dense diagrams
+      const sf = n.scaleFactor || 1;
+      const spw = pw * sf;
+      const sph = Math.max(ph * sf, 20);
+      const srx = n.x - spw/2;
+      const sry = n.y - sph/2;
+      const fontSize = Math.max(Math.round(12 * sf), 9);
+      const cornerR = Math.max(14 * sf, 8);
+
       // Pill background
       ctx.beginPath();
-      roundRect(ctx, rx, ry, pw, ph, 14);
+      roundRect(ctx, srx, sry, spw, sph, cornerR);
       ctx.fillStyle = C.surface2;
       ctx.fill();
       ctx.strokeStyle = C.primary + '80';
@@ -691,15 +729,16 @@ function drawSpider(ctx, canvas) {
       const isSelected = selectedLeaf && selectedLeaf.label === n.label && selectedLeaf.x === n.x;
       if (isSelected) {
         ctx.beginPath();
-        roundRect(ctx, rx - 2, ry - 2, pw + 4, ph + 4, 15);
+        roundRect(ctx, srx - 2, sry - 2, spw + 4, sph + 4, cornerR + 1);
         ctx.fillStyle = C.primary;
         ctx.fill();
       }
       ctx.fillStyle = isSelected ? '#fff' : C.text;
-      ctx.font = '600 12px sans-serif';
+      ctx.font = `600 ${fontSize}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label.length > 28 ? label.substring(0,26)+'…' : label, n.x, n.y);
+      const maxChars = Math.max(Math.floor(28 * sf), 10);
+      ctx.fillText(label.length > maxChars ? label.substring(0, maxChars - 2)+'…' : label, n.x, n.y);
     }
   });
 
@@ -748,11 +787,12 @@ function handleSpiderClick(clientX, clientY, canvas) {
   for (const n of spiderNodes) {
     if (n.type !== 'leaf') continue;
     const label = n.label || '';
-    const ctx = canvas.getContext('2d');
-    ctx.font = '12px sans-serif';
-    const tw = ctx.measureText(label).width;
-    const pw = Math.max(tw + 20, 60);
-    const ph = 28;
+    const ctx2 = canvas.getContext('2d');
+    const sf = n.scaleFactor || 1;
+    ctx2.font = '12px sans-serif';
+    const tw = ctx2.measureText(label).width;
+    const pw = Math.max(tw + 20, 60) * sf;
+    const ph = Math.max(28 * sf, 20);
     if (cx >= n.x - pw/2 && cx <= n.x + pw/2 && cy2 >= n.y - ph/2 && cy2 <= n.y + ph/2) {
       hit = n; break;
     }
