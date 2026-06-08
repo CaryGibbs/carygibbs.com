@@ -6,14 +6,14 @@
   <title>Clasp — Mindmap</title>
   <link rel="stylesheet" href="theme.css">
   <style>
-    body { min-height: 100vh; background: var(--color-bg); }
+    body { height: 100vh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
 
     /* ── Top nav ─────────────────────────────────────────── */
     .topnav {
       background: var(--color-surface); border-bottom: 1px solid var(--color-border);
-      padding: 0 var(--space-xl); height: 64px;
+      padding: 0 var(--space-xl); height: 64px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100; gap: var(--space-md);
+      z-index: 100; gap: var(--space-md);
     }
     .nav-back {
       display: flex; align-items: center; gap: 8px;
@@ -50,9 +50,9 @@
     .loading-wrap p { color: var(--color-text-muted); font-family: var(--font-ui); }
 
     /* ── View panels ─────────────────────────────────────── */
-    .view-panel { display: none; }
+    .view-panel { display: none; height: calc(100vh - 64px); overflow-y: auto; }
     .view-panel.active { display: block; }
-    #view-spider { display: block; visibility: hidden; position: absolute; pointer-events: none; }
+    #view-spider { display: block; visibility: hidden; position: absolute; pointer-events: none; overflow: hidden; }
     #view-spider.active { visibility: visible; position: relative; pointer-events: all; }
 
     /* ══════════════════════════════════════════════════════
@@ -78,7 +78,7 @@
     /* ══════════════════════════════════════════════════════
        VIEW 2: OUTLINE / ACCORDION
     ══════════════════════════════════════════════════════ */
-    #view-outline { padding: var(--space-md) var(--space-lg) var(--space-xl); max-width: 760px; margin: 0 auto; }
+    #view-outline { padding: var(--space-md) var(--space-lg) var(--space-xl); max-width: 760px; margin: 0 auto; box-sizing: border-box; }
     .outline-subject {
       background: var(--color-surface); border: 1px solid var(--color-border);
       border-radius: var(--radius-card); margin-bottom: var(--space-md);
@@ -140,9 +140,9 @@
       padding: var(--space-lg) var(--space-xl);
       transform: translateY(100%);
       transition: transform 0.3s ease;
-      z-index: 10; max-height: 45%;
+      z-index: 10; max-height: 50%;
       overflow-y: auto;
-      box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
     }
     .spider-detail.open { transform: translateY(0); }
     .spider-detail-close {
@@ -176,7 +176,8 @@
     ══════════════════════════════════════════════════════ */
     #view-flashcards {
       display: flex; flex-direction: column; align-items: center;
-      padding: var(--space-xl) var(--space-lg); min-height: calc(100vh - 64px);
+      padding: var(--space-lg) var(--space-lg); box-sizing: border-box;
+      justify-content: center;
     }
     .flashcard-meta {
       font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
@@ -267,13 +268,13 @@
 </nav>
 
 <!-- Loading -->
-<div id="loading-wrap" class="loading-wrap">
+<div id="loading-wrap" class="loading-wrap" style="height:calc(100vh - 64px);">
   <div class="spinner" style="width:48px;height:48px;"></div>
   <p>Loading content…</p>
 </div>
 
 <!-- Spider view -->
-<div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;">
+<div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;overflow:hidden;">
   <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
   <div class="spider-hint" id="spider-hint">Tap a key point · Drag to pan · Pinch to zoom</div>
   <button onclick="resetSpiderView()" style="position:absolute;top:var(--space-md);right:var(--space-md);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;z-index:5;">⊙ Centre</button>
@@ -294,8 +295,8 @@
     <div class="flashcard" id="flashcard" onclick="flipCard()">
       <div class="flashcard-face flashcard-front">
         <div class="flashcard-label">Question / Term</div>
-        <div class="flashcard-content" id="fc-front">Loading…</div>
-        <div class="flashcard-hint">Tap to reveal answer</div>
+        <div class="flashcard-content" id="fc-front"></div>
+        <div class="flashcard-hint" id="fc-hint" style="display:none;">Tap to reveal answer</div>
         <div class="flashcard-type" id="fc-type"></div>
       </div>
       <div class="flashcard-face flashcard-back">
@@ -923,6 +924,7 @@ function renderFlashcard() {
 
   document.getElementById('fc-meta').textContent = `${cards.length} cards`;
   const card = cards[fcIdx];
+  document.getElementById('fc-hint').style.display = 'block';
   document.getElementById('fc-front').textContent = card.front;
   document.getElementById('fc-back').textContent = card.back;
   document.getElementById('fc-type').textContent = card.type || '';
