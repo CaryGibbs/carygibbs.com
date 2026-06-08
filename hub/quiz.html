@@ -423,8 +423,10 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, showToast } from './auth.js';
+import { db } from './firebase-config.js';
 import {
-  collection, getDocs, query, orderBy
+  collection, getDocs, query, orderBy,
+  doc, updateDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -444,10 +446,14 @@ let currentIdx   = 0;
 let score        = 0;
 let answered     = false;
 let matchState   = { selectedLeft: null, matched: [] }; // for match pairs
+let currentUser  = null;
+let currentProfile = null;
 
 /* ── Auth ────────────────────────────────────────────────── */
 requireAuth(async (user, profile) => {
   if (!['student','admin','parent'].includes(profile.role)) { location.href = 'hub.html'; return; }
+  currentUser = user;
+  currentProfile = profile;
   // Set smart back link
   if (profile.role === 'admin' || profile.role === 'parent') {
     const bl = document.getElementById('nav-back-link');
@@ -846,7 +852,7 @@ window._nextQuestion = function() {
 };
 
 /* ── Results ─────────────────────────────────────────────── */
-function showResults() {
+async function showResults() {
   showScreen('results');
   const total = questions.length;
   const pct   = Math.round((score / total) * 100);
@@ -863,6 +869,34 @@ function showResults() {
   document.getElementById('results-sub').textContent =
     `You scored ${score} out of ${total} on ${topicName || subjectName}`;
   document.getElementById('results-icon').textContent = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+
+  // Save session to Firestore (students only)
+  if (currentUser && currentProfile?.role === 'student') {
+    const session = {
+      date: Date.now(),
+      subject: subjectName,
+      topic: topicName || subjectName,
+      score, total, pct,
+      groupId: groupId || null,
+      subjectId: subjectId || null,
+      topicId: topicId || null,
+    };
+    try {
+      // Save to student's own profile
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        sessions: arrayUnion(session)
+      });
+      // Mirror to parent's children subcollection if parentUid known
+      if (currentProfile.parentUid) {
+        await updateDoc(
+          doc(db, 'users', currentProfile.parentUid, 'children', currentUser.uid),
+          { sessions: arrayUnion(session) }
+        ).catch(() => {}); // non-fatal if parent doc doesn't have children subcoll
+      }
+    } catch(e) {
+      console.warn('Session save failed:', e.message);
+    }
+  }
 }
 
 window._restartQuiz = function() {
