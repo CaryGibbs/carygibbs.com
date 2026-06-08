@@ -528,10 +528,24 @@
             <span style="font-size:1.4rem;">✨</span>
             <div>
               <div class="gen-title">AI Question Generator</div>
-              <div class="gen-subtitle">Paste any revision content — notes, a textbook passage, bullet points</div>
+              <div class="gen-subtitle">Generate questions from topic key points or pasted content</div>
             </div>
           </div>
-          <textarea class="gen-textarea" id="gen-content" placeholder="Paste your revision content here…&#10;&#10;e.g. The water cycle describes how water evaporates from the surface of the Earth, rises into the atmosphere, cools and condenses into rain or snow in clouds, and falls again as precipitation..."></textarea>
+          <!-- Source selector -->
+          <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
+            <button class="tab-btn active" data-gen-source="keypoints" onclick="switchGenSource('keypoints')">🗺️ Topic key points</button>
+            <button class="tab-btn" data-gen-source="paste" onclick="switchGenSource('paste')">📋 Paste content</button>
+          </div>
+          <!-- Key points source -->
+          <div id="gen-source-keypoints">
+            <div id="gen-kp-preview" style="background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-button);padding:var(--space-md);min-height:80px;font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">
+              Select a topic to load its key points here…
+            </div>
+          </div>
+          <!-- Paste source -->
+          <div id="gen-source-paste" style="display:none;">
+            <textarea class="gen-textarea" id="gen-content" placeholder="Paste your revision content here…&#10;&#10;e.g. The water cycle describes how water evaporates from the surface of the Earth, rises into the atmosphere, cools and condenses into rain or snow in clouds, and falls again as precipitation..."></textarea>
+          </div>
           <div class="gen-options">
             <span class="gen-option-label">Include:</span>
             <label class="q-type-toggle checked"><input type="checkbox" value="mcq" checked> 📝 MCQ</label>
@@ -540,7 +554,7 @@
             <label class="q-type-toggle checked"><input type="checkbox" value="match" checked> 🔗 Match pairs</label>
             <label class="q-type-toggle checked"><input type="checkbox" value="short" checked> 📖 Short written</label>
             <span class="gen-option-label" style="margin-left:var(--space-md);">Target:</span>
-            <input type="number" class="qty-input" id="gen-qty" value="10" min="3" max="30">
+            <input type="number" class="qty-input" id="gen-qty" value="10" min="3" max="200">
             <span class="gen-option-label">questions</span>
           </div>
           <div class="gen-footer">
@@ -616,7 +630,7 @@
         <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;justify-content:space-between;margin-top:var(--space-md);">
           <div style="display:flex;align-items:center;gap:var(--space-sm);">
             <label style="font-family:var(--font-ui);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;text-transform:none;letter-spacing:0;">Questions to generate:</label>
-            <input type="number" id="gen-everything-qty" value="10" min="5" max="50" style="width:70px;padding:6px 10px;font-size:0.88rem;border-radius:var(--radius-button);">
+            <input type="number" id="gen-everything-qty" value="10" min="5" max="200" style="width:70px;padding:6px 10px;font-size:0.88rem;border-radius:var(--radius-button);">
           </div>
           <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
             <button class="btn btn-secondary" data-action="also-generate-questions" style="font-size:0.88rem;">➡️ Questions tab</button>
@@ -898,6 +912,7 @@
 <script>
   /* Safari bridge */
   function doSignOut() { window._doSignOut && window._doSignOut(); }
+  function switchGenSource(s) { window._switchGenSource && window._switchGenSource(s); }
   function switchKpTab(t) { window._switchKpTab && window._switchKpTab(t); }
   function switchKpTabModal(t) { window._switchKpTabModal && window._switchKpTabModal(t); }
 </script>
@@ -914,6 +929,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 window._doSignOut = () => handleSignOut();
+
+window._switchGenSource = function(source) {
+  document.querySelectorAll('[data-gen-source]').forEach(b => b.classList.toggle('active', b.dataset.genSource === source));
+  document.getElementById('gen-source-keypoints').style.display = source === 'keypoints' ? 'block' : 'none';
+  document.getElementById('gen-source-paste').style.display     = source === 'paste'     ? 'block' : 'none';
+};
 window._switchKpTab = switchKpTab;
 window._switchKpTabModal = switchKpTabModal;
 
@@ -1254,6 +1275,8 @@ function openTopic(id, data) {
   document.getElementById('nav-questions-btn').style.display = 'flex';
   // show preview links
   updatePreviewLinks();
+  // prime gen kp preview
+  getDoc(doc(db, topicsPath(), id)).then(s => updateGenKpPreview(s.data()?.keyPoints || [])).catch(()=>{});
 }
 
 async function openTopicModal(id) {
@@ -1565,6 +1588,22 @@ async function loadKpPanel() {
   const snap = await getDoc(doc(db, topicsPath(), selectedTopic.id)).catch(() => null);
   const kps = snap?.data()?.keyPoints || [];
   renderKpList('kp-list-panel', kps);
+  // Also update AI Generate preview
+  updateGenKpPreview(kps);
+}
+
+function updateGenKpPreview(kps) {
+  const preview = document.getElementById('gen-kp-preview');
+  if (!preview) return;
+  if (!kps || !kps.length) {
+    preview.textContent = 'No key points saved for this topic yet. Add key points in the Key Points tab first.';
+    preview.style.color = 'var(--color-text-muted)';
+    return;
+  }
+  preview.style.color = 'var(--color-text)';
+  preview.innerHTML = `<div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">${kps.length} key points loaded</div>` +
+    kps.slice(0, 5).map(kp => `<div style="padding:3px 0;border-bottom:1px solid var(--color-border);font-size:0.85rem;"><strong>${esc(kp.term)}</strong> — ${esc(kp.explanation)}</div>`).join('') +
+    (kps.length > 5 ? `<div style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">…and ${kps.length - 5} more</div>` : '');
 }
 
 /* ── QUESTIONS path ──────────────────────────────────────── */
@@ -1589,7 +1628,21 @@ async function loadExistingQuestions() {
 
 /* ── AI GENERATION ───────────────────────────────────────── */
 async function runGenerate() {
-  const content = document.getElementById('gen-content').value.trim();
+  // Determine source
+  const activeSource = document.querySelector('[data-gen-source].active')?.dataset.genSource || 'paste';
+  let content = '';
+
+  if (activeSource === 'keypoints') {
+    // Build content string from saved key points
+    if (!selectedTopic) { showToast('Select a topic first', 'error'); return; }
+    const snap = await getDoc(doc(db, topicsPath(), selectedTopic.id)).catch(() => null);
+    const kps = snap?.data()?.keyPoints || [];
+    if (!kps.length) { showToast('No key points saved for this topic. Add key points first.', 'error'); return; }
+    content = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+  } else {
+    content = document.getElementById('gen-content').value.trim();
+  }
+
   if (!content) { showToast('Please paste some content first', 'error'); return; }
   if (!selectedTopic) { showToast('Select a topic first', 'error'); return; }
 
@@ -1613,7 +1666,7 @@ async function runGenerate() {
 
   const typeExamples = types.map(t => typeDescriptions[t]).join('\n');
 
-  const prompt = `You are a GCSE revision question writer. Generate exactly ${qty} questions from the content below.
+  const prompt = `You are a GCSE revision question writer. Generate exactly ${qty} questions from the content below. If the content is rich enough to support more questions of good quality, prioritise quality and relevance over hitting the exact number.
 Use these types in roughly equal proportions from: ${types.join(', ')}.
 
 For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
