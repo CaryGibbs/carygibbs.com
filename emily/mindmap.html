@@ -1,686 +1,969 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="edge">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mind Map</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
-<style>
-  :root{--bg:#0f0e17;--surface:#1a1825;--card:#201e2e;--border:rgba(255,255,255,.08);--text:#f0eeff;--muted:rgba(240,238,255,.55);--dim:rgba(240,238,255,.3);}
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);font-family:'Nunito Sans',sans-serif;color:var(--text);min-height:100vh;}
-  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 35% 65%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(2px 2px at 62% 20%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 85% 55%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 50% 90%,rgba(255,255,255,.25) 0%,transparent 100%);pointer-events:none;z-index:0;}
-  nav{position:sticky;top:0;z-index:100;background:rgba(15,14,23,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);}
-  nav a{color:var(--muted);text-decoration:none;font-weight:600;}nav a:hover{color:var(--text);}
-  nav span{opacity:.45;}
-  .wrap{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 4rem;position:relative;z-index:1;}
-  .hero{margin-bottom:2.5rem;}
-  .hero-row{display:flex;align-items:center;gap:14px;margin-bottom:.5rem;}
-  .hero-icon{font-size:40px;}
-  .hero h1{font-family:'Nunito',sans-serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:900;line-height:1.1;}
-  .hero p{color:var(--muted);font-size:14px;margin-top:.3rem;}
-  .quiz-all-btn{display:inline-block;margin-top:1rem;padding:.55rem 1.2rem;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);transition:background .15s;}
-  .quiz-all-btn:hover{background:rgba(255,255,255,.12);}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem;}
-  .topic-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:fadeUp .45s ease both;}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-  .topic-head{padding:1rem 1.25rem .8rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
-  .topic-icon{font-size:22px;flex-shrink:0;}
-  .topic-name{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;}
-  .topic-sub{font-size:11px;color:var(--muted);margin-top:1px;}
-  .subtopic-list{padding:.6rem 0 .5rem;}
-  .subtopic-item{padding:.55rem 1.25rem;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid rgba(255,255,255,.04);}
-  .subtopic-item:last-child{border-bottom:none;}
-  .st-dot{width:6px;height:6px;border-radius:50%;margin-top:7px;flex-shrink:0;}
-  .st-body{flex:1;}
-  .st-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
-  .st-title a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .15s;}
-  .st-title a:hover{border-color:currentColor;}
-  .st-detail{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.5;}
-  .st-formula{font-size:11px;font-family:monospace;margin-top:3px;padding:2px 6px;border-radius:5px;display:inline-block;}
-  .card-footer{padding:.6rem 1.25rem .75rem;display:flex;gap:7px;}
-  .footer-btn{flex:1;text-align:center;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:6px 4px;border-radius:9px;text-decoration:none;border:1px solid rgba(255,255,255,.12);color:var(--muted);background:rgba(255,255,255,.05);transition:background .15s,color .15s;}
-  .footer-btn:hover{background:rgba(255,255,255,.1);color:var(--text);}
-</style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasp — Mindmap</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { min-height: 100vh; background: var(--color-bg); }
+
+    /* ── Top nav ─────────────────────────────────────────── */
+    .topnav {
+      background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl); height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; gap: var(--space-md);
+    }
+    .nav-back {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600;
+      color: var(--color-text-muted); text-decoration: none; flex-shrink: 0;
+      transition: color var(--transition-fast);
+    }
+    .nav-back:hover { color: var(--color-primary); }
+    .nav-title {
+      font-family: var(--font-heading); font-size: 1rem; font-weight: 700;
+      color: var(--color-text); flex: 1; text-align: center;
+    }
+    .view-toggle {
+      display: flex; gap: 4px; background: var(--color-surface-2);
+      border-radius: var(--radius-button); padding: 3px; flex-shrink: 0;
+    }
+    .view-btn {
+      padding: 6px 12px; border-radius: calc(var(--radius-button) - 2px);
+      background: transparent; color: var(--color-text-muted);
+      font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600;
+      border: none; cursor: pointer; transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+    .view-btn.active {
+      background: var(--color-surface); color: var(--color-text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    /* ── Loading ─────────────────────────────────────────── */
+    .loading-wrap {
+      display: flex; align-items: center; justify-content: center;
+      min-height: calc(100vh - 64px); flex-direction: column; gap: var(--space-md);
+    }
+    .loading-wrap p { color: var(--color-text-muted); font-family: var(--font-ui); }
+
+    /* ── View panels ─────────────────────────────────────── */
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+    #view-spider { display: block; visibility: hidden; position: absolute; pointer-events: none; }
+    #view-spider.active { visibility: visible; position: relative; pointer-events: all; }
+
+    /* ══════════════════════════════════════════════════════
+       VIEW 1: SPIDER DIAGRAM (SVG canvas)
+    ══════════════════════════════════════════════════════ */
+    #view-spider {
+      width: 100%; height: calc(100vh - 64px);
+      overflow: hidden; position: relative; cursor: grab;
+    }
+    #view-spider:active { cursor: grabbing; }
+    #spider-canvas {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .spider-hint {
+      position: absolute; bottom: var(--space-lg); left: 50%; transform: translateX(-50%);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill); padding: 6px 16px;
+      font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted);
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       VIEW 2: OUTLINE / ACCORDION
+    ══════════════════════════════════════════════════════ */
+    #view-outline { padding: var(--space-xl) var(--space-lg); max-width: 720px; margin: 0 auto; }
+    .outline-subject {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); margin-bottom: var(--space-md);
+      overflow: hidden;
+    }
+    .outline-subject-header {
+      display: flex; align-items: center; gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg); cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    .outline-subject-header:hover { background: var(--color-surface-2); }
+    .outline-subject-emoji { font-size: 1.4rem; }
+    .outline-subject-name { font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; flex: 1; }
+    .outline-chevron { color: var(--color-text-faint); transition: transform var(--transition-fast); font-size: 1.1rem; }
+    .outline-subject.open .outline-chevron { transform: rotate(90deg); }
+    .outline-topics { display: none; border-top: 1px solid var(--color-border); }
+    .outline-subject.open .outline-topics { display: block; }
+    .outline-topic {
+      border-bottom: 1px solid var(--color-border); overflow: hidden;
+    }
+    .outline-topic:last-child { border-bottom: none; }
+    .outline-topic-header {
+      display: flex; align-items: center; gap: var(--space-md);
+      padding: var(--space-sm) var(--space-lg) var(--space-sm) calc(var(--space-lg) + 24px);
+      cursor: pointer; transition: background var(--transition-fast);
+    }
+    .outline-topic-header:hover { background: var(--color-surface-2); }
+    .outline-topic-name {
+      font-family: var(--font-ui); font-size: 0.92rem; font-weight: 600; flex: 1;
+      color: var(--color-text);
+    }
+    .outline-topic-count {
+      font-size: 0.78rem; color: var(--color-text-muted); font-family: var(--font-ui);
+    }
+    .outline-topic-chevron { color: var(--color-text-faint); transition: transform var(--transition-fast); font-size: 0.9rem; }
+    .outline-topic.open .outline-topic-chevron { transform: rotate(90deg); }
+    .outline-keypoints { display: none; padding: var(--space-sm) var(--space-lg) var(--space-md) calc(var(--space-lg) + 48px); }
+    .outline-topic.open .outline-keypoints { display: block; }
+    .keypoint-item {
+      display: flex; align-items: flex-start; gap: var(--space-sm);
+      padding: 6px 0; border-bottom: 1px solid var(--color-border);
+      font-size: 0.88rem; color: var(--color-text); line-height: 1.5;
+    }
+    .keypoint-item:last-child { border-bottom: none; }
+    .keypoint-dot { color: var(--color-primary); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .keypoint-type {
+      font-size: 0.7rem; font-family: var(--font-ui); font-weight: 700;
+      text-transform: uppercase; color: var(--color-text-faint); flex-shrink: 0;
+      min-width: 36px; margin-top: 2px;
+    }
+
+    /* ── Spider detail panel ────────────────────────────── */
+    .spider-detail {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: var(--color-surface);
+      border-top: 2px solid var(--color-primary);
+      border-radius: var(--radius-card) var(--radius-card) 0 0;
+      padding: var(--space-lg) var(--space-xl);
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 10; max-height: 45%;
+      overflow-y: auto;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
+    }
+    .spider-detail.open { transform: translateY(0); }
+    .spider-detail-close {
+      position: absolute; top: var(--space-md); right: var(--space-md);
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-surface-2); border: none; cursor: pointer;
+      color: var(--color-text-muted); font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .spider-detail-close:hover { background: var(--color-danger); color: #fff; }
+    .spider-detail-term {
+      font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;
+      color: var(--color-primary); margin-bottom: var(--space-sm);
+      padding-right: 40px;
+    }
+    .spider-detail-explanation {
+      font-size: 0.95rem; color: var(--color-text); line-height: 1.7;
+    }
+    .spider-hint {
+      position: absolute; bottom: var(--space-lg); left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill); padding: 6px 16px;
+      font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted);
+      pointer-events: none; transition: opacity 0.3s ease;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       VIEW 3: FLASHCARDS
+    ══════════════════════════════════════════════════════ */
+    #view-flashcards {
+      display: flex; flex-direction: column; align-items: center;
+      padding: var(--space-xl) var(--space-lg); min-height: calc(100vh - 64px);
+    }
+    .flashcard-meta {
+      font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
+      margin-bottom: var(--space-lg);
+    }
+    .flashcard-wrap {
+      width: 100%; max-width: 560px; perspective: 1000px; margin-bottom: var(--space-xl);
+    }
+    .flashcard {
+      width: 100%; min-height: 260px;
+      position: relative; transform-style: preserve-3d;
+      transition: transform 0.5s ease; cursor: pointer;
+    }
+    .flashcard.flipped { transform: rotateY(180deg); }
+    .flashcard-face {
+      position: absolute; inset: 0;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-xl);
+      backface-visibility: hidden;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      box-shadow: var(--shadow-card);
+    }
+    .flashcard-back {
+      transform: rotateY(180deg);
+      background: var(--color-primary-glow);
+      border-color: var(--color-primary);
+    }
+    .flashcard-label {
+      font-family: var(--font-ui); font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--color-text-faint); margin-bottom: var(--space-md);
+    }
+    .flashcard-back .flashcard-label { color: var(--color-primary); }
+    .flashcard-content {
+      font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700;
+      color: var(--color-text); line-height: 1.4;
+    }
+    .flashcard-back .flashcard-content { color: var(--color-text); font-size: 1rem; font-weight: 400; font-family: var(--font-body); }
+    .flashcard-hint {
+      font-size: 0.78rem; color: var(--color-text-faint); margin-top: var(--space-md);
+      font-family: var(--font-ui);
+    }
+    .flashcard-type {
+      position: absolute; top: var(--space-md); right: var(--space-md);
+      font-size: 0.7rem; font-family: var(--font-ui); font-weight: 700;
+      text-transform: uppercase; color: var(--color-text-faint);
+    }
+
+    .flashcard-nav {
+      display: flex; align-items: center; gap: var(--space-lg);
+    }
+    .fc-nav-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast); color: var(--color-text);
+    }
+    .fc-nav-btn:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+    .fc-nav-btn:disabled { opacity: 0.3; cursor: default; }
+    .fc-counter {
+      font-family: var(--font-ui); font-size: 0.9rem; color: var(--color-text-muted);
+      min-width: 70px; text-align: center;
+    }
+    .fc-topic-label {
+      font-family: var(--font-ui); font-size: 0.82rem; color: var(--color-text-muted);
+      margin-top: var(--space-md); text-align: center;
+    }
+
+    /* ── Empty state ─────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: var(--space-2xl); color: var(--color-text-muted);
+    }
+    .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
+  </style>
 </head>
 <body>
-<nav>
-  <a href="index.html">🏠 Home</a>
-  <span>›</span>
-  <span id="nav-subject">Mind Map</span>
+<div id="toast-container"></div>
+
+<nav class="topnav">
+  <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
+  <div class="nav-title" id="nav-title">Mindmap</div>
+  <div class="view-toggle">
+    <button class="view-btn active" data-view="spider" onclick="switchView('spider')">🕸️ Spider</button>
+    <button class="view-btn" data-view="outline" onclick="switchView('outline')">📋 Outline</button>
+    <button class="view-btn" data-view="flashcards" onclick="switchView('flashcards')">🃏 Cards</button>
+  </div>
 </nav>
-<div class="wrap">
-  <div class="hero">
-    <div class="hero-row">
-      <span class="hero-icon" id="hero-icon"></span>
-      <div>
-        <h1 id="hero-title"></h1>
-        <p id="hero-tag"></p>
+
+<!-- Loading -->
+<div id="loading-wrap" class="loading-wrap">
+  <div class="spinner" style="width:48px;height:48px;"></div>
+  <p>Loading content…</p>
+</div>
+
+<!-- Spider view -->
+<div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;">
+  <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+  <div class="spider-hint" id="spider-hint">Tap a key point to see details · Drag to pan · Pinch to zoom</div>
+  <div class="spider-detail" id="spider-detail">
+    <button class="spider-detail-close" onclick="closeSpiderDetail()">✕</button>
+    <div class="spider-detail-term" id="spider-detail-term"></div>
+    <div class="spider-detail-explanation" id="spider-detail-explanation"></div>
+  </div>
+</div>
+
+<!-- Outline view -->
+<div class="view-panel" id="view-outline"></div>
+
+<!-- Flashcards view -->
+<div class="view-panel" id="view-flashcards">
+  <div class="flashcard-meta" id="fc-meta"></div>
+  <div class="flashcard-wrap">
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="flashcard-face flashcard-front">
+        <div class="flashcard-label">Question / Term</div>
+        <div class="flashcard-content" id="fc-front">Loading…</div>
+        <div class="flashcard-hint">Tap to reveal answer</div>
+        <div class="flashcard-type" id="fc-type"></div>
+      </div>
+      <div class="flashcard-face flashcard-back">
+        <div class="flashcard-label">Answer</div>
+        <div class="flashcard-content" id="fc-back"></div>
       </div>
     </div>
-    <a class="quiz-all-btn" id="quiz-all-btn" href="#">✏️ Quiz all topics</a>
   </div>
-  <div class="grid" id="mind-grid"></div>
+  <div class="flashcard-nav">
+    <button class="fc-nav-btn" id="fc-prev" onclick="prevCard()" disabled>‹</button>
+    <div class="fc-counter" id="fc-counter">1 / 1</div>
+    <button class="fc-nav-btn" id="fc-next" onclick="nextCard()">›</button>
+  </div>
+  <div class="fc-topic-label" id="fc-topic-label"></div>
 </div>
-<script src="data.js"></script>
+
 <script>
-/* ── FIREBASE INIT ─────────────────────────────────────── */
-var _fbCfg = {
-  apiKey:            "AIzaSyCOZxqDk_cQdW7VG25QrSc4zv-MYMIJLDw",
-  authDomain:        "emilys-revision-hub.firebaseapp.com",
-  databaseURL:       "https://emilys-revision-hub-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:         "emilys-revision-hub",
-  storageBucket:     "emilys-revision-hub.firebasestorage.app",
-  messagingSenderId: "186424138043",
-  appId:             "1:186424138043:web:a96ba579106010be66ff1e"
-};
-if (window.firebase && !firebase.apps.length) {
-  firebase.initializeApp(_fbCfg);
-  console.log('✅ Firebase ready');
-}
+  function switchView(v) { window._switchView && window._switchView(v); }
+  function closeSpiderDetail() { window._closeSpiderDetail && window._closeSpiderDetail(); }
+  function flipCard() { window._flipCard && window._flipCard(); }
+  function prevCard() { window._prevCard && window._prevCard(); }
+  function nextCard() { window._nextCard && window._nextCard(); }
 </script>
 
-<script>
-/* ═══════════════════════════════════════════════════════════════
-   EMILY'S HUB — GAMIFICATION + TRACKING ENGINE
-   Works with localStorage immediately.
-   Drop in Firebase config to sync across devices.
-   ═══════════════════════════════════════════════════════════════ */
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { requireAuth, showToast } from './auth.js';
+import {
+  collection, getDocs, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-var HUB_STORE    = 'emilys_hub_v1';
-var STREAK_STORE = 'emilys_streak_v1';
+const params    = new URLSearchParams(location.search);
+const groupId   = params.get('groupId');
+const subjectId = params.get('subjectId');
+const topicId   = params.get('topicId');
+const subjectName = params.get('subjectName') || 'Subject';
+const topicName   = params.get('topicName') || '';
 
-/* ── XP VALUES ─────────────────────────────────────────── */
-var XP = {
-  QUIZ_COMPLETE:      10,
-  QUIZ_PERFECT:       20,   // bonus on top of QUIZ_COMPLETE for 10/10
-  QUIZ_90:            15,   // bonus for 90%+
-  LESSON_READ:         5,
-  MINDMAP_VISIT:       2,
-  FIRST_QUIZ_TODAY:    5,
-  STREAK_7:           50,
-  STREAK_30:         150,
-  WEAK_TOPIC_FIXED:   25,   // topic goes from <60% to >=70%
-  IMPROVE_3_ROW:      20,   // same subject improves 3 sessions running
-};
+/* ── Data model ──────────────────────────────────────────── */
+// subjects = [{ id, name, emoji, topics: [{ id, name, questions: [...] }] }]
+let subjects = [];
+let allFlashcards = []; // flat list for flashcard view
+let currentView = 'spider';
+let fcIdx = 0;
+let fcFlipped = false;
 
-/* ── LEVELS ────────────────────────────────────────────── */
-var LEVELS = [
-  { level:1, title:'Starter',   xp:0,    emoji:'🌱' },
-  { level:2, title:'Learner',   xp:100,  emoji:'📖' },
-  { level:3, title:'Scholar',   xp:300,  emoji:'🎓' },
-  { level:4, title:'Expert',    xp:600,  emoji:'🔬' },
-  { level:5, title:'Champion',  xp:1000, emoji:'🏆' },
-  { level:6, title:'Legend',    xp:1500, emoji:'⭐' },
-];
+/* ── Spider canvas state ─────────────────────────────────── */
+let spiderNodes = [];
+let selectedLeaf = null;
+let spiderEdges = [];
+let panX = 0, panY = 0, zoom = 1;
+let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
 
-/* ── BADGES ────────────────────────────────────────────── */
-var BADGE_DEFS = [
-  { id:'first_quiz',    emoji:'🎉', title:'First Steps',      desc:'Complete your first quiz' },
-  { id:'perfect_ten',  emoji:'💯', title:'Perfect Ten',       desc:'Score 10/10 on any quiz' },
-  { id:'streak_3',     emoji:'🔥', title:'On Fire',           desc:'3-day streak' },
-  { id:'streak_7',     emoji:'🌟', title:'Week Warrior',      desc:'7-day streak' },
-  { id:'streak_30',    emoji:'🚀', title:'Unstoppable',       desc:'30-day streak' },
-  { id:'bookworm',     emoji:'📚', title:'Bookworm',          desc:'Read 20 lessons' },
-  { id:'explorer',     emoji:'🌍', title:'Explorer',          desc:'Quiz in every subject' },
-  { id:'sharp',        emoji:'🎯', title:'Sharp Shooter',     desc:'Answer 100 questions correctly' },
-  { id:'comeback',     emoji:'💪', title:'Comeback Kid',      desc:'Improve a topic from below 60% to above 70%' },
-  { id:'star_pupil',   emoji:'⭐', title:'Star Pupil',        desc:'Score 90%+ five times' },
-  { id:'trending',     emoji:'📈', title:'Trending Up',       desc:'Improve score in the same subject 3 sessions in a row' },
-  { id:'all_rounder',  emoji:'🎪', title:'All-Rounder',       desc:'Score 70%+ in every subject at least once' },
-  { id:'century',      emoji:'💫', title:'Century',           desc:'Complete 100 quizzes' },
-  { id:'night_owl',    emoji:'🦉', title:'Night Owl',         desc:'Complete a quiz after 9pm' },
-  { id:'early_bird',   emoji:'🐦', title:'Early Bird',        desc:'Complete a quiz before 8am' },
-  { id:'lesson_20',    emoji:'🧠', title:'Deep Diver',        desc:'Read 20 different lessons' },
-];
-
-/* ── LOCAL STORE HELPERS ───────────────────────────────── */
-function _load() {
-  try {
-    var d = JSON.parse(localStorage.getItem(HUB_STORE)) || _blank();
-    if (!d.xp || isNaN(d.xp)) d.xp = 0;
-    if (!d.badges) d.badges = [];
-    if (!d.quizSessions) d.quizSessions = [];
-    if (!d.topicHistory) d.topicHistory = {};
-    if (!d.subjectSessions) d.subjectSessions = {};
-    if (!d.activity) d.activity = {};
-    if (!d.lessonsRead) d.lessonsRead = [];
-    if (!d.mindmapVisits) d.mindmapVisits = {};
-    return d;
-  } catch(e) { return _blank(); }
-}
-function _save(d) {
-  try { localStorage.setItem(HUB_STORE, JSON.stringify(d)); } catch(e) {}
-}
-function _blank() {
-  return {
-    xp: 0,
-    badges: [],
-    lessonsRead: [],
-    mindmapVisits: {},
-    quizSessions: [],    // { sid, date, ts, score, total, pct, topicScores }
-    topicHistory: {},    // sid -> topic -> [pct, pct, ...]
-    subjectSessions: {}, // sid -> [pct, pct, ...]  for trend detection
-    activity: {},        // date -> minutes (approx)
-    newBadges: [],       // badges earned this session, shown as toast
-    newXP: 0,            // XP earned this session, for animation
-  };
-}
-
-/* ── STREAK ─────────────────────────────────────────────── */
-function _loadStreak() {
-  try { return JSON.parse(localStorage.getItem(STREAK_STORE)) || {count:0,lastDate:''}; }
-  catch(e) { return {count:0,lastDate:''}; }
-}
-function _saveStreak(s) {
-  try { localStorage.setItem(STREAK_STORE, JSON.stringify(s)); } catch(e) {}
-}
-function _touchStreak() {
-  var today = _today();
-  var s = _loadStreak();
-  if (s.lastDate === today) return s.count;
-  var yest = _yesterday();
-  s.count = (s.lastDate === yest) ? s.count + 1 : 1;
-  s.lastDate = today;
-  _saveStreak(s);
-  return s.count;
-}
-function _today() {
-  var d = new Date();
-  // Use local date not UTC to avoid BST/timezone date-rollover issues
-  return d.getFullYear() + '-'
-    + String(d.getMonth()+1).padStart(2,'0') + '-'
-    + String(d.getDate()).padStart(2,'0');
-}
-function _yesterday() {
-  var d = new Date(Date.now()-86400000);
-  return d.getFullYear() + '-'
-    + String(d.getMonth()+1).padStart(2,'0') + '-'
-    + String(d.getDate()).padStart(2,'0');
-}
-function getStreak() {
-  var s = _loadStreak();
-  var today = _today(), yest = _yesterday();
-  if (s.lastDate !== today && s.lastDate !== yest) return 0;
-  return s.count;
-}
-
-/* ── XP / LEVEL HELPERS ─────────────────────────────────── */
-function getLevel(xp) {
-  xp = xp || 0;
-  var lv = LEVELS[0];
-  for (var i = 0; i < LEVELS.length; i++) {
-    if (xp >= LEVELS[i].xp) lv = LEVELS[i]; else break;
+requireAuth(async (user, profile) => {
+  if (!['student','admin','parent'].includes(profile.role)) { location.href = 'hub.html'; return; }
+  // Set smart back link
+  if (profile.role === 'admin' || profile.role === 'parent') {
+    const bl = document.getElementById('nav-back-link');
+    if (bl) { bl.href = 'admin.html'; bl.textContent = '← Admin'; }
   }
-  return lv;
+  if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
+  document.getElementById('nav-title').textContent = topicName || subjectName;
+  await loadData();
+});
+
+async function loadData() {
+  try {
+    if (topicId) {
+      // Single topic mode
+      const subSnap = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}`));
+      const topSnap = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}/topics/${topicId}`));
+      const qSnap   = await getDocs(collection(db, `content/${groupId}/subjects/${subjectId}/topics/${topicId}/questions`));
+      const qs = [];
+      qSnap.forEach(d => qs.push({ id: d.id, ...d.data() }));
+      const topData = topSnap.exists() ? topSnap.data() : {};
+      subjects = [{
+        id: subjectId,
+        name: subSnap.exists() ? subSnap.data().name : subjectName,
+        emoji: subSnap.exists() ? subSnap.data().emoji || '📚' : '📚',
+        topics: [{ id: topicId, name: topData.name || topicName, keyPoints: topData.keyPoints || [], questions: qs }]
+      }];
+    } else {
+      // Whole subject mode
+      const subSnap  = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}`));
+      const topSnap  = await getDocs(collection(db, `content/${groupId}/subjects/${subjectId}/topics`));
+      const topicList = [];
+      topSnap.forEach(d => topicList.push({ id: d.id, ...d.data() }));
+
+      const topicsWithQ = await Promise.all(topicList.map(async t => {
+        const qSnap = await getDocs(collection(db,
+          `content/${groupId}/subjects/${subjectId}/topics/${t.id}/questions`)).catch(() => null);
+        const qs = [];
+        if (qSnap) qSnap.forEach(d => qs.push({ id: d.id, ...d.data() }));
+        return { ...t, keyPoints: t.keyPoints || [], questions: qs };
+      }));
+
+      subjects = [{
+        id: subjectId,
+        name: subSnap.exists() ? subSnap.data().name : subjectName,
+        emoji: subSnap.exists() ? subSnap.data().emoji || '📚' : '📚',
+        topics: topicsWithQ
+      }];
+    }
+
+    buildFlashcards();
+    document.getElementById('loading-wrap').style.display = 'none';
+    showView('spider');
+    buildOutline();
+    // Defer spider build until after layout
+    requestAnimationFrame(() => { requestAnimationFrame(() => buildSpider()); });
+  } catch(e) {
+    document.getElementById('loading-wrap').innerHTML =
+      `<div class="empty-state"><h3>Failed to load</h3><p>${e.message}</p></div>`;
+  }
 }
-function getNextLevel(xp) {
-  xp = xp || 0;
-  for (var i = 0; i < LEVELS.length; i++) {
-    if (LEVELS[i].xp > xp) return LEVELS[i];
+
+/* ── Flashcard data ──────────────────────────────────────── */
+function buildFlashcards() {
+  allFlashcards = [];
+  subjects.forEach(s => {
+    s.topics.forEach(t => {
+      const kps = t.keyPoints || [];
+      if (kps.length) {
+        // Key points → flashcards (primary)
+        kps.forEach(kp => {
+          if (kp.term || kp.explanation) {
+            allFlashcards.push({ front: kp.term || kp.explanation, back: kp.explanation || kp.term, type: 'Key point', topic: t.name });
+          }
+        });
+      } else {
+        // Fallback to questions
+        (t.questions || []).forEach(q => {
+          const card = questionToFlashcard(q, t.name);
+          if (card) allFlashcards.push(card);
+        });
+      }
+    });
+  });
+  shuffle(allFlashcards);
+}
+
+function questionToFlashcard(q, topicName) {
+  if (q.type === 'mcq') {
+    const correct = (q.options||[]).find(o => o.correct);
+    return { front: q.question, back: correct?.text || '?', type: 'MCQ', topic: topicName };
+  }
+  if (q.type === 'tf') {
+    return { front: q.question, back: (q.answer ? '✅ True' : '❌ False') + (q.explanation ? '\n\n' + q.explanation : ''), type: 'T/F', topic: topicName };
+  }
+  if (q.type === 'fill') {
+    const front = (q.sentence||'').replace('_____', '_____');
+    return { front, back: q.answer, type: 'Fill', topic: topicName };
+  }
+  if (q.type === 'match') {
+    // One card per pair
+    return (q.pairs||[]).map(p => ({ front: p.left, back: p.right, type: 'Match', topic: topicName }));
+  }
+  if (q.type === 'short') {
+    return { front: q.question, back: q.markScheme, type: 'Short', topic: topicName };
   }
   return null;
 }
-function getLevelProgress(xp) {
-  xp = xp || 0;
-  var cur = getLevel(xp), next = getNextLevel(xp);
-  if (!next) return 100;
-  return Math.round(((xp - cur.xp) / (next.xp - cur.xp)) * 100);
-}
 
-/* ── BADGE AWARDING ─────────────────────────────────────── */
-function _awardBadge(d, id) {
-  if (d.badges.indexOf(id) === -1) {
-    d.badges.push(id);
-    d.newBadges.push(id);
-    var def = BADGE_DEFS.find(function(b){ return b.id === id; });
-    if (def) console.log('🏅 Badge unlocked: ' + def.title);
-  }
-}
+/* ── View switching ──────────────────────────────────────── */
+window._closeSpiderDetail = function() {
+  document.getElementById('spider-detail').classList.remove('open');
+  document.getElementById('spider-hint').style.opacity = '1';
+  // Deselect node
+  selectedLeaf = null;
+  const canvas = document.getElementById('spider-canvas');
+  drawSpider(canvas.getContext('2d'), canvas);
+};
 
-function _checkBadges(d, context) {
-  var ctx = context || {};
-
-  // First quiz
-  if (d.quizSessions.length >= 1) _awardBadge(d, 'first_quiz');
-
-  // Perfect ten
-  if (ctx.score === 10 && ctx.total === 10) _awardBadge(d, 'perfect_ten');
-
-  // Streaks
-  var streak = getStreak();
-  if (streak >= 3)  _awardBadge(d, 'streak_3');
-  if (streak >= 7)  _awardBadge(d, 'streak_7');
-  if (streak >= 30) _awardBadge(d, 'streak_30');
-
-  // Lessons read
-  if (d.lessonsRead.length >= 20) { _awardBadge(d, 'bookworm'); _awardBadge(d, 'lesson_20'); }
-
-  // Explorer — quiz in every subject
-  var subjectsQuizzed = Object.keys(d.subjectSessions || {});
-  var allSubjects = Object.keys(SUBJECTS);
-  if (allSubjects.every(function(s){ return subjectsQuizzed.indexOf(s) > -1; }))
-    _awardBadge(d, 'explorer');
-
-  // Sharp shooter — 100 correct answers total
-  var totalCorrect = d.quizSessions.reduce(function(a,s){ return a + s.score; }, 0);
-  if (totalCorrect >= 100) _awardBadge(d, 'sharp');
-
-  // Star pupil — 90%+ five times
-  var high = d.quizSessions.filter(function(s){ return s.pct >= 90; }).length;
-  if (high >= 5) _awardBadge(d, 'star_pupil');
-
-  // 100 quizzes
-  if (d.quizSessions.length >= 100) _awardBadge(d, 'century');
-
-  // Night owl / early bird
-  var hour = new Date().getHours();
-  if (hour >= 21) _awardBadge(d, 'night_owl');
-  if (hour < 8)   _awardBadge(d, 'early_bird');
-
-  // Comeback — topic fixed
-  if (ctx.topicFixed) _awardBadge(d, 'comeback');
-
-  // Trending up — same subject improved 3 in a row
-  if (ctx.improved3) _awardBadge(d, 'trending');
-
-  // All-rounder — 70%+ in every subject
-  var allGood = allSubjects.every(function(sid) {
-    var sessions = d.subjectSessions[sid] || [];
-    return sessions.some(function(p){ return p >= 70; });
-  });
-  if (allGood) _awardBadge(d, 'all_rounder');
-}
-
-/* ── MAIN TRACKING FUNCTIONS ────────────────────────────── */
-
-// Call when quiz finishes
-function trackQuizComplete(sid, topicScores, score, total) {
-  var d = _load();
-  var pct = Math.round((score / total) * 100);
-  var today = _today();
-  d.newBadges = [];
-  d.newXP = 0;
-
-  // XP
-  var earned = XP.QUIZ_COMPLETE;
-  if (score === total) earned += XP.QUIZ_PERFECT;
-  else if (pct >= 90)  earned += XP.QUIZ_90;
-
-  // First quiz today bonus
-  var todaySessions = d.quizSessions.filter(function(s){ return s.date === today; });
-  if (todaySessions.length === 0) earned += XP.FIRST_QUIZ_TODAY;
-
-  d.xp += earned;
-  d.newXP = earned;
-
-  // Record session
-  d.quizSessions.push({ sid:sid, date:today, ts:Date.now(), score:score, total:total, pct:pct });
-  if (d.quizSessions.length > 200) d.quizSessions = d.quizSessions.slice(-200);
-
-  // Subject trend
-  if (!d.subjectSessions) d.subjectSessions = {};
-  if (!d.subjectSessions[sid]) d.subjectSessions[sid] = [];
-  d.subjectSessions[sid].push(pct);
-
-  // Check improved 3 in a row
-  var subjHistory = d.subjectSessions[sid];
-  var improved3 = subjHistory.length >= 3 &&
-    subjHistory[subjHistory.length-1] > subjHistory[subjHistory.length-2] &&
-    subjHistory[subjHistory.length-2] > subjHistory[subjHistory.length-3];
-  if (improved3) { d.xp += XP.IMPROVE_3_ROW; d.newXP += XP.IMPROVE_3_ROW; }
-
-  // Topic history + weak topic check
-  if (!d.topicHistory) d.topicHistory = {};
-  if (!d.topicHistory[sid]) d.topicHistory[sid] = {};
-  var topicFixed = false;
-  Object.entries(topicScores).forEach(function(entry) {
-    var t = entry[0], v = entry[1];
-    var tpct = Math.round((v.c / v.t) * 100);
-    if (!d.topicHistory[sid][t]) d.topicHistory[sid][t] = { correct:0, attempted:0, sessions:[] };
-    var th = d.topicHistory[sid][t];
-    var prevPct = th.attempted > 0 ? Math.round((th.correct/th.attempted)*100) : null;
-    th.correct   += v.c;
-    th.attempted += v.t;
-    th.sessions.push(tpct);
-    if (prevPct !== null && prevPct < 60 && tpct >= 70) {
-      topicFixed = true;
-      d.xp += XP.WEAK_TOPIC_FIXED;
-      d.newXP += XP.WEAK_TOPIC_FIXED;
-    }
-  });
-
-  // Streak
-  var streak = _touchStreak();
-  if (streak === 7)  { d.xp += XP.STREAK_7;  d.newXP += XP.STREAK_7; }
-  if (streak === 30) { d.xp += XP.STREAK_30; d.newXP += XP.STREAK_30; }
-
-  // Activity time (rough — add 5 min per quiz)
-  if (!d.activity) d.activity = {};
-  d.activity[today] = (d.activity[today] || 0) + 5;
-
-  _checkBadges(d, { score:score, total:total, topicFixed:topicFixed, improved3:improved3 });
-  _save(d);
-  _firebaseSync(d, sid, topicScores, score, total, pct);
-  return { xp: earned, badges: d.newBadges, totalXP: d.xp };
-}
-
-// Call when lesson is opened
-function trackLessonRead(sid, lessonKey) {
-  var d = _load();
-  var key = sid + '/' + lessonKey;
-  if (d.lessonsRead.indexOf(key) === -1) {
-    d.lessonsRead.push(key);
-    d.xp += XP.LESSON_READ;
-    d.newXP = XP.LESSON_READ;
-    d.newBadges = [];
-    _checkBadges(d, {});
-    _save(d);
-    if (d.newBadges.length > 0) showXPToast(XP.LESSON_READ, d.newBadges);
-  }
-  var today = _today();
-  if (!d.activity) d.activity = {};
-  d.activity[today] = (d.activity[today] || 0) + 2;
-  _save(d);
-}
-
-// Call when mindmap is visited
-function trackMindmapVisit(sid) {
-  var d = _load();
-  var today = _today();
-  var key = sid + '_' + today;
-  if (!d.mindmapVisits) d.mindmapVisits = {};
-  if (!d.mindmapVisits[key]) {
-    d.mindmapVisits[key] = true;
-    d.xp += XP.MINDMAP_VISIT;
-    _save(d);
-    // Push updated summary to Firebase so parent.html stays in sync.
-    if (window.firebase && firebase.apps && firebase.apps.length) {
-      try {
-        firebase.database().ref('emily/summary').update({
-          xp: d.xp || 0,
-          badges: d.badges || [],
-          streak: (typeof getStreak === 'function' ? getStreak() : 0),
-          lastActive: _today(),
-          lastUpdated: Date.now(),
-          lessonsRead: d.lessonsRead || [],
-          mindmapVisits: d.mindmapVisits || {},
-          topicFixedCount: d.topicFixedCount || 0,
-          subjectSessions: d.subjectSessions || {}
-        });
-        // Accumulate per-day XP so parent.html daily column stays accurate
-        firebase.database().ref('emily/timeLog/' + _today() + '/xp').transaction(function(cur) {
-          return (cur || 0) + XP.MINDMAP_VISIT;
-        });
-      } catch(e) { console.warn('Firebase summary update failed:', e); }
-    }
-  }
-  if (!d.activity) d.activity = {};
-  d.activity[today] = (d.activity[today] || 0) + 1;
-  _save(d);
-}
-
-/* ── FIREBASE SYNC ──────────────────────────────────────── */
-function _firebaseSync(d, sid, topicScores, score, total, pct) {
-  if (!window.firebase || !window.firebase.apps || !firebase.apps.length) return;
-  try {
-    var db = firebase.database();
-    var ref = db.ref('emily');
-    // Push quiz session
-    ref.child('sessions').push({
-      sid:sid, date:_today(), ts:Date.now(),
-      score:score, total:total, pct:pct,
-      topicScores: Object.fromEntries
-        ? Object.fromEntries(Object.entries(topicScores).map(function(e){ return [e[0],{c:e[1].c,t:e[1].t}]; }))
-        : topicScores
-    });
-    // Update summary
-    ref.child('summary').set({
-      xp: d.xp,
-      badges: d.badges,
-      streak: getStreak(),
-      lastActive: _today(),
-      totalQuizzes: d.quizSessions.length,
-      lastUpdated: Date.now(),
-      lessonsRead: d.lessonsRead || [],
-      mindmapVisits: d.mindmapVisits || {},
-      topicFixedCount: d.topicFixedCount || 0,
-      subjectSessions: d.subjectSessions || {}
-    });
-    // Activity heatmap
-    ref.child('activity').child(_today()).transaction(function(cur){ return (cur||0) + 5; });
-  } catch(e) { console.warn('Firebase sync failed:', e); }
-}
-
-/* ── XP TOAST (shown in quiz/lesson pages) ─────────────── */
-function showXPToast(xp, newBadges) {
-  var existing = document.getElementById('xp-toast');
-  if (existing) existing.remove();
-
-  var toast = document.createElement('div');
-  toast.id = 'xp-toast';
-  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;'
-    + 'background:#1a1825;border:1px solid rgba(255,215,0,.4);border-radius:14px;'
-    + 'padding:.75rem 1.1rem;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;'
-    + 'color:#ffd580;box-shadow:0 8px 32px rgba(0,0,0,.5);'
-    + 'animation:toastIn .4s ease both;max-width:280px;';
-
-  var content = '✨ +' + xp + ' XP';
-  if (newBadges && newBadges.length > 0) {
-    newBadges.forEach(function(id) {
-      var def = BADGE_DEFS.find(function(b){ return b.id === id; });
-      if (def) content += '<br><span style="font-size:12px;color:#c4bbff">' + def.emoji + ' Badge unlocked: ' + def.title + '</span>';
-    });
-  }
-  toast.innerHTML = content;
-
-  if (!document.getElementById('toast-style')) {
-    var s = document.createElement('style');
-    s.id = 'toast-style';
-    s.textContent = '@keyframes toastIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}';
-    document.head.appendChild(s);
-  }
-  document.body.appendChild(toast);
-  setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity .4s'; }, 3500);
-  setTimeout(function(){ toast.remove(); }, 4000);
-}
-
-/* ── XP BAR (persistent, shown on all pages) ───────────── */
-function renderXPBar() {
-  var d = _load();
-  var streak = getStreak();
-  var lv = getLevel(d.xp);
-  var next = getNextLevel(d.xp);
-  var prog = getLevelProgress(d.xp);
-
-  var bar = document.getElementById('xp-bar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'xp-bar';
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:200;'
-      + 'background:rgba(15,14,23,.92);backdrop-filter:blur(12px);'
-      + 'border-top:1px solid rgba(255,255,255,.08);'
-      + 'padding:.5rem 1.25rem;display:flex;align-items:center;gap:12px;';
-    document.body.appendChild(bar);
-  }
-
-  var streakHtml = streak > 0
-    ? '<span style="font-size:13px;font-weight:700;color:#ffd580;white-space:nowrap">🔥 ' + streak + '</span>'
-    : '';
-
-  bar.innerHTML = '<a href="results.html" style="display:flex;align-items:center;gap:10px;flex:1;text-decoration:none;min-width:0">'
-    + '<span style="font-size:18px;flex-shrink:0">' + lv.emoji + '</span>'
-    + '<div style="flex:1;min-width:0">'
-    +   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
-    +     '<span style="font-family:Nunito,sans-serif;font-size:12px;font-weight:800;color:#c4bbff;white-space:nowrap">'
-    +       lv.title + ' · ' + d.xp + ' XP'
-    +     '</span>'
-    +     (next ? '<span style="font-size:11px;color:rgba(240,238,255,.35)">' + next.title + ' in ' + (next.xp - d.xp) + ' XP</span>' : '<span style="font-size:11px;color:#ffd580">MAX LEVEL</span>')
-    +   '</div>'
-    +   '<div style="height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">'
-    +     '<div style="height:100%;width:' + prog + '%;background:linear-gradient(90deg,#9b59b6,#3498db);border-radius:3px;transition:width .6s ease"></div>'
-    +   '</div>'
-    + '</div></a>'
-    + streakHtml
-    + '<a href="results.html" style="font-size:11px;font-weight:700;color:rgba(240,238,255,.4);text-decoration:none;white-space:nowrap;flex-shrink:0">My Stats ›</a>';
-}
-
-</script>
-
-<script>
-const params = new URLSearchParams(location.search);
-const sid = params.get('subject') || 'maths';
-const S = SUBJECTS[sid];
-const data = MINDMAP_DATA[sid] || [];
-
-document.title = S.name + ' – Mind Map';
-document.getElementById('nav-subject').textContent = S.name;
-document.getElementById('hero-icon').textContent = S.icon;
-document.getElementById('hero-title').textContent = S.name + ' – Mind Map';
-document.getElementById('hero-tag').textContent = S.tag;
-document.getElementById('quiz-all-btn').href = `quiz.html?subject=${sid}`;
-
-const [c1,c2] = S.gradient;
-document.querySelector('.hero h1').style.background = `linear-gradient(135deg,${c1},${c2})`;
-document.querySelector('.hero h1').style.webkitBackgroundClip = 'text';
-document.querySelector('.hero h1').style.webkitTextFillColor = 'transparent';
-document.querySelector('.hero h1').style.backgroundClip = 'text';
-
-const grid = document.getElementById('mind-grid');
-
-data.forEach((topic, ti) => {
-  const pal = PALETTE[topic.theme] || PALETTE.purple;
-  const meta = S.topicMeta?.[topic.topic] || {};
-
-  const subtopicsHTML = (topic.subtopics || []).map(st => {
-    const titleContent = st.lessonKey
-      ? `<a href="lesson.html?lesson=${st.lessonKey}">${st.title} →</a>`
-      : st.title;
-    const formula = st.formula
-      ? `<span class="st-formula" style="background:${pal.bg};color:${pal.light}">${st.formula}</span>`
-      : '';
-    return `
-      <div class="subtopic-item">
-        <div class="st-dot" style="background:${pal.color}"></div>
-        <div class="st-body">
-          <div class="st-title" style="color:${pal.light}">${titleContent}</div>
-          <div class="st-detail">${st.detail}</div>
-          ${formula}
-        </div>
-      </div>`;
-  }).join('');
-
-  grid.innerHTML += `
-    <div class="topic-card" style="animation-delay:${ti*.06}s;border-color:${pal.bg}">
-      <div class="topic-head" style="background:${pal.bg}">
-        <span class="topic-icon">${meta.icon || topic.icon || '📌'}</span>
-        <div>
-          <div class="topic-name" style="color:${pal.light}">${topic.topic}</div>
-          <div class="topic-sub">${topic.subtitle || ''}</div>
-        </div>
-      </div>
-      <div class="subtopic-list">${subtopicsHTML}</div>
-      <div class="card-footer">
-        <a class="footer-btn" href="quiz.html?subject=${sid}&topic=${encodeURIComponent(topic.quizTopic || topic.topic)}">✏️ Quiz this topic</a>
-      </div>
-    </div>`;
+// Outline accordion delegation
+document.addEventListener('click', e => {
+  const sh = e.target.closest('[data-action="toggle-subject"]');
+  if (sh) { sh.parentElement.classList.toggle('open'); return; }
+  const th = e.target.closest('[data-action="toggle-topic"]');
+  if (th) { th.parentElement.classList.toggle('open'); return; }
 });
 
-/* ── TIME TRACKING ─────────────────────────────────────── */
-var _pageStart = Date.now();
-var _pageType = (function() {
-  var p = location.pathname.split('/').pop() || 'index.html';
-  if (p.includes('quiz'))    return 'quiz';
-  if (p.includes('lesson'))  return 'lesson';
-  if (p.includes('mindmap')) return 'mindmap';
-  if (p.includes('results')) return 'results';
-  if (p.includes('index') || p === '' || p === '/') return 'home';
-  return 'other';
-})();
+window._switchView = function(v) {
+  currentView = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  showView(v);
+  if (v === 'flashcards') renderFlashcard();
+  if (v === 'spider') buildSpider();
+};
 
-function _recordTime() {
-  var secs = Math.round((Date.now() - _pageStart) / 1000);
-  if (secs < 3 || secs > 7200) return; // ignore < 3s and > 2hr (tab left open)
-  var today = new Date().toISOString().slice(0,10);
-
-  // Save to localStorage
-  try {
-    var d = JSON.parse(localStorage.getItem('emilys_hub_v1')) || {};
-    if (!d.timeLog) d.timeLog = {};
-    if (!d.timeLog[today]) d.timeLog[today] = { total:0, quiz:0, lesson:0, mindmap:0, home:0, other:0 };
-    d.timeLog[today].total = (d.timeLog[today].total||0) + secs;
-    d.timeLog[today][_pageType] = (d.timeLog[today][_pageType]||0) + secs;
-    // Keep last 90 days only
-    var keys = Object.keys(d.timeLog).sort();
-    if (keys.length > 90) { delete d.timeLog[keys[0]]; }
-    // Update activity heatmap too (in minutes)
-    if (!d.activity) d.activity = {};
-    d.activity[today] = (d.activity[today]||0) + Math.round(secs/60);
-    localStorage.setItem('emilys_hub_v1', JSON.stringify(d));
-  } catch(e) {}
-
-  // Sync to Firebase
-  try {
-    if (window.firebase && firebase.apps && firebase.apps.length) {
-      var db = firebase.database();
-      db.ref('emily/timeLog/' + today + '/total').transaction(function(v){ return (v||0)+secs; });
-      db.ref('emily/timeLog/' + today + '/' + _pageType).transaction(function(v){ return (v||0)+secs; });
-      db.ref('emily/activity/' + today).transaction(function(v){ return (v||0)+Math.round(secs/60); });
-    }
-  } catch(e) {}
+function showView(v) {
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
 }
 
-// Record time when leaving the page
-window.addEventListener('beforeunload', _recordTime);
-window.addEventListener('pagehide', _recordTime);
-// Also record periodically every 60s (in case tab is kept open)
-setInterval(function() {
-  _recordTime();
-  _pageStart = Date.now(); // reset so we don't double-count
-}, 60000);
+/* ══════════════════════════════════════════════════════════
+   SPIDER DIAGRAM
+   Layout: centre = topic/subject, branches = key points
+   Each key point is a rounded rectangle label on a branch
+══════════════════════════════════════════════════════════ */
 
+// Spider colours — read from CSS vars once
+function spiderColors() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    primary:  s.getPropertyValue('--color-primary').trim()      || '#6c63ff',
+    surface:  s.getPropertyValue('--color-surface').trim()      || '#16162a',
+    surface2: s.getPropertyValue('--color-surface-2').trim()    || '#1e1e38',
+    border:   s.getPropertyValue('--color-border').trim()       || '#2a2a4a',
+    text:     s.getPropertyValue('--color-text').trim()         || '#f0f0ff',
+    muted:    s.getPropertyValue('--color-text-muted').trim()   || '#8888aa',
+    bg:       s.getPropertyValue('--color-bg').trim()           || '#0d0d1a',
+  };
+}
 
+function buildSpider() {
+  const canvas = document.getElementById('spider-canvas');
+  const wrap   = document.getElementById('view-spider');
+  const w = wrap.offsetWidth  || window.innerWidth;
+  const h = wrap.offsetHeight || (window.innerHeight - 64);
+  canvas.width  = w;
+  canvas.height = h;
 
+  // Gather content — single topic or first topic of subject
+  const sub = subjects[0];
+  const allTopics = sub.topics || [];
 
-/* ── REMOTE RESET CHECK ────────────────────────────────── */
-var _resetChecked = false; // only check once per page load
+  // Build flat list of { topicName, items: [{term, explanation}] }
+  // If single topic: show topic at centre, key points as branches
+  // If multiple topics: show subject at centre, topics as mid-nodes, key points as leaves
+  spiderNodes = [];
+  spiderEdges = [];
 
-function checkRemoteReset() {
-  if (_resetChecked) return;
-  if (!window.firebase || !firebase.apps || !firebase.apps.length) return;
-  _resetChecked = true;
-  
-  firebase.database().ref('emily/resetRequested').once('value').then(function(snap) {
-    var val = snap.val();
-    if (!val) return; // no reset flag
-    
-    // Remove flag FIRST to prevent re-triggering
-    firebase.database().ref('emily/resetRequested').remove().then(function() {
-      console.log('✅ Reset flag cleared');
-      // Now clear local storage
-      try {
-        localStorage.removeItem('emilys_hub_v1');
-        localStorage.removeItem('emilys_streak_v1');
-        localStorage.removeItem('emilys_results_v1');
-      } catch(e) {}
-      // Reload after a short delay
-      setTimeout(function(){ location.reload(); }, 800);
+  const cx = w / 2, cy = h / 2;
+  const C = spiderColors();
+
+  if (allTopics.length === 1) {
+    // ── Single topic: centre = topic, branches = key points ──
+    const t = allTopics[0];
+    const items = getTopicItems(t);
+    spiderNodes.push({ x: cx, y: cy, label: t.name, type: 'root', r: 56 });
+    layoutBranches(cx, cy, items, 0, C, w, h);
+  } else {
+    // ── Subject view: centre = subject, ring = topics, leaves = key point count ──
+    spiderNodes.push({ x: cx, y: cy, label: (sub.emoji||'📚') + ' ' + sub.name, type: 'root', r: 56 });
+    const topicR = Math.min(w, h) * 0.27;
+    allTopics.forEach((t, i) => {
+      const angle = (i / allTopics.length) * Math.PI * 2 - Math.PI / 2;
+      const tx = cx + Math.cos(angle) * topicR;
+      const ty = cy + Math.sin(angle) * topicR;
+      const topicIdx = spiderNodes.length;
+      spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 42 });
+      spiderEdges.push({ from: 0, to: topicIdx });
+
+      // Key point branches from each topic node
+      const items = getTopicItems(t).slice(0, 5); // max 5 per topic to avoid clutter
+      const spread = Math.PI * 0.7;
+      const baseAngle = angle;
+      items.forEach((item, j) => {
+        const branchAngle = baseAngle - spread/2 + (j / Math.max(items.length-1,1)) * spread;
+        const branchR = topicR + 110;
+        const bx = cx + Math.cos(branchAngle) * branchR;
+        const by = cy + Math.sin(branchAngle) * branchR;
+        const leafIdx = spiderNodes.length;
+        spiderNodes.push({ x: bx, y: by, label: item.term || item.text || '', type: 'leaf', r: 0, text: item.term || item.text || '' });
+        spiderEdges.push({ from: topicIdx, to: leafIdx });
+      });
     });
-  }).catch(function(e){ 
-    _resetChecked = false; // allow retry on error
+  }
+
+  panX = 0; panY = 0; zoom = 1;
+  const ctx = canvas.getContext('2d');
+  drawSpider(ctx, canvas);
+  setupSpiderInteraction(canvas, ctx);
+}
+
+function getTopicItems(t) {
+  // Returns key points if available, else derives short labels from questions
+  const kps = t.keyPoints || [];
+  if (kps.length) return kps.map(kp => ({ term: kp.term, detail: kp.explanation }));
+  return (t.questions || []).map(q => {
+    const text = (q.question || q.sentence || q.instruction || '').substring(0, 40);
+    return { term: text, detail: '' };
   });
 }
 
-// Run once when Firebase is ready
-var _fbWait = setInterval(function() {
-  if (window.firebase && firebase.apps && firebase.apps.length) {
-    clearInterval(_fbWait);
-    checkRemoteReset();
-  }
-}, 500);
+function layoutBranches(cx, cy, items, startIdx, C, w, h) {
+  // Spread items evenly in a full circle around centre
+  const count = items.length;
+  if (!count) return;
+  // Vary radius based on label length
+  items.forEach((item, i) => {
+    const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+    const r = 200 + Math.min((item.term||'').length * 2, 80);
+    const bx = cx + Math.cos(angle) * r;
+    const by = cy + Math.sin(angle) * r;
+    const nodeIdx = spiderNodes.length;
+    spiderNodes.push({ x: bx, y: by, label: item.term || '', detail: item.detail || '', type: 'leaf', angle });
+    spiderEdges.push({ from: startIdx, to: nodeIdx });
+  });
+}
 
+function drawSpider(ctx, canvas) {
+  const C = spiderColors();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(panX, panY);
+  ctx.scale(zoom, zoom);
+
+  // Draw edges first
+  spiderEdges.forEach(e => {
+    const a = spiderNodes[e.from];
+    const b = spiderNodes[e.to];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    // Curved line for leaves
+    if (b.type === 'leaf') {
+      const mx = (a.x + b.x) / 2;
+      const my = (a.y + b.y) / 2;
+      ctx.quadraticCurveTo(mx, my, b.x, b.y);
+    } else {
+      ctx.lineTo(b.x, b.y);
+    }
+    ctx.strokeStyle = b.type === 'leaf' ? C.primary + '60' : C.primary + '90';
+    ctx.lineWidth = b.type === 'leaf' ? 1.5 : 2.5;
+    ctx.setLineDash([]);
+    ctx.stroke();
+  });
+
+  // Draw nodes
+  spiderNodes.forEach(n => {
+    if (n.type === 'root') {
+      // Centre circle
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = C.primary;
+      ctx.fill();
+      // Glow
+      const grd = ctx.createRadialGradient(n.x, n.y, n.r * 0.5, n.x, n.y, n.r * 1.4);
+      grd.addColorStop(0, C.primary + '30');
+      grd.addColorStop(1, C.primary + '00');
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r * 1.4, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+      // Label
+      drawWrappedText(ctx, n.label, n.x, n.y, n.r * 1.5, '#ffffff', 'bold 14px sans-serif', 16);
+
+    } else if (n.type === 'topic') {
+      // Topic mid-node
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = C.surface2;
+      ctx.fill();
+      ctx.strokeStyle = C.primary;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      drawWrappedText(ctx, n.label, n.x, n.y, n.r * 1.6, C.text, '600 12px sans-serif', 14);
+
+    } else if (n.type === 'leaf') {
+      // Key point label — pill/rounded rect
+      const label = n.label || '';
+      ctx.font = '12px sans-serif';
+      const tw = ctx.measureText(label).width;
+      const pw = Math.max(tw + 20, 60);
+      const ph = 28;
+      const rx = n.x - pw/2;
+      const ry = n.y - ph/2;
+
+      // Pill background
+      ctx.beginPath();
+      roundRect(ctx, rx, ry, pw, ph, 14);
+      ctx.fillStyle = C.surface2;
+      ctx.fill();
+      ctx.strokeStyle = C.primary + '80';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Term text — highlight if selected
+      const isSelected = selectedLeaf && selectedLeaf.label === n.label && selectedLeaf.x === n.x;
+      if (isSelected) {
+        ctx.beginPath();
+        roundRect(ctx, rx - 2, ry - 2, pw + 4, ph + 4, 15);
+        ctx.fillStyle = C.primary;
+        ctx.fill();
+      }
+      ctx.fillStyle = isSelected ? '#fff' : C.text;
+      ctx.font = '600 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label.length > 28 ? label.substring(0,26)+'…' : label, n.x, n.y);
+    }
+  });
+
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawWrappedText(ctx, text, cx, cy, maxW, color, font, lineH) {
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  words.forEach(w => {
+    const test = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+    else cur = test;
+  });
+  if (cur) lines.push(cur);
+  const startY = cy - ((lines.length - 1) * lineH) / 2;
+  lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineH));
+}
+
+function handleSpiderClick(clientX, clientY, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  // Convert screen coords to canvas/world coords
+  const cx = (clientX - rect.left - panX) / zoom;
+  const cy2 = (clientY - rect.top  - panY) / zoom;
+
+  // Find which leaf node was clicked
+  let hit = null;
+  for (const n of spiderNodes) {
+    if (n.type !== 'leaf') continue;
+    const label = n.label || '';
+    const ctx = canvas.getContext('2d');
+    ctx.font = '12px sans-serif';
+    const tw = ctx.measureText(label).width;
+    const pw = Math.max(tw + 20, 60);
+    const ph = 28;
+    if (cx >= n.x - pw/2 && cx <= n.x + pw/2 && cy2 >= n.y - ph/2 && cy2 <= n.y + ph/2) {
+      hit = n; break;
+    }
+  }
+
+  if (hit && hit.detail) {
+    selectedLeaf = hit;
+    document.getElementById('spider-detail-term').textContent = hit.label;
+    document.getElementById('spider-detail-explanation').textContent = hit.detail;
+    document.getElementById('spider-detail').classList.add('open');
+    document.getElementById('spider-hint').style.opacity = '0';
+    drawSpider(canvas.getContext('2d'), canvas);
+  } else if (!hit) {
+    // Click on empty space — close detail
+    window._closeSpiderDetail && window._closeSpiderDetail();
+  }
+}
+
+function setupSpiderInteraction(canvas, ctx) {
+  const c = canvas;
+  if (c._spiderSetup) return;
+  c._spiderSetup = true;
+  const drawFn = () => drawSpider(c.getContext('2d'), c);
+
+  let clickStartX = 0, clickStartY = 0;
+  c.addEventListener('mousedown', e => { dragging = true; dragStartX = e.clientX; dragStartY = e.clientY; panStartX = panX; panStartY = panY; clickStartX = e.clientX; clickStartY = e.clientY; });
+  c.addEventListener('mousemove', e => { if (!dragging) return; panX = panStartX + (e.clientX - dragStartX); panY = panStartY + (e.clientY - dragStartY); drawFn(); });
+  c.addEventListener('mouseup', e => {
+    dragging = false;
+    // Only register as click if mouse didn't move much (not a drag)
+    const dist = Math.hypot(e.clientX - clickStartX, e.clientY - clickStartY);
+    if (dist < 6) handleSpiderClick(e.clientX, e.clientY, c);
+  });
+  c.addEventListener('mouseleave', () => dragging = false);
+  c.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    zoom = Math.max(0.3, Math.min(3, zoom * delta));
+    drawFn();
+  }, { passive: false });
+
+  // Touch
+  let lastTouchDist = 0;
+  c.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) { dragging = true; dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY; panStartX = panX; panStartY = panY; }
+    if (e.touches.length === 2) { lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+  });
+  c.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && dragging) { panX = panStartX + (e.touches[0].clientX - dragStartX); panY = panStartY + (e.touches[0].clientY - dragStartY); drawFn(); }
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      zoom = Math.max(0.3, Math.min(3, zoom * (dist / lastTouchDist)));
+      lastTouchDist = dist; drawFn();
+    }
+  }, { passive: false });
+  let touchStartX = 0, touchStartY = 0;
+  c.addEventListener('touchstart', e2 => {
+    if (e2.touches.length === 1) { touchStartX = e2.touches[0].clientX; touchStartY = e2.touches[0].clientY; }
+  }, { passive: true });
+  c.addEventListener('touchend', e => {
+    dragging = false;
+    if (e.changedTouches.length === 1) {
+      const dist = Math.hypot(e.changedTouches[0].clientX - touchStartX, e.changedTouches[0].clientY - touchStartY);
+      if (dist < 10) handleSpiderClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY, c);
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    const wrap = document.getElementById('view-spider');
+    c.width = wrap.clientWidth; c.height = wrap.clientHeight;
+    buildSpider();
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   OUTLINE VIEW
+══════════════════════════════════════════════════════════ */
+function buildOutline() {
+  const wrap = document.getElementById('view-outline');
+  wrap.innerHTML = '';
+
+  if (!subjects.length) {
+    wrap.innerHTML = `<div class="empty-state"><h3>No content</h3></div>`;
+    return;
+  }
+
+  subjects.forEach(s => {
+    const subEl = document.createElement('div');
+    subEl.className = 'outline-subject';
+
+    const topics = s.topics || [];
+    const totalQ = topics.reduce((acc, t) => acc + (t.questions||[]).length, 0);
+
+    const totalPts = topics.reduce((acc, t) => acc + (t.keyPoints||[]).length, 0);
+    const metaLabel = totalPts ? `${topics.length} topics · ${totalPts} key points` : `${topics.length} topics · ${totalQ} questions`;
+    subEl.innerHTML = `
+      <div class="outline-subject-header" data-action="toggle-subject">
+        <span class="outline-subject-emoji">${s.emoji || '📚'}</span>
+        <span class="outline-subject-name">${esc(s.name)}</span>
+        <span style="font-size:0.8rem;color:var(--color-text-muted);margin-right:8px;">${metaLabel}</span>
+        <span class="outline-chevron">›</span>
+      </div>
+      <div class="outline-topics" id="outline-topics-${s.id}"></div>`;
+    // Auto-open first subject
+    if (subjects.indexOf(s) === 0) subEl.classList.add('open');
+    wrap.appendChild(subEl);
+
+    const topicsWrap = subEl.querySelector('.outline-topics');
+    topics.forEach(t => {
+      const qs = t.questions || [];
+      const kps = t.keyPoints || [];
+      const topicEl = document.createElement('div');
+      topicEl.className = 'outline-topic';
+
+      // Use key points if available, otherwise fall back to questions
+      let pointsHtml = '';
+      if (kps.length) {
+        pointsHtml = kps.map(kp => `
+          <div class="keypoint-item">
+            <span class="keypoint-dot">•</span>
+            <span class="keypoint-type" style="min-width:80px;color:var(--color-primary);font-weight:700;">${esc(kp.term)}</span>
+            <span>${esc(kp.explanation)}</span>
+          </div>`).join('');
+      } else {
+        const derived = qs.map(q => questionToKeypoint(q)).filter(Boolean);
+        pointsHtml = derived.length
+          ? derived.map(kp => `
+              <div class="keypoint-item">
+                <span class="keypoint-dot">•</span>
+                <span class="keypoint-type">${kp.type}</span>
+                <span>${esc(kp.text)}</span>
+              </div>`).join('')
+          : '<div style="font-size:0.85rem;color:var(--color-text-muted);padding:8px 0;">No content yet</div>';
+      }
+
+      topicEl.innerHTML = `
+        <div class="outline-topic-header" data-action="toggle-topic">
+          <span class="outline-topic-name">📝 ${esc(t.name)}</span>
+          <span class="outline-topic-count">${kps.length ? kps.length + ' pts' : qs.length + ' Q'}</span>
+          <span class="outline-topic-chevron">›</span>
+        </div>
+        <div class="outline-keypoints">${pointsHtml}</div>`;
+      // Auto-open topic if single topic view
+      if (topics.length === 1) topicEl.classList.add('open');
+      topicsWrap.appendChild(topicEl);
+    });
+  });
+}
+
+function questionToKeypoint(q) {
+  if (q.type === 'mcq')   return { type: 'MCQ', text: q.question };
+  if (q.type === 'tf')    return { type: 'T/F', text: q.question + ' → ' + (q.answer ? 'True' : 'False') };
+  if (q.type === 'fill')  return { type: 'Fill', text: (q.sentence||'').replace('_____', `[${q.answer}]`) };
+  if (q.type === 'match') return { type: 'Match', text: (q.pairs||[]).map(p => `${p.left} → ${p.right}`).join(' | ') };
+  if (q.type === 'short') return { type: 'Short', text: q.question };
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════
+   FLASHCARDS
+══════════════════════════════════════════════════════════ */
+function renderFlashcard() {
+  // Rebuild if empty (e.g. first switch to cards tab)
+  if (!allFlashcards.length) buildFlashcards();
+  const cards = flattenFlashcards();
+  if (!cards.length) {
+    document.getElementById('fc-front').textContent = 'No cards available';
+    document.getElementById('fc-back').textContent = 'Add key points to this topic first';
+    document.getElementById('fc-counter').textContent = '0 / 0';
+    return;
+  }
+
+  document.getElementById('fc-meta').textContent = `${cards.length} cards`;
+  const card = cards[fcIdx];
+  document.getElementById('fc-front').textContent = card.front;
+  document.getElementById('fc-back').textContent = card.back;
+  document.getElementById('fc-type').textContent = card.type || '';
+  document.getElementById('fc-topic-label').textContent = card.topic || '';
+  document.getElementById('fc-counter').textContent = `${fcIdx + 1} / ${cards.length}`;
+  document.getElementById('fc-prev').disabled = fcIdx === 0;
+  document.getElementById('fc-next').disabled = fcIdx === cards.length - 1;
+
+  // Reset flip
+  document.getElementById('flashcard').classList.remove('flipped');
+  fcFlipped = false;
+}
+
+function flattenFlashcards() {
+  const cards = [];
+  allFlashcards.forEach(fc => {
+    if (Array.isArray(fc)) cards.push(...fc.filter(Boolean));
+    else if (fc) cards.push(fc);
+  });
+  return cards.filter(c => c && c.front);
+}
+
+window._flipCard  = () => { fcFlipped = !fcFlipped; document.getElementById('flashcard').classList.toggle('flipped', fcFlipped); };
+window._prevCard  = () => { if (fcIdx > 0) { fcIdx--; fcFlipped = false; document.getElementById('flashcard').classList.remove('flipped'); renderFlashcard(); } };
+window._nextCard  = () => { const cards = flattenFlashcards(); if (fcIdx < cards.length - 1) { fcIdx++; fcFlipped = false; document.getElementById('flashcard').classList.remove('flipped'); renderFlashcard(); } };
+
+/* ── Utils ───────────────────────────────────────────────── */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+<script>
+window.showToast = function(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3500);
+};
 </script>
 </body>
 </html>
