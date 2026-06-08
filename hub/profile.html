@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="edge">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasp — My Profile</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { min-height: 100vh; background: var(--color-bg); }
+
+    /* ── Nav ─────────────────────────────────────────────── */
+    .topnav {
+      background: var(--color-surface); border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-xl); height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-back {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600;
+      color: var(--color-text-muted); text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+    .nav-back:hover { color: var(--color-primary); }
+    .nav-title { font-family: var(--font-heading); font-size: 1rem; font-weight: 700; }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .page { max-width: 760px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+
+    /* ── Hero ────────────────────────────────────────────── */
+    .profile-hero {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-xl);
+      display: flex; align-items: center; gap: var(--space-xl);
+      margin-bottom: var(--space-xl); animation: fadeIn 0.4s ease both;
+    }
+    .profile-avatar {
+      width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 800; position: relative;
+    }
+    .profile-avatar-level {
+      position: absolute; bottom: -4px; right: -4px;
+      background: var(--color-primary); color: #fff;
+      border-radius: var(--radius-pill); padding: 2px 7px;
+      font-family: var(--font-ui); font-size: 0.68rem; font-weight: 800;
+      border: 2px solid var(--color-bg);
+    }
+    .profile-info { flex: 1; }
+    .profile-name { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
+    .profile-level-row {
+      display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);
+    }
+    .profile-level-badge {
+      font-size: 1.1rem;
+    }
+    .profile-level-name {
+      font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted);
+    }
+    .xp-bar-track {
+      background: var(--color-surface-2); border-radius: var(--radius-pill);
+      height: 10px; overflow: hidden; margin-bottom: 6px;
+    }
+    .xp-bar-fill {
+      height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+      border-radius: var(--radius-pill); transition: width 1.2s ease;
+    }
+    .xp-bar-label {
+      display: flex; justify-content: space-between;
+      font-family: var(--font-ui); font-size: 0.75rem; color: var(--color-text-muted);
+    }
+
+    /* ── Stats grid ──────────────────────────────────────── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+    .stat-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md);
+      text-align: center; animation: fadeIn 0.4s ease both;
+    }
+    .stat-val {
+      font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800;
+      color: var(--color-primary); margin-bottom: 4px;
+    }
+    .stat-label {
+      font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    /* ── Section ─────────────────────────────────────────── */
+    .section { margin-bottom: var(--space-xl); }
+    .section-title {
+      font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700;
+      margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);
+    }
+
+    /* ── Badges ──────────────────────────────────────────── */
+    .badges-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: var(--space-sm);
+    }
+    .badge-card {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md);
+      text-align: center; transition: all var(--transition-fast);
+      animation: fadeIn 0.3s ease both;
+    }
+    .badge-card.earned { border-color: var(--color-primary); }
+    .badge-card.earned:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+    .badge-card.locked { opacity: 0.35; filter: grayscale(1); }
+    .badge-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .badge-name { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; color: var(--color-text); margin-bottom: 3px; }
+    .badge-desc { font-size: 0.7rem; color: var(--color-text-muted); line-height: 1.4; }
+
+    /* ── Level ladder ────────────────────────────────────── */
+    .level-ladder { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .level-row {
+      display: flex; align-items: center; gap: var(--space-md);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-button); padding: var(--space-sm) var(--space-md);
+      transition: all var(--transition-fast);
+    }
+    .level-row.current { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .level-row.achieved { opacity: 0.6; }
+    .level-row-icon { font-size: 1.3rem; width: 32px; text-align: center; }
+    .level-row-info { flex: 1; }
+    .level-row-name { font-family: var(--font-ui); font-size: 0.88rem; font-weight: 700; color: var(--color-text); }
+    .level-row-xp { font-size: 0.75rem; color: var(--color-text-muted); }
+    .level-row-badge {
+      font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700;
+      padding: 2px 8px; border-radius: var(--radius-pill);
+    }
+    .level-row-badge.current { background: var(--color-primary); color: #fff; }
+    .level-row-badge.achieved { background: var(--color-success); color: #fff; }
+
+    /* ── Sessions ────────────────────────────────────────── */
+    .sessions-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .session-row {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-button); padding: 10px var(--space-md);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .session-topic { font-family: var(--font-ui); font-size: 0.88rem; font-weight: 600; }
+    .session-meta { font-size: 0.78rem; color: var(--color-text-muted); margin-top: 2px; }
+    .session-score { font-family: var(--font-heading); font-size: 1rem; font-weight: 700; }
+    .score-good { color: var(--color-success); }
+    .score-mid  { color: var(--color-warning); }
+    .score-low  { color: var(--color-danger); }
+
+    .empty-state { text-align: center; padding: var(--space-xl); color: var(--color-text-muted); font-size: 0.9rem; }
+
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .profile-hero { flex-direction: column; text-align: center; gap: var(--space-lg); }
+      .topnav { padding: 0 var(--space-md); }
+      .page { padding: var(--space-lg) var(--space-md); }
+    }
+  </style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<nav class="topnav">
+  <a href="hub.html" class="nav-back">← Hub</a>
+  <div class="nav-title">My Profile</div>
+  <div style="width:60px;"></div>
+</nav>
+
+<div class="page page-fade" id="page-content" style="display:none;">
+
+  <!-- Hero -->
+  <div class="profile-hero">
+    <div class="profile-avatar" id="profile-avatar">
+      <span id="avatar-initials">?</span>
+      <div class="profile-avatar-level" id="avatar-level">1</div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name" id="profile-name">Loading…</div>
+      <div class="profile-level-row">
+        <span class="profile-level-badge" id="profile-level-badge">🌱</span>
+        <span class="profile-level-name" id="profile-level-name">Beginner</span>
+      </div>
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+      </div>
+      <div class="xp-bar-label">
+        <span id="xp-bar-left">0 XP</span>
+        <span id="xp-bar-right"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="stat-xp">0</div><div class="stat-label">Total XP</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-quizzes">0</div><div class="stat-label">Quizzes</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-avg">—</div><div class="stat-label">Avg score</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-streak">0🔥</div><div class="stat-label">Streak</div></div>
+  </div>
+
+  <!-- Level ladder -->
+  <div class="section">
+    <div class="section-title">🏆 Levels</div>
+    <div class="level-ladder" id="level-ladder"></div>
+  </div>
+
+  <!-- Badges -->
+  <div class="section">
+    <div class="section-title">🏅 Badges <span style="font-size:0.8rem;font-weight:400;color:var(--color-text-muted);" id="badge-count"></span></div>
+    <div class="badges-grid" id="badges-grid"></div>
+  </div>
+
+  <!-- Recent sessions -->
+  <div class="section">
+    <div class="section-title">📋 Recent quiz sessions</div>
+    <div class="sessions-list" id="sessions-list"></div>
+  </div>
+
+</div>
+
+<!-- Loading -->
+<div id="loading-wrap" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 64px);flex-direction:column;gap:var(--space-md);">
+  <div class="spinner" style="width:48px;height:48px;"></div>
+  <p style="color:var(--color-text-muted);font-family:var(--font-ui);">Loading your profile…</p>
+</div>
+
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { requireAuth, handleSignOut } from './auth.js';
+import { getLevelInfo, LEVELS, BADGES } from './gamification.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+requireAuth(async (user, profile) => {
+  if (profile.role !== 'student') { location.href = 'hub.html'; return; }
+
+  // Apply theme
+  if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
+
+  const xp      = profile.xp || 0;
+  const streak  = profile.streak || 0;
+  const sessions = (profile.sessions || []).slice().reverse();
+  const badges  = profile.badges || [];
+  const { current, next, progress, xpIntoLevel, xpNeeded } = getLevelInfo(xp);
+
+  // Avatar
+  const initials = (profile.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const avatarBg = profile.theme==='spark'?'#ff6b35':profile.theme==='focus'?'#2563eb':'#6c63ff';
+  const avatarEl = document.getElementById('profile-avatar');
+  avatarEl.style.background = avatarBg + '22';
+  avatarEl.style.color = avatarBg;
+  document.getElementById('avatar-initials').textContent = initials;
+  document.getElementById('avatar-level').textContent = current.level;
+
+  // Hero info
+  document.getElementById('profile-name').textContent = profile.name || 'Student';
+  document.getElementById('profile-level-badge').textContent = current.icon;
+  document.getElementById('profile-level-name').textContent = current.name;
+  setTimeout(() => { document.getElementById('xp-bar-fill').style.width = progress + '%'; }, 200);
+  document.getElementById('xp-bar-left').textContent = next
+    ? `${xpIntoLevel} / ${xpNeeded} XP to ${next.name}`
+    : 'Maximum level reached!';
+  document.getElementById('xp-bar-right').textContent = next ? `${next.icon} ${next.name}` : '';
+
+  // Stats
+  const quizCount = sessions.length;
+  const avgScore  = quizCount ? Math.round(sessions.reduce((a,s)=>a+(s.pct||0),0)/quizCount) : null;
+  document.getElementById('stat-xp').textContent      = xp;
+  document.getElementById('stat-quizzes').textContent = quizCount;
+  document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
+  document.getElementById('stat-streak').textContent  = streak + '🔥';
+
+  // Level ladder
+  const ladder = document.getElementById('level-ladder');
+  ladder.innerHTML = LEVELS.map(lv => {
+    const achieved = xp >= lv.xpRequired;
+    const isCurrent = lv.level === current.level;
+    const cls = isCurrent ? 'current' : achieved ? 'achieved' : '';
+    const badge = isCurrent
+      ? '<span class="level-row-badge current">Current</span>'
+      : achieved
+        ? '<span class="level-row-badge achieved">✓</span>'
+        : '';
+    return `<div class="level-row ${cls}">
+      <div class="level-row-icon">${lv.icon}</div>
+      <div class="level-row-info">
+        <div class="level-row-name">${lv.name}</div>
+        <div class="level-row-xp">${lv.xpRequired === 0 ? 'Starting level' : lv.xpRequired + ' XP required'}</div>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  // Badges grid
+  const badgeCount = document.getElementById('badge-count');
+  badgeCount.textContent = `${badges.length} / ${BADGES.length} earned`;
+  const bgrid = document.getElementById('badges-grid');
+  bgrid.innerHTML = BADGES.map(b => {
+    const earned = badges.includes(b.id);
+    return `<div class="badge-card ${earned ? 'earned' : 'locked'}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${esc(b.name)}</div>
+      <div class="badge-desc">${esc(b.desc)}</div>
+    </div>`;
+  }).join('');
+
+  // Sessions
+  const list = document.getElementById('sessions-list');
+  if (!sessions.length) {
+    list.innerHTML = '<div class="empty-state">No quiz sessions yet — head to the hub and take your first quiz!</div>';
+  } else {
+    list.innerHTML = sessions.slice(0, 30).map(s => {
+      const pct = s.pct || 0;
+      const cls = pct >= 80 ? 'score-good' : pct >= 50 ? 'score-mid' : 'score-low';
+      const date = s.date ? new Date(s.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '';
+      const mins = s.minutesSpent ? ` · ${s.minutesSpent}m` : '';
+      return `<div class="session-row">
+        <div>
+          <div class="session-topic">${esc(s.topic || s.subject || 'Quiz')}</div>
+          <div class="session-meta">${date}${mins} · ${s.score}/${s.total} correct</div>
+        </div>
+        <div class="session-score ${cls}">${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Show page
+  document.getElementById('loading-wrap').style.display = 'none';
+  document.getElementById('page-content').style.display = 'block';
+});
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+<script>
+window.showToast = function(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3500);
+};
+</script>
+</body>
+</html>

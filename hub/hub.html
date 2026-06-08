@@ -156,12 +156,40 @@
     <div class="welcome-sub" id="welcome-sub">Loading your subjects…</div>
   </div>
 
+  <div id="gamification-wrap" style="display:none;">
+    <div class="xp-bar-wrap" id="xp-bar-wrap">
+      <div class="xp-level-badge" id="xp-level-badge">🌱</div>
+      <div class="xp-level-info">
+        <div class="xp-level-name">
+          <span id="xp-level-name">Beginner</span>
+          <span class="xp-level-num" id="xp-level-num">Level 1</span>
+        </div>
+        <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div></div>
+        <div class="xp-bar-label">
+          <span id="xp-bar-left"></span>
+          <span id="xp-bar-right"></span>
+        </div>
+      </div>
+      <div class="xp-stats">
+        <div class="xp-stat">
+          <div class="xp-stat-val" id="xp-streak-val">0🔥</div>
+          <div class="xp-stat-label">Streak</div>
+        </div>
+        <div class="xp-stat">
+          <div class="xp-stat-val" id="xp-total-val">0</div>
+          <div class="xp-stat-label">Total XP</div>
+        </div>
+      </div>
+    </div>
+    <div class="badges-row" id="badges-row"></div>
+  </div>
   <div id="hub-content">
     <div class="subjects-grid">
       <div class="empty-state">
         <div class="spinner" style="margin:0 auto var(--space-md);"></div>
       </div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -176,6 +204,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, showToast } from './auth.js';
+import { getLevelInfo, BADGES } from './gamification.js';
 import {
   collection, getDocs, doc, getDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -239,6 +268,7 @@ requireAuth(async (user, profile) => {
   }
 
   await loadSubjects(user, groupId);
+  renderGamification(profile);
   // Show parent notification if any
   if (profile.notification && !profile.notification.read) {
     const n = profile.notification;
@@ -341,6 +371,46 @@ async function loadSubjects(user, groupId) {
       </div>` : ''}`;
     sgrid.appendChild(card);
   });
+}
+
+function renderGamification(profile) {
+  if (profile.role !== 'student') return;
+  const wrap = document.getElementById('gamification-wrap');
+  wrap.style.display = 'block';
+
+  const xp = profile.xp || 0;
+  const { current, next, progress, xpIntoLevel, xpNeeded } = getLevelInfo(xp);
+
+  document.getElementById('xp-level-badge').textContent = current.icon;
+  document.getElementById('xp-level-name').textContent  = current.name;
+  document.getElementById('xp-level-num').textContent   = 'Level ' + current.level;
+  document.getElementById('xp-streak-val').textContent  = (profile.streak || 0) + '🔥';
+  document.getElementById('xp-total-val').textContent   = xp + ' XP';
+
+  setTimeout(() => {
+    document.getElementById('xp-bar-fill').style.width = progress + '%';
+  }, 200);
+
+  if (next) {
+    document.getElementById('xp-bar-left').textContent  = xpIntoLevel + ' / ' + xpNeeded + ' XP to ' + next.name;
+    document.getElementById('xp-bar-right').textContent = next.icon + ' ' + next.name;
+  } else {
+    document.getElementById('xp-bar-left').textContent  = 'Max level reached! 🏆';
+    document.getElementById('xp-bar-right').textContent = '';
+  }
+
+  // Badges
+  const earnedIds = profile.badges || [];
+  const row = document.getElementById('badges-row');
+  if (earnedIds.length) {
+    row.innerHTML = earnedIds.map(id => {
+      const b = BADGES.find(x => x.id === id);
+      if (!b) return '';
+      return `<div class="badge-chip" title="${esc(b.desc)}">${b.icon} ${esc(b.name)}</div>`;
+    }).join('');
+  } else {
+    row.innerHTML = '<div style="font-size:0.82rem;color:var(--color-text-muted);font-family:var(--font-ui);">Complete quizzes to earn badges 🏅</div>';
+  }
 }
 
 function esc(str) {

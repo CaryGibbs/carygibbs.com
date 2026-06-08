@@ -326,6 +326,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, showToast } from './auth.js';
+import { awardXp } from './gamification.js';
 import {
   collection, getDocs, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -352,8 +353,13 @@ let spiderEdges = [];
 let panX = 0, panY = 0, zoom = 1;
 let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
 
+let _currentUser = null;
+let _currentProfile = null;
+
 requireAuth(async (user, profile) => {
   if (!['student','admin','parent'].includes(profile.role)) { location.href = 'hub.html'; return; }
+  _currentUser = user;
+  _currentProfile = profile;
   // Set smart back link
   if (profile.role === 'admin' || profile.role === 'parent') {
     const bl = document.getElementById('nav-back-link');
@@ -409,6 +415,10 @@ async function loadData() {
     buildOutline();
     // Defer spider build until after layout
     requestAnimationFrame(() => { requestAnimationFrame(() => buildSpider()); });
+    // Award mindmap XP (students only)
+    if (_currentUser && _currentProfile?.role === 'student') {
+      awardXp(_currentUser.uid, 'mindmap').catch(() => {});
+    }
   } catch(e) {
     document.getElementById('loading-wrap').innerHTML =
       `<div class="empty-state"><h3>Failed to load</h3><p>${e.message}</p></div>`;

@@ -404,9 +404,29 @@
           <div class="result-stat-label">Questions</div>
         </div>
       </div>
+      <!-- XP earned display -->
+      <div id="xp-earned-wrap" style="display:none;margin-bottom:var(--space-xl);">
+        <div id="xp-earned-banner" style="background:var(--color-primary-glow);border:1px solid var(--color-primary);border-radius:var(--radius-card);padding:var(--space-md) var(--space-lg);margin-bottom:var(--space-md);">
+          <div style="font-family:var(--font-heading);font-size:1.1rem;font-weight:800;color:var(--color-primary);margin-bottom:var(--space-sm);" id="xp-earned-text"></div>
+          <div style="background:var(--color-surface-2);border-radius:var(--radius-pill);height:8px;overflow:hidden;">
+            <div id="xp-progress-bar" style="height:100%;background:var(--color-primary);border-radius:var(--radius-pill);transition:width 1s ease;width:0%;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;font-family:var(--font-ui);font-size:0.75rem;color:var(--color-text-muted);">
+            <span id="xp-level-label"></span>
+            <span id="xp-next-label"></span>
+          </div>
+        </div>
+        <!-- New badges -->
+        <div id="new-badges-wrap" style="display:none;">
+          <div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);margin-bottom:var(--space-sm);">🏅 Badges earned</div>
+          <div id="new-badges-list" style="display:flex;flex-wrap:wrap;gap:var(--space-sm);justify-content:center;"></div>
+        </div>
+      </div>
+
       <div class="results-actions">
         <button class="btn btn-primary" onclick="restartQuiz()">🔄 Try again</button>
-        <a href="hub.html" class="btn btn-secondary">← Back to hub</a>
+        <a href="profile.html" class="btn btn-secondary">📊 My profile</a>
+        <a href="hub.html" class="btn btn-secondary">← Hub</a>
       </div>
     </div>
   </div>
@@ -423,6 +443,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, showToast } from './auth.js';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js';
 import {
   collection, getDocs, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -445,8 +466,9 @@ let currentIdx   = 0;
 let score        = 0;
 let answered     = false;
 let matchState   = { selectedLeft: null, matched: [] }; // for match pairs
-let currentUser  = null;
+let currentUser   = null;
 let currentProfile = null;
+let quizStartTime  = null;
 
 /* ── Auth ────────────────────────────────────────────────── */
 requireAuth(async (user, profile) => {
@@ -498,6 +520,7 @@ async function loadQuestions() {
 
     document.getElementById('q-total').textContent = questions.length;
     document.getElementById('stat-total').textContent = questions.length;
+    quizStartTime = Date.now();
     showScreen('question');
     renderQuestion();
   } catch(e) {
@@ -869,32 +892,71 @@ async function showResults() {
     `You scored ${score} out of ${total} on ${topicName || subjectName}`;
   document.getElementById('results-icon').textContent = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
 
-  // Save session to Firestore (students only)
+  // Save session + award XP (students only)
   if (currentUser && currentProfile?.role === 'student') {
+    const minutesSpent = Math.round((Date.now() - (quizStartTime || Date.now())) / 60000);
     const session = {
       date: Date.now(),
       subject: subjectName,
       topic: topicName || subjectName,
       score, total, pct,
+      minutesSpent,
       groupId: groupId || null,
       subjectId: subjectId || null,
       topicId: topicId || null,
     };
     try {
-      // Save to student's own profile
+      // Save session
       await updateDoc(doc(db, 'users', currentUser.uid), {
         sessions: arrayUnion(session)
       });
-      // Mirror to parent's children subcollection if parentUid known
+      // Mirror to parent
       if (currentProfile.parentUid) {
         await updateDoc(
           doc(db, 'users', currentProfile.parentUid, 'children', currentUser.uid),
           { sessions: arrayUnion(session) }
-        ).catch(() => {}); // non-fatal if parent doc doesn't have children subcoll
+        ).catch(() => {});
       }
+      // Award XP
+      const result = await awardXp(currentUser.uid, 'quiz', { pct });
+      if (result) showXpEarned(result, minutesSpent);
     } catch(e) {
-      console.warn('Session save failed:', e.message);
+      console.warn('Session/XP save failed:', e.message);
     }
+  }
+}
+
+function showXpEarned(result, minutes) {
+  const wrap = document.getElementById('xp-earned-wrap');
+  wrap.style.display = 'block';
+
+  // XP text
+  let xpText = `+${result.xpGained} XP earned`;
+  if (result.streakBonus > 0) xpText += ` (includes +${result.streakBonus} streak bonus 🔥)`;
+  if (result.levelledUp) xpText = `🎉 Level up! You're now ${result.newLevel.icon} ${result.newLevel.name}! ` + xpText;
+  document.getElementById('xp-earned-text').textContent = xpText;
+
+  // Progress bar
+  const { progress, xpIntoLevel, xpNeeded, current, next } = getLevelInfo(result.newXp);
+  setTimeout(() => {
+    document.getElementById('xp-progress-bar').style.width = progress + '%';
+  }, 100);
+  document.getElementById('xp-level-label').textContent = `${current.icon} ${current.name}`;
+  document.getElementById('xp-next-label').textContent = next ? `${result.newXp}/${next.xpRequired} XP` : 'Max level!';
+
+  // New badges
+  if (result.newlyEarned.length) {
+    const badgesWrap = document.getElementById('new-badges-wrap');
+    badgesWrap.style.display = 'block';
+    const list = document.getElementById('new-badges-list');
+    list.innerHTML = result.newlyEarned.map(id => {
+      const badge = BADGES.find(b => b.id === id);
+      if (!badge) return '';
+      return `<div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);padding:8px 14px;text-align:center;min-width:90px;">
+        <div style="font-size:1.5rem;">${badge.icon}</div>
+        <div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;color:var(--color-text);margin-top:2px;">${badge.name}</div>
+      </div>`;
+    }).join('');
   }
 }
 
