@@ -78,7 +78,7 @@
     /* ══════════════════════════════════════════════════════
        VIEW 2: OUTLINE / ACCORDION
     ══════════════════════════════════════════════════════ */
-    #view-outline { padding: var(--space-xl) var(--space-lg); max-width: 720px; margin: 0 auto; }
+    #view-outline { padding: var(--space-md) var(--space-lg) var(--space-xl); max-width: 760px; margin: 0 auto; }
     .outline-subject {
       background: var(--color-surface); border: 1px solid var(--color-border);
       border-radius: var(--radius-card); margin-bottom: var(--space-md);
@@ -115,19 +115,20 @@
     }
     .outline-topic-chevron { color: var(--color-text-faint); transition: transform var(--transition-fast); font-size: 0.9rem; }
     .outline-topic.open .outline-topic-chevron { transform: rotate(90deg); }
-    .outline-keypoints { display: none; padding: var(--space-sm) var(--space-lg) var(--space-md) calc(var(--space-lg) + 48px); }
+    .outline-keypoints { display: none; padding: var(--space-sm) var(--space-lg) var(--space-md) calc(var(--space-lg) + 24px); }
     .outline-topic.open .outline-keypoints { display: block; }
     .keypoint-item {
-      display: flex; align-items: flex-start; gap: var(--space-sm);
-      padding: 6px 0; border-bottom: 1px solid var(--color-border);
-      font-size: 0.88rem; color: var(--color-text); line-height: 1.5;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border);
     }
     .keypoint-item:last-child { border-bottom: none; }
-    .keypoint-dot { color: var(--color-primary); font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
-    .keypoint-type {
-      font-size: 0.7rem; font-family: var(--font-ui); font-weight: 700;
-      text-transform: uppercase; color: var(--color-text-faint); flex-shrink: 0;
-      min-width: 36px; margin-top: 2px;
+    .keypoint-term {
+      font-family: var(--font-ui); font-size: 0.82rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--color-primary); margin-bottom: 3px;
+    }
+    .keypoint-explanation {
+      font-size: 0.9rem; color: var(--color-text); line-height: 1.6;
     }
 
     /* ── Spider detail panel ────────────────────────────── */
@@ -846,8 +847,8 @@ function buildOutline() {
         <span class="outline-chevron">›</span>
       </div>
       <div class="outline-topics" id="outline-topics-${s.id}"></div>`;
-    // Auto-open first subject
-    if (subjects.indexOf(s) === 0) subEl.classList.add('open');
+    // Auto-open first subject always
+    subEl.classList.add('open');
     wrap.appendChild(subEl);
 
     const topicsWrap = subEl.querySelector('.outline-topics');
@@ -862,18 +863,16 @@ function buildOutline() {
       if (kps.length) {
         pointsHtml = kps.map(kp => `
           <div class="keypoint-item">
-            <span class="keypoint-dot">•</span>
-            <span class="keypoint-type" style="min-width:80px;color:var(--color-primary);font-weight:700;">${esc(kp.term)}</span>
-            <span>${esc(kp.explanation)}</span>
+            <div class="keypoint-term">${esc(kp.term)}</div>
+            <div class="keypoint-explanation">${esc(kp.explanation)}</div>
           </div>`).join('');
       } else {
         const derived = qs.map(q => questionToKeypoint(q)).filter(Boolean);
         pointsHtml = derived.length
           ? derived.map(kp => `
               <div class="keypoint-item">
-                <span class="keypoint-dot">•</span>
-                <span class="keypoint-type">${kp.type}</span>
-                <span>${esc(kp.text)}</span>
+                <div class="keypoint-term">${kp.type}</div>
+                <div class="keypoint-explanation">${esc(kp.text)}</div>
               </div>`).join('')
           : '<div style="font-size:0.85rem;color:var(--color-text-muted);padding:8px 0;">No content yet</div>';
       }
