@@ -13,31 +13,48 @@
     .nav-right { display: flex; align-items: center; gap: var(--space-md); }
     .nav-user { font-family: var(--font-ui); font-size: 0.9rem; color: var(--color-text-muted); }
     .nav-user strong { color: var(--color-text); }
-    .page { max-width: 900px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+    .page { max-width: 960px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
     .page-header { margin-bottom: var(--space-xl); }
     .page-header h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: var(--space-xs); }
     .page-header p { color: var(--color-text-muted); font-size: 0.95rem; }
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-lg); }
     .section-header h2 { font-size: 1.1rem; font-weight: 700; }
-    .children-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-lg); }
-    .child-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-lg); box-shadow: var(--shadow-card); transition: transform var(--transition-base), box-shadow var(--transition-base); }
+
+    /* ── Child cards ─────────────────────────────────────── */
+    .children-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg); }
+    .child-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-card); transition: transform var(--transition-base), box-shadow var(--transition-base); }
     .child-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card), 0 8px 24px rgba(0,0,0,0.08); }
-    .child-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: var(--space-md); font-weight: 800; }
-    .child-name { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
-    .child-email { font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: var(--space-md); }
-    .child-meta { display: flex; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-md); }
-    .child-actions { display: flex; gap: var(--space-sm); }
-    .child-actions .btn { flex: 1; padding: 8px 12px; font-size: 0.82rem; }
-    .theme-spark { background: rgba(255,107,53,0.12); color: #ff6b35; }
-    .theme-edge  { background: rgba(108,99,255,0.12); color: #6c63ff; }
-    .theme-focus { background: rgba(37,99,235,0.12);  color: #2563eb; }
-    .empty-state { grid-column: 1 / -1; text-align: center; padding: var(--space-2xl) var(--space-lg); background: var(--color-surface); border: 2px dashed var(--color-border); border-radius: var(--radius-card); }
+    .child-card-header { padding: var(--space-lg); display: flex; align-items: center; gap: var(--space-md); }
+    .child-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; flex-shrink: 0; }
+    .child-info { flex: 1; min-width: 0; }
+    .child-name { font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; margin-bottom: 2px; }
+    .child-email { font-size: 0.8rem; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .child-card-body { padding: 0 var(--space-lg) var(--space-md); }
+    .child-groups { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--space-sm); min-height: 28px; }
+    .group-chip { background: var(--color-primary-glow); color: var(--color-primary); border-radius: var(--radius-pill); padding: 3px 10px; font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; }
+    .no-group-chip { color: var(--color-text-faint); font-family: var(--font-ui); font-size: 0.78rem; font-style: italic; }
+
+    /* Progress mini stats */
+    .child-stats { display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); }
+    .child-stat { flex: 1; background: var(--color-surface-2); border-radius: var(--radius-sm); padding: 8px; text-align: center; }
+    .child-stat-val { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: var(--color-primary); }
+    .child-stat-label { font-family: var(--font-ui); font-size: 0.68rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .child-card-actions { display: flex; border-top: 1px solid var(--color-border); }
+    .child-action-btn { flex: 1; padding: 10px; background: none; border: none; border-right: 1px solid var(--color-border); font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; transition: all var(--transition-fast); }
+    .child-action-btn:last-child { border-right: none; }
+    .child-action-btn:hover { background: var(--color-surface-2); color: var(--color-primary); }
+
+    /* ── Empty state ─────────────────────────────────────── */
+    .empty-state { grid-column: 1/-1; text-align: center; padding: var(--space-2xl) var(--space-lg); background: var(--color-surface); border: 2px dashed var(--color-border); border-radius: var(--radius-card); }
     .empty-icon { font-size: 3rem; margin-bottom: var(--space-md); }
     .empty-state h3 { font-size: 1.1rem; margin-bottom: var(--space-sm); }
     .empty-state p { color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: var(--space-lg); }
+
+    /* ── Modals ──────────────────────────────────────────── */
     .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); opacity: 0; pointer-events: none; transition: opacity var(--transition-base); }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-xl); width: 100%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); transform: translateY(16px); transition: transform var(--transition-base); }
+    .modal { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-xl); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); transform: translateY(16px); transition: transform var(--transition-base); }
     .modal-overlay.open .modal { transform: translateY(0); }
     .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-lg); }
     .modal-header h2 { font-size: 1.2rem; font-weight: 700; }
@@ -45,7 +62,8 @@
     .modal-close:hover { color: var(--color-text); background: var(--color-border); }
     .form-group { margin-bottom: var(--space-md); }
     .form-group label { display: block; font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .form-group input, .form-group select { padding: 12px var(--space-md); border-radius: var(--radius-button); font-size: 0.95rem; }
+    .form-group input, .form-group select, .form-group textarea { padding: 12px var(--space-md); border-radius: var(--radius-button); font-size: 0.95rem; }
+    .form-group textarea { min-height: 90px; resize: vertical; }
     .password-row { display: flex; gap: var(--space-sm); }
     .password-row input { flex: 1; }
     .btn-generate { padding: 12px var(--space-md); border-radius: var(--radius-button); background: var(--color-surface-2); border: 1px solid var(--color-border); color: var(--color-text-muted); font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all var(--transition-fast); }
@@ -68,7 +86,44 @@
     .danger-zone p { font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: var(--space-sm); }
     .btn-danger { background: rgba(250,82,82,0.1); color: var(--color-danger); border: 1px solid rgba(250,82,82,0.3); }
     .btn-danger:hover { background: var(--color-danger); color: #fff; }
-    @media (max-width: 600px) { .topnav { padding: 0 var(--space-md); } .page { padding: var(--space-lg) var(--space-md); } .nav-user { display: none; } }
+
+    /* ── Group checkboxes ────────────────────────────────── */
+    .group-check-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .group-check-item { display: flex; align-items: center; gap: var(--space-sm); background: var(--color-surface-2); border: 2px solid var(--color-border); border-radius: var(--radius-button); padding: 10px var(--space-md); cursor: pointer; transition: all var(--transition-fast); }
+    .group-check-item:hover { border-color: var(--color-primary); }
+    .group-check-item.checked { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .group-check-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer; flex-shrink: 0; }
+    .group-check-label { font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600; color: var(--color-text); flex: 1; }
+    .group-check-desc { font-size: 0.78rem; color: var(--color-text-muted); }
+
+    /* ── Progress modal ──────────────────────────────────── */
+    .progress-modal { max-width: 580px; }
+    .progress-header-info { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); padding-bottom: var(--space-lg); border-bottom: 1px solid var(--color-border); }
+    .progress-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; flex-shrink: 0; }
+    .progress-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); margin-bottom: var(--space-lg); }
+    .progress-stat { background: var(--color-surface-2); border-radius: var(--radius-card); padding: var(--space-md); text-align: center; }
+    .progress-stat-val { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--color-primary); }
+    .progress-stat-label { font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+    .sessions-list { display: flex; flex-direction: column; gap: var(--space-sm); max-height: 280px; overflow-y: auto; }
+    .session-row { background: var(--color-surface-2); border-radius: var(--radius-button); padding: 10px var(--space-md); display: flex; align-items: center; justify-content: space-between; }
+    .session-topic { font-family: var(--font-ui); font-size: 0.88rem; font-weight: 600; }
+    .session-meta { font-size: 0.78rem; color: var(--color-text-muted); }
+    .session-score { font-family: var(--font-heading); font-size: 1rem; font-weight: 700; }
+    .score-good { color: var(--color-success); }
+    .score-mid  { color: var(--color-warning); }
+    .score-low  { color: var(--color-danger); }
+    .no-sessions { text-align: center; padding: var(--space-xl); color: var(--color-text-muted); font-size: 0.9rem; }
+
+    /* ── Notify modal ────────────────────────────────────── */
+    .notify-preview { background: var(--color-primary-glow); border: 1px solid var(--color-primary); border-radius: var(--radius-card); padding: var(--space-md); margin-top: var(--space-md); font-size: 0.88rem; color: var(--color-text); }
+    .notify-preview-label { font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 4px; }
+
+    @media (max-width: 600px) {
+      .topnav { padding: 0 var(--space-md); }
+      .page { padding: var(--space-lg) var(--space-md); }
+      .nav-user { display: none; }
+      .progress-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -79,7 +134,7 @@
     <span class="nav-user">Welcome, <strong id="nav-name">...</strong></span>
     <div style="display:flex;gap:var(--space-sm);">
       <a href="admin.html" id="admin-link" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;display:none;">⚙️ Admin</a>
-      <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+      <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
     </div>
   </div>
 </nav>
@@ -87,16 +142,16 @@
 <div class="page page-fade">
   <div class="page-header">
     <h1>Your children</h1>
-    <p>Manage your children's accounts and monitor their progress.</p>
+    <p>Manage accounts, assign revision groups, and track progress.</p>
   </div>
   <div class="section-header">
-    <h2 id="children-count">Loading...</h2>
-    <button class="btn btn-primary" onclick="openAddModal()" style="padding:10px 20px; font-size:0.9rem;">+ Add child</button>
+    <h2 id="children-count">Loading…</h2>
+    <button class="btn btn-primary" onclick="openAddModal()" style="padding:10px 20px;font-size:0.9rem;">＋ Add child</button>
   </div>
   <div class="children-grid" id="children-grid"></div>
 </div>
 
-<!-- Add child modal -->
+<!-- ── ADD CHILD MODAL ──────────────────────────────────── -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-header">
@@ -113,7 +168,7 @@
         <button class="btn-generate" onclick="generatePw()">✨ Generate</button>
       </div>
       <div class="password-reveal" id="pw-reveal">
-        <div><div class="pw-value" id="pw-value"></div><div class="pw-note">Share this with your child — it won't be shown again.</div></div>
+        <div><div class="pw-value" id="pw-value"></div><div class="pw-note">Share this with your child — save it somewhere safe.</div></div>
       </div>
     </div>
     <div class="form-group">
@@ -124,6 +179,12 @@
         <div class="theme-option" id="theme-focus" onclick="selectTheme('focus')"><span class="t-icon">🎯</span>Focus</div>
       </div>
     </div>
+    <div class="form-group">
+      <label>Assign to groups</label>
+      <div class="group-check-list" id="add-group-list">
+        <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading groups…</div>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-add')">Cancel</button>
       <button class="btn btn-primary" id="btn-add-child" onclick="addChild()">Create account</button>
@@ -131,7 +192,7 @@
   </div>
 </div>
 
-<!-- Manage child modal -->
+<!-- ── MANAGE CHILD MODAL ───────────────────────────────── -->
 <div class="modal-overlay" id="modal-manage">
   <div class="modal">
     <div class="modal-header">
@@ -148,217 +209,445 @@
         <div class="theme-option" id="manage-theme-focus" onclick="selectManageTheme('focus')"><span class="t-icon">🎯</span>Focus</div>
       </div>
     </div>
+    <div class="form-group">
+      <label>Revision groups</label>
+      <div class="group-check-list" id="manage-group-list">
+        <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading groups…</div>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-manage')">Cancel</button>
       <button class="btn btn-primary" id="btn-save-child" onclick="saveChild()">Save changes</button>
     </div>
     <div class="danger-zone">
       <p>Removing a child will delete their account data. This cannot be undone.</p>
-      <button class="btn btn-danger" style="width:100%; padding:10px;" onclick="confirmRemoveChild()">Remove child</button>
+      <button class="btn btn-danger" style="width:100%;padding:10px;" onclick="confirmRemoveChild()">Remove child</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROGRESS MODAL ───────────────────────────────────── -->
+<div class="modal-overlay" id="modal-progress">
+  <div class="modal progress-modal">
+    <div class="modal-header">
+      <h2 id="progress-title">Progress</h2>
+      <button class="modal-close" onclick="closeModal('modal-progress')">✕</button>
+    </div>
+    <div class="progress-header-info">
+      <div class="progress-avatar" id="progress-avatar"></div>
+      <div>
+        <div style="font-family:var(--font-heading);font-size:1.05rem;font-weight:700;" id="progress-name"></div>
+        <div style="font-size:0.82rem;color:var(--color-text-muted);" id="progress-groups"></div>
+      </div>
+    </div>
+    <div class="progress-stats-grid">
+      <div class="progress-stat"><div class="progress-stat-val" id="stat-quizzes">0</div><div class="progress-stat-label">Quizzes taken</div></div>
+      <div class="progress-stat"><div class="progress-stat-val" id="stat-avg">—</div><div class="progress-stat-label">Avg score</div></div>
+      <div class="progress-stat"><div class="progress-stat-val" id="stat-best">—</div><div class="progress-stat-label">Best score</div></div>
+    </div>
+    <div style="font-family:var(--font-ui);font-size:0.82rem;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">Recent sessions</div>
+    <div class="sessions-list" id="sessions-list"></div>
+  </div>
+</div>
+
+<!-- ── NOTIFY MODAL ─────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-notify">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="notify-title">Send message</h2>
+      <button class="modal-close" onclick="closeModal('modal-notify')">✕</button>
+    </div>
+    <p style="font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">This message will appear as a notification on your child's hub next time they log in.</p>
+    <div class="form-group">
+      <label>Message</label>
+      <textarea id="notify-message" placeholder="e.g. Great work this week! Try the Geography quiz today 🌍" oninput="updateNotifyPreview()"></textarea>
+    </div>
+    <div class="notify-preview" id="notify-preview" style="display:none;">
+      <div class="notify-preview-label">Preview</div>
+      <div id="notify-preview-text"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-notify')">Cancel</button>
+      <button class="btn btn-primary" id="btn-send-notify" onclick="sendNotification()">📨 Send message</button>
     </div>
   </div>
 </div>
 
 <!-- Safari bridge -->
 <script>
-  function doSignOut()          { window._doSignOut && window._doSignOut(); }
-  function openAddModal()       { window._openAddModal && window._openAddModal(); }
-  function closeModal(id)       { window._closeModal && window._closeModal(id); }
-  function selectTheme(t)       { window._selectTheme && window._selectTheme(t); }
-  function generatePw()         { window._generatePw && window._generatePw(); }
-  function addChild()           { window._addChild && window._addChild(); }
-  function openManageModal(id)  { window._openManageModal && window._openManageModal(id); }
-  function selectManageTheme(t) { window._selectManageTheme && window._selectManageTheme(t); }
-  function saveChild()          { window._saveChild && window._saveChild(); }
-  function confirmRemoveChild() { window._confirmRemoveChild && window._confirmRemoveChild(); }
+  function doSignOut()           { window._doSignOut && window._doSignOut(); }
+  function openAddModal()        { window._openAddModal && window._openAddModal(); }
+  function closeModal(id)        { window._closeModal && window._closeModal(id); }
+  function selectTheme(t)        { window._selectTheme && window._selectTheme(t); }
+  function generatePw()          { window._generatePw && window._generatePw(); }
+  function addChild()            { window._addChild && window._addChild(); }
+  function openManageModal(id)   { window._openManageModal && window._openManageModal(id); }
+  function selectManageTheme(t)  { window._selectManageTheme && window._selectManageTheme(t); }
+  function saveChild()           { window._saveChild && window._saveChild(); }
+  function confirmRemoveChild()  { window._confirmRemoveChild && window._confirmRemoveChild(); }
+  function openProgressModal(id) { window._openProgressModal && window._openProgressModal(id); }
+  function openNotifyModal(id)   { window._openNotifyModal && window._openNotifyModal(id); }
+  function sendNotification()    { window._sendNotification && window._sendNotification(); }
+  function updateNotifyPreview() { window._updateNotifyPreview && window._updateNotifyPreview(); }
+  function toggleGroupCheck(el)  { window._toggleGroupCheck && window._toggleGroupCheck(el); }
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
+import { requireAuth, handleSignOut, generatePassword, showToast } from './auth.js';
+import {
+  doc, setDoc, getDoc, updateDoc, deleteDoc,
+  collection, getDocs, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  import { requireAuth, handleSignOut, generatePassword, showToast } from './auth.js';
+const API_KEY = 'AIzaSyDjkqzERaCoaGUBeQCHpaVtwPEbcWN5yB4';
 
-  import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+let parentUid     = null;
+let selectedTheme = 'edge';
+let manageTheme   = 'edge';
+let managingChildId = null;
+let notifyingChildId = null;
+let childrenData  = {};
+let allGroups     = []; // [{ id, name }]
 
-  let parentUid = null;
-  let selectedTheme = 'edge';
-  let manageTheme = 'edge';
-  let managingChildId = null;
-  let childrenData = {};
+/* ── Auth ────────────────────────────────────────────────── */
+requireAuth((user, profile) => {
+  if (profile.role !== 'parent' && profile.role !== 'admin') {
+    window.location.href = 'index.html'; return;
+  }
+  parentUid = user.uid;
+  document.getElementById('nav-name').textContent = profile.name.split(' ')[0];
+  if (profile.role === 'admin') document.getElementById('admin-link').style.display = 'inline-flex';
+  loadGroups();
+  loadChildren();
+});
 
-  requireAuth((user, profile) => {
-    if (profile.role !== 'parent' && profile.role !== 'admin') {
-      window.location.href = 'index.html'; return;
-    }
-    parentUid = user.uid;
-    document.getElementById('nav-name').textContent = profile.name.split(' ')[0];
-    if (profile.role === 'admin') document.getElementById('admin-link').style.display = 'inline-flex';
-    loadChildren();
+window._doSignOut = () => handleSignOut();
+
+/* ── Load available groups ───────────────────────────────── */
+async function loadGroups() {
+  const snap = await getDocs(collection(db, 'content')).catch(() => null);
+  allGroups = [];
+  if (snap) snap.forEach(d => allGroups.push({ id: d.id, name: d.data().name || d.id }));
+}
+
+/* ── Load children ───────────────────────────────────────── */
+function loadChildren() {
+  onSnapshot(collection(db, 'users', parentUid, 'children'), snap => {
+    childrenData = {};
+    snap.forEach(d => { childrenData[d.id] = d.data(); });
+    renderChildren();
   });
+}
 
-  window._doSignOut = () => handleSignOut();
+function renderChildren() {
+  const grid  = document.getElementById('children-grid');
+  const count = Object.keys(childrenData).length;
+  document.getElementById('children-count').textContent =
+    count === 0 ? 'No children yet' : `${count} child${count !== 1 ? 'ren' : ''}`;
 
-  function loadChildren() {
-    const childrenRef = collection(db, 'users', parentUid, 'children');
-    onSnapshot(childrenRef, (snap) => {
-      childrenData = {};
-      snap.forEach(d => { childrenData[d.id] = d.data(); });
-      renderChildren();
-    });
+  if (count === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">👧👦</div><h3>No children added yet</h3><p>Create an account for your child and they'll be able to log in and start revising.</p><button class="btn btn-primary" onclick="openAddModal()">＋ Add your first child</button></div>`;
+    return;
   }
 
-  function renderChildren() {
-    const grid = document.getElementById('children-grid');
-    const count = Object.keys(childrenData).length;
-    document.getElementById('children-count').textContent =
-      count === 0 ? 'No children yet' : `${count} child${count > 1 ? 'ren' : ''}`;
+  grid.innerHTML = '';
+  Object.entries(childrenData).forEach(([uid, child]) => {
+    const initials = (child.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const avatarBg = child.theme==='spark'?'#ff6b35':child.theme==='focus'?'#2563eb':'#6c63ff';
+    const themeLabel = { spark:'🌟 Spark', edge:'⚡ Edge', focus:'🎯 Focus' }[child.theme] || child.theme;
+    const groupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
+    const groupNames = groupIds.map(gid => allGroups.find(g => g.id === gid)?.name || gid);
+    const groupsHtml = groupNames.length
+      ? groupNames.map(n => `<span class="group-chip">${esc(n)}</span>`).join('')
+      : `<span class="no-group-chip">No groups assigned</span>`;
+    const sessions = child.sessions || [];
+    const quizCount = sessions.length;
+    const avgScore  = quizCount ? Math.round(sessions.reduce((a,s) => a + (s.pct||0), 0) / quizCount) : null;
+    const streak    = child.streak || 0;
 
-    if (count === 0) {
-      grid.innerHTML = `<div class="empty-state"><div class="empty-icon">👧👦</div><h3>No children added yet</h3><p>Create an account for your child and they'll be able to log in and start revising.</p><button class="btn btn-primary" onclick="openAddModal()">+ Add your first child</button></div>`;
-      return;
-    }
-    grid.innerHTML = Object.entries(childrenData).map(([uid, child]) => {
-      const themeLabel = { spark:'🌟 Spark', edge:'⚡ Edge', focus:'🎯 Focus' }[child.theme] || child.theme;
-      const initials = child.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-      const avatarBg = child.theme==='spark'?'#ff6b35':child.theme==='focus'?'#2563eb':'#6c63ff';
-      return `<div class="child-card">
-        <div class="child-avatar" style="background:${avatarBg}22;color:${avatarBg}">${initials}</div>
-        <div class="child-name">${child.name}</div>
-        <div class="child-email">${child.email}</div>
-        <div class="child-meta"><span class="badge theme-${child.theme}">${themeLabel}</span></div>
-        <div class="child-actions"><button class="btn btn-secondary" onclick="openManageModal('${uid}')">Manage</button></div>
+    const card = document.createElement('div');
+    card.className = 'child-card';
+    card.innerHTML = `
+      <div class="child-card-header">
+        <div class="child-avatar" style="background:${avatarBg}22;color:${avatarBg}">${esc(initials)}</div>
+        <div class="child-info">
+          <div class="child-name">${esc(child.name)}</div>
+          <div class="child-email">${esc(child.email)}</div>
+        </div>
+      </div>
+      <div class="child-card-body">
+        <div class="child-groups">${groupsHtml}</div>
+        <div class="child-stats">
+          <div class="child-stat"><div class="child-stat-val">${quizCount}</div><div class="child-stat-label">Quizzes</div></div>
+          <div class="child-stat"><div class="child-stat-val">${avgScore !== null ? avgScore+'%' : '—'}</div><div class="child-stat-label">Avg score</div></div>
+          <div class="child-stat"><div class="child-stat-val">${streak}🔥</div><div class="child-stat-label">Streak</div></div>
+        </div>
+      </div>
+      <div class="child-card-actions">
+        <button class="child-action-btn" onclick="openProgressModal('${uid}')">📊 Progress</button>
+        <button class="child-action-btn" onclick="openNotifyModal('${uid}')">📨 Message</button>
+        <button class="child-action-btn" onclick="openManageModal('${uid}')">⚙️ Manage</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ── Group checkbox helper ───────────────────────────────── */
+function renderGroupChecks(containerId, selectedIds = []) {
+  const wrap = document.getElementById(containerId);
+  if (!allGroups.length) {
+    wrap.innerHTML = `<div style="color:var(--color-text-muted);font-size:0.85rem;">No groups yet — create one in the admin panel first.</div>`;
+    return;
+  }
+  wrap.innerHTML = allGroups.map(g => {
+    const checked = selectedIds.includes(g.id);
+    return `<label class="group-check-item${checked?' checked':''}" onclick="toggleGroupCheck(this)">
+      <input type="checkbox" value="${esc(g.id)}"${checked?' checked':''}>
+      <div class="group-check-label">${esc(g.name)}</div>
+    </label>`;
+  }).join('');
+}
+
+window._toggleGroupCheck = function(label) {
+  label.classList.toggle('checked');
+};
+
+function getCheckedGroupIds(containerId) {
+  return [...document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)].map(i => i.value);
+}
+
+/* ── Add child ───────────────────────────────────────────── */
+window._openAddModal = function() {
+  document.getElementById('child-name').value = '';
+  document.getElementById('child-email').value = '';
+  document.getElementById('child-password').value = '';
+  document.getElementById('pw-reveal').classList.remove('visible');
+  document.getElementById('add-error').classList.remove('visible');
+  selectedTheme = 'edge';
+  ['spark','edge','focus'].forEach(t => document.getElementById(`theme-${t}`).classList.toggle('selected', t==='edge'));
+  renderGroupChecks('add-group-list', []);
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(() => document.getElementById('child-name').focus(), 100);
+};
+
+window._selectTheme = t => {
+  selectedTheme = t;
+  ['spark','edge','focus'].forEach(x => document.getElementById(`theme-${x}`).classList.toggle('selected', x===t));
+};
+
+window._generatePw = () => {
+  const pw = generatePassword();
+  document.getElementById('child-password').value = pw;
+  document.getElementById('pw-value').textContent = pw;
+  document.getElementById('pw-reveal').classList.add('visible');
+};
+
+window._addChild = async function() {
+  const name     = document.getElementById('child-name').value.trim();
+  const email    = document.getElementById('child-email').value.trim();
+  const password = document.getElementById('child-password').value.trim();
+  const groupIds = getCheckedGroupIds('add-group-list');
+  if (!name)               { showErr('add-error', "Please enter the child's name."); return; }
+  if (!email)              { showErr('add-error', 'Please enter an email address.'); return; }
+  if (password.length < 8) { showErr('add-error', 'Password must be at least 8 characters.'); return; }
+  const btn = document.getElementById('btn-add-child');
+  btn.classList.add('loading');
+  try {
+    // Create via REST API to avoid displacing parent's auth session
+    const signupRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+    const signupData = await signupRes.json();
+    if (signupData.error) throw new Error(signupData.error.message);
+    const childUid = signupData.localId;
+    await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${API_KEY}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: signupData.idToken, displayName: name, returnSecureToken: false })
+    });
+    // Write student profile
+    await setDoc(doc(db, 'users', childUid), {
+      name, email, role: 'student', parentUid,
+      theme: selectedTheme, createdAt: Date.now(),
+      xp: 0, level: 1, streak: 0, sessions: [], classes: {},
+      groupIds, // array of group IDs
+      groupId: groupIds[0] || null // keep single groupId for backwards compat
+    });
+    // Write to parent's children subcollection
+    await setDoc(doc(db, 'users', parentUid, 'children', childUid), {
+      name, email, theme: selectedTheme, createdAt: Date.now(), groupIds,
+      streak: 0, sessions: []
+    });
+    document.getElementById('modal-add').classList.remove('open');
+    showToast(`${name}'s account created!`, 'success');
+  } catch(e) {
+    showErr('add-error', friendlyError(e.code) || e.message);
+  } finally { btn.classList.remove('loading'); }
+};
+
+/* ── Manage child ────────────────────────────────────────── */
+window._openManageModal = function(uid) {
+  managingChildId = uid;
+  const child = childrenData[uid];
+  document.getElementById('manage-title').textContent = `Manage ${child.name}`;
+  document.getElementById('manage-name').value = child.name;
+  document.getElementById('manage-error').classList.remove('visible');
+  manageTheme = child.theme || 'edge';
+  ['spark','edge','focus'].forEach(t => document.getElementById(`manage-theme-${t}`).classList.toggle('selected', t===manageTheme));
+  const currentGroupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
+  renderGroupChecks('manage-group-list', currentGroupIds);
+  document.getElementById('modal-manage').classList.add('open');
+};
+
+window._selectManageTheme = t => {
+  manageTheme = t;
+  ['spark','edge','focus'].forEach(x => document.getElementById(`manage-theme-${x}`).classList.toggle('selected', x===t));
+};
+
+window._saveChild = async function() {
+  const name = document.getElementById('manage-name').value.trim();
+  if (!name) { showErr('manage-error', 'Please enter a name.'); return; }
+  const groupIds = getCheckedGroupIds('manage-group-list');
+  const btn = document.getElementById('btn-save-child');
+  btn.classList.add('loading');
+  try {
+    await updateDoc(doc(db, 'users', managingChildId), {
+      name, theme: manageTheme, groupIds,
+      groupId: groupIds[0] || null
+    });
+    await updateDoc(doc(db, 'users', parentUid, 'children', managingChildId), {
+      name, theme: manageTheme, groupIds
+    });
+    document.getElementById('modal-manage').classList.remove('open');
+    showToast('Changes saved.', 'success');
+  } catch(e) { showErr('manage-error', 'Failed to save. Please try again.'); }
+  finally { btn.classList.remove('loading'); }
+};
+
+window._confirmRemoveChild = function() {
+  const child = childrenData[managingChildId];
+  if (!confirm(`Remove ${child.name}? This will delete their account data.`)) return;
+  deleteDoc(doc(db, 'users', managingChildId));
+  deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
+  document.getElementById('modal-manage').classList.remove('open');
+  showToast('Child account removed.', 'info');
+};
+
+/* ── Progress modal ──────────────────────────────────────── */
+window._openProgressModal = async function(uid) {
+  const child = childrenData[uid];
+  const avatarBg = child.theme==='spark'?'#ff6b35':child.theme==='focus'?'#2563eb':'#6c63ff';
+  const initials = (child.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+  document.getElementById('progress-title').textContent = `${child.name}'s progress`;
+  document.getElementById('progress-name').textContent = child.name;
+  document.getElementById('progress-avatar').textContent = initials;
+  document.getElementById('progress-avatar').style.cssText = `background:${avatarBg}22;color:${avatarBg};width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;flex-shrink:0;`;
+
+  const groupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
+  const groupNames = groupIds.map(gid => allGroups.find(g=>g.id===gid)?.name || gid);
+  document.getElementById('progress-groups').textContent = groupNames.length ? groupNames.join(', ') : 'No groups assigned';
+
+  // Load full profile for sessions
+  const snap = await getDoc(doc(db, 'users', uid)).catch(() => null);
+  const profile = snap?.data() || {};
+  const sessions = (profile.sessions || child.sessions || []).slice().reverse();
+
+  const quizCount = sessions.length;
+  const avgScore  = quizCount ? Math.round(sessions.reduce((a,s)=>a+(s.pct||0),0)/quizCount) : null;
+  const bestScore = quizCount ? Math.max(...sessions.map(s=>s.pct||0)) : null;
+
+  document.getElementById('stat-quizzes').textContent = quizCount;
+  document.getElementById('stat-avg').textContent  = avgScore !== null ? avgScore+'%' : '—';
+  document.getElementById('stat-best').textContent = bestScore !== null ? bestScore+'%' : '—';
+
+  const list = document.getElementById('sessions-list');
+  if (!sessions.length) {
+    list.innerHTML = `<div class="no-sessions">No quiz sessions yet — encourage ${child.name.split(' ')[0]} to try a quiz!</div>`;
+  } else {
+    list.innerHTML = sessions.slice(0,20).map(s => {
+      const pct = s.pct || 0;
+      const cls = pct >= 80 ? 'score-good' : pct >= 50 ? 'score-mid' : 'score-low';
+      const date = s.date ? new Date(s.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+      return `<div class="session-row">
+        <div><div class="session-topic">${esc(s.topic||s.subject||'Quiz')}</div><div class="session-meta">${date}</div></div>
+        <div class="session-score ${cls}">${pct}%</div>
       </div>`;
     }).join('');
   }
+  document.getElementById('modal-progress').classList.add('open');
+};
 
-  window._openAddModal = function() {
-    document.getElementById('child-name').value = '';
-    document.getElementById('child-email').value = '';
-    document.getElementById('child-password').value = '';
-    document.getElementById('pw-reveal').classList.remove('visible');
-    document.getElementById('add-error').classList.remove('visible');
-    selectedTheme = 'edge';
-    ['spark','edge','focus'].forEach(t => document.getElementById(`theme-${t}`).classList.toggle('selected', t==='edge'));
-    document.getElementById('modal-add').classList.add('open');
-  };
+/* ── Notify modal ────────────────────────────────────────── */
+window._openNotifyModal = function(uid) {
+  notifyingChildId = uid;
+  const child = childrenData[uid];
+  document.getElementById('notify-title').textContent = `Message ${child.name}`;
+  document.getElementById('notify-message').value = '';
+  document.getElementById('notify-preview').style.display = 'none';
+  document.getElementById('modal-notify').classList.add('open');
+  setTimeout(() => document.getElementById('notify-message').focus(), 100);
+};
 
-  window._selectTheme = function(t) {
-    selectedTheme = t;
-    ['spark','edge','focus'].forEach(x => document.getElementById(`theme-${x}`).classList.toggle('selected', x===t));
-  };
-
-  window._generatePw = function() {
-    const pw = generatePassword();
-    document.getElementById('child-password').value = pw;
-    document.getElementById('pw-value').textContent = pw;
-    document.getElementById('pw-reveal').classList.add('visible');
-  };
-
-  window._addChild = async function() {
-    const name     = document.getElementById('child-name').value.trim();
-    const email    = document.getElementById('child-email').value.trim();
-    const password = document.getElementById('child-password').value.trim();
-    if (!name)               { showErr('add-error',"Please enter the child's name."); return; }
-    if (!email)              { showErr('add-error','Please enter an email address.'); return; }
-    if (password.length < 8) { showErr('add-error','Password must be at least 8 characters.'); return; }
-    const btn = document.getElementById('btn-add-child');
-    btn.classList.add('loading');
-    try {
-      // Use Firebase REST API to create child without affecting parent auth state
-      const apiKey = 'AIzaSyDjkqzERaCoaGUBeQCHpaVtwPEbcWN5yB4';
-      const signupRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, returnSecureToken: true })
-      });
-      const signupData = await signupRes.json();
-      if (signupData.error) throw new Error(signupData.error.message);
-      const childUid = signupData.localId;
-
-      // Update display name
-      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: signupData.idToken, displayName: name, returnSecureToken: false })
-      });
-
-      // Write Firestore profiles
-      await setDoc(doc(db, 'users', childUid), {
-        name, email, role: 'student', parentUid,
-        theme: selectedTheme, createdAt: Date.now(),
-        xp: 0, level: 1, streak: 0, sessions: [], classes: {}
-      });
-      await setDoc(doc(db, 'users', parentUid, 'children', childUid), {
-        name, email, theme: selectedTheme, createdAt: Date.now()
-      });
-      document.getElementById('modal-add').classList.remove('open');
-      showToast(`${name}'s account created!`, 'success');
-    } catch(e) {
-      console.error('addChild error:', e);
-      showErr('add-error', friendlyError(e.code) || e.message);
-    } finally { btn.classList.remove('loading'); }
-  };
-
-  window._openManageModal = function(uid) {
-    managingChildId = uid;
-    const child = childrenData[uid];
-    document.getElementById('manage-title').textContent = `Manage ${child.name}`;
-    document.getElementById('manage-name').value = child.name;
-    document.getElementById('manage-error').classList.remove('visible');
-    manageTheme = child.theme || 'edge';
-    ['spark','edge','focus'].forEach(t => document.getElementById(`manage-theme-${t}`).classList.toggle('selected', t===manageTheme));
-    document.getElementById('modal-manage').classList.add('open');
-  };
-
-  window._selectManageTheme = function(t) {
-    manageTheme = t;
-    ['spark','edge','focus'].forEach(x => document.getElementById(`manage-theme-${x}`).classList.toggle('selected', x===t));
-  };
-
-  window._saveChild = async function() {
-    const name = document.getElementById('manage-name').value.trim();
-    if (!name) { showErr('manage-error','Please enter a name.'); return; }
-    const btn = document.getElementById('btn-save-child');
-    btn.classList.add('loading');
-    try {
-      await updateDoc(doc(db, 'users', managingChildId), { name, theme: manageTheme });
-      await updateDoc(doc(db, 'users', parentUid, 'children', managingChildId), { name, theme: manageTheme });
-      document.getElementById('modal-manage').classList.remove('open');
-      showToast('Changes saved.', 'success');
-    } catch(e) { showErr('manage-error','Failed to save. Please try again.'); }
-    finally { btn.classList.remove('loading'); }
-  };
-
-  window._confirmRemoveChild = function() {
-    const child = childrenData[managingChildId];
-    if (!confirm(`Remove ${child.name}? This will delete their account data.`)) return;
-    deleteDoc(doc(db, 'users', managingChildId));
-    deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
-    document.getElementById('modal-manage').classList.remove('open');
-    showToast('Child account removed.', 'info');
-  };
-
-  window._closeModal = (id) => document.getElementById(id).classList.remove('open');
-
-  document.querySelectorAll('.modal-overlay').forEach(o => {
-    o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
-  });
-  document.addEventListener('keydown', e => {
-    if(e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
-  });
-
-  function showErr(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.classList.add('visible'); }
-  function friendlyError(code) {
-    const map = { 'auth/email-already-in-use':'An account with that email already exists.', 'auth/invalid-email':'Please enter a valid email address.', 'auth/weak-password':'Password must be at least 8 characters.' };
-    return map[code] || 'Something went wrong. Please try again.';
+window._updateNotifyPreview = function() {
+  const msg = document.getElementById('notify-message').value.trim();
+  const preview = document.getElementById('notify-preview');
+  if (msg) {
+    preview.style.display = 'block';
+    document.getElementById('notify-preview-text').textContent = msg;
+  } else {
+    preview.style.display = 'none';
   }
+};
+
+window._sendNotification = async function() {
+  const msg = document.getElementById('notify-message').value.trim();
+  if (!msg) { showToast('Please write a message first', 'error'); return; }
+  const btn = document.getElementById('btn-send-notify');
+  btn.classList.add('loading');
+  try {
+    await updateDoc(doc(db, 'users', notifyingChildId), {
+      notification: { message: msg, from: 'parent', sentAt: Date.now(), read: false }
+    });
+    document.getElementById('modal-notify').classList.remove('open');
+    showToast('Message sent!', 'success');
+  } catch(e) { showToast('Failed to send: ' + e.message, 'error'); }
+  finally { btn.classList.remove('loading'); }
+};
+
+/* ── Utils ───────────────────────────────────────────────── */
+window._closeModal = id => document.getElementById(id).classList.remove('open');
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+});
+
+function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.classList.add('visible'); }
+
+function friendlyError(code) {
+  const map = {
+    'auth/email-already-in-use': 'An account with that email already exists.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/weak-password': 'Password must be at least 8 characters.'
+  };
+  return map[code];
+}
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 <script>
-  window.showToast = function(msg,type='info') {
-    const c=document.getElementById('toast-container');
-    const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg;
-    c.appendChild(t); setTimeout(()=>t.remove(),3500);
-  };
+window.showToast = function(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t); setTimeout(() => t.remove(), 3500);
+};
 </script>
 </body>
 </html>
