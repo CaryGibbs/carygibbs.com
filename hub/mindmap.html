@@ -130,6 +130,46 @@
       min-width: 36px; margin-top: 2px;
     }
 
+    /* ── Spider detail panel ────────────────────────────── */
+    .spider-detail {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: var(--color-surface);
+      border-top: 2px solid var(--color-primary);
+      border-radius: var(--radius-card) var(--radius-card) 0 0;
+      padding: var(--space-lg) var(--space-xl);
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 10; max-height: 45%;
+      overflow-y: auto;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
+    }
+    .spider-detail.open { transform: translateY(0); }
+    .spider-detail-close {
+      position: absolute; top: var(--space-md); right: var(--space-md);
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-surface-2); border: none; cursor: pointer;
+      color: var(--color-text-muted); font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .spider-detail-close:hover { background: var(--color-danger); color: #fff; }
+    .spider-detail-term {
+      font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;
+      color: var(--color-primary); margin-bottom: var(--space-sm);
+      padding-right: 40px;
+    }
+    .spider-detail-explanation {
+      font-size: 0.95rem; color: var(--color-text); line-height: 1.7;
+    }
+    .spider-hint {
+      position: absolute; bottom: var(--space-lg); left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill); padding: 6px 16px;
+      font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted);
+      pointer-events: none; transition: opacity 0.3s ease;
+    }
+
     /* ══════════════════════════════════════════════════════
        VIEW 3: FLASHCARDS
     ══════════════════════════════════════════════════════ */
@@ -234,7 +274,12 @@
 <!-- Spider view -->
 <div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;">
   <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-  <div class="spider-hint">Drag to pan · Scroll to zoom</div>
+  <div class="spider-hint" id="spider-hint">Tap a key point to see details · Drag to pan · Pinch to zoom</div>
+  <div class="spider-detail" id="spider-detail">
+    <button class="spider-detail-close" onclick="closeSpiderDetail()">✕</button>
+    <div class="spider-detail-term" id="spider-detail-term"></div>
+    <div class="spider-detail-explanation" id="spider-detail-explanation"></div>
+  </div>
 </div>
 
 <!-- Outline view -->
@@ -267,6 +312,7 @@
 
 <script>
   function switchView(v) { window._switchView && window._switchView(v); }
+  function closeSpiderDetail() { window._closeSpiderDetail && window._closeSpiderDetail(); }
   function flipCard() { window._flipCard && window._flipCard(); }
   function prevCard() { window._prevCard && window._prevCard(); }
   function nextCard() { window._nextCard && window._nextCard(); }
@@ -296,6 +342,7 @@ let fcFlipped = false;
 
 /* ── Spider canvas state ─────────────────────────────────── */
 let spiderNodes = [];
+let selectedLeaf = null;
 let spiderEdges = [];
 let panX = 0, panY = 0, zoom = 1;
 let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
@@ -411,6 +458,15 @@ function questionToFlashcard(q, topicName) {
 }
 
 /* ── View switching ──────────────────────────────────────── */
+window._closeSpiderDetail = function() {
+  document.getElementById('spider-detail').classList.remove('open');
+  document.getElementById('spider-hint').style.opacity = '1';
+  // Deselect node
+  selectedLeaf = null;
+  const canvas = document.getElementById('spider-canvas');
+  drawSpider(canvas.getContext('2d'), canvas);
+};
+
 window._switchView = function(v) {
   currentView = v;
   document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
@@ -612,8 +668,15 @@ function drawSpider(ctx, canvas) {
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Term text
-      ctx.fillStyle = C.text;
+      // Term text — highlight if selected
+      const isSelected = selectedLeaf && selectedLeaf.label === n.label && selectedLeaf.x === n.x;
+      if (isSelected) {
+        ctx.beginPath();
+        roundRect(ctx, rx - 2, ry - 2, pw + 4, ph + 4, 15);
+        ctx.fillStyle = C.primary;
+        ctx.fill();
+      }
+      ctx.fillStyle = isSelected ? '#fff' : C.text;
       ctx.font = '600 12px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -655,15 +718,55 @@ function drawWrappedText(ctx, text, cx, cy, maxW, color, font, lineH) {
   lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineH));
 }
 
+function handleSpiderClick(clientX, clientY, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  // Convert screen coords to canvas/world coords
+  const cx = (clientX - rect.left - panX) / zoom;
+  const cy2 = (clientY - rect.top  - panY) / zoom;
+
+  // Find which leaf node was clicked
+  let hit = null;
+  for (const n of spiderNodes) {
+    if (n.type !== 'leaf') continue;
+    const label = n.label || '';
+    const ctx = canvas.getContext('2d');
+    ctx.font = '12px sans-serif';
+    const tw = ctx.measureText(label).width;
+    const pw = Math.max(tw + 20, 60);
+    const ph = 28;
+    if (cx >= n.x - pw/2 && cx <= n.x + pw/2 && cy2 >= n.y - ph/2 && cy2 <= n.y + ph/2) {
+      hit = n; break;
+    }
+  }
+
+  if (hit && hit.detail) {
+    selectedLeaf = hit;
+    document.getElementById('spider-detail-term').textContent = hit.label;
+    document.getElementById('spider-detail-explanation').textContent = hit.detail;
+    document.getElementById('spider-detail').classList.add('open');
+    document.getElementById('spider-hint').style.opacity = '0';
+    drawSpider(canvas.getContext('2d'), canvas);
+  } else if (!hit) {
+    // Click on empty space — close detail
+    window._closeSpiderDetail && window._closeSpiderDetail();
+  }
+}
+
 function setupSpiderInteraction(canvas, ctx) {
   const c = canvas;
   if (c._spiderSetup) return;
   c._spiderSetup = true;
   const drawFn = () => drawSpider(c.getContext('2d'), c);
 
-  c.addEventListener('mousedown', e => { dragging = true; dragStartX = e.clientX; dragStartY = e.clientY; panStartX = panX; panStartY = panY; });
+  let clickStartX = 0, clickStartY = 0;
+  c.addEventListener('mousedown', e => { dragging = true; dragStartX = e.clientX; dragStartY = e.clientY; panStartX = panX; panStartY = panY; clickStartX = e.clientX; clickStartY = e.clientY; });
   c.addEventListener('mousemove', e => { if (!dragging) return; panX = panStartX + (e.clientX - dragStartX); panY = panStartY + (e.clientY - dragStartY); drawFn(); });
-  c.addEventListener('mouseup', () => dragging = false);
+  c.addEventListener('mouseup', e => {
+    dragging = false;
+    // Only register as click if mouse didn't move much (not a drag)
+    const dist = Math.hypot(e.clientX - clickStartX, e.clientY - clickStartY);
+    if (dist < 6) handleSpiderClick(e.clientX, e.clientY, c);
+  });
   c.addEventListener('mouseleave', () => dragging = false);
   c.addEventListener('wheel', e => {
     e.preventDefault();
@@ -687,7 +790,17 @@ function setupSpiderInteraction(canvas, ctx) {
       lastTouchDist = dist; drawFn();
     }
   }, { passive: false });
-  c.addEventListener('touchend', () => dragging = false);
+  let touchStartX = 0, touchStartY = 0;
+  c.addEventListener('touchstart', e2 => {
+    if (e2.touches.length === 1) { touchStartX = e2.touches[0].clientX; touchStartY = e2.touches[0].clientY; }
+  }, { passive: true });
+  c.addEventListener('touchend', e => {
+    dragging = false;
+    if (e.changedTouches.length === 1) {
+      const dist = Math.hypot(e.changedTouches[0].clientX - touchStartX, e.changedTouches[0].clientY - touchStartY);
+      if (dist < 10) handleSpiderClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY, c);
+    }
+  });
 
   window.addEventListener('resize', () => {
     const wrap = document.getElementById('view-spider');
