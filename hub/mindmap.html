@@ -480,7 +480,7 @@ window._switchView = function(v) {
   currentView = v;
   document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
   showView(v);
-  if (v === 'flashcards') renderFlashcard();
+  if (v === 'flashcards') { fcIdx = 0; fcFlipped = false; buildFlashcards(); renderFlashcard(); }
   if (v === 'spider') buildSpider();
 };
 
@@ -904,8 +904,6 @@ function questionToKeypoint(q) {
    FLASHCARDS
 ══════════════════════════════════════════════════════════ */
 function renderFlashcard() {
-  // Rebuild if empty (e.g. first switch to cards tab)
-  if (!allFlashcards.length) buildFlashcards();
   const cards = flattenFlashcards();
   if (!cards.length) {
     document.getElementById('fc-front').textContent = 'No cards available';
