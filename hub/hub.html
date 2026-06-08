@@ -127,6 +127,56 @@
     .empty-state-icon { font-size: 3rem; margin-bottom: var(--space-md); }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
 
+    /* ── Gamification bar ────────────────────────────────── */
+    .xp-bar-wrap {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md) var(--space-lg);
+      margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-lg);
+    }
+    .xp-level-badge { font-size: 2rem; flex-shrink: 0; }
+    .xp-level-info { flex: 1; min-width: 0; }
+    .xp-level-name {
+      font-family: var(--font-heading); font-size: 1rem; font-weight: 700;
+      margin-bottom: 4px; display: flex; align-items: center; gap: var(--space-sm);
+    }
+    .xp-level-num {
+      font-size: 0.72rem; font-family: var(--font-ui); font-weight: 700;
+      background: var(--color-primary-glow); color: var(--color-primary);
+      border-radius: var(--radius-pill); padding: 2px 8px;
+    }
+    .xp-bar-track {
+      background: var(--color-surface-2); border-radius: var(--radius-pill);
+      height: 8px; overflow: hidden; margin-bottom: 4px;
+    }
+    .xp-bar-fill {
+      height: 100%; background: var(--color-primary);
+      border-radius: var(--radius-pill); transition: width 1s ease;
+    }
+    .xp-bar-label {
+      font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted);
+      display: flex; justify-content: space-between;
+    }
+    .xp-stats { display: flex; gap: var(--space-lg); flex-shrink: 0; }
+    .xp-stat { text-align: center; }
+    .xp-stat-val {
+      font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800;
+      color: var(--color-text);
+    }
+    .xp-stat-label {
+      font-family: var(--font-ui); font-size: 0.68rem; color: var(--color-text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badges-row {
+      display: flex; gap: var(--space-sm); flex-wrap: wrap;
+      margin-bottom: var(--space-lg);
+    }
+    .badge-chip {
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill); padding: 4px 12px;
+      font-family: var(--font-ui); font-size: 0.78rem; font-weight: 600;
+      color: var(--color-text); display: flex; align-items: center; gap: 5px;
+    }
+
     /* ── No group assigned ───────────────────────────────── */
     .no-group-banner {
       background: var(--color-surface); border: 1px solid var(--color-border);
