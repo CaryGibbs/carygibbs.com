@@ -426,136 +426,238 @@ function showView(v) {
 
 /* ══════════════════════════════════════════════════════════
    SPIDER DIAGRAM
+   Layout: centre = topic/subject, branches = key points
+   Each key point is a rounded rectangle label on a branch
 ══════════════════════════════════════════════════════════ */
+
+// Spider colours — read from CSS vars once
+function spiderColors() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    primary:  s.getPropertyValue('--color-primary').trim()      || '#6c63ff',
+    surface:  s.getPropertyValue('--color-surface').trim()      || '#16162a',
+    surface2: s.getPropertyValue('--color-surface-2').trim()    || '#1e1e38',
+    border:   s.getPropertyValue('--color-border').trim()       || '#2a2a4a',
+    text:     s.getPropertyValue('--color-text').trim()         || '#f0f0ff',
+    muted:    s.getPropertyValue('--color-text-muted').trim()   || '#8888aa',
+    bg:       s.getPropertyValue('--color-bg').trim()           || '#0d0d1a',
+  };
+}
+
 function buildSpider() {
   const canvas = document.getElementById('spider-canvas');
   const wrap   = document.getElementById('view-spider');
-  // If panel is hidden clientWidth is 0 — use offsetParent size or defer
-  const w = wrap.offsetWidth || window.innerWidth;
+  const w = wrap.offsetWidth  || window.innerWidth;
   const h = wrap.offsetHeight || (window.innerHeight - 64);
   canvas.width  = w;
   canvas.height = h;
-  const ctx = canvas.getContext('2d');
 
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
+  // Gather content — single topic or first topic of subject
+  const sub = subjects[0];
+  const allTopics = sub.topics || [];
 
+  // Build flat list of { topicName, items: [{term, explanation}] }
+  // If single topic: show topic at centre, key points as branches
+  // If multiple topics: show subject at centre, topics as mid-nodes, key points as leaves
   spiderNodes = [];
   spiderEdges = [];
 
-  // Centre node: subject
-  const sub = subjects[0];
-  spiderNodes.push({ x: cx, y: cy, label: (sub.emoji || '📚') + ' ' + sub.name, type: 'root', r: 52 });
+  const cx = w / 2, cy = h / 2;
+  const C = spiderColors();
 
-  // Topic nodes in a ring
-  const topics = sub.topics || [];
-  const topicR = Math.min(canvas.width, canvas.height) * 0.28;
-  topics.forEach((t, i) => {
-    const angle = (i / topics.length) * Math.PI * 2 - Math.PI / 2;
-    const tx = cx + Math.cos(angle) * topicR;
-    const ty = cy + Math.sin(angle) * topicR;
-    spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 38, topicIdx: i });
-    spiderEdges.push({ from: 0, to: spiderNodes.length - 1 });
+  if (allTopics.length === 1) {
+    // ── Single topic: centre = topic, branches = key points ──
+    const t = allTopics[0];
+    const items = getTopicItems(t);
+    spiderNodes.push({ x: cx, y: cy, label: t.name, type: 'root', r: 56 });
+    layoutBranches(cx, cy, items, 0, C, w, h);
+  } else {
+    // ── Subject view: centre = subject, ring = topics, leaves = key point count ──
+    spiderNodes.push({ x: cx, y: cy, label: (sub.emoji||'📚') + ' ' + sub.name, type: 'root', r: 56 });
+    const topicR = Math.min(w, h) * 0.27;
+    allTopics.forEach((t, i) => {
+      const angle = (i / allTopics.length) * Math.PI * 2 - Math.PI / 2;
+      const tx = cx + Math.cos(angle) * topicR;
+      const ty = cy + Math.sin(angle) * topicR;
+      const topicIdx = spiderNodes.length;
+      spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 42 });
+      spiderEdges.push({ from: 0, to: topicIdx });
 
-    // Key points / question count satellites
-    const kpCount = (t.keyPoints||[]).length;
-    const qCount  = (t.questions||[]).length;
-    const satCount = kpCount || qCount;
-    const satLabel = kpCount ? `${kpCount} pts` : `${qCount} Q`;
-    if (satCount > 0) {
-      const satAngle = angle + 0.35;
-      const satR = topicR + 60;
-      spiderNodes.push({
-        x: cx + Math.cos(satAngle) * satR,
-        y: cy + Math.sin(satAngle) * satR,
-        label: satLabel, type: 'count', r: 22
+      // Key point branches from each topic node
+      const items = getTopicItems(t).slice(0, 5); // max 5 per topic to avoid clutter
+      const spread = Math.PI * 0.7;
+      const baseAngle = angle;
+      items.forEach((item, j) => {
+        const branchAngle = baseAngle - spread/2 + (j / Math.max(items.length-1,1)) * spread;
+        const branchR = topicR + 110;
+        const bx = cx + Math.cos(branchAngle) * branchR;
+        const by = cy + Math.sin(branchAngle) * branchR;
+        const leafIdx = spiderNodes.length;
+        spiderNodes.push({ x: bx, y: by, label: item.term || item.text || '', type: 'leaf', r: 0, text: item.term || item.text || '' });
+        spiderEdges.push({ from: topicIdx, to: leafIdx });
       });
-      spiderEdges.push({ from: spiderNodes.length - 2, to: spiderNodes.length - 1 });
-    }
-  });
+    });
+  }
 
   panX = 0; panY = 0; zoom = 1;
+  const ctx = canvas.getContext('2d');
   drawSpider(ctx, canvas);
   setupSpiderInteraction(canvas, ctx);
 }
 
+function getTopicItems(t) {
+  // Returns key points if available, else derives short labels from questions
+  const kps = t.keyPoints || [];
+  if (kps.length) return kps.map(kp => ({ term: kp.term, detail: kp.explanation }));
+  return (t.questions || []).map(q => {
+    const text = (q.question || q.sentence || q.instruction || '').substring(0, 40);
+    return { term: text, detail: '' };
+  });
+}
+
+function layoutBranches(cx, cy, items, startIdx, C, w, h) {
+  // Spread items evenly in a full circle around centre
+  const count = items.length;
+  if (!count) return;
+  // Vary radius based on label length
+  items.forEach((item, i) => {
+    const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+    const r = 200 + Math.min((item.term||'').length * 2, 80);
+    const bx = cx + Math.cos(angle) * r;
+    const by = cy + Math.sin(angle) * r;
+    const nodeIdx = spiderNodes.length;
+    spiderNodes.push({ x: bx, y: by, label: item.term || '', detail: item.detail || '', type: 'leaf', angle });
+    spiderEdges.push({ from: startIdx, to: nodeIdx });
+  });
+}
+
 function drawSpider(ctx, canvas) {
+  const C = spiderColors();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   ctx.save();
   ctx.translate(panX, panY);
   ctx.scale(zoom, zoom);
 
-  // Edges
+  // Draw edges first
   spiderEdges.forEach(e => {
     const a = spiderNodes[e.from];
     const b = spiderNodes[e.to];
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-border') || '#2a2a4a';
-    ctx.lineWidth = b.type === 'count' ? 1 : 2;
-    ctx.setLineDash(b.type === 'count' ? [4,4] : []);
-    ctx.stroke();
+    // Curved line for leaves
+    if (b.type === 'leaf') {
+      const mx = (a.x + b.x) / 2;
+      const my = (a.y + b.y) / 2;
+      ctx.quadraticCurveTo(mx, my, b.x, b.y);
+    } else {
+      ctx.lineTo(b.x, b.y);
+    }
+    ctx.strokeStyle = b.type === 'leaf' ? C.primary + '60' : C.primary + '90';
+    ctx.lineWidth = b.type === 'leaf' ? 1.5 : 2.5;
     ctx.setLineDash([]);
+    ctx.stroke();
   });
 
-  // Nodes
+  // Draw nodes
   spiderNodes.forEach(n => {
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#6c63ff';
-    const surfaceColor = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#16162a';
-    const textColor    = getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim() || '#f0f0ff';
-    const mutedColor   = getComputedStyle(document.documentElement).getPropertyValue('--color-text-muted').trim() || '#8888aa';
-
-    ctx.beginPath();
-    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
     if (n.type === 'root') {
-      ctx.fillStyle = primaryColor;
+      // Centre circle
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = C.primary;
+      ctx.fill();
+      // Glow
+      const grd = ctx.createRadialGradient(n.x, n.y, n.r * 0.5, n.x, n.y, n.r * 1.4);
+      grd.addColorStop(0, C.primary + '30');
+      grd.addColorStop(1, C.primary + '00');
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r * 1.4, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+      // Label
+      drawWrappedText(ctx, n.label, n.x, n.y, n.r * 1.5, '#ffffff', 'bold 14px sans-serif', 16);
+
     } else if (n.type === 'topic') {
-      ctx.fillStyle = surfaceColor;
-      ctx.strokeStyle = primaryColor;
+      // Topic mid-node
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = C.surface2;
+      ctx.fill();
+      ctx.strokeStyle = C.primary;
       ctx.lineWidth = 2;
       ctx.stroke();
-    } else {
-      ctx.fillStyle = 'rgba(108,99,255,0.15)';
-    }
-    ctx.fill();
+      drawWrappedText(ctx, n.label, n.x, n.y, n.r * 1.6, C.text, '600 12px sans-serif', 14);
 
-    // Label
-    ctx.fillStyle = n.type === 'root' ? '#fff' : (n.type === 'count' ? primaryColor : textColor);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    } else if (n.type === 'leaf') {
+      // Key point label — pill/rounded rect
+      const label = n.label || '';
+      ctx.font = '12px sans-serif';
+      const tw = ctx.measureText(label).width;
+      const pw = Math.max(tw + 20, 60);
+      const ph = 28;
+      const rx = n.x - pw/2;
+      const ry = n.y - ph/2;
 
-    if (n.type === 'count') {
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillText(n.label, n.x, n.y);
-    } else {
-      // Word wrap
-      const words = n.label.split(' ');
-      const maxWidth = n.r * 1.6;
-      ctx.font = n.type === 'root' ? 'bold 13px sans-serif' : '12px sans-serif';
-      const lines = [];
-      let current = '';
-      words.forEach(w => {
-        const test = current ? current + ' ' + w : w;
-        if (ctx.measureText(test).width > maxWidth && current) {
-          lines.push(current); current = w;
-        } else { current = test; }
-      });
-      if (current) lines.push(current);
-      const lineH = 14;
-      const startY = n.y - ((lines.length - 1) * lineH) / 2;
-      lines.forEach((line, i) => ctx.fillText(line, n.x, startY + i * lineH));
+      // Pill background
+      ctx.beginPath();
+      roundRect(ctx, rx, ry, pw, ph, 14);
+      ctx.fillStyle = C.surface2;
+      ctx.fill();
+      ctx.strokeStyle = C.primary + '80';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Term text
+      ctx.fillStyle = C.text;
+      ctx.font = '600 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label.length > 28 ? label.substring(0,26)+'…' : label, n.x, n.y);
     }
   });
 
   ctx.restore();
 }
 
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawWrappedText(ctx, text, cx, cy, maxW, color, font, lineH) {
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  words.forEach(w => {
+    const test = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+    else cur = test;
+  });
+  if (cur) lines.push(cur);
+  const startY = cy - ((lines.length - 1) * lineH) / 2;
+  lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineH));
+}
+
 function setupSpiderInteraction(canvas, ctx) {
-  // Remove old listeners by replacing canvas
-  // Don't clone — just remove old listeners by using a flag
   const c = canvas;
-  if (c._spiderSetup) return; // already set up, drawSpider handles redraws
+  if (c._spiderSetup) return;
   c._spiderSetup = true;
   const drawFn = () => drawSpider(c.getContext('2d'), c);
 
