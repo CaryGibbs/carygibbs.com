@@ -475,8 +475,11 @@ function questionToFlashcard(q, topicName) {
 /* ── View switching ──────────────────────────────────────── */
 window._resetSpiderView = function() {
   panX = 0; panY = 0; zoom = 1;
-  const canvas = document.getElementById('spider-canvas');
-  drawSpider(canvas.getContext('2d'), canvas);
+  // Reload original data to restore all topics
+  loadData().then(() => {
+    buildSpider();
+    document.getElementById('spider-hint').textContent = 'Tap a key point · Drag to pan · Pinch to zoom';
+  });
 };
 
 window._closeSpiderDetail = function() {
@@ -557,29 +560,47 @@ function buildSpider() {
     spiderNodes.push({ x: cx, y: cy, label: t.name, type: 'root', r: 56 });
     layoutBranches(cx, cy, items, 0, C, w, h);
   } else {
-    // ── Subject view: centre = subject, ring = topics, leaves = key point count ──
+    // ── Subject view: centre = subject, ring = topics, leaves per topic ──
     spiderNodes.push({ x: cx, y: cy, label: (sub.emoji||'📚') + ' ' + sub.name, type: 'root', r: 56 });
-    const topicR = Math.min(w, h) * 0.27;
+
+    // How many leaves per topic — limit to keep it readable (max 6 per topic)
+    const maxLeavesPerTopic = 6;
+    // Topic ring radius — push out further if many topics
+    const topicR = Math.min(w, h) * Math.max(0.22, Math.min(0.32, 0.18 + allTopics.length * 0.02));
+
     allTopics.forEach((t, i) => {
       const angle = (i / allTopics.length) * Math.PI * 2 - Math.PI / 2;
       const tx = cx + Math.cos(angle) * topicR;
       const ty = cy + Math.sin(angle) * topicR;
       const topicIdx = spiderNodes.length;
-      spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 42 });
+      // Store topic data for click navigation
+      spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 42, topicData: t });
       spiderEdges.push({ from: 0, to: topicIdx });
 
-      // Key point branches from each topic node
-      const items = getTopicItems(t).slice(0, 5); // max 5 per topic to avoid clutter
-      const spread = Math.PI * 0.7;
-      const baseAngle = angle;
+      // Key point leaves — use smart layout around the topic node
+      const items = getTopicItems(t).slice(0, maxLeavesPerTopic);
+      if (!items.length) return;
+
+      // Spread leaves in a fan pointing away from centre
+      const spread = Math.PI * 0.75;
+      const leafR = 115;
       items.forEach((item, j) => {
-        const branchAngle = baseAngle - spread/2 + (j / Math.max(items.length-1,1)) * spread;
-        const branchR = topicR + 110;
-        const bx = cx + Math.cos(branchAngle) * branchR;
-        const by = cy + Math.sin(branchAngle) * branchR;
-        const leafIdx = spiderNodes.length;
-        spiderNodes.push({ x: bx, y: by, label: item.term || item.text || '', type: 'leaf', r: 0, text: item.term || item.text || '' });
-        spiderEdges.push({ from: topicIdx, to: leafIdx });
+        const branchAngle = angle - spread/2 + (j / Math.max(items.length - 1, 1)) * spread;
+        const bx = tx + Math.cos(branchAngle) * leafR;
+        const by = ty + Math.sin(branchAngle) * leafR;
+
+        // Clamp to canvas bounds with margin
+        const margin = 80;
+        const clampedX = Math.max(margin, Math.min(w - margin, bx));
+        const clampedY = Math.max(margin, Math.min(h - margin, by));
+
+        spiderNodes.push({
+          x: clampedX, y: clampedY,
+          label: item.term || item.text || '',
+          detail: item.detail || '',
+          type: 'leaf', r: 0,
+        });
+        spiderEdges.push({ from: topicIdx, to: spiderNodes.length - 1 });
       });
     });
   }
@@ -815,10 +836,26 @@ function handleSpiderClick(clientX, clientY, canvas) {
     document.getElementById('spider-detail').classList.add('open');
     document.getElementById('spider-hint').style.opacity = '0';
     drawSpider(canvas.getContext('2d'), canvas);
-  } else if (!hit) {
-    // Click on empty space — close detail
-    window._closeSpiderDetail && window._closeSpiderDetail();
+    return;
   }
+
+  // Check for topic node click (navigate to topic view)
+  for (const n of spiderNodes) {
+    if (n.type !== 'topic' || !n.topicData) continue;
+    const dist = Math.hypot(cx - n.x, cy2 - n.y);
+    if (dist <= n.r) {
+      // Rebuild spider as single-topic view
+      subjects[0] = { ...subjects[0], topics: [n.topicData] };
+      buildSpider();
+      // Add back button hint
+      document.getElementById('spider-hint').style.opacity = '1';
+      document.getElementById('spider-hint').textContent = 'Tap a key point · Drag to pan · ← Centre to go back';
+      return;
+    }
+  }
+
+  // Click on empty space — close detail
+  window._closeSpiderDetail && window._closeSpiderDetail();
 }
 
 function setupSpiderInteraction(canvas, ctx) {
