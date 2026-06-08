@@ -1320,7 +1320,7 @@ async function generateKeyPoints(contentText, statusId, listId) {
   if (!contentText) { showToast('Paste some content first', 'error'); return; }
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Generating…';
-  const prompt = `Extract as many key points as the content requires (typically 10-30 for a full GCSE topic). Each key point should have a short term/heading and a clear explanation suitable for GCSE revision. Cover all key concepts, definitions, processes, and facts — do not truncate or summarise.
+  const prompt = `Extract every key point from the content below — do not add anything not present in the content, and do not omit anything that is. Cover every concept, definition, process, fact, example, and term mentioned. Each key point should have a short term/heading and a clear explanation drawn directly from the content. The number of key points should match the richness of the content provided.
 
 Return ONLY a JSON array, no markdown, no backticks:
 [{"term":"Photosynthesis","explanation":"Process by which plants convert sunlight, water and CO2 into glucose and oxygen"},...]
@@ -1331,7 +1331,7 @@ ${contentText.substring(0, 6000)}`;
     const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
@@ -1351,7 +1351,7 @@ ${contentText.substring(0, 6000)}`;
 async function researchKeyPoints(topic, statusId, listId) {
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Researching…';
-  const prompt = `You are an expert GCSE teacher. Write comprehensive key points for the following GCSE topic. Cover all key concepts, definitions, processes, people, dates, and facts a student needs to know for their exam. Aim for 15-25 key points depending on the topic's breadth.
+  const prompt = `You are an expert GCSE teacher. Write exhaustive key points for the following GCSE topic — include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student could need for their exam. Do not limit the number — cover everything. For a rich topic like Map Skills or the Water Cycle, this may be 30-50 key points.
 
 Topic: ${topic}
 
@@ -1361,7 +1361,7 @@ Return ONLY a JSON array, no markdown, no backticks:
     const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
@@ -1496,7 +1496,7 @@ async function generateEverything() {
     const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
