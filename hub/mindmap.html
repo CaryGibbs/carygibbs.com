@@ -996,12 +996,32 @@ function handleSpiderClick(clientX, clientY, canvas) {
           focusedGroupIdx = null;
           document.getElementById('spider-hint').textContent = 'Tap a group to focus · Tap a key point for details · Drag to pan';
         } else {
-          // Focus this group and zoom to it
+          // Focus this group — zoom in and centre on the group node
           focusedGroupIdx = ni;
-          const targetX = spiderCanvas.width  / 2 - n.x * zoom;
-          const targetY = spiderCanvas.height / 2 - n.y * zoom;
-          panX = targetX;
-          panY = targetY;
+          // Find bounding box of this group + its leaves
+          const groupNodeIndices = new Set([ni]);
+          spiderEdges.forEach(e => { if (e.from === ni) groupNodeIndices.add(e.to); });
+          const groupNodes = spiderNodes.filter((_, i) => groupNodeIndices.has(i));
+          const xs = groupNodes.map(gn => gn.x);
+          const ys = groupNodes.map(gn => gn.y);
+          const minX = Math.min(...xs) - 100;
+          const maxX = Math.max(...xs) + 100;
+          const minY = Math.min(...ys) - 60;
+          const maxY = Math.max(...ys) + 60;
+          const bboxW = maxX - minX;
+          const bboxH = maxY - minY;
+          // Zoom to fit bounding box with some padding
+          const targetZoom = Math.min(
+            (spiderCanvas.width  * 0.85) / bboxW,
+            (spiderCanvas.height * 0.75) / bboxH,
+            3 // max zoom cap
+          );
+          zoom = targetZoom;
+          // Pan to centre the bounding box
+          const bboxCx = (minX + maxX) / 2;
+          const bboxCy = (minY + maxY) / 2;
+          panX = spiderCanvas.width  / 2 - bboxCx * zoom;
+          panY = spiderCanvas.height / 2 - bboxCy * zoom;
           document.getElementById('spider-hint').textContent = `${n.label} — tap group again to unfocus`;
         }
         drawSpider(spiderCanvas.getContext('2d'), spiderCanvas);
