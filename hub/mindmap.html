@@ -278,7 +278,10 @@
 <div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;overflow:hidden;">
   <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
   <div class="spider-hint" id="spider-hint">Tap a key point · Drag to pan · Pinch to zoom</div>
-  <button onclick="resetSpiderView()" style="position:absolute;top:var(--space-md);right:var(--space-md);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;z-index:5;">⊙ Centre</button>
+  <div style="position:absolute;top:var(--space-md);right:var(--space-md);display:flex;gap:6px;z-index:5;">
+    <button id="btn-spider-back" onclick="spiderBack()" style="display:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">← Back</button>
+    <button onclick="resetSpiderView()" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">⊙ Centre</button>
+  </div>
   <div class="spider-detail" id="spider-detail">
     <button class="spider-detail-close" onclick="closeSpiderDetail()">✕</button>
     <div class="spider-detail-term" id="spider-detail-term"></div>
@@ -318,6 +321,7 @@
   function switchView(v) { window._switchView && window._switchView(v); }
   function closeSpiderDetail() { window._closeSpiderDetail && window._closeSpiderDetail(); }
   function resetSpiderView() { window._resetSpiderView && window._resetSpiderView(); }
+  function spiderBack() { window._spiderBack && window._spiderBack(); }
   function flipCard() { window._flipCard && window._flipCard(); }
   function prevCard() { window._prevCard && window._prevCard(); }
   function nextCard() { window._nextCard && window._nextCard(); }
@@ -473,13 +477,18 @@ function questionToFlashcard(q, topicName) {
 }
 
 /* ── View switching ──────────────────────────────────────── */
+window._spiderBack = async function() {
+  document.getElementById('btn-spider-back').style.display = 'none';
+  document.getElementById('spider-hint').textContent = 'Tap a topic to explore · Drag to pan · Pinch to zoom';
+  await loadData();
+  buildSpider();
+};
+
 window._resetSpiderView = function() {
   panX = 0; panY = 0; zoom = 1;
-  // Reload original data to restore all topics
-  loadData().then(() => {
-    buildSpider();
-    document.getElementById('spider-hint').textContent = 'Tap a key point · Drag to pan · Pinch to zoom';
-  });
+  // If drilled in, just re-centre without reloading
+  const canvas = document.getElementById('spider-canvas');
+  drawSpider(canvas.getContext('2d'), canvas);
 };
 
 window._closeSpiderDetail = function() {
@@ -577,31 +586,11 @@ function buildSpider() {
       spiderNodes.push({ x: tx, y: ty, label: t.name, type: 'topic', r: 42, topicData: t });
       spiderEdges.push({ from: 0, to: topicIdx });
 
-      // Key point leaves — use smart layout around the topic node
-      const items = getTopicItems(t).slice(0, maxLeavesPerTopic);
-      if (!items.length) return;
-
-      // Spread leaves in a fan pointing away from centre
-      const spread = Math.PI * 0.75;
-      const leafR = 115;
-      items.forEach((item, j) => {
-        const branchAngle = angle - spread/2 + (j / Math.max(items.length - 1, 1)) * spread;
-        const bx = tx + Math.cos(branchAngle) * leafR;
-        const by = ty + Math.sin(branchAngle) * leafR;
-
-        // Clamp to canvas bounds with margin
-        const margin = 80;
-        const clampedX = Math.max(margin, Math.min(w - margin, bx));
-        const clampedY = Math.max(margin, Math.min(h - margin, by));
-
-        spiderNodes.push({
-          x: clampedX, y: clampedY,
-          label: item.term || item.text || '',
-          detail: item.detail || '',
-          type: 'leaf', r: 0,
-        });
-        spiderEdges.push({ from: topicIdx, to: spiderNodes.length - 1 });
-      });
+      // Show key point count as a small label on the topic node
+      const kpCount = (t.keyPoints||[]).length || (t.questions||[]).length;
+      if (kpCount) {
+        spiderNodes[topicIdx].countLabel = kpCount + ' pts';
+      }
     });
   }
 
@@ -727,6 +716,20 @@ function drawSpider(ctx, canvas) {
       ctx.lineWidth = 2;
       ctx.stroke();
       drawWrappedText(ctx, n.label, n.x, n.y, n.r * 1.6, C.text, '600 12px sans-serif', 14);
+      // Draw count badge and tap hint
+      if (n.countLabel) {
+        const badgeX = n.x + n.r * 0.6;
+        const badgeY = n.y - n.r * 0.6;
+        ctx.beginPath();
+        ctx.arc(badgeX, badgeY, 14, 0, Math.PI * 2);
+        ctx.fillStyle = C.primary;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(n.countLabel, badgeX, badgeY);
+      }
 
     } else if (n.type === 'leaf') {
       // Key point label — pill/rounded rect
@@ -844,12 +847,12 @@ function handleSpiderClick(clientX, clientY, canvas) {
     if (n.type !== 'topic' || !n.topicData) continue;
     const dist = Math.hypot(cx - n.x, cy2 - n.y);
     if (dist <= n.r) {
-      // Rebuild spider as single-topic view
+      // Drill into topic
       subjects[0] = { ...subjects[0], topics: [n.topicData] };
       buildSpider();
-      // Add back button hint
+      document.getElementById('btn-spider-back').style.display = 'block';
       document.getElementById('spider-hint').style.opacity = '1';
-      document.getElementById('spider-hint').textContent = 'Tap a key point · Drag to pan · ← Centre to go back';
+      document.getElementById('spider-hint').textContent = 'Tap a key point to see details · Drag to pan';
       return;
     }
   }
