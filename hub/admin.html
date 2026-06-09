@@ -362,6 +362,10 @@
 
     /* ── Key points builder ───────────────────────────────── */
     .kp-list { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+    .kp-group { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-sm) var(--space-md) var(--space-md); margin-bottom: var(--space-sm); }
+    .kp-group-header { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+    .kp-group-name { flex: 1; padding: 6px 10px; font-size: 0.88rem; font-weight: 700; border-radius: var(--radius-button); background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-primary); font-family: var(--font-ui); }
+    .kp-group-label { font-size: 0.72rem; font-family: var(--font-ui); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); white-space: nowrap; }
     .kp-row { display: flex; gap: var(--space-sm); align-items: flex-start; }
     .kp-term { flex: 0 0 160px; }
     .kp-term input { padding: 8px 10px; font-size: 0.88rem; font-weight: 600; }
@@ -1010,7 +1014,9 @@ document.addEventListener('click', e => {
   else if (action === 'edit-topic')         openTopicModal(t.dataset.id);
   else if (action === 'del-topic')          confirmDelete('topic', t.dataset.id, t.dataset.name);
   else if (action === 'add-keypoint')       addKpRow('kp-list');
+  else if (action === 'add-group')          addKpGroup('kp-list');
   else if (action === 'add-keypoint-panel') addKpRow('kp-list-panel');
+  else if (action === 'add-group-panel')    addKpGroup('kp-list-panel');
   else if (action === 'gen-keypoints')      genKpFromModal();
   else if (action === 'research-keypoints') researchKpModal();
   else if (action === 'research-keypoints-panel') researchKpPanel();
@@ -1315,38 +1321,90 @@ async function saveTopic() {
 }
 
 /* ── KEY POINTS helpers ──────────────────────────────────── */
+function isGroupedKps(kps) {
+  return kps.length > 0 && typeof kps[0] === 'object' && 'group' in kps[0];
+}
+
 function renderKpList(listId, kps) {
   const list = document.getElementById(listId);
   list.innerHTML = '';
-  (kps.length ? kps : [{ term: '', explanation: '' }]).forEach(kp => addKpRow(listId, kp.term, kp.explanation));
+  if (!kps || !kps.length) {
+    addKpGroup(listId, '', [{ term: '', explanation: '' }]);
+    return;
+  }
+  if (isGroupedKps(kps)) {
+    kps.forEach(g => addKpGroup(listId, g.group || '', g.points || []));
+  } else {
+    // Flat format — wrap in a single unnamed group
+    addKpGroup(listId, '', kps);
+  }
 }
 
-function addKpRow(listId, term='', explanation='') {
+function addKpGroup(listId, groupName='', points=[]) {
   const list = document.getElementById(listId);
-  const row = document.createElement('div');
-  row.className = 'kp-row';
-  row.innerHTML = `
+  const group = document.createElement('div');
+  group.className = 'kp-group';
+  const pointsHtml = points.map(p => buildKpRowHtml(p.term||'', p.explanation||'')).join('');
+  group.innerHTML = `
+    <div class="kp-group-header">
+      <span class="kp-group-label">Group</span>
+      <input type="text" class="kp-group-name" placeholder="Sub-topic group name…" value="${esc(groupName)}">
+      <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-group').remove()" title="Remove group">✕</button>
+    </div>
+    <div class="kp-list kp-group-items">${pointsHtml}</div>
+    <button class="add-option-btn" style="margin-top:4px;" onclick="addKpRowToGroup(this)">＋ Add key point</button>`;
+  list.appendChild(group);
+}
+
+function buildKpRowHtml(term, explanation) {
+  return `<div class="kp-row">
     <div class="kp-term"><input type="text" placeholder="Term / heading" value="${esc(term)}" class="kp-term-input"></div>
     <div class="kp-explanation"><input type="text" placeholder="Explanation / detail" value="${esc(explanation)}" class="kp-exp-input"></div>
-    <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-row').remove()">✕</button>`;
-  list.appendChild(row);
+    <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-row').remove()">✕</button>
+  </div>`;
+}
+
+function addKpRowToGroup(btn) {
+  const groupItems = btn.previousElementSibling;
+  groupItems.insertAdjacentHTML('beforeend', buildKpRowHtml('', ''));
+}
+
+function addKpRow(listId) {
+  // Add a new group if none exist, otherwise add row to last group
+  const list = document.getElementById(listId);
+  const groups = list.querySelectorAll('.kp-group');
+  if (groups.length === 0) {
+    addKpGroup(listId, '', []);
+  } else {
+    const lastGroupItems = groups[groups.length - 1].querySelector('.kp-group-items');
+    lastGroupItems.insertAdjacentHTML('beforeend', buildKpRowHtml('', ''));
+  }
 }
 
 function readKpList(listId) {
-  return [...document.querySelectorAll(`#${listId} .kp-row`)].map(r => ({
-    term: r.querySelector('.kp-term-input').value.trim(),
-    explanation: r.querySelector('.kp-exp-input').value.trim()
-  })).filter(kp => kp.term || kp.explanation);
+  const list = document.getElementById(listId);
+  const groups = [...list.querySelectorAll('.kp-group')];
+  if (!groups.length) return [];
+  return groups.map(g => ({
+    group: g.querySelector('.kp-group-name')?.value.trim() || '',
+    points: [...g.querySelectorAll('.kp-row')].map(r => ({
+      term: r.querySelector('.kp-term-input').value.trim(),
+      explanation: r.querySelector('.kp-exp-input').value.trim()
+    })).filter(p => p.term || p.explanation)
+  })).filter(g => g.points.length > 0);
 }
 
 async function generateKeyPoints(contentText, statusId, listId) {
   if (!contentText) { showToast('Paste some content first', 'error'); return; }
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Generating…';
-  const prompt = `Extract every key point from the content below — do not add anything not present in the content, and do not omit anything that is. Cover every concept, definition, process, fact, example, and term mentioned. Each key point should have a short term/heading and a clear explanation drawn directly from the content. The number of key points should match the richness of the content provided.
+  const prompt = `Extract all key points from the content below and organise them into logical sub-topic groups. Do not add anything not in the content, and do not omit anything. Cover every concept, definition, process, fact, example, and term mentioned.
 
-Return ONLY a JSON array, no markdown, no backticks:
-[{"term":"Photosynthesis","explanation":"Process by which plants convert sunlight, water and CO2 into glucose and oxygen"},...]
+Return ONLY a JSON array of groups, no markdown, no backticks:
+[{"group":"Group name","points":[{"term":"Term","explanation":"Clear explanation"},...]},...]
+
+Example:
+[{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits — 2 for easting, 2 for northing"},{"term":"Easting","explanation":"The horizontal value read first (along the corridor)"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map distance and real-world distance"}]}]
 
 Content:
 ${contentText.substring(0, 6000)}`;
@@ -1472,7 +1530,11 @@ async function alsoGenerateQuestions() {
   } else if (sourceType === 'research' && sourceText) {
     // Build content from generated key points
     const kps = readKpList('kp-list-panel');
-    contentForQuestions = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+    if (isGroupedKps(kps)) {
+      contentForQuestions = kps.map(g => `## ${g.group}\n` + (g.points||[]).map(p => `${p.term}: ${p.explanation}`).join('\n')).join('\n\n');
+    } else {
+      contentForQuestions = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+    }
   }
 
   if (contentForQuestions) {
@@ -1501,7 +1563,12 @@ async function generateEverything() {
   if (sourceType === 'paste' && sourceText) {
     contentForQs = sourceText;
   } else {
-    contentForQs = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+    // Flatten grouped or flat kps to text
+    if (isGroupedKps(kps)) {
+      contentForQs = kps.map(g => `## ${g.group}\n` + (g.points||[]).map(p => `${p.term}: ${p.explanation}`).join('\n')).join('\n\n');
+    } else {
+      contentForQs = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+    }
   }
 
   // Disable all buttons
@@ -1601,9 +1668,17 @@ function updateGenKpPreview(kps) {
     return;
   }
   preview.style.color = 'var(--color-text)';
-  preview.innerHTML = `<div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">${kps.length} key points loaded</div>` +
-    kps.slice(0, 5).map(kp => `<div style="padding:3px 0;border-bottom:1px solid var(--color-border);font-size:0.85rem;"><strong>${esc(kp.term)}</strong> — ${esc(kp.explanation)}</div>`).join('') +
-    (kps.length > 5 ? `<div style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">…and ${kps.length - 5} more</div>` : '');
+  const grouped = isGroupedKps(kps);
+  if (grouped) {
+    const totalPts = kps.reduce((a, g) => a + (g.points||[]).length, 0);
+    preview.innerHTML = `<div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">${totalPts} key points in ${kps.length} groups</div>` +
+      kps.map(g => `<div style="margin-bottom:6px;"><div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;color:var(--color-text);">📂 ${esc(g.group)} (${(g.points||[]).length})</div></div>`).join('');
+  } else {
+    const totalPts = kps.length;
+    preview.innerHTML = `<div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">${totalPts} key points loaded</div>` +
+      kps.slice(0, 5).map(kp => `<div style="padding:3px 0;border-bottom:1px solid var(--color-border);font-size:0.85rem;"><strong>${esc(kp.term)}</strong> — ${esc(kp.explanation)}</div>`).join('') +
+      (kps.length > 5 ? `<div style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">…and ${kps.length - 5} more</div>` : '');
+  }
 }
 
 /* ── QUESTIONS path ──────────────────────────────────────── */
@@ -1638,7 +1713,11 @@ async function runGenerate() {
     const snap = await getDoc(doc(db, topicsPath(), selectedTopic.id)).catch(() => null);
     const kps = snap?.data()?.keyPoints || [];
     if (!kps.length) { showToast('No key points saved for this topic. Add key points first.', 'error'); return; }
-    content = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+    if (isGroupedKps(kps)) {
+      content = kps.map(g => `## ${g.group}\n` + (g.points||[]).map(p => `${p.term}: ${p.explanation}`).join('\n')).join('\n\n');
+    } else {
+      content = kps.map(kp => `${kp.term}: ${kp.explanation}`).join('\n');
+    }
   } else {
     content = document.getElementById('gen-content').value.trim();
   }

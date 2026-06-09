@@ -437,9 +437,10 @@ function buildFlashcards() {
       const kps = t.keyPoints || [];
       if (kps.length) {
         // Key points → flashcards (primary)
-        kps.forEach(kp => {
-          if (kp.term || kp.explanation) {
-            allFlashcards.push({ front: kp.term || kp.explanation, back: kp.explanation || kp.term, type: 'Key point', topic: t.name });
+        const flatItems = getFlatTopicItems(t);
+        flatItems.forEach(item => {
+          if (item.term || item.detail) {
+            allFlashcards.push({ front: item.term || item.detail, back: item.detail || item.term, type: 'Key point', topic: t.name });
           }
         });
       } else {
@@ -563,11 +564,45 @@ function buildSpider() {
   const C = spiderColors();
 
   if (allTopics.length === 1) {
-    // ── Single topic: centre = topic, branches = key points ──
+    // ── Single topic: centre = topic, branches = groups or key points ──
     const t = allTopics[0];
     const items = getTopicItems(t);
     spiderNodes.push({ x: cx, y: cy, label: t.name, type: 'root', r: 56 });
-    layoutBranches(cx, cy, items, 0, C, w, h);
+
+    if (items.length && items[0].isGroup) {
+      // Three-level: topic → groups → key points
+      const groupCount = items.length;
+      const groupR = Math.min(w, h) * 0.28;
+      items.forEach((grp, gi) => {
+        const angle = (gi / groupCount) * Math.PI * 2 - Math.PI / 2;
+        const gx = cx + Math.cos(angle) * groupR;
+        const gy = cy + Math.sin(angle) * groupR;
+        const grpIdx = spiderNodes.length;
+        spiderNodes.push({ x: gx, y: gy, label: grp.term, type: 'topic', r: 38 });
+        spiderEdges.push({ from: 0, to: grpIdx });
+
+        // Leaves from group node
+        const pts = (grp.points || []).map(p => ({ term: p.term, detail: p.explanation || '' }));
+        if (pts.length) {
+          const spread = Math.PI * 0.7;
+          const leafR = 120;
+          pts.forEach((pt, pi) => {
+            const leafAngle = angle - spread/2 + (pi / Math.max(pts.length - 1, 1)) * spread;
+            const lx = gx + Math.cos(leafAngle) * leafR;
+            const ly = gy + Math.sin(leafAngle) * leafR;
+            const margin = 70;
+            spiderNodes.push({
+              x: Math.max(margin, Math.min(w - margin, lx)),
+              y: Math.max(margin, Math.min(h - margin, ly)),
+              label: pt.term, detail: pt.detail, type: 'leaf', r: 0
+            });
+            spiderEdges.push({ from: grpIdx, to: spiderNodes.length - 1 });
+          });
+        }
+      });
+    } else {
+      layoutBranches(cx, cy, items, 0, C, w, h);
+    }
   } else {
     // ── Subject view: centre = subject, ring = topics, leaves per topic ──
     spiderNodes.push({ x: cx, y: cy, label: (sub.emoji||'📚') + ' ' + sub.name, type: 'root', r: 56 });
@@ -601,14 +636,34 @@ function buildSpider() {
   selectedLeaf = null;
 }
 
+function isGroupedKps(kps) {
+  return kps.length > 0 && typeof kps[0] === 'object' && 'group' in kps[0];
+}
+
 function getTopicItems(t) {
-  // Returns key points if available, else derives short labels from questions
+  // Returns flat list of {term, detail, group} for spider leaves
   const kps = t.keyPoints || [];
-  if (kps.length) return kps.map(kp => ({ term: kp.term, detail: kp.explanation }));
+  if (kps.length) {
+    if (isGroupedKps(kps)) {
+      // Return groups as intermediate nodes
+      return kps.map(g => ({ term: g.group, detail: '', isGroup: true, points: g.points || [] }));
+    }
+    return kps.map(kp => ({ term: kp.term, detail: kp.explanation }));
+  }
   return (t.questions || []).map(q => {
     const text = (q.question || q.sentence || q.instruction || '').substring(0, 40);
     return { term: text, detail: '' };
   });
+}
+
+function getFlatTopicItems(t) {
+  // Returns all key points flattened (for flashcards)
+  const kps = t.keyPoints || [];
+  if (!kps.length) return getTopicItems(t);
+  if (isGroupedKps(kps)) {
+    return kps.flatMap(g => (g.points||[]).map(p => ({ term: p.term, detail: p.explanation })));
+  }
+  return kps.map(kp => ({ term: kp.term, detail: kp.explanation }));
 }
 
 function layoutBranches(cx, cy, items, startIdx, C, w, h) {
@@ -961,11 +1016,23 @@ function buildOutline() {
       // Use key points if available, otherwise fall back to questions
       let pointsHtml = '';
       if (kps.length) {
-        pointsHtml = kps.map(kp => `
-          <div class="keypoint-item">
-            <div class="keypoint-term">${esc(kp.term)}</div>
-            <div class="keypoint-explanation">${esc(kp.explanation)}</div>
-          </div>`).join('');
+        if (isGroupedKps(kps)) {
+          pointsHtml = kps.map(g => `
+            <div style="margin-bottom:var(--space-sm);">
+              <div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-primary);padding:6px 0 4px;border-bottom:1px solid var(--color-border);margin-bottom:4px;">📂 ${esc(g.group)}</div>
+              ${(g.points||[]).map(kp => `
+                <div class="keypoint-item">
+                  <div class="keypoint-term">${esc(kp.term)}</div>
+                  <div class="keypoint-explanation">${esc(kp.explanation)}</div>
+                </div>`).join('')}
+            </div>`).join('');
+        } else {
+          pointsHtml = kps.map(kp => `
+            <div class="keypoint-item">
+              <div class="keypoint-term">${esc(kp.term)}</div>
+              <div class="keypoint-explanation">${esc(kp.explanation)}</div>
+            </div>`).join('');
+        }
       } else {
         const derived = qs.map(q => questionToKeypoint(q)).filter(Boolean);
         pointsHtml = derived.length
@@ -980,7 +1047,7 @@ function buildOutline() {
       topicEl.innerHTML = `
         <div class="outline-topic-header" data-action="toggle-topic">
           <span class="outline-topic-name">📝 ${esc(t.name)}</span>
-          <span class="outline-topic-count">${kps.length ? kps.length + ' pts' : qs.length + ' Q'}</span>
+          <span class="outline-topic-count">${kps.length ? (isGroupedKps(kps) ? kps.reduce((a,g)=>a+(g.points||[]).length,0)+' pts' : kps.length+' pts') : qs.length+' Q'}</span>
           <span class="outline-topic-chevron">›</span>
         </div>
         <div class="outline-keypoints">${pointsHtml}</div>`;
