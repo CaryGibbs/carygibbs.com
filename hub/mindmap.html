@@ -761,6 +761,7 @@ function layoutBranches(cx, cy, items, startIdx, C, w, h) {
 
 function drawSpider(ctx, canvas) {
   const C = spiderColors();
+  ctx.globalAlpha = 1.0; // always start clean
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Background
@@ -981,6 +982,7 @@ function handleSpiderClick(clientX, clientY, canvas) {
         document.getElementById('spider-hint').textContent = 'Tap a key point to see details · Drag to pan';
       } else {
         // Three-level grouped view: toggle focus on this group
+        const spiderCanvas = document.getElementById('spider-canvas');
         if (focusedGroupIdx === ni) {
           // Unfocus
           focusedGroupIdx = null;
@@ -988,24 +990,23 @@ function handleSpiderClick(clientX, clientY, canvas) {
         } else {
           // Focus this group and zoom to it
           focusedGroupIdx = ni;
-          // Pan to centre on this group node
-          const canvas = document.getElementById('spider-canvas');
-          const targetX = canvas.width  / 2 - n.x * zoom;
-          const targetY = canvas.height / 2 - n.y * zoom;
+          const targetX = spiderCanvas.width  / 2 - n.x * zoom;
+          const targetY = spiderCanvas.height / 2 - n.y * zoom;
           panX = targetX;
           panY = targetY;
           document.getElementById('spider-hint').textContent = `${n.label} — tap group again to unfocus`;
         }
-        drawSpider(canvas.getContext('2d'), canvas);
+        drawSpider(spiderCanvas.getContext('2d'), spiderCanvas);
       }
       return;
     }
   }
 
   // Click on empty space — close detail and reset focus
+  const spiderCanvas2 = document.getElementById('spider-canvas');
   if (focusedGroupIdx !== null) {
     focusedGroupIdx = null;
-    drawSpider(canvas.getContext('2d'), canvas);
+    drawSpider(spiderCanvas2.getContext('2d'), spiderCanvas2);
     document.getElementById('spider-hint').textContent = 'Tap a group to focus · Tap a key point for details · Drag to pan';
   }
   window._closeSpiderDetail && window._closeSpiderDetail();
