@@ -567,7 +567,6 @@ function buildSpider() {
     // ── Single topic: centre = topic, branches = groups or key points ──
     const t = allTopics[0];
     const items = getTopicItems(t);
-    console.log('Spider items:', items.length, 'isGroup[0]:', items[0]?.isGroup, 'keyPoints[0]:', JSON.stringify(t.keyPoints?.[0]).substring(0,100));
     spiderNodes.push({ x: cx, y: cy, label: t.name, type: 'root', r: 56 });
 
     if (items.length && items[0].isGroup) {
@@ -671,7 +670,11 @@ function buildSpider() {
 }
 
 function isGroupedKps(kps) {
-  return kps.length > 0 && typeof kps[0] === 'object' && 'group' in kps[0];
+  if (!kps.length || typeof kps[0] !== 'object' || !('group' in kps[0])) return false;
+  // Must have more than 1 group, or 1 group with an actual name
+  // (single unnamed group = flat data wrapped in a group by AI mistake)
+  if (kps.length === 1 && !kps[0].group) return false;
+  return kps.length > 1 || (kps.length === 1 && !!kps[0].group);
 }
 
 function getTopicItems(t) {

@@ -1406,7 +1406,7 @@ async function generateKeyPoints(contentText, statusId, listId) {
   statusEl.textContent = 'Generating…';
   const prompt = `Extract all key points from the content below and organise them into logical sub-topic groups. Do not add anything not in the content, and do not omit anything. Cover every concept, definition, process, fact, example, and term mentioned.
 
-Return ONLY a JSON array of groups, no markdown, no backticks:
+Return ONLY a JSON array of groups (minimum 3 groups, maximum 8 groups), no markdown, no backticks. Every group MUST have a non-empty descriptive name:
 [{"group":"Group name","points":[{"term":"Term","explanation":"Clear explanation"},...]},...]
 
 Example:
