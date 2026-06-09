@@ -1427,7 +1427,7 @@ ${contentText.substring(0, 6000)}`;
     try { parsed = JSON.parse(cleaned); }
     catch { const m = cleaned.match(/\[\s\S]*\]/); parsed = m ? JSON.parse(m[0]) : []; }
     renderKpList(listId, parsed);
-    statusEl.textContent = `✅ ${parsed.length} key points generated`;
+    const kpCount = parsed.length && parsed[0]?.points ? parsed.reduce((a,g)=>a+(g.points||[]).length,0) : parsed.length; statusEl.textContent = `✅ ${kpCount} key points in ${parsed.length} groups generated`; if (listId === 'kp-list-panel') showKpPostGenActions();
     if (listId === 'kp-list-panel') showKpPostGenActions();
   } catch(e) {
     statusEl.textContent = '❌ ' + e.message;
@@ -1438,12 +1438,14 @@ ${contentText.substring(0, 6000)}`;
 async function researchKeyPoints(topic, statusId, listId) {
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Researching…';
-  const prompt = `You are an expert GCSE teacher. Write exhaustive key points for the following GCSE topic — include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student could need for their exam. Do not limit the number — cover everything. For a rich topic like Map Skills or the Water Cycle, this may be 30-50 key points.
+  const prompt = `You are an expert GCSE teacher. Write comprehensive key points for the following GCSE topic, organised into named sub-topic groups. Include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student needs for their exam.
+
+IMPORTANT: You MUST return between 3 and 8 groups. Every group MUST have a clear descriptive name (e.g. "Grid References", "Scale & Distance", "Contour Lines"). Do NOT use an empty string as a group name.
 
 Topic: ${topic}
 
-Return ONLY a JSON array, no markdown, no backticks:
-[{"term":"Term or heading","explanation":"Clear, concise GCSE-level explanation"},...]`;
+Return ONLY a JSON array of groups, no markdown, no backticks, no preamble:
+[{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits"},{"term":"Easting","explanation":"The horizontal value, read first"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map and real-world distance"}]}]`;
   try {
     const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
       method: 'POST',
@@ -1457,7 +1459,7 @@ Return ONLY a JSON array, no markdown, no backticks:
     try { parsed = JSON.parse(cleaned); }
     catch { const m = cleaned.match(/\[\s\S]*\]/); parsed = m ? JSON.parse(m[0]) : []; }
     renderKpList(listId, parsed);
-    statusEl.textContent = `✅ ${parsed.length} key points generated for "${topic}"`;
+    const kpCount2 = parsed.length && parsed[0]?.points ? parsed.reduce((a,g)=>a+(g.points||[]).length,0) : parsed.length; statusEl.textContent = `✅ ${kpCount2} key points in ${parsed.length} groups for "${topic}"`; if (listId === 'kp-list-panel') showKpPostGenActions();
     if (listId === 'kp-list-panel') showKpPostGenActions();
   } catch(e) {
     statusEl.textContent = '❌ ' + e.message;
