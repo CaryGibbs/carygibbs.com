@@ -760,6 +760,7 @@ function layoutBranches(cx, cy, items, startIdx, C, w, h) {
 }
 
 function drawSpider(ctx, canvas) {
+  try {
   const C = spiderColors();
   ctx.globalAlpha = 1.0; // always start clean
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -901,6 +902,15 @@ function drawSpider(ctx, canvas) {
 
   ctx.globalAlpha = 1.0; // reset
   ctx.restore();
+  } catch(err) {
+    console.error('drawSpider error:', err);
+    // Draw error indicator
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = '#ff6b6b';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Spider error: ' + err.message, canvas.width/2, canvas.height/2);
+  }
 }
 
 function roundRect(ctx, x, y, w, h, r) {
