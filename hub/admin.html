@@ -1783,7 +1783,9 @@ async function loadExistingQuestions() {
 /* ── AI GENERATION ───────────────────────────────────────── */
 async function runGenerate() {
   // Determine source
-  const activeSource = document.querySelector('[data-gen-source].active')?.dataset.genSource || 'paste';
+  // Check which source div is visible (more reliable than button class)
+  const kpDiv = document.getElementById('gen-source-keypoints');
+  const activeSource = (kpDiv && kpDiv.style.display !== 'none') ? 'keypoints' : 'paste';
   let content = '';
 
   if (activeSource === 'keypoints') {
