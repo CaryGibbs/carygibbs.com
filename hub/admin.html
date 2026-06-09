@@ -584,6 +584,10 @@
 
       <!-- Existing questions tab -->
       <div class="tab-panel" id="qtab-existing">
+        <div id="existing-questions-header" style="display:none;justify-content:space-between;align-items:center;margin-bottom:var(--space-md);">
+          <span id="existing-q-count" style="font-family:var(--font-ui);font-size:0.88rem;color:var(--color-text-muted);"></span>
+          <button class="btn" style="background:rgba(250,82,82,0.1);color:var(--color-danger);border:1px solid rgba(250,82,82,0.3);padding:7px 14px;font-size:0.82rem;" data-action="delete-all-questions">🗑️ Delete all questions</button>
+        </div>
         <div class="question-list" id="existing-question-list">
           <div class="empty-state">
             <div class="empty-state-icon">❓</div>
@@ -1038,6 +1042,7 @@ document.addEventListener('click', e => {
   else if (action === 'new-question-manual') openQuestionModal();
   else if (action === 'save-manual-question') saveManualQuestion();
   else if (action === 'del-question')        confirmDelete('question', t.dataset.id, 'this question');
+  else if (action === 'delete-all-questions') confirmDeleteAllQuestions();
   else if (action === 'edit-question')       openQuestionModal(t.dataset.id);
 
   else if (action === 'add-option')         addMcqOption();
@@ -1688,14 +1693,20 @@ function questionsPath() {
 
 /* ── EXISTING QUESTIONS ──────────────────────────────────── */
 async function loadExistingQuestions() {
-  const list = document.getElementById('existing-question-list');
+  const list   = document.getElementById('existing-question-list');
+  const header = document.getElementById('existing-questions-header');
   list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  if (header) header.style.display = 'none';
   const snap = await getDocs(collection(db, questionsPath())).catch(() => ({ forEach: ()=>{} }));
   const qs = [];
   snap.forEach(d => qs.push({ id: d.id, ...d.data() }));
   if (qs.length === 0) {
     list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">❓</div><h3>No questions yet</h3><p>Use AI generation or manual entry to add questions.</p></div>`;
     return;
+  }
+  if (header) {
+    header.style.display = 'flex';
+    document.getElementById('existing-q-count').textContent = `${qs.length} question${qs.length !== 1 ? 's' : ''}`;
   }
   list.innerHTML = '';
   qs.forEach(q => list.appendChild(buildQCard(q, false)));
@@ -2116,6 +2127,25 @@ function confirmDelete(type, id, name) {
 document.getElementById('btn-confirm-ok').addEventListener('click', () => {
   if (confirmCallback) confirmCallback();
 });
+
+async function confirmDeleteAllQuestions() {
+  if (!selectedTopic) return;
+  document.getElementById('confirm-title').textContent = 'Delete all questions?';
+  document.getElementById('confirm-msg').textContent =
+    `This will permanently delete all questions for "${selectedTopic.name}". This cannot be undone.`;
+  confirmCallback = async () => {
+    try {
+      const snap = await getDocs(collection(db, questionsPath()));
+      const deletions = [];
+      snap.forEach(d => deletions.push(deleteDoc(doc(db, questionsPath(), d.id))));
+      await Promise.all(deletions);
+      closeModal('modal-confirm');
+      showToast(`${deletions.length} questions deleted`, 'success');
+      loadExistingQuestions();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  };
+  openModal('modal-confirm');
+}
 
 /* ── USERS (basic list) ───────────────────────────────────── */
 async function loadUsers() {
