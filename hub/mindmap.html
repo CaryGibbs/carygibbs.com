@@ -571,34 +571,57 @@ function buildSpider() {
 
     if (items.length && items[0].isGroup) {
       // Three-level: topic → groups → key points
+      // Each group fans its leaves outward. We need enough angular space per group
+      // to spread its leaves without overlapping adjacent groups' leaves.
       const groupCount = items.length;
-      const groupR = Math.min(w, h) * 0.28;
+      const maxLeafsPerGroup = Math.max(...items.map(g => (g.points||[]).length));
+
+      // Angular slice per group — full circle divided evenly
+      const sliceAngle = (Math.PI * 2) / groupCount;
+
+      // Group ring radius — enough that group nodes don't overlap
+      const minGroupR = groupCount <= 4 ? 160 : groupCount <= 6 ? 190 : 220;
+      const groupR = Math.min(Math.min(w, h) * 0.35, Math.max(minGroupR, groupCount * 28));
+
+      // Leaf radius from group node — sized to fit leaves within the angular slice
+      // Each leaf pill is ~150px wide; arc at leafR must fit maxLeafsPerGroup pills
+      const pillW = 140;
+      const minLeafCircumference = (maxLeafsPerGroup + 1) * (pillW + 16);
+      const minLeafR = minLeafCircumference / (Math.PI * 1.2); // use ~60% of circle
+      const maxLeafR = Math.min(w, h) * 0.5 - groupR - 20;
+      const leafR = Math.min(maxLeafR, Math.max(100, minLeafR));
+
+      // Scale factor for leaves if very dense
+      const totalLeaves = items.reduce((a, g) => a + (g.points||[]).length, 0);
+      const sf = totalLeaves > 60 ? 0.75 : totalLeaves > 40 ? 0.85 : 1;
+
       items.forEach((grp, gi) => {
-        const angle = (gi / groupCount) * Math.PI * 2 - Math.PI / 2;
-        const gx = cx + Math.cos(angle) * groupR;
-        const gy = cy + Math.sin(angle) * groupR;
+        const centreAngle = (gi / groupCount) * Math.PI * 2 - Math.PI / 2;
+        const gx = cx + Math.cos(centreAngle) * groupR;
+        const gy = cy + Math.sin(centreAngle) * groupR;
         const grpIdx = spiderNodes.length;
         spiderNodes.push({ x: gx, y: gy, label: grp.term, type: 'topic', r: 38 });
         spiderEdges.push({ from: 0, to: grpIdx });
 
-        // Leaves from group node
         const pts = (grp.points || []).map(p => ({ term: p.term, detail: p.explanation || '' }));
-        if (pts.length) {
-          const spread = Math.PI * 0.7;
-          const leafR = 120;
-          pts.forEach((pt, pi) => {
-            const leafAngle = angle - spread/2 + (pi / Math.max(pts.length - 1, 1)) * spread;
-            const lx = gx + Math.cos(leafAngle) * leafR;
-            const ly = gy + Math.sin(leafAngle) * leafR;
-            const margin = 70;
-            spiderNodes.push({
-              x: Math.max(margin, Math.min(w - margin, lx)),
-              y: Math.max(margin, Math.min(h - margin, ly)),
-              label: pt.term, detail: pt.detail, type: 'leaf', r: 0
-            });
-            spiderEdges.push({ from: grpIdx, to: spiderNodes.length - 1 });
+        if (!pts.length) return;
+
+        // Fan leaves within this group's angular slice (use 80% of slice to leave gaps)
+        const fanSpread = sliceAngle * 0.82;
+        const margin = 60;
+
+        pts.forEach((pt, pi) => {
+          const t2 = pts.length === 1 ? 0.5 : pi / (pts.length - 1);
+          const leafAngle = centreAngle - fanSpread / 2 + t2 * fanSpread;
+          const lx = gx + Math.cos(leafAngle) * leafR;
+          const ly = gy + Math.sin(leafAngle) * leafR;
+          spiderNodes.push({
+            x: Math.max(margin, Math.min(w - margin, lx)),
+            y: Math.max(margin, Math.min(h - margin, ly)),
+            label: pt.term, detail: pt.detail, type: 'leaf', r: 0, scaleFactor: sf
           });
-        }
+          spiderEdges.push({ from: grpIdx, to: spiderNodes.length - 1 });
+        });
       });
     } else {
       layoutBranches(cx, cy, items, 0, C, w, h);
