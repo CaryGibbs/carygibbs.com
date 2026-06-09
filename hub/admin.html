@@ -558,7 +558,7 @@
             <label class="q-type-toggle checked"><input type="checkbox" value="match" checked> 🔗 Match pairs</label>
             <label class="q-type-toggle checked"><input type="checkbox" value="short" checked> 📖 Short written</label>
             <span class="gen-option-label" style="margin-left:var(--space-md);">Target:</span>
-            <input type="number" class="qty-input" id="gen-qty" value="10" min="3" max="200">
+            <input type="number" class="qty-input" id="gen-qty" value="40" min="3" max="200">
             <span class="gen-option-label">questions</span>
           </div>
           <div class="gen-footer">
@@ -634,7 +634,7 @@
         <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;justify-content:space-between;margin-top:var(--space-md);">
           <div style="display:flex;align-items:center;gap:var(--space-sm);">
             <label style="font-family:var(--font-ui);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;text-transform:none;letter-spacing:0;">Questions to generate:</label>
-            <input type="number" id="gen-everything-qty" value="10" min="5" max="200" style="width:70px;padding:6px 10px;font-size:0.88rem;border-radius:var(--radius-button);">
+            <input type="number" id="gen-everything-qty" value="40" min="5" max="200" style="width:70px;padding:6px 10px;font-size:0.88rem;border-radius:var(--radius-button);">
           </div>
           <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
             <button class="btn btn-secondary" data-action="also-generate-questions" style="font-size:0.88rem;">➡️ Questions tab</button>
@@ -1617,7 +1617,7 @@ async function generateEverything() {
 }
 
 function buildQuestionPrompt(contentText, qty) {
-  return `You are a GCSE revision question writer. Generate exactly ${qty} questions from the content below.
+  return `You are a GCSE revision question writer. Generate exactly ${qty} questions based on the revision content below. Spread questions evenly across all the content — do not focus only on the first few points.
 Use these types in roughly equal proportions: mcq, tf, fill, match, short.
 
 For MCQ: make all options similar in length. 4 options per MCQ.
@@ -1632,7 +1632,7 @@ Return ONLY a JSON array with no markdown, no preamble, no backticks. Schemas:
 {"type":"short","question":"...","markScheme":"Key points: 1) ... 2) ..."}
 
 Content:
-${contentText.substring(0, 4000)}`;
+${contentText}`;
 }
 
 // Show post-gen action bar after key points are generated
@@ -1745,7 +1745,7 @@ async function runGenerate() {
 
   const typeExamples = types.map(t => typeDescriptions[t]).join('\n');
 
-  const prompt = `You are a GCSE revision question writer. Generate exactly ${qty} questions from the content below. If the content is rich enough to support more questions of good quality, prioritise quality and relevance over hitting the exact number.
+  const prompt = `You are a GCSE revision question writer. Generate exactly ${qty} questions based on the revision content below. Spread questions evenly across all the content — do not focus only on the first few points.
 Use these types in roughly equal proportions from: ${types.join(', ')}.
 
 For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
@@ -1756,7 +1756,7 @@ Return ONLY a JSON array with no markdown, no preamble, no backticks. Each eleme
 ${typeExamples}
 
 Revision content:
-${content.substring(0, 3000)}`;
+${content}`;
 
   try {
     const response = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
