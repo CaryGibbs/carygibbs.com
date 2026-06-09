@@ -50,18 +50,25 @@
     .loading-wrap p { color: var(--color-text-muted); font-family: var(--font-ui); }
 
     /* ── View panels ─────────────────────────────────────── */
-    .view-panel { display: none !important; height: calc(100vh - 64px); overflow-y: auto; }
+    /* All panels are absolutely positioned and fill the space below nav */
+    .panels-container {
+      position: relative; flex: 1; overflow: hidden;
+    }
+    .view-panel {
+      display: none !important;
+      position: absolute; inset: 0;
+      overflow-y: auto;
+    }
     .view-panel.active { display: block !important; }
     .view-panel.active#view-flashcards { display: flex !important; }
-    #view-spider { display: block !important; visibility: hidden; position: absolute; pointer-events: none; overflow: hidden; }
-    #view-spider.active { visibility: visible !important; position: relative; pointer-events: all; }
+    #view-spider { display: block !important; visibility: hidden; pointer-events: none; overflow: hidden; }
+    #view-spider.active { visibility: visible !important; pointer-events: all; }
 
     /* ══════════════════════════════════════════════════════
        VIEW 1: SPIDER DIAGRAM (SVG canvas)
     ══════════════════════════════════════════════════════ */
     #view-spider {
-      width: 100%; height: calc(100vh - 64px);
-      overflow: hidden; position: relative; cursor: grab;
+      width: 100%; overflow: hidden; cursor: grab;
     }
     #view-spider:active { cursor: grabbing; }
     #spider-canvas {
@@ -79,7 +86,7 @@
     /* ══════════════════════════════════════════════════════
        VIEW 2: OUTLINE / ACCORDION
     ══════════════════════════════════════════════════════ */
-    #view-outline { padding: var(--space-md) var(--space-lg) var(--space-xl); max-width: 760px; margin: 0 auto; box-sizing: border-box; }
+    #view-outline { padding: var(--space-md) var(--space-lg) var(--space-xl); max-width: 760px; margin: 0 auto; box-sizing: border-box; overflow-y: auto; }
     .outline-subject {
       background: var(--color-surface); border: 1px solid var(--color-border);
       border-radius: var(--radius-card); margin-bottom: var(--space-md);
@@ -178,7 +185,7 @@
     #view-flashcards {
       display: flex; flex-direction: column; align-items: center;
       padding: var(--space-lg) var(--space-lg); box-sizing: border-box;
-      justify-content: center;
+      justify-content: center; overflow-y: auto;
     }
     .flashcard-meta {
       font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
@@ -269,11 +276,12 @@
 </nav>
 
 <!-- Loading -->
-<div id="loading-wrap" class="loading-wrap" style="height:calc(100vh - 64px);">
+<div id="loading-wrap" class="loading-wrap" style="flex:1;">
   <div class="spinner" style="width:48px;height:48px;"></div>
   <p>Loading content…</p>
 </div>
 
+<div class="panels-container">
 <!-- Spider view -->
 <div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;overflow:hidden;">
   <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
@@ -316,6 +324,8 @@
   </div>
   <div class="fc-topic-label" id="fc-topic-label"></div>
 </div>
+
+</div><!-- /panels-container -->
 
 <script>
   function switchView(v) { window._switchView && window._switchView(v); }
