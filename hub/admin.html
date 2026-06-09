@@ -542,8 +542,9 @@
           </div>
           <!-- Key points source -->
           <div id="gen-source-keypoints">
-            <div id="gen-kp-preview" style="background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-button);padding:var(--space-md);min-height:80px;font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">
-              Select a topic to load its key points here…
+            <div id="gen-kp-preview" style="background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-button);padding:12px var(--space-md);font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);">
+              <span id="gen-kp-preview-text">Select a topic to load its key points…</span>
+              <a href="#" onclick="switchQTab('keypoints');return false;" style="font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-primary);white-space:nowrap;flex-shrink:0;">Edit key points →</a>
             </div>
           </div>
           <!-- Paste source -->
@@ -1622,7 +1623,7 @@ async function generateEverything() {
 }
 
 function buildQuestionPrompt(contentText, qty) {
-  return `You are a GCSE revision question writer. Generate exactly ${qty} questions based on the revision content below. Spread questions evenly across all the content — do not focus only on the first few points.
+  return `You are a GCSE revision question writer. Generate up to ${qty} high-quality questions based on the revision content below. If the content does not support ${qty} distinct, non-repetitive questions, generate fewer — quality over quantity. Spread questions evenly across ALL the content, covering early and late sections equally. Never repeat the same fact in two different questions.
 Use these types in roughly equal proportions: mcq, tf, fill, match, short.
 
 For MCQ: make all options similar in length. 4 options per MCQ.
@@ -1665,25 +1666,22 @@ async function loadKpPanel() {
 }
 
 function updateGenKpPreview(kps) {
+  const textEl = document.getElementById('gen-kp-preview-text');
+  if (!textEl) return;
   const preview = document.getElementById('gen-kp-preview');
-  if (!preview) return;
   if (!kps || !kps.length) {
-    preview.textContent = 'No key points saved for this topic yet. Add key points in the Key Points tab first.';
-    preview.style.color = 'var(--color-text-muted)';
+    textEl.textContent = 'No key points saved for this topic. Add key points in the Key Points tab first.';
+    textEl.style.color = 'var(--color-text-muted)';
     return;
   }
-  preview.style.color = 'var(--color-text)';
   const grouped = isGroupedKps(kps);
   if (grouped) {
     const totalPts = kps.reduce((a, g) => a + (g.points||[]).length, 0);
-    preview.innerHTML = `<div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">${totalPts} key points in ${kps.length} groups</div>` +
-      kps.map(g => `<div style="margin-bottom:6px;"><div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;color:var(--color-text);">📂 ${esc(g.group)} (${(g.points||[]).length})</div></div>`).join('');
+    textEl.innerHTML = `✅ <strong>${totalPts} key points</strong> in ${kps.length} groups ready to use`;
   } else {
-    const totalPts = kps.length;
-    preview.innerHTML = `<div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">${totalPts} key points loaded</div>` +
-      kps.slice(0, 5).map(kp => `<div style="padding:3px 0;border-bottom:1px solid var(--color-border);font-size:0.85rem;"><strong>${esc(kp.term)}</strong> — ${esc(kp.explanation)}</div>`).join('') +
-      (kps.length > 5 ? `<div style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">…and ${kps.length - 5} more</div>` : '');
+    textEl.innerHTML = `✅ <strong>${kps.length} key points</strong> ready to use`;
   }
+  textEl.style.color = 'var(--color-text)';
 }
 
 /* ── QUESTIONS path ──────────────────────────────────────── */
@@ -1756,7 +1754,7 @@ async function runGenerate() {
 
   const typeExamples = types.map(t => typeDescriptions[t]).join('\n');
 
-  const prompt = `You are a GCSE revision question writer. Generate exactly ${qty} questions based on the revision content below. Spread questions evenly across all the content — do not focus only on the first few points.
+  const prompt = `You are a GCSE revision question writer. Generate up to ${qty} high-quality questions based on the revision content below. If the content does not support ${qty} distinct, non-repetitive questions, generate fewer — quality over quantity. Spread questions evenly across ALL the content, covering early and late sections equally. Never repeat the same fact in two different questions.
 Use these types in roughly equal proportions from: ${types.join(', ')}.
 
 For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
