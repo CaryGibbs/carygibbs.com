@@ -622,9 +622,15 @@ function buildSpider() {
         pts.forEach((pt, pi) => {
           const t2 = pts.length === 1 ? 0.5 : pi / (pts.length - 1);
           const leafAngle = centreAngle - fanAngle / 2 + t2 * fanAngle;
-          // Leaf position is from GROUP NODE, not canvas centre
-          const lx = gx + Math.cos(leafAngle) * leafR;
-          const ly = gy + Math.sin(leafAngle) * leafR;
+
+          // Stagger alternating leaves at slightly different radii to prevent overlap
+          // when group is near top/bottom (fan is nearly horizontal)
+          const angleFromHoriz = Math.abs(Math.sin(centreAngle)); // 0=horizontal, 1=vertical
+          const staggerAmount = angleFromHoriz < 0.5 ? leafR * 0.22 : leafR * 0.08;
+          const staggeredR = leafR + (pi % 2 === 0 ? -staggerAmount : staggerAmount);
+
+          const lx = gx + Math.cos(leafAngle) * staggeredR;
+          const ly = gy + Math.sin(leafAngle) * staggeredR;
           const margin = 50;
           spiderNodes.push({
             x: Math.max(margin, Math.min(w - margin, lx)),
