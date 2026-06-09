@@ -773,11 +773,19 @@ function drawSpider(ctx, canvas) {
   ctx.translate(panX, panY);
   ctx.scale(zoom, zoom);
 
+  // Build focus set BEFORE drawing anything
+  let focusedNodeSet = null;
+  if (focusedGroupIdx !== null) {
+    focusedNodeSet = new Set([0, focusedGroupIdx]);
+    spiderEdges.forEach(e => {
+      if (e.from === focusedGroupIdx) focusedNodeSet.add(e.to);
+    });
+  }
+
   // Draw edges first
   spiderEdges.forEach((e, ei) => {
     const a = spiderNodes[e.from];
     const b = spiderNodes[e.to];
-    // Dim edge if focus mode active and neither node is in focus set
     const edgeDimmed = focusedNodeSet && (!focusedNodeSet.has(e.from) || !focusedNodeSet.has(e.to));
     ctx.globalAlpha = edgeDimmed ? 0.08 : 1.0;
     ctx.beginPath();
@@ -796,16 +804,6 @@ function drawSpider(ctx, canvas) {
     ctx.stroke();
   });
   ctx.globalAlpha = 1.0;
-
-  // Determine which node indices belong to focused group
-  let focusedNodeSet = null;
-  if (focusedGroupIdx !== null) {
-    focusedNodeSet = new Set([0, focusedGroupIdx]); // root + group node always visible
-    // Add all leaves connected to focused group
-    spiderEdges.forEach(e => {
-      if (e.from === focusedGroupIdx) focusedNodeSet.add(e.to);
-    });
-  }
 
   // Draw nodes
   spiderNodes.forEach((n, ni) => {
