@@ -574,47 +574,57 @@ function buildSpider() {
       // Each group fans its leaves outward. We need enough angular space per group
       // to spread its leaves without overlapping adjacent groups' leaves.
       const groupCount = items.length;
+      const totalLeaves = items.reduce((a, g) => a + (g.points||[]).length, 0);
       const maxLeafsPerGroup = Math.max(...items.map(g => (g.points||[]).length));
-
-      // Angular slice per group — full circle divided evenly
       const sliceAngle = (Math.PI * 2) / groupCount;
 
-      // Group ring radius — enough that group nodes don't overlap
-      const minGroupR = groupCount <= 4 ? 160 : groupCount <= 6 ? 190 : 220;
-      const groupR = Math.min(Math.min(w, h) * 0.35, Math.max(minGroupR, groupCount * 28));
+      // Three-level layout needs:
+      //   rootR (56) + gap + groupR + gap + leafR + pill(~28px) < min(w,h)/2
+      // We work outward from centre.
+      const canvasR = Math.min(w, h) / 2 - 80; // usable radius with margin
+      const rootR   = 56;
+      const groupNodeR = 38;
 
-      // Leaf radius from group node — sized to fit leaves within the angular slice
-      // Each leaf pill is ~150px wide; arc at leafR must fit maxLeafsPerGroup pills
-      const pillW = 140;
-      const minLeafCircumference = (maxLeafsPerGroup + 1) * (pillW + 16);
-      const minLeafR = minLeafCircumference / (Math.PI * 1.2); // use ~60% of circle
-      const maxLeafR = Math.min(w, h) * 0.5 - groupR - 20;
-      const leafR = Math.min(maxLeafR, Math.max(100, minLeafR));
+      // Group ring: just far enough from centre that group nodes don't overlap root
+      // Minimum arc gap between adjacent group nodes = groupNodeR * 2.5
+      const minGroupArc = groupNodeR * 2.5;
+      const minGroupR = Math.max(rootR + groupNodeR + 60, (groupCount * minGroupArc) / (Math.PI * 2));
+      const groupR = Math.min(canvasR * 0.38, minGroupR);
 
-      // Scale factor for leaves if very dense
-      const totalLeaves = items.reduce((a, g) => a + (g.points||[]).length, 0);
-      const sf = totalLeaves > 60 ? 0.75 : totalLeaves > 40 ? 0.85 : 1;
+      // Leaf ring: fills the remaining space from groupR to canvas edge
+      // Leaves radiate from the GROUP NODE position, not the canvas centre
+      // So leafR is the distance FROM the group node to the leaf
+      const remainingR = canvasR - groupR; // space left between group ring and canvas edge
+      // Each leaf pill ~130px; fit maxLeafsPerGroup in the fan (80% of slice)
+      const fanAngle = sliceAngle * 0.8;
+      const pillW = 120;
+      // Arc length needed = maxLeafsPerGroup * (pillW + 12)
+      const neededArc = maxLeafsPerGroup * (pillW + 12);
+      const minLeafR = neededArc / fanAngle;
+      const leafR = Math.max(100, Math.min(remainingR * 0.85, minLeafR));
+
+      // If leaves still won't fit, scale pills down
+      const actualArc = leafR * fanAngle;
+      const sf = actualArc < neededArc ? Math.max(0.6, actualArc / neededArc) : 1;
 
       items.forEach((grp, gi) => {
         const centreAngle = (gi / groupCount) * Math.PI * 2 - Math.PI / 2;
         const gx = cx + Math.cos(centreAngle) * groupR;
         const gy = cy + Math.sin(centreAngle) * groupR;
         const grpIdx = spiderNodes.length;
-        spiderNodes.push({ x: gx, y: gy, label: grp.term, type: 'topic', r: 38 });
+        spiderNodes.push({ x: gx, y: gy, label: grp.term, type: 'topic', r: groupNodeR });
         spiderEdges.push({ from: 0, to: grpIdx });
 
         const pts = (grp.points || []).map(p => ({ term: p.term, detail: p.explanation || '' }));
         if (!pts.length) return;
 
-        // Fan leaves within this group's angular slice (use 80% of slice to leave gaps)
-        const fanSpread = sliceAngle * 0.82;
-        const margin = 60;
-
         pts.forEach((pt, pi) => {
           const t2 = pts.length === 1 ? 0.5 : pi / (pts.length - 1);
-          const leafAngle = centreAngle - fanSpread / 2 + t2 * fanSpread;
+          const leafAngle = centreAngle - fanAngle / 2 + t2 * fanAngle;
+          // Leaf position is from GROUP NODE, not canvas centre
           const lx = gx + Math.cos(leafAngle) * leafR;
           const ly = gy + Math.sin(leafAngle) * leafR;
+          const margin = 50;
           spiderNodes.push({
             x: Math.max(margin, Math.min(w - margin, lx)),
             y: Math.max(margin, Math.min(h - margin, ly)),
