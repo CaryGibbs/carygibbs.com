@@ -340,6 +340,41 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
+    /* ── Unsaved state banner ───────────────────────────────── */
+    .unsaved-banner {
+      position: sticky; bottom: 0;
+      background: var(--color-warning);
+      color: #1a1a00;
+      padding: var(--space-md) var(--space-xl);
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: var(--font-ui); font-weight: 600; font-size: 0.9rem;
+      z-index: 50; border-top: 2px solid rgba(0,0,0,0.15);
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    .unsaved-banner .btn-save-now {
+      background: #1a1a00; color: var(--color-warning);
+      border: none; border-radius: var(--radius-button);
+      padding: 8px 20px; font-family: var(--font-ui);
+      font-weight: 700; font-size: 0.88rem; cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .unsaved-banner .btn-save-now:hover { background: #000; }
+    .saved-flash {
+      background: var(--color-success); color: #fff;
+      padding: var(--space-md) var(--space-xl);
+      font-family: var(--font-ui); font-weight: 600; font-size: 0.9rem;
+      display: flex; align-items: center; gap: var(--space-sm);
+      animation: fadeOut 2s ease forwards;
+    }
+    @keyframes fadeOut {
+      0%, 60% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
     /* ── Save batch button ────────────────────────────────── */
     .save-batch-bar {
       position: sticky; bottom: 0; background: var(--color-surface);
@@ -635,17 +670,24 @@
             <button class="add-option-btn" style="margin-top:var(--space-sm);" data-action="add-keypoint-panel">＋ Add key point manually</button>
           </div>
         </div>
-        <!-- Action footer — always visible -->
-        <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;justify-content:space-between;margin-top:var(--space-md);">
-          <div style="display:flex;align-items:center;gap:var(--space-sm);">
-            <label style="font-family:var(--font-ui);font-size:0.82rem;color:var(--color-text-muted);font-weight:600;text-transform:none;letter-spacing:0;">Questions to generate:</label>
-            <input type="number" id="gen-everything-qty" value="40" min="5" max="200" style="width:70px;padding:6px 10px;font-size:0.88rem;border-radius:var(--radius-button);">
+        <!-- Unsaved state banner -->
+        <div id="kp-unsaved-banner" style="display:none;" class="unsaved-banner">
+          <span>⚠️ Unsaved key points — save before generating questions</span>
+          <button class="btn-save-now" data-action="save-keypoints-panel">💾 Save key points now</button>
+        </div>
+        <!-- Saved confirmation (auto-hides) -->
+        <div id="kp-saved-flash" style="display:none;" class="saved-flash">
+          ✅ Key points saved!
+        </div>
+        <!-- Generate questions section — shown after key points are saved -->
+        <div id="kp-gen-questions-section" style="display:none;margin-top:var(--space-lg);padding-top:var(--space-lg);border-top:1px solid var(--color-border);">
+          <div style="font-family:var(--font-ui);font-size:0.9rem;font-weight:700;margin-bottom:var(--space-sm);color:var(--color-text);">Now generate questions from these key points:</div>
+          <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+            <label style="font-family:var(--font-ui);font-size:0.82rem;color:var(--color-text-muted);">How many questions?</label>
+            <input type="number" id="gen-everything-qty" value="40" min="5" max="200" style="width:80px;padding:8px 12px;font-size:0.9rem;border-radius:var(--radius-button);">
+            <button class="btn btn-primary" data-action="also-generate-questions" style="padding:10px 24px;font-size:0.9rem;">⚡ Generate questions →</button>
           </div>
-          <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
-            <button class="btn btn-secondary" data-action="also-generate-questions" style="font-size:0.88rem;">➡️ Questions tab</button>
-            <button class="btn btn-secondary" data-action="save-keypoints-panel" style="font-size:0.88rem;">💾 Key points only</button>
-            <button class="btn btn-primary" data-action="generate-everything" style="font-size:0.88rem;">⚡ Generate everything &amp; save</button>
-          </div>
+          <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:6px;">Questions appear in the AI Generate tab for review before saving to Firestore.</p>
         </div>
       </div>
     </div>
@@ -1558,7 +1600,9 @@ async function alsoGenerateQuestions() {
     if (genTextarea) genTextarea.value = contentForQuestions;
   }
   switchQTab('generate');
-  showToast('Content pre-filled — click Generate questions', 'success');
+  // Scroll to top of generate tab
+  document.getElementById('qtab-generate')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showToast('✅ Key points loaded — review settings and click Generate questions', 'success');
 }
 
 async function generateEverything() {
@@ -1653,6 +1697,11 @@ ${contentText}`;
 
 // Show post-gen action bar after key points are generated
 function showKpPostGenActions() {
+  // Show unsaved banner and hide generate questions section until saved
+  const unsaved = document.getElementById('kp-unsaved-banner');
+  const genSect = document.getElementById('kp-gen-questions-section');
+  if (unsaved) unsaved.style.display = 'flex';
+  if (genSect) genSect.style.display = 'none';
   const el = document.getElementById('kp-post-gen-actions');
   if (el) el.style.display = 'block';
 }
@@ -1662,7 +1711,14 @@ async function saveKpPanel() {
   const keyPoints = readKpList('kp-list-panel');
   try {
     await updateDoc(doc(db, topicsPath(), selectedTopic.id), { keyPoints });
-    showToast('Key points saved', 'success');
+    // Hide unsaved banner, show flash, reveal generate questions section
+    const unsaved = document.getElementById('kp-unsaved-banner');
+    const flash   = document.getElementById('kp-saved-flash');
+    const genSect = document.getElementById('kp-gen-questions-section');
+    if (unsaved) unsaved.style.display = 'none';
+    if (flash)   { flash.style.display = 'flex'; setTimeout(() => flash.style.display = 'none', 2500); }
+    if (genSect) genSect.style.display = 'block';
+    updateGenKpPreview(keyPoints);
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
@@ -1671,8 +1727,12 @@ async function loadKpPanel() {
   const snap = await getDoc(doc(db, topicsPath(), selectedTopic.id)).catch(() => null);
   const kps = snap?.data()?.keyPoints || [];
   renderKpList('kp-list-panel', kps);
-  // Also update AI Generate preview
   updateGenKpPreview(kps);
+  // If key points already exist, show the generate questions section
+  const genSect = document.getElementById('kp-gen-questions-section');
+  const unsaved = document.getElementById('kp-unsaved-banner');
+  if (genSect) genSect.style.display = kps.length ? 'block' : 'none';
+  if (unsaved) unsaved.style.display = 'none';
 }
 
 function updateGenKpPreview(kps) {

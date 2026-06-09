@@ -353,6 +353,7 @@ let fcFlipped = false;
 /* ── Spider canvas state ─────────────────────────────────── */
 let spiderNodes = [];
 let selectedLeaf = null;
+let focusedGroupIdx = null; // index into spiderNodes for focused group
 let spiderEdges = [];
 let panX = 0, panY = 0, zoom = 1;
 let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
@@ -663,6 +664,7 @@ function buildSpider() {
   }
 
   panX = 0; panY = 0; zoom = 1;
+  focusedGroupIdx = null;
   const ctx = canvas.getContext('2d');
   drawSpider(ctx, canvas);
   setupSpiderInteraction(canvas, ctx);
@@ -770,9 +772,12 @@ function drawSpider(ctx, canvas) {
   ctx.scale(zoom, zoom);
 
   // Draw edges first
-  spiderEdges.forEach(e => {
+  spiderEdges.forEach((e, ei) => {
     const a = spiderNodes[e.from];
     const b = spiderNodes[e.to];
+    // Dim edge if focus mode active and neither node is in focus set
+    const edgeDimmed = focusedNodeSet && (!focusedNodeSet.has(e.from) || !focusedNodeSet.has(e.to));
+    ctx.globalAlpha = edgeDimmed ? 0.08 : 1.0;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     // Curved line for leaves
@@ -788,9 +793,24 @@ function drawSpider(ctx, canvas) {
     ctx.setLineDash([]);
     ctx.stroke();
   });
+  ctx.globalAlpha = 1.0;
+
+  // Determine which node indices belong to focused group
+  let focusedNodeSet = null;
+  if (focusedGroupIdx !== null) {
+    focusedNodeSet = new Set([0, focusedGroupIdx]); // root + group node always visible
+    // Add all leaves connected to focused group
+    spiderEdges.forEach(e => {
+      if (e.from === focusedGroupIdx) focusedNodeSet.add(e.to);
+    });
+  }
 
   // Draw nodes
-  spiderNodes.forEach(n => {
+  spiderNodes.forEach((n, ni) => {
+    // Apply dim if focus mode active and this node not in focus set
+    const dimmed = focusedNodeSet && !focusedNodeSet.has(ni);
+    ctx.globalAlpha = dimmed ? 0.15 : 1.0;
+
     if (n.type === 'root') {
       // Centre circle
       ctx.beginPath();
@@ -878,6 +898,7 @@ function drawSpider(ctx, canvas) {
     }
   });
 
+  ctx.globalAlpha = 1.0; // reset
   ctx.restore();
 }
 
@@ -944,28 +965,55 @@ function handleSpiderClick(clientX, clientY, canvas) {
     return;
   }
 
-  // Check for topic node click (navigate to topic view)
-  for (const n of spiderNodes) {
-    if (n.type !== 'topic' || !n.topicData) continue;
+  // Check for topic/group node click
+  for (let ni = 0; ni < spiderNodes.length; ni++) {
+    const n = spiderNodes[ni];
+    if (n.type !== 'topic') continue;
     const dist = Math.hypot(cx - n.x, cy2 - n.y);
     if (dist <= n.r) {
-      // Drill into topic
-      subjects[0] = { ...subjects[0], topics: [n.topicData] };
-      buildSpider();
-      document.getElementById('btn-spider-back').style.display = 'block';
-      document.getElementById('spider-hint').style.opacity = '1';
-      document.getElementById('spider-hint').textContent = 'Tap a key point to see details · Drag to pan';
+      if (n.topicData) {
+        // Subject view: drill into topic
+        subjects[0] = { ...subjects[0], topics: [n.topicData] };
+        focusedGroupIdx = null;
+        buildSpider();
+        document.getElementById('btn-spider-back').style.display = 'block';
+        document.getElementById('spider-hint').style.opacity = '1';
+        document.getElementById('spider-hint').textContent = 'Tap a key point to see details · Drag to pan';
+      } else {
+        // Three-level grouped view: toggle focus on this group
+        if (focusedGroupIdx === ni) {
+          // Unfocus
+          focusedGroupIdx = null;
+          document.getElementById('spider-hint').textContent = 'Tap a group to focus · Tap a key point for details · Drag to pan';
+        } else {
+          // Focus this group and zoom to it
+          focusedGroupIdx = ni;
+          // Pan to centre on this group node
+          const canvas = document.getElementById('spider-canvas');
+          const targetX = canvas.width  / 2 - n.x * zoom;
+          const targetY = canvas.height / 2 - n.y * zoom;
+          panX = targetX;
+          panY = targetY;
+          document.getElementById('spider-hint').textContent = `${n.label} — tap group again to unfocus`;
+        }
+        drawSpider(canvas.getContext('2d'), canvas);
+      }
       return;
     }
   }
 
-  // Click on empty space — close detail
+  // Click on empty space — close detail and reset focus
+  if (focusedGroupIdx !== null) {
+    focusedGroupIdx = null;
+    drawSpider(canvas.getContext('2d'), canvas);
+    document.getElementById('spider-hint').textContent = 'Tap a group to focus · Tap a key point for details · Drag to pan';
+  }
   window._closeSpiderDetail && window._closeSpiderDetail();
 }
 
 function setupSpiderInteraction(canvas, ctx) {
   const c = canvas;
-  if (c._spiderSetup) return;
+  // Always re-attach — canvas is reused, not cloned
   c._spiderSetup = true;
   const drawFn = () => drawSpider(c.getContext('2d'), c);
 
