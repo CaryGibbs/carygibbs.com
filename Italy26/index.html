@@ -1,1 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Italy 2026 — Gibbs Family Trip Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16201E;--paper:#F2F5F3;--card:#FFFFFF;
+    --sea:#0C5A66;--sea-bright:#1B93A4;--ochre:#AF7430;--coral:#E0603C;--green:#1E7F57;
+    --line:#DCE3E0;--muted:#5B6B67;
+    --shadow:0 1px 2px rgba(22,32,30,.05),0 12px 30px -18px rgba(12,90,102,.28);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px 80px}
+  a{color:var(--sea)}
 
+  .hero{padding:54px 0 30px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--sea);font-weight:600}
+  .hero h1{font-family:'Instrument Serif',serif;font-weight:400;
+    font-size:clamp(52px,13vw,104px);line-height:.92;margin:.12em 0 .1em;letter-spacing:-.01em}
+  .hero h1 em{font-style:italic;color:var(--coral)}
+  .hero .sub{font-size:clamp(15px,2.4vw,18px);color:var(--muted);max-width:56ch}
+  .statline{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:22px;
+    font-family:'JetBrains Mono',monospace;font-size:13px}
+  .statline b{color:var(--sea)}
+
+  .ribbon{margin:26px 0 6px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:18px 16px;box-shadow:var(--shadow);overflow-x:auto}
+  .legs{display:flex;align-items:stretch;min-width:660px;gap:0}
+  .node{flex:0 0 auto;text-align:center;padding:0 4px}
+  .node .code{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:15px}
+  .node .pl{font-size:11px;color:var(--muted);margin-top:2px}
+  .stay{flex:1 1 auto;min-width:120px;display:flex;flex-direction:column;justify-content:center;
+    align-items:center;padding:0 6px}
+  .stay .bar{height:6px;border-radius:6px;width:100%;margin-bottom:7px}
+  .stay.coast .bar{background:linear-gradient(90deg,var(--sea),var(--sea-bright))}
+  .stay.city .bar{background:linear-gradient(90deg,var(--ochre),#caa05f)}
+  .stay .lbl{font-size:12px;font-weight:600;text-align:center;line-height:1.2}
+  .stay .nights{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:1px}
+  .hop{flex:0 0 34px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:2px}
+  .hop svg{width:20px;height:20px}
+  .hop .ht{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.04em}
+
+  section{padding-top:46px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .sec-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--coral)}
+  h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(30px,5.4vw,42px);
+    line-height:1.04;margin:0;letter-spacing:-.01em}
+  .sec-intro{color:var(--muted);max-width:64ch;margin:8px 0 22px;font-size:15px}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;letter-spacing:-.01em}
+  h3 .pin{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--muted);margin-left:8px}
+  .zone-coast .sec-num{color:var(--sea)}
+  .zone-city .sec-num{color:var(--ochre)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px}
+  .flight{display:grid;grid-template-columns:1fr auto;gap:6px 16px;align-items:start}
+  .flight .route{font-weight:700;font-size:16px}
+  .flight .when{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);margin-top:2px}
+  .flight .meta{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .flight .price{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:16px;text-align:right;white-space:nowrap}
+  .flight .price small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+  .acc-bar{height:4px;margin:-18px -20px 14px;border-radius:14px 14px 0 0}
+  .acc-coast{background:linear-gradient(90deg,var(--sea),var(--sea-bright))}
+  .acc-city{background:linear-gradient(90deg,var(--ochre),#caa05f)}
+  .acc-mix{background:linear-gradient(90deg,var(--sea),var(--ochre))}
+
+  .chip{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    padding:3px 8px;border-radius:20px;white-space:nowrap}
+  .chip.ok{background:rgba(30,127,87,.12);color:var(--green)}
+  .chip.paid{background:rgba(30,127,87,.12);color:var(--green)}
+  .chip.note{background:rgba(224,96,60,.13);color:var(--coral)}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  .day{display:grid;grid-template-columns:64px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+  .day:first-of-type{border-top:0}
+  .day .dnum{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);line-height:1.4}
+  .day .dnum b{display:block;font-size:13px;color:var(--ink);font-weight:600}
+  .day .dbody{font-size:14.5px}
+  .day .dbody b{font-weight:700}
+  .day .dbody .tip{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+
+  ul.clean{list-style:none;padding:0;margin:10px 0}
+  ul.clean li{padding:9px 0;border-top:1px solid var(--line);font-size:14.5px;display:flex;gap:10px}
+  ul.clean li:first-child{border-top:0}
+  ul.clean li .k{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--sea);
+    flex:0 0 104px;font-weight:600;padding-top:1px}
+  .zone-city ul.clean li .k{color:var(--ochre)}
+
+  table.bud{width:100%;border-collapse:collapse;font-size:14.5px}
+  table.bud td{padding:11px 0;border-top:1px solid var(--line);vertical-align:top}
+  table.bud tr:first-child td{border-top:0}
+  table.bud td.amt{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:600;white-space:nowrap}
+  table.bud tr.total td{border-top:2px solid var(--ink);font-weight:700;padding-top:13px}
+  table.bud tr.total td.amt{color:var(--sea)}
+
+  .callout{background:linear-gradient(180deg,rgba(27,147,164,.07),rgba(27,147,164,.02));
+    border:1px solid rgba(12,90,102,.18);border-left:4px solid var(--sea);
+    border-radius:10px;padding:14px 16px;margin:16px 0;font-size:14px}
+  .callout b{color:var(--sea)}
+  .callout.warn{background:linear-gradient(180deg,rgba(224,96,60,.08),rgba(224,96,60,.02));
+    border-color:rgba(224,96,60,.25);border-left-color:var(--coral)}
+  .callout.warn b{color:var(--coral)}
+  .zone-city .callout{background:linear-gradient(180deg,rgba(175,116,48,.08),rgba(175,116,48,.02));
+    border-color:rgba(175,116,48,.22);border-left-color:var(--ochre)}
+  .zone-city .callout b{color:var(--ochre)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:620px){.grid2{grid-template-columns:1fr}}
+
+  .ref{display:grid;grid-template-columns:1fr;gap:0}
+  .ref .row{display:grid;grid-template-columns:128px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+  .ref .row:first-child{border-top:0}
+  .ref .when{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--coral);font-weight:600}
+  .ref .what b{font-weight:700}
+  .ref .what span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+  .ref .what code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(12,90,102,.07);
+    padding:1px 6px;border-radius:5px;color:var(--sea)}
+
+  footer{margin-top:54px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace}
+
+  @media print{body{background:#fff}.card,.ribbon{box-shadow:none}section{break-inside:avoid}}
+  .toc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin:0 0 30px;box-shadow:0 1px 8px rgba(0,0,0,.04)}
+  .toc-title{font-family:'Instrument Serif',serif;font-size:28px;color:var(--sea);line-height:1}
+  .toc-note{font-size:13px;color:var(--muted);margin:4px 0 12px;font-style:italic}
+  .toc a{display:block;color:var(--sea);text-decoration:none;padding:4px 0;font-size:15.5px}
+  .toc a:hover{text-decoration:underline}
+  .toc a.sub{padding-left:18px;font-size:14px}
+  .toc-sub{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:14px 0 2px;font-weight:700}
+  .links{border-left:3px solid var(--sea);background:#f4f8f7;padding:9px 13px;font-size:13px;margin:6px 0 16px 4px;border-radius:0 8px 8px 0}
+  .links b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Family of 4 · Fri 10 — Wed 22 Jul 2026 · 12 nights</div>
+    <h1>Italy <em>2026</em></h1>
+    <p class="sub">Two bases, joined by a road trip: nine nights on Calabria's Costa degli Dei from a beach villa in Zambrone, then the BMW X3 north to Rome for three nights near the Vatican. Everything below is booked and paid unless flagged.</p>
+    <div class="statline">
+      <span><b>2</b> flights</span>
+      <span><b>1</b> drive north</span>
+      <span><b>9</b> nights coast</span>
+      <span><b>3</b> nights Rome</span>
+      <span><b>BMW X3</b></span>
+    </div>
+    <p style="margin:14px 0 0;font-size:13px;color:var(--muted)">Updated Mon 06 Jul 2026 · <a href="https://www.google.com/maps/d/viewer?mid=1KPTpBWOWYUXmR07qSngkZi4yJGSMZok"><b>Open our interactive Google map</b></a> — every place pinned (villa, sights, food, diving, airports)</p>
+
+    <div class="ribbon" aria-label="Trip route">
+      <div class="legs">
+        <div class="node"><div class="code">STN</div><div class="pl">Stansted</div></div>
+        <div class="hop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 16l20-5L2 6l3 5-3 5z"/></svg><span class="ht">FLY</span></div>
+        <div class="node"><div class="code">SUF</div><div class="pl">Lamezia</div></div>
+        <div class="stay coast"><div class="bar"></div><div class="lbl">Zambrone · Costa degli Dei</div><div class="nights">9 nights · BMW X3</div></div>
+        <div class="hop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 13l2-5h14l2 5v5h-3v-2H6v2H3v-5z"/><circle cx="7" cy="16" r="1.4"/><circle cx="17" cy="16" r="1.4"/></svg><span class="ht">POMPEII</span></div>
+        <div class="node"><div class="code">FCO</div><div class="pl">drop car</div></div>
+        <div class="stay city"><div class="bar"></div><div class="lbl">Rome · near Vatican</div><div class="nights">3 nights · no car</div></div>
+        <div class="node"><div class="code">CIA</div><div class="pl">Ciampino</div></div>
+        <div class="hop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 16l20-5L2 6l3 5-3 5z"/></svg><span class="ht">FLY</span></div>
+        <div class="node"><div class="code">STN</div><div class="pl">Stansted</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. GETTING THERE & BACK -->
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <p class="toc-note">The main plan is the holiday itself; logistics, money and diving detail are in the appendices.</p>
+    <a href="#s1">1 · Travel</a>
+    <a href="#s2">2 · Calabria — 9 nights (Zambrone base)</a>
+    <a href="#s3">3 · Zambrone — eat &amp; shop</a>
+    <a href="#s4">4 · Calabria → Rome — the drive, via Pompeii</a>
+    <a href="#s5">5 · Rome — 3 nights</a>
+    <a href="#s6">6 · The places, in brief</a>
+    <a href="#s7">7 · The car</a>
+    <a href="#s8">8 · Booking cheat-sheet</a>
+    <div class="toc-sub">Appendices</div>
+    <a class="sub" href="#aA">A · UK travel &amp; parking</a>
+    <a class="sub" href="#aB">B · Baggage</a>
+    <a class="sub" href="#aC">C · Diving — Cary &amp; Milly</a>
+    <a class="sub" href="#aD">D · World Cup — England watch guide</a>
+    <a class="sub" href="#aE">E · Costs — what's paid</a>
+  </nav>
+
+  <section id="s1">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Travel</h2></div>
+    <p class="sec-intro">Fly in to Lamezia, pick up the car, and it stays with you all the way to Rome — you drive Calabria to Fiumicino on the 19th and drop it at the airport. Fly home out of Ciampino. No internal flight.</p>
+
+    <div class="card">
+      <div class="acc-bar acc-coast"></div>
+      <div class="flight">
+        <div>
+          <div class="route">Stansted → Lamezia Terme</div>
+          <div class="when">Fri 10 Jul · 10:20 → 14:20 · Ryanair FR2728</div>
+          <div class="meta">Per person: Cary 2× 20kg checked · Catherine 10kg check-in · Abi &amp; Milly priority + 10kg cabin · small under-seat each</div>
+        </div>
+        <div><span class="chip ok"><span class="dot"></span>Booked</span><div class="price">£536.94</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="acc-bar acc-mix"></div>
+      <div class="flight">
+        <div>
+          <div class="route">Zambrone → Pompeii → Rome Fiumicino · by road</div>
+          <div class="when">Sun 19 Jul · ~600 km · ~6.5 hrs driving + Pompeii · drop car by 21:00</div>
+          <div class="meta">Break the drive at Pompeii — it's right on the A3 corridor. Toll-free A2 through Calabria, then tolled A3/A1 past Naples (~€25–30). Early start needed; full timeline in the drive section.</div>
+        </div>
+        <div><span class="chip ok"><span class="dot"></span>Driving</span><div class="price">incl.<small>in hire</small></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="acc-bar acc-city"></div>
+      <div class="flight">
+        <div>
+          <div class="route">Rome Ciampino → Stansted</div>
+          <div class="when">Wed 22 Jul · 21:45 → 23:25 · Ryanair FR2456</div>
+          <div class="meta">Same bags as outbound (per person, incl. 2× 20kg for Cary) — confirmed · no car by now, so taxi out to Ciampino airport (see Rome section)</div>
+        </div>
+        <div><span class="chip ok"><span class="dot"></span>Booked</span><div class="price">€261.44</div></div>
+      </div>
+    </div>
+
+    <div class="callout"><b>Getting to &amp; from Stansted</b> — the drive, Meet &amp; Greet parking and leave-home / arrive-home times are in <a href="#aA">Appendix A</a>. The full baggage allowance (who carries what) and Ryanair size limits are in <a href="#aB">Appendix B</a>.</div>
+  </section>
+
+  <!-- 2. CALABRIA -->
+  <section class="zone-coast" id="s2">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Calabria — 9 nights (Zambrone base)</h2></div>
+    <p class="sec-intro">Zambrone sits dead-centre on the Coast of the Gods, between Pizzo and Tropea, ~45 min from Lamezia. The best Calabrian beaches are a short walk or drive away and the headline towns are within 25 minutes. July is hot (30–35°C) and busy, so run on Italian time: early starts, long midday breaks, late dinners.</p>
+
+    <div class="card">
+      <div class="acc-bar acc-coast"></div>
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:14px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:700;font-size:16px">Zambrone Beach Villas — No. 7</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);margin-top:2px">Via del Mare 30, Marina di Zambrone 89868 · Fri 10 → Sun 19 Jul · 9 nights · Airbnb</div>
+        </div>
+        <span class="chip paid"><span class="dot"></span>Paid</span>
+      </div>
+      <p style="margin:12px 0 0;font-size:14px">Three levels in the gated <b>Zambrone Beach Villas</b> complex (12 villas), yours alone. Ground floor — living/dining/kitchen, a bedroom, a bathroom with washing machine, terrace. First floor — two bedrooms with balconies + bathroom. <b>Roof terrace</b> over the whole house — outdoor kitchen, BBQ, dining, sun loungers, outdoor shower. <b>Shared pool</b> with loungers &amp; parasols. Full kitchen (dishwasher, fridge-freezer, microwave), free Wi-Fi, TV/DVD, washing machine; linen &amp; towels provided. Beach ~10-min walk, station ~15-min walk.</p>
+    </div>
+
+    <div class="callout links"><b>Reservation:</b> <a href="https://www.airbnb.co.uk/trips/v1/reservation-details/ro/RESERVATION2_CHECKIN/HM4FRNH2PE">Open the villa booking on Airbnb</a></div>
+    <div class="callout warn"><b>Good to know.</b> Water is switched off overnight in summer (Comune di Zambrone) — a house cistern covers a quick shower, and run the dishwasher in the morning. Tourist tax is €1.50/night for ages 16+, paid at the villa — about <b>€40.50</b> for the three of you (Cary, Catherine &amp; Abi; Milly exempt). On-site parking is free but unassigned and limited, with public kerb parking outside as backup. Bins: schedule posted inside — put the right container out the evening before. Registration code (CIN): <code>IT102049C2TS7SG2NK</code>.</div>
+
+    <div class="callout links"><b>Open in Google Maps</b> — tap any spot to navigate: <a href="https://www.google.com/maps/search/?api=1&amp;query=Zambrone%20Beach%20Villas&amp;query_place_id=ChIJbfjhaP5vFRMRak1fXNRepLk">Our villa</a> · <a href="https://maps.google.com/?cid=14650589052623041683">Tropea</a> · <a href="https://maps.google.com/?cid=7647774225863201406">Spiaggia Michelino</a> · <a href="https://maps.google.com/?cid=4208708566295293315">Capo Vaticano</a> · <a href="https://maps.google.com/?cid=7416692676602009109">Pizzo</a> · <a href="https://maps.google.com/?cid=277672564964064795">Zungri caves</a> · <a href="https://maps.google.com/?cid=15613511305285266729">Scilla</a> · <a href="https://maps.google.com/?cid=14934914832825778772">Piloto Diving</a> · <a href="https://maps.google.com/?cid=433927297110728011">Lamezia Airport</a> · <a href="https://www.google.com/maps/d/viewer?mid=1KPTpBWOWYUXmR07qSngkZi4yJGSMZok"><b>full interactive map ↗</b></a></div>
+
+    <div class="callout links"><b>Open in Apple Maps</b> (iPhone) — tap to navigate: <a href="https://maps.apple.com/?ll=38.7074748,15.9720099&amp;q=Our%20villa">Our villa</a> · <a href="https://maps.apple.com/?ll=38.6799429,15.8956162&amp;q=Tropea">Tropea</a> · <a href="https://maps.apple.com/?ll=38.6851831,15.9206744&amp;q=Spiaggia%20Michelino">Spiaggia Michelino</a> · <a href="https://maps.apple.com/?ll=38.6232545,15.8284983&amp;q=Capo%20Vaticano">Capo Vaticano</a> · <a href="https://maps.apple.com/?ll=38.735475,16.1603444&amp;q=Pizzo">Pizzo</a> · <a href="https://maps.apple.com/?ll=38.6528672,15.9863425&amp;q=Zungri%20caves">Zungri caves</a> · <a href="https://maps.apple.com/?ll=38.2538496,15.7188187&amp;q=Scilla">Scilla</a> · <a href="https://maps.apple.com/?ll=38.6424978,15.8361103&amp;q=Piloto%20Diving">Piloto Diving</a> · <a href="https://maps.apple.com/?ll=38.9064132,16.2462073&amp;q=Lamezia%20Airport">Lamezia Airport</a></div>
+
+    <h3>Getting there <span class="pin">SUF → Zambrone · ~45 min</span></h3>
+    <ul class="clean">
+      <li><span class="k">Land</span><span>Arrive SUF 14:20, collect the BMW from Sixt (desk in arrivals).</span></li>
+      <li><span class="k">Drive</span><span>Coast road south ~45 min. The stretch past Pizzo hugs the cliffs — a fine first taste.</span></li>
+      <li><span class="k">Settle</span><span>Check in, local beach for sunset, easy first-night dinner.</span></li>
+    </ul>
+
+    <h3>The 9-day shape <span class="pin">flexible · beach-led</span></h3>
+    <p style="margin:0 0 12px;font-size:14px;color:var(--muted);font-style:italic">These are just ideas with suggested days, not a fixed schedule — shuffle them to suit the weather and how everyone's feeling. The diving anchors the week, though: Cary and Milly have the confined-water (pool) session on Sat 11 (2–4pm, fixed), then the four open-water dives over the following days from Sun 12 — mostly afternoons, with perhaps one full day (times to be confirmed with the centre). So it's worth pairing those with things Catherine and Abi can do nearby: a beach or town in the same direction as Capo Vaticano, or a relaxed half-day locally.</p>
+    <div class="card">
+      <div class="day"><div class="dnum"><b>Fri 10</b>Day 1</div><div class="dbody"><b>Arrive &amp; settle.</b> Land, drive to Zambrone, local beach + dinner.</div></div>
+      <div class="day"><div class="dnum"><b>Sat 11</b>Day 2</div><div class="dbody"><b>Settle in + first training.</b> Cary &amp; Milly: confined-water (pool) session 2–4pm at Piloto (arrive 2pm). Catherine &amp; Abi: Tropea old town, Santa Maria dell'Isola, swim at Rotonda; Tropea's Saturday market's on too.<span class="tip">Tropea old town is pedestrian/ZTL — park outside and walk in.</span></div></div>
+      <div class="day"><div class="dnum"><b>Sun 12</b>Day 3</div><div class="dbody"><b>Diving begins.</b> Cary &amp; Milly: first open-water dives (time TBC). Catherine &amp; Abi: beach day — Marinella di Zambrone or Spiaggia Michelino (Parghelia).</div></div>
+      <div class="day"><div class="dnum"><b>Mon 13</b>Day 4</div><div class="dbody"><b>Capo Vaticano.</b> Belvedere viewpoint, then Praia i Focu / Grotticelle coves. ~25 min south.</div></div>
+      <div class="day"><div class="dnum"><b>Tue 14</b>Day 5</div><div class="dbody"><b>On the water.</b> Self-drive boat (no licence) or a guided snorkel tour from Tropea/Capo Vaticano — the only way into the secret coves.</div></div>
+      <div class="day"><div class="dnum"><b>Wed 15</b>Day 6</div><div class="dbody"><b>Pizzo.</b> Murat Castle, the Piedigrotta rock church, and the original tartufo gelato on Piazza della Repubblica.<span class="tip">Zambrone's own weekly market is on this morning — on the doorstep.</span></div></div>
+      <div class="day"><div class="dnum"><b>Thu 16</b>Day 7</div><div class="dbody"><b>Slow day.</b> Home beach. Optional: Zungri cave dwellings or a Monte Poro drive.</div></div>
+      <div class="day"><div class="dnum"><b>Fri 17</b>Day 8</div><div class="dbody"><b>Big day trip.</b> Aeolian Islands by hydrofoil from Tropea (Lipari / Vulcano / smoking Stromboli), or south to Scilla's Chianalea (~1 hr).</div></div>
+      <div class="day"><div class="dnum"><b>Sat 18</b>Day 9</div><div class="dbody"><b>Last beach + pack.</b> Tropea market, farewell dinner of swordfish and 'nduja. Pack tonight — tomorrow's a drive day.</div></div>
+      <div class="day"><div class="dnum"><b>Sun 19</b>Day 10</div><div class="dbody"><b>Drive to Rome.</b> Out by midday, car to Fiumicino (see next).</div></div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h3>Beaches worth the drive</h3>
+        <ul class="clean">
+          <li><span class="k">Local</span><span>Marinella di Zambrone, Spiaggia Michelino (Parghelia)</span></li>
+          <li><span class="k">Tropea</span><span>Rotonda, Cannone — postcard sand under the cliffs</span></li>
+          <li><span class="k">Capo V.</span><span>Praia i Focu, Grotticelle — best by boat</span></li>
+          <li><span class="k">Wild</span><span>Riaci, Torre Marino (Ricadi) — rock pools, snorkelling</span></li>
+        </ul>
+        <div class="callout" style="margin-top:12px"><b>Beaches — Open in Google Maps:</b> <a href="https://www.google.com/maps/search/?api=1&amp;query=Marinella%20di%20Zambrone&amp;query_place_id=ChIJn8-qUFRlFRMROxxI1uQpFKo">Marinella di Zambrone</a> · <a href="https://maps.google.com/?cid=7647774225863201406">Spiaggia Michelino</a> · <a href="https://www.google.com/maps/search/?api=1&amp;query=Rotonda%20Beach&amp;query_place_id=ChIJ6SbqmSFxFRMRJTo1jLkN-V4">Rotonda (Tropea)</a> · <a href="https://www.google.com/maps/search/?api=1&amp;query=Spiaggia%20del%20Cannone&amp;query_place_id=ChIJSy8paQBxFRMRy4FFl1UAD6k">Cannone (Tropea)</a> · <a href="https://www.google.com/maps/search/?api=1&amp;query=Praia%20i%20Focu&amp;query_place_id=ChIJrdzd6rJ1FRMRS-awkA4Sxcc">Praia i Focu</a> · <a href="https://www.google.com/maps/search/?api=1&amp;query=Spiaggia%20di%20Grotticelle&amp;query_place_id=ChIJk8MDlFF0FRMRrA-Vn-kzibc">Grotticelle</a></div>
+        <div class="callout links"><b>Beaches — Open in Apple Maps (iPhone):</b> <a href="https://maps.apple.com/?ll=38.7145302,15.9732953&amp;q=Marinella%20di%20Zambrone">Marinella di Zambrone</a> · <a href="https://maps.apple.com/?ll=38.6851831,15.9206744&amp;q=Spiaggia%20Michelino">Spiaggia Michelino</a> · <a href="https://maps.apple.com/?ll=38.6803337,15.8989905&amp;q=Spiaggia%20della%20Rotonda">Rotonda (Tropea)</a> · <a href="https://maps.apple.com/?ll=38.6807483,15.9008405&amp;q=Spiaggia%20del%20Cannone">Cannone (Tropea)</a> · <a href="https://maps.apple.com/?ll=38.6220564,15.8278409&amp;q=Praia%20i%20Focu">Praia i Focu</a> · <a href="https://maps.apple.com/?ll=38.616587,15.8358067&amp;q=Spiaggia%20di%20Grotticelle">Grotticelle</a></div>
+      </div>
+      <div>
+        <h3>Eat &amp; drink</h3>
+        <ul class="clean">
+          <li><span class="k">Try</span><span>Sweet Tropea red onions, 'nduja, fresh swordfish</span></li>
+          <li><span class="k">Sweet</span><span>Pizzo tartufo, eaten where it was invented</span></li>
+          <li><span class="k">Aperitivo</span><span>Sunset spritz looking west to the Aeolians</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 EAT SHOP DIVE -->
+  <section class="zone-coast">
+    <h3>Driving &amp; parking in Italy</h3>
+    <ul class="clean">
+      <li><span class="k">ZTL zones</span><span>Historic centres — <b>Tropea, Pizzo, Scilla</b> — are ZTL (limited-traffic zones: resident/permit only), marked by a round <b>red-bordered sign</b> with a camera at the entrance. There's no barrier, but drive in without a permit and the camera issues a fine (~€80+) that reaches you weeks later via the hire company. So don't follow the sat-nav into the old town — <b>park just before the ZTL and walk in</b> (centres are small, 5–10 min).</span></li>
+      <li><span class="k">Parking lines</span><span><b>Blue</b> = paid: pay at the <i>parcometro</i> or an app, keep the ticket on the dash (~€10–15/day in peak beach spots). <b>White</b> = free (rare). <b>Yellow</b> = reserved — don't use. The villa's own parking and the beach lidos near Zambrone are outside all this.</span></li>
+    </ul>
+  </section>
+
+  <section class="zone-coast">
+    <h3>World Cup — England <span class="pin">if they progress</span></h3>
+    <p style="margin:0;font-size:14.5px">England could be playing while we're away — possible nights (Italian time): <b>Sat 11, 23:00</b> (quarter-final), the <b>semi Wed 15, 21:00</b>, and the <b>final Sun 19, 21:00</b>. Full fixtures, kick-off times and where to watch near Zambrone are in <a href="#aD">Appendix D</a>.</p>
+  </section>
+
+  <section class="zone-coast" id="s3">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Zambrone — eat &amp; shop</h2></div>
+    <p class="sec-intro">Zambrone is a small village, so the standout eating and the real shopping are a short hop away in Tropea and Pizzo. For the everyday, there's enough on the doorstep — and the diving off Capo Vaticano is the best on this coast.</p>
+
+    <h3>Eating nearby</h3>
+    <ul class="clean">
+      <li><span class="k">Seafood</span><span><b>Fish Food &amp; Fond of the Sea</b> (Contrada Lampasi) — tiny family place serving only what was caught that day; widely called the best fish meal in Calabria. Book ahead.</span></li>
+      <li><span class="k">Pizza</span><span><b>Pizzeria Bidreams</b> (Via del Mare) — wood-fired pizza you can eat on a sunlounger as the sun drops behind Stromboli.</span></li>
+      <li><span class="k">Beach</span><span><b>Lido La Bianca</b> and <b>Sole e Mare</b> — sea-view lidos for easy lunches, drinks and bites.</span></li>
+      <li><span class="k">Gelato</span><span><b>Bar Gelateria La Marinella</b> (by the station) — the local favourite for gelato and coffee.</span></li>
+      <li><span class="k">Big nights</span><span>Save these for <b>Tropea</b> (seafood + the Corso) and <b>Pizzo</b> (tartufo on Piazza della Repubblica).</span></li>
+    </ul>
+
+    <h3>Shopping &amp; supplies</h3>
+    <ul class="clean">
+      <li><span class="k">Daily basics</span><span><b>Al Mio Market</b> (Via Quasimodo) — friendly, well-stocked, and will make beach sandwiches to order. The pick for everyday.</span></li>
+      <li><span class="k">Also handy</span><span><b>Market Alimentari</b> (Via Marina, fresh bread daily) and <b>Supermercato Venere</b> (SS522). Most shops close ~13:00–17:00.</span></li>
+      <li><span class="k">Weekly stock-up</span><span><b>Conad</b> at Ricadi / Santa Domenica (~15 min, toward Capo Vaticano) — a proper supermarket.</span></li>
+      <li><span class="k">Browsing</span><span>For clothes, gifts and souvenirs, <b>Tropea's Corso Vittorio Emanuele</b> is the strip — best in the early evening once it cools.</span></li>
+    </ul>
+
+    <h3>Local markets <span class="pin">mornings · ~8am–1pm</span></h3>
+    <p style="margin:0 0 10px;font-size:14px">Every town has its own weekly market — good for local food and cheap clothes, shoes and textiles. By day, near you:</p>
+    <ul class="clean">
+      <li><span class="k">Mon</span><span>Santa Domenica di Ricadi</span></li>
+      <li><span class="k">Tue</span><span>Spilinga — home of 'nduja</span></li>
+      <li><span class="k">Wed</span><span><b>Zambrone</b> — your own village, on the doorstep</span></li>
+      <li><span class="k">Thu</span><span>Pizzo, Ricadi &amp; Briatico</span></li>
+      <li><span class="k">Fri</span><span>Parghelia, San Nicolò di Ricadi &amp; Zungri</span></li>
+      <li><span class="k">Sat</span><span><b>Tropea</b> (the big one, near the cemetery) &amp; Vibo Valentia</span></li>
+      <li><span class="k">Sun</span><span>Nicotera</span></li>
+    </ul>
+    <div class="callout"><b>The standout:</b> Tropea's big Saturday market — go early before the heat. Tropea also has a small <b>daily produce market</b> by the station, ideal for red onions, warm bread and cheese for the villa.</div>
+
+    <h3>Clothes shopping</h3>
+    <ul class="clean">
+      <li><span class="k">Best bet</span><span><b>Centro Commerciale Vibo Center</b> (~20 min, SS18) — the nearest proper mall: indoor and <b>air-conditioned</b> (a real plus in July), with the high-street chains — H&amp;M, OVS, Stradivarius, Terranova, Sinsay, Pittarosso, Timberland, JD, Tezenis — plus food. The one for actual clothes shopping. Open ~9:00–20:30 (21:00 Sat).</span></li>
+      <li><span class="k">Tropea</span><span><b>Corso Vittorio Emanuele</b> (~10 min) — boutiques, artisan shops, jewellers and souvenirs; a browse-as-an-outing in the early evening.</span></li>
+      <li><span class="k">Vibo V.</span><span><b>Corso Vittorio Emanuele III</b> (~22 min) — the town high street, with the bulk of the Italian-brand shops.</span></li>
+      <li><span class="k">Bargains</span><span>The Saturday markets in Tropea &amp; Vibo for cheap clothes, shoes and textiles.</span></li>
+    </ul>
+    <div class="callout links"><b>Shopping — Open in Google Maps:</b> <a href="https://www.google.com/maps/search/?api=1&amp;query=Centro%20Commerciale%20Vibo%20Center&amp;query_place_id=ChIJC0o6b8VuFRMRMIBTfIVOaq4">Vibo Center (mall)</a> · <a href="https://www.google.com/maps/search/?api=1&amp;query=Tropea%20Corso%20Vittorio%20Emanuele&amp;query_place_id=ChIJrcr7aGVxFRMReOYL_LOepIw">Tropea Corso</a> · <a href="https://www.google.com/maps/search/?api=1&amp;query=Corso%20Vittorio%20Emanuele%20III%20Vibo%20Valentia&amp;query_place_id=ChIJ47d8OY1oFRMRxFcsGHGlmpc">Vibo Valentia Corso</a></div>
+    <div class="callout links"><b>Shopping — Open in Apple Maps (iPhone):</b> <a href="https://maps.apple.com/?ll=38.6535418,16.0541692&amp;q=Vibo%20Center">Vibo Center (mall)</a> · <a href="https://maps.apple.com/?ll=38.6769938,15.8972333&amp;q=Tropea%20Corso">Tropea Corso</a> · <a href="https://maps.apple.com/?ll=38.6738389,16.1009917&amp;q=Vibo%20Valentia%20Corso">Vibo Valentia Corso</a></div>
+
+    <h3>Diving — Cary &amp; Milly</h3>
+    <p style="margin:0 0 8px;font-size:14.5px">Cary and Milly are doing the <b>PADI Open Water</b> course with Piloto at Torre Ruffa (Capo Vaticano): the pool session is <b>Sat 11 (2–4pm)</b>, then open-water dives across the week — mostly afternoons, with perhaps one full day. Full details (course, schedule, PADI IDs, centre, contacts, balance) are in <a href="#aC">Appendix C</a>.</p>
+  </section>
+
+  <!-- 3. THE DRIVE -->
+  <section class="zone-city" id="s4">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Calabria → Rome — the drive, via Pompeii</h2></div>
+    <p class="sec-intro">Sunday 19 July is the road-trip day, broken at Pompeii — it sits right on the route, just off the A3 between Salerno and Naples. An early start keeps it relaxed: ruins by late morning, then on to Rome to drop the car with time to spare.</p>
+    <ul class="clean">
+      <li><span class="k">~07:30</span><span>Leave Zambrone after breakfast. A2 north, toll-free through Calabria.</span></li>
+      <li><span class="k">~11:15</span><span>Arrive <b>Pompeii</b> (~380 km). Park at Porta Marina / Piazza Esedra.</span></li>
+      <li><span class="k">11:30–14:30</span><span>Ruins + lunch. Highlights: the Forum, House of the Faun, Stabian Baths, the Amphitheatre, the plaster casts. Allow ~3 hrs — it's vast, with little shade.</span></li>
+      <li><span class="k">~14:45</span><span>Back on the road — tolled A1 to Rome (~€25–30 tolls all-in, card accepted).</span></li>
+      <li><span class="k">~17:30</span><span>Fuel up, drop the BMW at <b>Fiumicino</b> (Sixt — due by 21:00, so comfortable). Taxi to the aparthotel (~€55, ~40 min).</span></li>
+      <li><span class="k">Evening</span><span>Check in near the Vatican, relaxed dinner. Sightseeing starts properly tomorrow.</span></li>
+    </ul>
+    <div class="callout"><b>Pompeii tickets — booked.</b> All four hold the <b>09:00 morning band</b> (enter any time 09:00–13:00, so your ~11:15 arrival is fine). Cary &amp; Catherine full (€20 each), Abi &amp; Emily free under-18. Print on A4 and keep them on your phones, and bring all four passports — the free tickets are ID-checked. Single entry only; no large bags or umbrellas at the gate (free cloakroom). Hats, water and proper shoes — July is fierce and shade is scarce.</div>
+    <h3>Pompeii — making the most of it</h3>
+    <ul class="clean">
+      <li><span class="k">Prep</span><span>Sturdy closed shoes for all four — the paving is uneven and ankle-turning, no sandals. Hats, high-factor sunscreen, a refillable bottle each (fountains inside to top up). Take only a <b>small bag</b>; anything over 30×30×15 cm goes in the free cloakroom, so leave the rest locked in the car with nothing on show.</span></li>
+      <li><span class="k">Timing</span><span>Your band is 09:00–13:00 — you must be <b>inside by 13:00</b>. Earlier is cooler and quieter (tour groups pour in late morning), so leave Zambrone promptly. July tops 38°C with almost no shade, so a strong <b>~3 hrs</b> is plenty before the heat wins.</span></li>
+      <li><span class="k">At the gate</span><span>Enter at <b>Porta Marina</b>, all four passports in hand (tickets are name-checked). Grab the free map and pick a route. Download the free <b>Rick Steves Pompeii audio tour</b> to your phones beforehand — it brings the place alive far better than the signage (the official app is flaky).</span></li>
+      <li><span class="k">Priorities</span><span>In ~3 hrs aim for the <b>Forum</b> (Vesuvius behind it), the <b>plaster casts</b> at the Garden of the Fugitives, the restored <b>House of the Vettii</b>, the <b>House of the Faun</b>, the <b>Stabian Baths</b>, a <b>thermopolium</b> (ancient fast-food bar) and the <b>Lupanar</b> (the little brothel — do it early before the queue builds).</span></li>
+      <li><span class="k">For the girls</span><span>It's the human detail that lands: chariot ruts worn in the stone, raised stepping-stones, the "Cave Canem" dog mosaic, scratched graffiti, and the body casts — a city frozen mid-morning. A "spot the…" challenge keeps them moving.</span></li>
+    </ul>
+    <div class="callout warn"><b>Check before the day.</b> A day or two ahead, glance at pompeiisites.org news for live closures — through July the <b>Amphitheatre is set up for summer concerts</b> and may only be viewable from the far southern end, and the odd house shuts for maintenance. Single entry only, so it's one continuous visit; eat outside the gate in Pompeii town rather than the hot midday site cafés.</div>
+    <div class="callout"><b>Fuel before you drop.</b> Top up near Fiumicino airport so the car goes back full and you dodge Sixt's refuelling charge. Photograph the car at handover.</div>
+  </section>
+
+  <!-- 4. ROME -->
+  <section class="zone-city" id="s5">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Rome — 3 nights</h2></div>
+    <p class="sec-intro">Based at the Adagio near the Vatican, with the two big-ticket visits booked: Colosseum on Monday, a guided Vatican tour on Tuesday. Wednesday is a relaxed last day before the evening flight. Start early — July is hot and crowded.</p>
+
+    <div class="card">
+      <div class="acc-bar acc-city"></div>
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:14px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:700;font-size:16px">Aparthotel Adagio Rome Vatican</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px">Via Damiano Chiesa 8, Trionfale · Sun 19 → Wed 22 Jul · 2 rooms · Booking.com</div>
+        </div>
+        <span class="chip paid"><span class="dot"></span>£487 · Booked</span>
+      </div>
+    </div>
+    <div class="callout links"><b>Reservation:</b> <a href="https://secure.booking.com/confirmation.en-gb.html?label=en-gb-booking-desktop-VMmKSr1aafFoLdSbpq0nsAS652828998418%3Apl%3Ata%3Ap1%3Ap2%3Aac%3Aap%3Aneg%3Afi%3Atikwd-334108349%3Alp9215033%3Ali%3Adec%3Adm&amp;aid=2311236&amp;auth_key=sM0Xil4IIC3bZ5UQ&amp;source=mytrips">Open the hotel booking on Booking.com</a></div>
+    <div class="callout warn"><b>Further than it sounds — plan on taxis.</b> Despite "Vatican" in the name, the Adagio is a good <b>30+ min walk</b> to the Museums entrance on Viale Vaticano — too far in July's heat. Take a short taxi (~10 min, ~€10–12) to Tuesday's 11:00 tour, and for hopping to the other sights; it's cheap and keeps everyone cool.</div>
+
+    <div class="callout links"><b>Open in Google Maps</b> — tap any spot to navigate: <a href="https://maps.google.com/?cid=262810545675733373">Hotel (Adagio)</a> · <a href="https://maps.google.com/?cid=2950359333223072708">Colosseum</a> · <a href="https://maps.google.com/?cid=14979232533955483318">Vatican Museums</a> · <a href="https://maps.google.com/?cid=8235940740917056131">St Peter's</a> · <a href="https://maps.google.com/?cid=17759648132674796470">Trevi</a> · <a href="https://maps.google.com/?cid=14614574390750662188">Pantheon</a> · <a href="https://maps.google.com/?cid=11769916103722152778">Piazza Navona</a> · <a href="https://maps.google.com/?cid=9205591385677129999">Spanish Steps</a> · <a href="https://maps.google.com/?cid=3921528191373361545">Castel Sant'Angelo</a> · <a href="https://maps.google.com/?cid=16950841178214075972">Villa Borghese</a> · <a href="https://maps.google.com/?cid=4669838674805706072">Tonnarello</a> · <a href="https://maps.google.com/?cid=9374032940627699452">Piccolo Buco</a> · <a href="https://maps.google.com/?cid=17128884956786151693">Ciampino</a> · <a href="https://www.google.com/maps/d/viewer?mid=1KPTpBWOWYUXmR07qSngkZi4yJGSMZok"><b>full interactive map ↗</b></a></div>
+
+    <div class="callout links"><b>Open in Apple Maps</b> (iPhone) — tap to navigate: <a href="https://maps.apple.com/?ll=41.9196877,12.4357489&amp;q=Adagio%20Hotel">Hotel (Adagio)</a> · <a href="https://maps.apple.com/?ll=41.8902102,12.4922309&amp;q=Colosseum">Colosseum</a> · <a href="https://maps.apple.com/?ll=41.9064878,12.4536413&amp;q=Vatican%20Museums">Vatican Museums</a> · <a href="https://maps.apple.com/?ll=41.9021667,12.4539367&amp;q=St%20Peters">St Peter's</a> · <a href="https://maps.apple.com/?ll=41.9009325,12.483313&amp;q=Trevi%20Fountain">Trevi</a> · <a href="https://maps.apple.com/?ll=41.8986108,12.4768729&amp;q=Pantheon">Pantheon</a> · <a href="https://maps.apple.com/?ll=41.8991633,12.4730742&amp;q=Piazza%20Navona">Piazza Navona</a> · <a href="https://maps.apple.com/?ll=41.90599,12.482775&amp;q=Spanish%20Steps">Spanish Steps</a> · <a href="https://maps.apple.com/?ll=41.9030632,12.466276&amp;q=Castel%20SantAngelo">Castel Sant'Angelo</a> · <a href="https://maps.apple.com/?ll=41.9138782,12.4853818&amp;q=Villa%20Borghese">Villa Borghese</a> · <a href="https://maps.apple.com/?ll=41.889804,12.4693004&amp;q=Tonnarello">Tonnarello</a> · <a href="https://maps.apple.com/?ll=41.9012999,12.4846381&amp;q=Piccolo%20Buco">Piccolo Buco</a> · <a href="https://maps.apple.com/?ll=41.7992296,12.5931741&amp;q=Ciampino">Ciampino airport</a></div>
+
+    <h3>The 3 days</h3>
+    <div class="card">
+      <div class="acc-bar acc-city"></div>
+      <div class="day"><div class="dnum"><b>Sun 19</b>Arrive</div><div class="dbody"><b>Late arrival after the drive.</b> Check in, late dinner nearby, early night.</div></div>
+      <div class="day"><div class="dnum"><b>Mon 20</b>Day 1</div><div class="dbody"><b>Centro storico, then Ancient Rome.</b> Taxi into the centre ~09:30 for Trevi, Spanish Steps, Pantheon. Lunch, then <b>Colosseum 12:45</b> (arrive 12:30) → Roman Forum → Palatine. Dinner near Trevi, then the evening stroll back via Piazza Venezia, Trevi, Piazza Navona.<span class="tip">Heads-up: Piccolo Buco (the pizza spot earmarked for tonight) is closed Mondays — pick another nearby pizzeria, or shift Piccolo Buco to Tuesday. Also worth trying for the Colosseum Arena add-on at the gate; your ticket doesn't include it.</span></div></div>
+      <div class="day"><div class="dnum"><b>Tue 21</b>Day 2</div><div class="dbody"><b>The Vatican.</b> Walk over for <b>10:30</b> (tour is <b>11:00</b>). Museums, Gallery of Maps, Raphael Rooms, Sistine Chapel, then St Peter's; optional dome climb. Cross the river at Castel Sant'Angelo. Dinner in Trastevere — <b>Tonnarello</b> (no bookings, expect a queue) or <b>Nannarella</b> as the easier backup. Piazzas and gelato after.</div></div>
+      <div class="day"><div class="dnum"><b>Wed 22</b>Day 3</div><div class="dbody"><b>Food day, your pace.</b> Breakfast, check out by 10:00 (leave bags). Wander Campo de' Fiori market, Piazza Navona, Pantheon, one last Trevi, shops by the Spanish Steps. Long lunch. Optional cooler alternative: shaded Villa Borghese. Back for bags ~16:30, <b>taxi to Ciampino airport 17:00</b>.</div></div>
+    </div>
+
+    <h3>Getting to Ciampino airport <span class="pin">Wed 22 · for 21:45</span></h3>
+    <ul class="clean">
+      <li><span class="k">Why early</span><span>The hotel is from Ciampino airport — allow <b>45–60 min</b>, not the usual 20–30.</span></li>
+      <li><span class="k">Plan</span><span>Taxi <b>~17:00</b>, arrive <b>~18:00</b>. That's a relaxed ~3 hrs before the 21:45 with bags to check.</span></li>
+    </ul>
+  </section>
+
+  <!-- 06 PLACES IN BRIEF -->
+  <section id="s6">
+    <div class="sec-head"><span class="sec-num">06</span><h2>The places, in brief</h2></div>
+    <p class="sec-intro">A quick why-it's-worth-it on each stop — what makes it tick and the family angle.</p>
+
+    <h3 style="color:var(--sea)">Calabria</h3>
+    <div class="card">
+      <div class="acc-bar acc-coast"></div>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Tropea.</b> Voted Italy's most beautiful village: a cliff-top old town of pastel lanes above turquoise water, crowned by the Santa Maria dell'Isola church on its own rock. Easy wins for all four — gelato and people-watching for the girls, a showstopper sunset, and a beach right below. Famous for the sweet red onions you'll see in everything.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Capo Vaticano.</b> One of Italy's most dramatic coastlines — white cliffs dropping into electric-blue coves. The Belvedere viewpoint is a five-minute stop with a huge payoff (Stromboli on the horizon); the hidden beaches below are a snorkelling and boat adventure. It's also your diving base.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Pizzo.</b> A pretty clifftop town with a little seafront castle and one big claim to fame: it's the birthplace of tartufo, a chocolate-bombed ice-cream ball. Compact, walkable, and built around eating gelato by the sea — an easy, happy afternoon.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Zungri caves.</b> A "mini-Matera" of ~100 cave dwellings carved into the rock, with a small museum and a self-guided walk. Shadier and cooler than the beach, genuinely intriguing for kids (people actually lived in these), and cheap — a good change-of-pace morning.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Scilla.</b> A storybook fishing village (Chianalea) of colourful houses rising straight from the sea beneath a castle, tied to the myth of the monster Scylla from the Odyssey. The bigger day out (~1 hr south), rewarded with alleys to the water and a famous swordfish lunch.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Aeolian Islands.</b> A hydrofoil hop to volcanic islands offshore — including Stromboli, which smokes and glows for real. A proper expedition day of black-sand beaches, clear swimming and a live volcano: the standout adventure of the Calabria leg.</p>
+      <p style="margin:0;font-size:14.5px"><b>The boat day.</b> Hiring a small boat (no licence needed) or a guided tour is the only way into Capo Vaticano's secret coves and sea caves. Swimming off the boat in glass-clear water, with the old town seen from the sea — a highlight in its own right, not just transport.</p>
+    </div>
+
+    <h3 style="color:var(--ochre)">On the road</h3>
+    <div class="card">
+      <div class="acc-bar acc-mix"></div>
+      <p style="margin:0;font-size:14.5px"><b>Pompeii.</b> An entire Roman city frozen by Vesuvius in 79 AD — streets, shops, houses, baths, even plaster casts of the people caught in the eruption. It makes ancient history suddenly real in a way no book can, and it's the perfect primer for Rome two days later. Vast and shadeless, so go early with hats and water.</p>
+    </div>
+
+    <h3 style="color:var(--ochre)">Rome</h3>
+    <div class="card">
+      <div class="acc-bar acc-city"></div>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Colosseum, Roman Forum &amp; Palatine.</b> The giant arena where gladiators fought, beside the ruined heart of the ancient city. Far bigger and more astonishing in person than on screen; your timed ticket walks you through the same tiers the Roman crowds did, with the Forum and Palatine filling in the city around it.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Vatican Museums, Sistine Chapel &amp; St Peter's.</b> Corridors of maps and Raphael frescoes leading to Michelangelo's Sistine ceiling, then the vast St Peter's Basilica. Your guided tour means it's explained rather than just gawped at — much better for keeping the girls engaged. Optional dome climb for the best view in Rome.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>The old centre — Pantheon, Navona, Trevi &amp; Spanish Steps.</b> A walkable cluster of Rome's greatest hits: a 2,000-year-old temple with an open dome, a baroque square built over a chariot stadium, the coin-toss fountain, and the famous steps. Best strolled in the cool of the evening with gelato in hand.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Castel Sant'Angelo.</b> A round riverside fortress that began as an emperor's tomb, reached over a bridge lined with stone angels. A short, fun visit with ramparts to roam and a terrace view straight to St Peter's — a natural stop on the walk back from the Vatican.</p>
+      <p style="margin:0 0 12px;font-size:14.5px"><b>Villa Borghese.</b> Rome's great green park — shaded, calm and far cooler than the centre, with rowing boats, bike hire and gardens. The perfect antidote to two days of crowds and stone, and an easy roll downhill to the Spanish Steps.</p>
+      <p style="margin:0;font-size:14.5px"><b>Trastevere.</b> The atmospheric old quarter across the river — ivy-clad lanes, lively piazzas and the city's best casual trattorias. Where you'll have your Roman pasta dinner; come hungry and a little early to beat the queues.</p>
+    </div>
+  </section>
+
+  <!-- 5. CAR -->
+  <section class="zone-coast" id="s7">
+    <div class="sec-head"><span class="sec-num">07</span><h2>The car</h2></div>
+    <p class="sec-intro">One Sixt rental does the whole job: picked up in Calabria, dropped in Rome. Already paid, with the damage waiver included.</p>
+    <div class="card">
+      <div class="acc-bar acc-coast"></div>
+      <ul class="clean" style="margin:0">
+        <li><span class="k">Vehicle</span><span>BMW X3 (group UFAR) — plenty for four plus the cases</span></li>
+        <li><span class="k">Pick up</span><span>Lamezia Terme Airport · Fri 10 Jul · 14:30</span></li>
+        <li><span class="k">Drop off</span><span>Rome Fiumicino · Sun 19 Jul · 21:00 (one-way)</span></li>
+        <li><span class="k">Cover</span><span>LDW + theft cap included (an excess still applies)</span></li>
+        <li><span class="k">Booking</span><span>9732294978 · driver Cary · paid on Amex</span></li>
+        <li><span class="k">Cost</span><span>€1,585.94 all-in</span></li>
+      </ul>
+    </div>
+    <div class="callout"><b>Driving notes.</b> Bring your UK photocard licence. Tropea old town and many centres are ZTL — park outside and walk. Beach car parks run ~€10–15/day. Return the car full and photograph it at both ends.</div>
+  </section>
+
+
+
+  <!-- 7. CHEAT SHEET -->
+  <section id="s8">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Booking cheat-sheet</h2></div>
+    <p class="sec-intro">The times, references and arrive-by windows in one place — the bits that matter on the day.</p>
+    <div class="card ref">
+      <div class="row"><div class="when">Fri 10 · 05:15</div><div class="what"><b>Leave home for Stansted</b> · 40 Chertsey Road, Windlesham GU20 6EP<span>~1h30 via M3 → M25 → M11 (J8) · Meet &amp; Greet drop at terminal ~07:20 · bag drop by 07:30</span></div></div>
+      <div class="row"><div class="when">Fri 10 · 10:20</div><div class="what"><b>Fly Stansted → Lamezia</b> · Ryanair FR2728 (ref RT3Z9S)<span>Bag drop closes 09:40 · gate 10:00 · lands 14:20</span></div></div>
+      <div class="row"><div class="when">Fri 10 · 14:30</div><div class="what"><b>Sixt car pick-up</b> · Lamezia Airport<span>BMW X3 · booking <code>9732294978</code> · driver Cary · UK licence</span></div></div>
+      <div class="row"><div class="when">Sat 11 · 14:00</div><div class="what"><b>Confined-water (pool) dive</b> · Piloto, Torre Ruffa<span>Cary &amp; Milly · exclusive pool 2–4pm · arrive 2pm</span></div></div>
+      <div class="row"><div class="when">Sun 12 on</div><div class="what"><b>Open-water dives (4)</b> · Piloto<span>Cary &amp; Milly · over the following days · mostly afternoons + perhaps one full day · times TBC · Ercole <code>+39 350 908 5955</code></span></div></div>
+      <div class="row"><div class="when">Sun 19 · enter by 13:00</div><div class="what"><b>Pompeii — booked, all 4</b> · Pompei Express, 09:00 band<span>Enter any time 09:00–13:00 · print A4 + save to phones · bring all 4 passports (ID-checked) · single entry · refs: Cary 4SQ5KLU373 · Catherine BPRZC9UNH4 · Abi L9KZTAW4T7 · Emily WINT9YW5CW</span></div></div>
+      <div class="row"><div class="when">Sun 19 · 21:00</div><div class="what"><b>Sixt car drop-off</b> · Rome Fiumicino airport<span>Return full · photograph the car</span></div></div>
+      <div class="row"><div class="when">Mon 20 · 12:45</div><div class="what"><b>Colosseum + Forum + Palatine</b> · arrive 12:30<span>Booking <code>OCO4267037</code> · 75-min Colosseum slot · Arena not included</span></div></div>
+      <div class="row"><div class="when">Tue 21 · 11:00</div><div class="what"><b>Vatican guided tour</b> · arrive 10:30, Viale Vaticano<span>Code <code>2L2N0P8F3TTG95HPY</code> · meet Customer Care outside · English</span></div></div>
+      <div class="row"><div class="when">Wed 22 · 17:00</div><div class="what"><b>Taxi to Ciampino airport</b> · arrive ~18:00<span>For flight 21:45 · allow 45–60 min across the city</span></div></div>
+      <div class="row"><div class="when">Wed 22 · 21:45</div><div class="what"><b>Fly Ciampino → Stansted</b> · Ryanair FR2456 (ref YT9RWI)<span>Lands Stansted 23:25 · same bag allowance as outbound</span></div></div>
+      <div class="row"><div class="when">Wed 22 · 23:25</div><div class="what"><b>Land Stansted, drive home</b><span>Meet &amp; Greet car waiting · in it ~00:30 · home ~01:45 · check overnight M25/M11 roadworks</span></div></div>
+    </div>
+
+    <div class="callout warn">
+      <b>Don't leave home without.</b> Passports / photo ID for <b>all four</b> — Abi and Emily's Colosseum tickets are free on age and their Vatican tickets are reduced (7–18), so they'll be checked. Pack: covered shoulders and knees for St Peter's (dress code enforced), comfortable shoes, refillable water bottles for the heat. Note: Piccolo Buco is closed Mondays — pick another pizzeria near Trevi that night, or save it for Tuesday.
+    </div>
+  </section>
+
+
+  <!-- APPENDICES -->
+  <section id="aA">
+    <div class="sec-head"><span class="sec-num">A</span><h2>UK travel &amp; parking</h2></div>
+    <h3>Getting to Stansted, parking &amp; home</h3>
+    <ul class="clean">
+      <li><span class="k">Leave home</span><span><b>~05:15</b> from 40 Chertsey Road, Windlesham GU20 6EP — ~1h30 via M3 → M25 → M11 (J8). At the car park ~07:00, bag drop by ~07:30. Ryanair bag drop closes 09:40, gate 10:00.</span></li>
+      <li><span class="k">Parking</span><span><b>Booked — Meet &amp; Greet (Onsite)</b> · order <code>STNPARKING-3462429</code> · £146.00 · Fri 10 Jul 06:00 → Thu 23 Jul 00:00. Drop the car at the M&amp;G reception (short walk to check-in); it's waiting for you on return. Up to 6 hrs free overstay if delayed.</span></li>
+      <li><span class="k">Getting home</span><span>Land <b>23:25</b> (Wed 22), car waiting at Meet &amp; Greet — in it ~00:30 after eGates + bag reclaim, <b>home ~01:45</b>. Parking runs to Thu 23 · 00:00 (+6 hrs' grace), so a delay's covered. Check National Highways for overnight M25/M11 roadworks the evening before.</span></li>
+    </ul>
+  </section>
+
+  <section id="aB">
+    <div class="sec-head"><span class="sec-num">B</span><h2>Baggage</h2></div>
+    <div class="callout"><b>Baggage — confirmed.</b> Same allowance both ways, per person: <b>Cary</b> 2×20kg checked; <b>Catherine</b> 1×10kg check-in; <b>Abigail</b> and <b>Milly</b> Priority with a 10kg cabin bag each; plus a free small under-seat bag for all four. (A second 20kg case was added each way to make packing easier.) Separate bookings — outbound ref <code>RT3Z9S</code>, return ref <code>YT9RWI</code> — so at check-in manage each flight under its own reference in the Ryanair app.</div>
+
+    <h3>Luggage allowance <span class="pin">per person · same both ways</span></h3>
+    <p style="margin:0 0 12px;font-size:14px;color:var(--muted)">Who carries what — identical outbound and return (ref <code>RT3Z9S</code> / <code>YT9RWI</code>). A second 20 kg case was added each way to ease Ryanair's tight cabin limits.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:12px">
+      <tr style="background:var(--sea)">
+        <td style="padding:8px 10px;color:#fff;font-weight:700;border-radius:6px 0 0 0">Passenger</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700">Hold (checked)</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700;border-radius:0 6px 0 0">Cabin</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:8px 10px;font-weight:600">Cary</td><td style="padding:8px 10px">2 × 20 kg checked</td><td style="padding:8px 10px">Small under-seat bag</td></tr>
+      <tr style="border-bottom:1px solid var(--line);background:#f1f5f4"><td style="padding:8px 10px;font-weight:600">Catherine</td><td style="padding:8px 10px">1 × 10 kg check-in</td><td style="padding:8px 10px">Small under-seat bag</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:8px 10px;font-weight:600">Abigail</td><td style="padding:8px 10px">—</td><td style="padding:8px 10px">Priority: 10 kg cabin + small under-seat</td></tr>
+      <tr style="background:#f1f5f4"><td style="padding:8px 10px;font-weight:600">Emily (Milly)</td><td style="padding:8px 10px">—</td><td style="padding:8px 10px">Priority: 10 kg cabin + small under-seat</td></tr>
+    </table>
+    <p style="margin:0 0 12px;font-size:14px"><b>Party total (each way):</b> 2 × 20 kg + 1 × 10 kg checked (3 hold bags), 2 × 10 kg cabin bags (Abi & Milly), and a free small under-seat bag for all four. Everyone gets the small under-seat bag automatically; only Abi &amp; Milly have Priority + the larger cabin bag, so they're the two to keep within Ryanair's gate size.</p>
+    <p style="margin:0 0 6px;font-size:14px"><b>Size &amp; weight limits (Ryanair):</b></p>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:10px">
+      <tr style="background:var(--sea)">
+        <td style="padding:8px 10px;color:#fff;font-weight:700;border-radius:6px 0 0 0">Bag</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700">Max size</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700">Weight</td>
+        <td style="padding:8px 10px;color:#fff;font-weight:700;border-radius:0 6px 0 0">Where</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:8px 10px;font-weight:600">Small under-seat bag (all four)</td><td style="padding:8px 10px">40 × 30 × 20 cm</td><td style="padding:8px 10px">—</td><td style="padding:8px 10px">Under the seat in front</td></tr>
+      <tr style="border-bottom:1px solid var(--line);background:#f1f5f4"><td style="padding:8px 10px;font-weight:600">Priority cabin bag (Abi &amp; Milly)</td><td style="padding:8px 10px">55 × 40 × 20 cm</td><td style="padding:8px 10px">10 kg</td><td style="padding:8px 10px">Overhead locker · weighed at gate</td></tr>
+      <tr style="border-bottom:1px solid var(--line)"><td style="padding:8px 10px;font-weight:600">10 kg check-in bag (Catherine)</td><td style="padding:8px 10px">55 × 40 × 20 cm</td><td style="padding:8px 10px">10 kg</td><td style="padding:8px 10px">Drop at check-in desk → hold</td></tr>
+      <tr style="background:#f1f5f4"><td style="padding:8px 10px;font-weight:600">20 kg check-in bag (Cary ×2)</td><td style="padding:8px 10px">80 × 120 × 120 cm</td><td style="padding:8px 10px">20 kg</td><td style="padding:8px 10px">Hold</td></tr>
+    </table>
+    <p style="margin:0;font-size:13px;color:var(--muted)"><b>Sizes include handles and wheels.</b> Over-limit at the gate or desk means fees (Priority cabin overweight is about £11/kg), and any single bag over 32 kg is refused. Ryanair enforces this strictly, so weigh and measure at home — a cheap luggage scale is worth packing.</p>
+  </section>
+
+  <section id="aC">
+    <div class="sec-head"><span class="sec-num">C</span><h2>Diving — Cary &amp; Milly</h2></div>
+    <h3>Diving — you &amp; Milly <span class="pin">booked · Piloto, Torre Ruffa</span></h3>
+    <p style="margin:0 0 10px;font-size:14.5px">You're both booked onto the <b>PADI Open Water</b> course with <b>Piloto Diving</b> at Torre Ruffa, just south of Capo Vaticano (~30 min from the villa) — clear water and easy reefs. The course is the theory eLearning done at home, then confined-water skills plus four open-water dives in resort. Milly does the <b>Junior Open Water</b> version (max 18m, diving with you as her certified buddy).</p>
+    <ul class="clean">
+      <li><span class="k">Course</span><span>PADI Open Water, <b>€460pp</b> all-in (eLearning, full kit, confined water, four open-water dives, certification, boat &amp; instructor). Deposit €200pp paid (27 Jun); <b>~€260pp balance</b> due at the centre.</span></li>
+      <li><span class="k">eLearning</span><span><b>Both complete — Cary passed (98%), Milly passed (96%),</b> with the PADI medical questionnaire done.</span></li>
+      <li><span class="k">In resort</span><span>The confined-water (pool) session — <b>Sat 11 Jul, 2:00–4:00pm</b> at Piloto (exclusive pool, arrive 2pm) — is the fixed slot. After that, the four open-water dives run over the following days <b>from Sun 12 Jul</b> — mostly afternoons, with perhaps one full day; exact times to be set with the centre. Clear of the Pompeii drive on the 19th.</span></li>
+      <li><span class="k">PADI IDs</span><span>Cary <code>34442300</code> · Milly (Emily) <code>34442311</code>.</span></li>
+      <li><span class="k">Centre</span><span><b>Piloto Diving Service</b> · Roller Club Village, Contrada Torre Ruffa, 89866 San Nicolò (Ricadi), Vibo Valentia. Small base by the beach where the dive boats depart.</span></li>
+      <li><span class="k">Contact</span><span>Ercole · WhatsApp <b>+39 350 908 5955</b> · <a href="https://www.pilotodiving.it">pilotodiving.it</a></span></li>
+    </ul>
+    <div class="callout"><b>Ready to go.</b> Theory exams passed, practice swim done, and the schedule's set. First up is the pool session at Piloto, <b>2pm on Sat 11 Jul</b>; the ~€260pp balance is due at the centre.</div>
+  </section>
+
+  <section id="aD">
+    <div class="sec-head"><span class="sec-num">D</span><h2>World Cup — England watch guide</h2></div>
+    <h3>World Cup — England fixtures <span class="pin">while we're away</span></h3>
+    <p style="margin:0 0 10px;font-size:14px">England are into the quarter-finals. Possible remaining games during the trip — kick-offs in Italian time (UK in brackets):</p>
+    <ul class="clean">
+      <li><span class="k">QF (set)</span><span>Norway v England — <b>Sat 11 Jul, 23:00</b> (22:00 UK)</span></li>
+      <li><span class="k">Semi</span><span>If they win — <b>Wed 15 Jul, 21:00</b> (20:00 UK), vs the Argentina/Egypt/Switzerland/Colombia winner</span></li>
+      <li><span class="k">Final</span><span>If they reach it — <b>Sun 19 Jul, 21:00</b> (20:00 UK)</span></li>
+      <li><span class="k">3rd place</span><span>Only if they lose the semi — <b>Sat 18 Jul, 23:00</b> (22:00 UK)</span></li>
+    </ul>
+    <div class="callout"><b>Where to watch.</b> The Sat 11 QF (11pm) is late — best at the villa (TV + Wi-Fi) or a late-opening Tropea bar (<a href="https://maps.apple.com/?ll=38.6763446,15.8965047&amp;q=Tortuga%20Tropea">Tortuga</a> or <a href="https://maps.apple.com/?ll=38.6795472,15.8976272&amp;q=Al%20Migliarese">Al Migliarese</a>, both ~3am) — but check they'll show it, as Italy isn't playing. The <b>Wed 15 semi (9pm)</b> falls neatly in your Zambrone week and is the one to make an occasion of. The <b>Sun 19 final (9pm)</b> is your drive-to-Rome day, so you'd catch that one in Rome.</div>
+  </section>
+
+  <section id="aE">
+    <div class="sec-head"><span class="sec-num">E</span><h2>Costs — what's paid</h2></div>
+    <p class="sec-intro">The big-ticket items are settled. On top sit food, fuel, tolls, taxis, activities and spending money.</p>
+    <div class="card">
+      <table class="bud">
+        <tr><td>Flights — outbound (Ryanair FR2728)</td><td class="amt">£537</td></tr>
+        <tr><td>Flights — return (Ryanair FR2456)</td><td class="amt">€261 · ≈£223</td></tr>
+        <tr><td>Stansted parking — Meet &amp; Greet (10–23 Jul)</td><td class="amt">£146</td></tr>
+        <tr><td>Hire car — Sixt BMW X3, one-way</td><td class="amt">€1,586 · ≈£1,356</td></tr>
+        <tr><td>Zambrone villa — 9 nights (Airbnb)</td><td class="amt">£2,225</td></tr>
+        <tr><td>Rome — Adagio Vatican, 3 nights</td><td class="amt">£487</td></tr>
+        <tr><td>Colosseum — 4 pax</td><td class="amt">€36 · ≈£31</td></tr>
+        <tr><td>Vatican guided tour — 4 pax</td><td class="amt">€140 · ≈£120</td></tr>
+        <tr><td>Pompeii — 4 pax (2 adult)</td><td class="amt">€40 · ≈£34</td></tr>
+        <tr><td>Diving — PADI Open Water ×2 (Piloto)</td><td class="amt">€920 · ≈£790</td></tr>
+        <tr class="total"><td>Booked so far (excl. spending money)</td><td class="amt">≈ £5,950</td></tr>
+      </table>
+      <p style="margin:12px 2px 0;font-size:13px;color:var(--muted)">Everything above is paid except the diving balance — the deposit (€200pp) is paid, with ~€260pp (≈ €520 / £445 total) still due at the centre. Villa paid in two parts (£444.94 + £1,779.72); parking paid in full. Euro figures converted at roughly €1.17 to £1. On top sit food, fuel, tolls, taxis and spending money.</p>
+    </div>
+  </section>
+
+  <footer>
+    Gibbs Family · Italy 2026 · master plan · all key bookings confirmed · fuel, tolls &amp; taxi fares are estimates
+  </footer>
+
+</div>
+</body>
+</html>
