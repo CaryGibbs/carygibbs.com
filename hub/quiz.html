@@ -190,6 +190,29 @@
     .match-item.matched-wrong   { border-color: var(--color-danger);  background: rgba(255,107,107,0.1); color: var(--color-danger); }
     .match-item.used { opacity: 0.4; cursor: default; }
     .match-lines { display: none; } /* visual lines — handled by colour */
+    .match-num {
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; margin-right: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800; background: currentColor;
+    }
+    .match-num span { color: var(--color-surface); }
+    .match-review { margin-top: var(--space-md); display: flex; flex-direction: column; gap: var(--space-sm); }
+    .match-review-title { font-family: var(--font-ui); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); }
+    .mr-row {
+      display: grid; grid-template-columns: 28px 1fr; gap: 4px var(--space-sm); align-items: start;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-success); border-radius: var(--radius-button); padding: 10px var(--space-md);
+    }
+    .mr-row.wrong { border-left-color: var(--color-danger); }
+    .mr-icon { font-size: 1rem; line-height: 1.4; }
+    .mr-term { font-family: var(--font-ui); font-weight: 700; font-size: 0.9rem; color: var(--color-text); }
+    .mr-answer { grid-column: 2; font-size: 0.88rem; color: var(--color-success); }
+    .mr-answer::before { content: '→ '; }
+    .mr-yours { grid-column: 2; font-size: 0.8rem; color: var(--color-danger); text-decoration: line-through; opacity: 0.85; }
+    .mr-yours-label { text-decoration: none; display: inline-block; margin-right: 4px; }
+    .model-answer { margin-top: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--color-border); font-size: 0.86rem; color: var(--color-text-muted); line-height: 1.6; white-space: pre-line; }
+    .model-answer strong { color: var(--color-success); font-family: var(--font-ui); }
+    @media (max-width: 600px) { .match-item { font-size: 0.82rem; padding: 8px 10px; } }
 
     /* ── Short written ───────────────────────────────────── */
     .short-wrap { margin-top: var(--space-lg); }
@@ -381,6 +404,7 @@
             <div class="match-items" id="match-right"></div>
           </div>
         </div>
+        <div class="match-review" id="match-review" style="display:none;"></div>
       </div>
     </div>
 
@@ -400,6 +424,7 @@
               <div class="ai-score-label" id="ai-score-label"></div>
             </div>
             <div class="ai-feedback" id="ai-feedback"></div>
+            <div class="model-answer" id="model-answer" style="display:none;"></div>
           </div>
         </div>
       </div>
@@ -713,6 +738,7 @@ function renderQuestion() {
 
   // Reset AI marking
   document.getElementById('ai-marking-wrap').classList.remove('visible');
+  document.getElementById('model-answer').style.display = 'none';
   document.getElementById('ai-thinking').style.display = 'flex';
   document.getElementById('ai-result').style.display = 'none';
 
@@ -767,7 +793,10 @@ function renderFill(q) {
 
 function renderMatch(q) {
   document.getElementById('input-match').style.display = 'block';
-  matchState = { selectedLeft: null, matched: 0, total: (q.pairs||[]).length, pairs: q.pairs };
+  matchState = { selectedLeft: null, matched: 0, wrongMatches: 0, total: (q.pairs||[]).length, pairs: q.pairs, picks: {} };
+  const review = document.getElementById('match-review');
+  review.style.display = 'none'; review.innerHTML = '';
+  document.querySelector('#input-match .match-cols').style.display = '';
 
   const leftEl  = document.getElementById('match-left');
   const rightEl = document.getElementById('match-right');
@@ -862,6 +891,10 @@ function handleMatchClick(item, side) {
     leftItem.classList.remove('selected');
     leftItem.classList.add(correct ? 'matched-correct' : 'matched-wrong');
     item.classList.add(correct ? 'matched-correct' : 'matched-wrong');
+    // Number both sides so it's clear which went with which
+    matchState.picks[leftIdx] = rightIdx;
+    const n = Object.keys(matchState.picks).length;
+    [leftItem, item].forEach(el => el.insertAdjacentHTML('afterbegin', `<span class="match-num"><span>${n}</span></span>`));
     leftItem.style.pointerEvents = 'none';
     item.style.pointerEvents = 'none';
     matchState.selectedLeft = null;
@@ -875,12 +908,33 @@ function handleMatchClick(item, side) {
       answered = true;
       const allCorrect = matchState.matched === matchState.total;
       if (allCorrect) score++;
-      showFeedback(allCorrect,
-        allCorrect ? 'All pairs matched correctly!' : 'Some pairs were incorrect.',
-        allCorrect ? '' : 'Review the correct matches above.');
+      if (!allCorrect) showMatchReview();
+      const summary = allCorrect
+        ? 'All pairs matched correctly!'
+        : `You got ${matchState.matched} of ${matchState.total} pairs right. The correct pairs are shown above.`;
+      showFeedback(allCorrect, [summary, questions[currentIdx]?.explanation].filter(Boolean).join(' '));
       showNextBtn();
     }
   }
+}
+
+// Replace the two columns with a clear list of the correct pairs
+function showMatchReview() {
+  const pairs = matchState.pairs || [];
+  const review = document.getElementById('match-review');
+  review.innerHTML = `<div class="match-review-title">Correct pairs</div>` + pairs.map((p, i) => {
+    const pick = matchState.picks[i];
+    const right = pick === i;
+    const yours = pick !== undefined && !right ? pairs[pick]?.right : '';
+    return `<div class="mr-row${right ? '' : ' wrong'}">
+      <div class="mr-icon">${right ? '✅' : '❌'}</div>
+      <div class="mr-term">${esc(p.left)}</div>
+      <div class="mr-answer">${esc(p.right)}</div>
+      ${yours ? `<div class="mr-yours"><span class="mr-yours-label">You picked:</span> ${esc(yours)}</div>` : ''}
+    </div>`;
+  }).join('');
+  document.querySelector('#input-match .match-cols').style.display = 'none';
+  review.style.display = 'flex';
 }
 
 /* ── Submit answer ───────────────────────────────────────── */
@@ -918,8 +972,8 @@ window._submitAnswer = function() {
     inp.disabled = true;
     inp.classList.add(correct ? 'correct' : 'wrong');
 
-    if (correct) { score++; showFeedback(true, ''); }
-    else showFeedback(false, '', `Correct answer: ${q.answer}`);
+    if (correct) { score++; showFeedback(true, q.explanation || ''); }
+    else showFeedback(false, q.explanation || '', `Correct answer: ${q.answer}`);
     showNextBtn();
   }
 
@@ -979,13 +1033,23 @@ Respond ONLY with a JSON object in this exact format (no markdown, no backticks)
 
     // Count as correct if ≥ 60%
     if (result.score / result.outOf >= 0.6) score++;
+    showModelAnswer(q);
   } catch(e) {
     document.getElementById('ai-thinking').style.display = 'none';
     document.getElementById('ai-result').style.display = 'block';
     document.getElementById('ai-score-badge').textContent = '?/5';
     document.getElementById('ai-feedback').textContent = 'Could not mark automatically. Check with your teacher.';
+    showModelAnswer(q);
   }
   showNextBtn();
+}
+
+function showModelAnswer(q) {
+  const el = document.getElementById('model-answer');
+  const model = q.markScheme || q.modelAnswer || '';
+  if (!model) { el.style.display = 'none'; return; }
+  el.innerHTML = `<strong>What a full answer includes:</strong><br>${esc(model)}`;
+  el.style.display = 'block';
 }
 
 /* ── Feedback helpers ────────────────────────────────────── */
