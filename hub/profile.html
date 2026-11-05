@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — My Profile</title>
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="stats.css">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -96,24 +97,6 @@
       margin-bottom: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);
     }
 
-    /* ── Badges ──────────────────────────────────────────── */
-    .badges-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: var(--space-sm);
-    }
-    .badge-card {
-      background: var(--color-surface); border: 1px solid var(--color-border);
-      border-radius: var(--radius-card); padding: var(--space-md);
-      text-align: center; transition: all var(--transition-fast);
-      animation: fadeIn 0.3s ease both;
-    }
-    .badge-card.earned { border-color: var(--color-primary); }
-    .badge-card.earned:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
-    .badge-card.locked { opacity: 0.35; filter: grayscale(1); }
-    .badge-icon { font-size: 1.8rem; margin-bottom: 6px; }
-    .badge-name { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; color: var(--color-text); margin-bottom: 3px; }
-    .badge-desc { font-size: 0.7rem; color: var(--color-text-muted); line-height: 1.4; }
-
     /* ── Level ladder ────────────────────────────────────── */
     .level-ladder { display: flex; flex-direction: column; gap: var(--space-sm); }
     .level-row {
@@ -149,53 +132,10 @@
     .score-mid  { color: var(--color-warning); }
     .score-low  { color: var(--color-danger); }
 
-    /* ── Time & subject stats ────────────────────────────── */
-    .time-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); margin-bottom: var(--space-md); }
-    .time-tile { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-md); text-align: center; }
-    .time-tile-val { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 800; color: var(--color-text); }
-    .time-tile-label { font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-    .day-chart { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-md) var(--space-md) var(--space-sm); }
-    .day-bars { display: flex; align-items: flex-end; gap: 4px; height: 140px; }
-    .day-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
-    .day-val { font-family: var(--font-ui); font-size: 0.62rem; color: var(--color-text-muted); margin-bottom: 3px; white-space: nowrap; }
-    .day-bar { width: 100%; max-width: 28px; background: var(--color-primary); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.6s ease; }
-    .day-bar.empty { background: var(--color-border); }
-    .day-labels { display: flex; gap: 4px; margin-top: 6px; border-top: 1px solid var(--color-border); padding-top: 4px; }
-    .day-labels span { flex: 1; text-align: center; font-family: var(--font-ui); font-size: 0.62rem; line-height: 1.3; color: var(--color-text-muted); min-width: 0; overflow: hidden; }
-    .day-labels span.today { color: var(--color-primary); font-weight: 700; }
-    .subject-list { display: flex; flex-direction: column; gap: var(--space-sm); }
-    .subject-row { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-button); padding: 10px var(--space-md); }
-    .subject-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-sm); }
-    .subject-name { font-family: var(--font-ui); font-size: 0.9rem; font-weight: 700; }
-    .subject-time { font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; white-space: nowrap; }
-    .subject-track { height: 6px; background: var(--color-surface-2); border-radius: var(--radius-pill); margin: 6px 0 4px; overflow: hidden; }
-    .subject-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-pill); }
-    .subject-meta { font-size: 0.76rem; color: var(--color-text-muted); }
-    .badge-subhead { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); margin: var(--space-md) 0 var(--space-sm); }
-    .badge-subhead:first-child { margin-top: 0; }
-    .badge-card { position: relative; }
-    .badge-card.earned { border-color: var(--tier-colour, var(--color-primary)); box-shadow: inset 0 0 0 1px var(--tier-colour, transparent); }
-    .badge-tier { display: inline-block; font-family: var(--font-ui); font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--tier-colour); margin-bottom: 2px; }
-    .goal-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-sm); }
-    .goal-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 12px var(--space-md); display: flex; gap: var(--space-md); align-items: center; }
-    .goal-icon { font-size: 1.7rem; width: 40px; text-align: center; flex-shrink: 0; filter: grayscale(0.6); opacity: 0.85; }
-    .goal-body { flex: 1; min-width: 0; }
-    .goal-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-sm); }
-    .goal-name { font-family: var(--font-ui); font-size: 0.86rem; font-weight: 700; color: var(--color-text); }
-    .goal-count { font-family: var(--font-ui); font-size: 0.74rem; font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
-    .goal-desc { font-size: 0.74rem; color: var(--color-text-muted); margin: 1px 0 6px; }
-    .goal-track { height: 6px; background: var(--color-surface-2); border-radius: var(--radius-pill); overflow: hidden; }
-    .goal-fill { height: 100%; border-radius: var(--radius-pill); background: var(--tier-colour, var(--color-primary)); }
-    .goal-more { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px; }
-    .goal-done { font-size: 0.74rem; color: var(--color-success); font-weight: 700; }
-
     .empty-state { text-align: center; padding: var(--space-xl); color: var(--color-text-muted); font-size: 0.9rem; }
 
     @media (max-width: 600px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .day-val { display: none; }
-      .day-bars, .day-labels { gap: 2px; }
-      .day-labels span { font-size: 0.56rem; letter-spacing: -0.02em; }
       .profile-hero { flex-direction: column; text-align: center; gap: var(--space-lg); }
       .topnav { padding: 0 var(--space-md); }
       .page { padding: var(--space-lg) var(--space-md); }
@@ -243,37 +183,8 @@
     <div class="stat-card"><div class="stat-val" id="stat-streak">0🔥</div><div class="stat-label">Streak</div></div>
   </div>
 
-  <!-- Next goals -->
-  <div class="section">
-    <div class="section-title">🎯 Next goals</div>
-    <div class="goal-list" id="goal-list"></div>
-  </div>
-
-  <!-- Badges -->
-  <div class="section">
-    <div class="section-title">🏅 Badges <span style="font-size:0.8rem;font-weight:400;color:var(--color-text-muted);" id="badge-count"></span></div>
-    <div id="badges-wrap"></div>
-  </div>
-
-  <!-- Revision time -->
-  <div class="section">
-    <div class="section-title">⏱️ Revision time</div>
-    <div class="time-tiles">
-      <div class="time-tile"><div class="time-tile-val" id="time-today">0m</div><div class="time-tile-label">Today</div></div>
-      <div class="time-tile"><div class="time-tile-val" id="time-week">0m</div><div class="time-tile-label">Last 7 days</div></div>
-      <div class="time-tile"><div class="time-tile-val" id="time-total">0m</div><div class="time-tile-label">All time</div></div>
-    </div>
-    <div class="day-chart">
-      <div class="day-bars" id="day-bars"></div>
-      <div class="day-labels" id="day-labels"></div>
-    </div>
-  </div>
-
-  <!-- By subject -->
-  <div class="section">
-    <div class="section-title">📚 By subject</div>
-    <div class="subject-list" id="subject-list"></div>
-  </div>
+  <!-- Goals, time, subjects, badges (shared with the hub) -->
+  <div id="stats-root"></div>
 
   <!-- Level ladder -->
   <div class="section">
@@ -298,7 +209,8 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut } from './auth.js';
-import { getLevelInfo, LEVELS, BADGES, BADGE_FAMILIES, TIERS, badgeProgress } from './gamification.js';
+import { getLevelInfo, LEVELS, BADGES } from './gamification.js';
+import { statsSectionsHtml, renderStats } from './stats.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 requireAuth(async (user, profile) => {
@@ -361,18 +273,13 @@ requireAuth(async (user, profile) => {
     </div>`;
   }).join('');
 
-  // Badges: progress, catch up any already-qualified badges, then render
-  const badgeProg = badgeProgress(profile);
-  const owed = badgeProg.filter(b => b.earned && !badges.includes(b.id)).map(b => b.id);
+  // Goals, time, subjects and badges (shared with the hub)
+  document.getElementById('stats-root').innerHTML = statsSectionsHtml();
+  const owed = renderStats(profile);
   if (owed.length) {
-    badges.push(...owed);
-    updateDoc(doc(db, 'users', user.uid), { badges }).catch(() => {});
+    updateDoc(doc(db, 'users', user.uid), { badges: [...(profile.badges || []), ...owed] }).catch(() => {});
     showToast(`🎉 ${owed.length} new badge${owed.length !== 1 ? 's' : ''} unlocked!`, 'success');
   }
-  renderBadges(badgeProg);
-
-  renderTimeStats(sessions);
-  renderSubjectStats(sessions);
 
   // Sessions
   const list = document.getElementById('sessions-list');
@@ -398,147 +305,6 @@ requireAuth(async (user, profile) => {
   document.getElementById('loading-wrap').style.display = 'none';
   document.getElementById('page-content').style.display = 'block';
 });
-
-/* ── Badges ──────────────────────────────────────────────── */
-function renderBadges(progress) {
-  const earnedCount = progress.filter(b => b.earned).length;
-  document.getElementById('badge-count').textContent = `${earnedCount} / ${progress.length} earned`;
-
-  const card = (b) => {
-    const tier = TIERS[b.tier];
-    return `<div class="badge-card ${b.earned ? 'earned' : 'locked'}" style="--tier-colour:${tier.colour}" title="${esc(b.desc)}">
-      <div class="badge-icon">${b.icon}</div>
-      <div class="badge-tier">${tier.name}</div>
-      <div class="badge-name">${esc(b.name)}</div>
-      <div class="badge-desc">${esc(b.desc)}</div>
-    </div>`;
-  };
-
-  // Next goals: the next unearned badge in each family, closest first
-  const goals = [];
-  BADGE_FAMILIES.forEach(f => {
-    const fam = progress.filter(b => b.family === f.id).sort((a, b) => a.tier - b.tier || a.target - b.target);
-    const remaining = fam.filter(b => !b.earned);
-    if (remaining.length) goals.push({ f, next: remaining[0], after: remaining.length - 1 });
-  });
-  goals.sort((a, b) => b.next.pct - a.next.pct);
-  const goalList = document.getElementById('goal-list');
-  goalList.innerHTML = goals.length ? goals.map(({ f, next, after }) => {
-    const tier = TIERS[next.tier];
-    return `<div class="goal-card" style="--tier-colour:${tier.colour}">
-      <div class="goal-icon">${next.icon}</div>
-      <div class="goal-body">
-        <div class="goal-top">
-          <div class="goal-name">${esc(next.name)} <span class="badge-tier">${tier.name}</span></div>
-          <div class="goal-count">${next.value} / ${next.target}</div>
-        </div>
-        <div class="goal-desc">${esc(next.desc)}</div>
-        <div class="goal-track"><div class="goal-fill" style="width:${Math.max(next.pct, 3)}%"></div></div>
-        ${after ? `<div class="goal-more">${f.icon} ${esc(f.name)}: ${after} harder tier${after !== 1 ? 's' : ''} after this</div>` : `<div class="goal-more">${f.icon} ${esc(f.name)}: final tier</div>`}
-      </div>
-    </div>`;
-  }).join('') : '<div class="goal-done">🏆 Every badge earned. Incredible work!</div>';
-
-  // Earned badges, then the full collection grouped by family
-  const earned = progress.filter(b => b.earned).sort((a, b) => b.tier - a.tier);
-  let html = `<div class="badge-subhead">✅ Earned (${earned.length})</div>` +
-    (earned.length
-      ? `<div class="badges-grid">${earned.map(card).join('')}</div>`
-      : `<div class="empty-state" style="padding:var(--space-md);">None yet. Finish a quiz to earn your first!</div>`);
-  const locked = progress.filter(b => !b.earned);
-  if (locked.length) {
-    html += `<div class="badge-subhead">🔒 Still to unlock (${locked.length})</div>`;
-    BADGE_FAMILIES.forEach(f => {
-      const fam = locked.filter(b => b.family === f.id).sort((a, b) => a.tier - b.tier || a.target - b.target);
-      if (!fam.length) return;
-      html += `<div style="font-family:var(--font-ui);font-size:0.8rem;font-weight:700;margin:var(--space-md) 0 var(--space-xs);">${f.icon} ${esc(f.name)} <span style="font-weight:400;color:var(--color-text-muted);">· ${esc(f.blurb)}</span></div>
-        <div class="badges-grid">${fam.map(card).join('')}</div>`;
-    });
-  }
-  document.getElementById('badges-wrap').innerHTML = html;
-}
-
-/* ── Time helpers ────────────────────────────────────────── */
-function secsOf(s) {
-  if (typeof s.secondsSpent === 'number') return s.secondsSpent;
-  return (s.minutesSpent || 0) * 60;
-}
-function fmtTime(secs) {
-  const m = Math.round(secs / 60);
-  if (m < 1) return secs > 0 ? '<1m' : '0m';
-  if (m < 60) return m + 'm';
-  const h = Math.floor(m / 60), r = m % 60;
-  return r ? `${h}h ${r}m` : `${h}h`;
-}
-function dayKey(ts) {
-  const d = new Date(ts);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
-function renderTimeStats(sessions) {
-  const DAYS = 14;
-  const now = new Date();
-  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const byDay = {};
-  let total = 0, week = 0;
-  sessions.forEach(s => {
-    const secs = secsOf(s);
-    total += secs;
-    if (!s.date) return;
-    byDay[dayKey(s.date)] = (byDay[dayKey(s.date)] || 0) + secs;
-    if (s.date >= startToday - 6 * 86400000) week += secs;
-  });
-  document.getElementById('time-today').textContent = fmtTime(byDay[dayKey(now)] || 0);
-  document.getElementById('time-week').textContent  = fmtTime(week);
-  document.getElementById('time-total').textContent = fmtTime(total);
-
-  const days = [];
-  for (let i = DAYS - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    days.push({ d, secs: byDay[dayKey(d)] || 0, today: i === 0 });
-  }
-  const max = Math.max(60, ...days.map(x => x.secs));
-  document.getElementById('day-bars').innerHTML = days.map(x => {
-    const h = x.secs ? Math.max(4, Math.round((x.secs / max) * 100)) : 2;
-    const title = `${x.d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' })}: ${fmtTime(x.secs)}`;
-    return `<div class="day-col" title="${title}">
-      <div class="day-val">${x.secs ? fmtTime(x.secs) : ''}</div>
-      <div class="day-bar${x.secs ? '' : ' empty'}" style="height:${h}%"></div>
-    </div>`;
-  }).join('');
-  document.getElementById('day-labels').innerHTML = days.map(x =>
-    `<span class="${x.today ? 'today' : ''}">${x.d.toLocaleDateString('en-GB', { weekday:'short' })}<br>${x.d.getDate()}</span>`
-  ).join('');
-}
-
-function renderSubjectStats(sessions) {
-  const subj = {};
-  sessions.forEach(s => {
-    const name = s.subject || 'Other';
-    const r = subj[name] = subj[name] || { secs: 0, quizzes: 0, pctSum: 0, last: 0 };
-    r.secs += secsOf(s); r.quizzes++; r.pctSum += (s.pct || 0); r.last = Math.max(r.last, s.date || 0);
-  });
-  const rows = Object.entries(subj).sort((a, b) => b[1].secs - a[1].secs || b[1].quizzes - a[1].quizzes);
-  const list = document.getElementById('subject-list');
-  if (!rows.length) {
-    list.innerHTML = '<div class="empty-state">Your subjects will appear here once you\'ve done a quiz.</div>';
-    return;
-  }
-  const maxSecs = Math.max(1, ...rows.map(([, r]) => r.secs));
-  list.innerHTML = rows.map(([name, r]) => {
-    const avg = Math.round(r.pctSum / r.quizzes);
-    const cls = avg >= 80 ? 'score-good' : avg >= 50 ? 'score-mid' : 'score-low';
-    const last = r.last ? new Date(r.last).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '';
-    return `<div class="subject-row">
-      <div class="subject-top">
-        <div class="subject-name">${esc(name)}</div>
-        <div class="subject-time">${fmtTime(r.secs)}</div>
-      </div>
-      <div class="subject-track"><div class="subject-fill" style="width:${Math.round(r.secs / maxSecs * 100)}%"></div></div>
-      <div class="subject-meta">${r.quizzes} quiz${r.quizzes !== 1 ? 'zes' : ''} · avg <span class="${cls}" style="font-weight:700;">${avg}%</span>${last ? ' · last ' + last : ''}</div>
-    </div>`;
-  }).join('');
-}
 
 function esc(str) {
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
