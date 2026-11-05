@@ -454,11 +454,11 @@ function renderGamification(profile) {
   const earnedIds = profile.badges || [];
   const row = document.getElementById('badges-row');
   if (earnedIds.length) {
-    row.innerHTML = earnedIds.map(id => {
-      const b = BADGES.find(x => x.id === id);
-      if (!b) return '';
-      return `<div class="badge-chip" title="${esc(b.desc)}">${b.icon} ${esc(b.name)}</div>`;
-    }).join('');
+    // Newest first, capped so the row stays tidy; the rest are on the profile page
+    const shown = earnedIds.slice().reverse().map(id => BADGES.find(x => x.id === id)).filter(Boolean);
+    row.innerHTML = shown.slice(0, 8).map(b =>
+      `<div class="badge-chip" title="${esc(b.desc)}">${b.icon} ${esc(b.name)}</div>`
+    ).join('') + `<a href="profile.html" class="badge-chip" style="text-decoration:none;">${shown.length > 8 ? '+' + (shown.length - 8) + ' more · ' : ''}${BADGES.length - shown.length} to unlock →</a>`;
   } else {
     row.innerHTML = '<div style="font-size:0.82rem;color:var(--color-text-muted);font-family:var(--font-ui);">Complete quizzes to earn badges 🏅</div>';
   }

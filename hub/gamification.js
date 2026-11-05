@@ -27,38 +27,6 @@ export const LEVELS = [
   { level: 6, name: 'Legend',    xpRequired: 2500, icon: '🏆', colour: '#ff6b6b' },
 ];
 
-/* ── Badge definitions ───────────────────────────────────── */
-export const BADGES = [
-  // Quiz milestones
-  { id: 'first_quiz',     name: 'First Steps',      icon: '🎯', desc: 'Completed your first quiz' },
-  { id: 'quiz_10',        name: 'Committed',         icon: '🔟', desc: 'Completed 10 quizzes' },
-  { id: 'quiz_25',        name: 'Dedicated',         icon: '💪', desc: 'Completed 25 quizzes' },
-  { id: 'quiz_50',        name: 'Quiz Legend',       icon: '🏅', desc: 'Completed 50 quizzes' },
-  // Score milestones
-  { id: 'perfect_score',  name: 'Perfectionist',     icon: '💯', desc: 'Scored 100% on a quiz' },
-  { id: 'high_scorer',    name: 'High Achiever',     icon: '🌟', desc: 'Scored 80%+ five times' },
-  // Streaks
-  { id: 'streak_3',       name: 'On a Roll',         icon: '🔥', desc: '3-day revision streak' },
-  { id: 'streak_7',       name: 'Week Warrior',      icon: '⚡', desc: '7-day revision streak' },
-  { id: 'streak_30',      name: 'Unstoppable',       icon: '🚀', desc: '30-day revision streak' },
-  // Exploration
-  { id: 'first_mindmap',  name: 'Map Reader',        icon: '🗺️',  desc: 'Viewed your first mindmap' },
-  { id: 'mindmap_10',     name: 'Visual Learner',    icon: '🕸️',  desc: 'Viewed 10 mindmaps' },
-  // Level ups
-  { id: 'level_explorer', name: 'Explorer',          icon: '🧭', desc: 'Reached Explorer level' },
-  { id: 'level_scholar',  name: 'Scholar',           icon: '📚', desc: 'Reached Scholar level' },
-  { id: 'level_expert',   name: 'Expert',            icon: '🔬', desc: 'Reached Expert level' },
-  { id: 'level_master',   name: 'Master',            icon: '⭐', desc: 'Reached Master level' },
-  { id: 'level_legend',   name: 'Legend',            icon: '🏆', desc: 'Reached Legend level' },
-  // Question types
-  { id: 'pen_to_paper',   name: 'Pen to Paper',      icon: '✏️', desc: 'Finished a quiz with written answers' },
-  { id: 'all_rounder',    name: 'All-Rounder',       icon: '🧩', desc: 'Tried every question type' },
-  { id: 'mix_master',     name: 'Mix Master',        icon: '🎨', desc: 'Finished a quiz with all 5 question types' },
-  { id: 'wordsmith',      name: 'Wordsmith',         icon: '🖋️', desc: 'Finished 5 quizzes with written answers' },
-];
-
-export const QUESTION_TYPES = ['mcq', 'tf', 'fill', 'match', 'short'];
-
 /* ── Level helpers ───────────────────────────────────────── */
 export function getLevelInfo(totalXp) {
   let current = LEVELS[0];
@@ -104,55 +72,225 @@ export function updateStreak(profile) {
   return { streak, lastRevisionDate: now, streakBonus };
 }
 
-/* ── Badge checker ───────────────────────────────────────── */
-export function checkBadges(profile, newSessionPct, source) {
-  const earned       = new Set(profile.badges || []);
-  const newlyEarned  = [];
-  const sessions     = profile.sessions || [];
-  // quiz.html saves the new session before calling awardXp, so it is already in `sessions`
-  const totalQuizzes = sessions.length;
-  const highScores   = sessions.filter(s => s.pct >= 80).length;
-  // Question type badges (sessions before Nov 2026 have no `types` field)
-  const typesTried   = new Set(sessions.flatMap(s => s.types || []));
-  const writtenCount = sessions.filter(s => (s.types || []).includes('short')).length;
-  const lastTypes    = source === 'quiz' ? (sessions[sessions.length - 1]?.types || []) : [];
-  const mindmaps     = (profile.mindmapsViewed || 0) + (source === 'mindmap' ? 1 : 0);
-  const streak       = profile.streak || 0;
-  const totalXp      = (profile.xp || 0);
-  const level        = getLevelInfo(totalXp).current;
+/* ── Badge definitions ───────────────────────────────────── */
+// Badges are grouped into families. Each family has tiers that get
+// progressively harder, so there is always a next goal to aim for.
+// `metric` is computed by computeMetrics(); a badge is earned when
+// metrics[metric] >= target. IDs of the original badges are kept so
+// nothing already earned is lost.
 
-  const checks = [
-    { id: 'first_quiz',     pass: source === 'quiz' && totalQuizzes >= 1 },
-    { id: 'quiz_10',        pass: totalQuizzes >= 10 },
-    { id: 'quiz_25',        pass: totalQuizzes >= 25 },
-    { id: 'quiz_50',        pass: totalQuizzes >= 50 },
-    { id: 'perfect_score',  pass: source === 'quiz' && newSessionPct === 100 },
-    { id: 'high_scorer',    pass: highScores >= 5 },
-    { id: 'streak_3',       pass: streak >= 3 },
-    { id: 'streak_7',       pass: streak >= 7 },
-    { id: 'streak_30',      pass: streak >= 30 },
-    { id: 'first_mindmap',  pass: source === 'mindmap' && mindmaps >= 1 },
-    { id: 'mindmap_10',     pass: mindmaps >= 10 },
-    { id: 'level_explorer', pass: level.level >= 2 },
-    { id: 'level_scholar',  pass: level.level >= 3 },
-    { id: 'level_expert',   pass: level.level >= 4 },
-    { id: 'level_master',   pass: level.level >= 5 },
-    { id: 'level_legend',   pass: level.level >= 6 },
-    { id: 'pen_to_paper',   pass: writtenCount >= 1 },
-    { id: 'all_rounder',    pass: QUESTION_TYPES.every(t => typesTried.has(t)) },
-    { id: 'mix_master',     pass: QUESTION_TYPES.every(t => lastTypes.includes(t)) },
-    { id: 'wordsmith',      pass: writtenCount >= 5 },
-  ];
+export const TIERS = {
+  1: { name: 'Bronze',   colour: '#cd7f32' },
+  2: { name: 'Silver',   colour: '#8a9bb0' },
+  3: { name: 'Gold',     colour: '#e0a800' },
+  4: { name: 'Platinum', colour: '#7c6cf0' },
+};
 
-  checks.forEach(({ id, pass }) => {
-    if (pass && !earned.has(id)) {
-      earned.add(id);
-      newlyEarned.push(id);
+export const BADGE_FAMILIES = [
+  { id: 'days',     name: 'Showing up',       icon: '📅', blurb: 'Revise on lots of different days' },
+  { id: 'streak',   name: 'Streaks',          icon: '🔥', blurb: 'Revise on days in a row' },
+  { id: 'time',     name: 'Time invested',    icon: '⏱️', blurb: 'Build up total revision time' },
+  { id: 'week',     name: 'Big weeks',        icon: '💪', blurb: 'Put the hours in within one week' },
+  { id: 'quizzes',  name: 'Quizzes',          icon: '🎯', blurb: 'Finish quizzes' },
+  { id: 'improve',  name: 'Getting better',   icon: '📈', blurb: 'Retry a topic and beat your first score' },
+  { id: 'leap',     name: 'Big leaps',        icon: '🚀', blurb: 'Make a big jump on a topic you found hard' },
+  { id: 'mastery',  name: 'Topic mastery',    icon: '🎓', blurb: 'Score 80%+ on different topics' },
+  { id: 'scores',   name: 'High scores',      icon: '🌟', blurb: 'Score 80% or more' },
+  { id: 'perfect',  name: 'Perfect scores',   icon: '💯', blurb: 'Score 100%' },
+  { id: 'subjects', name: 'All-round',        icon: '🌍', blurb: 'Revise across different subjects' },
+  { id: 'written',  name: 'Written answers',  icon: '✏️', blurb: 'Take on written-answer questions' },
+  { id: 'types',    name: 'Question types',   icon: '🧩', blurb: 'Try every kind of question' },
+  { id: 'mindmaps', name: 'Mind maps',        icon: '🗺️', blurb: 'Use mind maps to review topics' },
+  { id: 'levels',   name: 'Levels',           icon: '🏆', blurb: 'Earn XP to level up' },
+];
+
+const B = (id, family, tier, metric, target, name, icon, desc) =>
+  ({ id, family, tier, metric, target, name, icon, desc });
+
+export const BADGES = [
+  // Showing up: distinct days with a quiz (rewards consistency without the pressure of an unbroken streak)
+  B('days_3',   'days', 1, 'studyDays', 3,   'Getting Going',   '📅', 'Revised on 3 different days'),
+  B('days_10',  'days', 2, 'studyDays', 10,  'Regular',         '🗓️', 'Revised on 10 different days'),
+  B('days_25',  'days', 3, 'studyDays', 25,  'Habit Formed',    '📆', 'Revised on 25 different days'),
+  B('days_50',  'days', 4, 'studyDays', 50,  'Part of Life',    '🏛️', 'Revised on 50 different days'),
+
+  // Streaks
+  B('streak_3',  'streak', 1, 'streak', 3,  'On a Roll',        '🔥', '3-day revision streak'),
+  B('streak_7',  'streak', 2, 'streak', 7,  'Week Warrior',     '⚡', '7-day revision streak'),
+  B('streak_14', 'streak', 3, 'streak', 14, 'Fortnight Focus',  '🌋', '14-day revision streak'),
+  B('streak_30', 'streak', 4, 'streak', 30, 'Unstoppable',      '🚀', '30-day revision streak'),
+
+  // Total time (minutes)
+  B('time_60',   'time', 1, 'totalMins', 60,   'First Hour',     '⏱️', '1 hour of quiz revision in total'),
+  B('time_300',  'time', 2, 'totalMins', 300,  'Five Hours',     '⏳', '5 hours of quiz revision in total'),
+  B('time_600',  'time', 3, 'totalMins', 600,  'Ten Hours',      '🕰️', '10 hours of quiz revision in total'),
+  B('time_1500', 'time', 4, 'totalMins', 1500, 'Marathon',       '🏃', '25 hours of quiz revision in total'),
+
+  // Best week (Monday to Sunday, minutes)
+  B('week_60',  'week', 1, 'bestWeekMins', 60,  'Solid Week',     '💪', '1 hour of revision in one week'),
+  B('week_120', 'week', 2, 'bestWeekMins', 120, 'Strong Week',    '🏋️', '2 hours of revision in one week'),
+  B('week_240', 'week', 3, 'bestWeekMins', 240, 'Power Week',     '⚙️', '4 hours of revision in one week'),
+  B('week_420', 'week', 4, 'bestWeekMins', 420, 'Exam Mode',      '🧠', '7 hours of revision in one week'),
+
+  // Quiz count
+  B('first_quiz', 'quizzes', 1, 'quizzes', 1,   'First Steps',   '🎯', 'Completed your first quiz'),
+  B('quiz_10',    'quizzes', 1, 'quizzes', 10,  'Committed',     '🔟', 'Completed 10 quizzes'),
+  B('quiz_25',    'quizzes', 2, 'quizzes', 25,  'Dedicated',     '💼', 'Completed 25 quizzes'),
+  B('quiz_50',    'quizzes', 3, 'quizzes', 50,  'Quiz Legend',   '🏅', 'Completed 50 quizzes'),
+  B('quiz_100',   'quizzes', 4, 'quizzes', 100, 'Centurion',     '💎', 'Completed 100 quizzes'),
+
+  // Improvement: topics where a later attempt beat the first
+  B('improve_1',  'improve', 1, 'improvedTopics', 1,  'Comeback',       '📈', 'Beat your first score on a topic'),
+  B('improve_5',  'improve', 2, 'improvedTopics', 5,  'Improver',       '📊', 'Beat your first score on 5 topics'),
+  B('improve_15', 'improve', 3, 'improvedTopics', 15, 'Always Better',  '🧗', 'Beat your first score on 15 topics'),
+  B('improve_30', 'improve', 4, 'improvedTopics', 30, 'Growth Mindset', '🌱', 'Beat your first score on 30 topics'),
+
+  // Big leaps: biggest gain over the first attempt on any topic (percentage points)
+  B('leap_20', 'leap', 1, 'bestLeap', 20, 'Step Up',     '🪜', 'Improved a topic by 20 points'),
+  B('leap_35', 'leap', 2, 'bestLeap', 35, 'Big Leap',    '🦘', 'Improved a topic by 35 points'),
+  B('leap_50', 'leap', 3, 'bestLeap', 50, 'Turnaround',  '🔄', 'Improved a topic by 50 points'),
+
+  // Mastery: distinct topics scored 80%+
+  B('master_1',  'mastery', 1, 'masteredTopics', 1,  'Nailed It',     '✅', 'Scored 80%+ on a topic'),
+  B('master_5',  'mastery', 2, 'masteredTopics', 5,  'Topic Tamer',   '🎓', 'Scored 80%+ on 5 different topics'),
+  B('master_15', 'mastery', 3, 'masteredTopics', 15, 'Subject Ace',   '🥇', 'Scored 80%+ on 15 different topics'),
+  B('master_30', 'mastery', 4, 'masteredTopics', 30, 'Grand Master',  '👑', 'Scored 80%+ on 30 different topics'),
+
+  // High scores
+  B('high_scorer', 'scores', 1, 'highScores', 5,  'High Achiever', '🌟', 'Scored 80%+ five times'),
+  B('high_20',     'scores', 2, 'highScores', 20, 'Consistent',    '✨', 'Scored 80%+ twenty times'),
+  B('high_50',     'scores', 3, 'highScores', 50, 'Top Form',      '💫', 'Scored 80%+ fifty times'),
+
+  // Perfect scores
+  B('perfect_score', 'perfect', 1, 'perfectScores', 1,  'Perfectionist', '💯', 'Scored 100% on a quiz'),
+  B('perfect_5',     'perfect', 2, 'perfectScores', 5,  'Flawless',      '💠', 'Scored 100% five times'),
+  B('perfect_15',    'perfect', 3, 'perfectScores', 15, 'Untouchable',   '🔱', 'Scored 100% fifteen times'),
+
+  // Breadth: distinct subjects
+  B('subjects_2', 'subjects', 1, 'subjects', 2, 'Branching Out', '🌿', 'Revised 2 different subjects'),
+  B('subjects_4', 'subjects', 2, 'subjects', 4, 'All-Round',     '🌍', 'Revised 4 different subjects'),
+  B('subjects_6', 'subjects', 3, 'subjects', 6, 'Polymath',      '🪐', 'Revised 6 different subjects'),
+
+  // Written answers
+  B('pen_to_paper', 'written', 1, 'writtenQuizzes', 1,  'Pen to Paper', '✏️', 'Finished a quiz with written answers'),
+  B('wordsmith',    'written', 2, 'writtenQuizzes', 5,  'Wordsmith',    '🖋️', 'Finished 5 quizzes with written answers'),
+  B('essayist',     'written', 3, 'writtenQuizzes', 15, 'Essayist',     '📜', 'Finished 15 quizzes with written answers'),
+  B('writer_ace',   'written', 4, 'writtenHigh',    5,  'Written Ace',  '🏆', 'Scored 80%+ on 5 quizzes with written answers'),
+
+  // Question types
+  B('all_rounder', 'types', 1, 'typesTried', 5,      'All-Rounder', '🧩', 'Tried every question type'),
+  B('mix_master',  'types', 2, 'fullMixQuizzes', 1,  'Mix Master',  '🎨', 'Finished a quiz with all 5 question types'),
+  B('mix_10',      'types', 3, 'fullMixQuizzes', 10, 'Mix Pro',     '🎭', 'Finished 10 quizzes with all 5 question types'),
+
+  // Mind maps
+  B('first_mindmap', 'mindmaps', 1, 'mindmaps', 1,  'Map Reader',     '🗺️', 'Viewed your first mind map'),
+  B('mindmap_10',    'mindmaps', 2, 'mindmaps', 10, 'Visual Learner', '🕸️', 'Viewed 10 mind maps'),
+  B('mindmap_30',    'mindmaps', 3, 'mindmaps', 30, 'Cartographer',   '🧭', 'Viewed 30 mind maps'),
+
+  // Levels
+  B('level_explorer', 'levels', 1, 'level', 2, 'Explorer', '🧭', 'Reached Explorer level'),
+  B('level_scholar',  'levels', 1, 'level', 3, 'Scholar',  '📚', 'Reached Scholar level'),
+  B('level_expert',   'levels', 2, 'level', 4, 'Expert',   '🔬', 'Reached Expert level'),
+  B('level_master',   'levels', 3, 'level', 5, 'Master',   '⭐', 'Reached Master level'),
+  B('level_legend',   'levels', 4, 'level', 6, 'Legend',   '🏆', 'Reached Legend level'),
+];
+
+export const QUESTION_TYPES = ['mcq', 'tf', 'fill', 'match', 'short'];
+
+/* ── Metrics: everything badges are measured against ──────── */
+function sessionSecs(s) {
+  if (typeof s.secondsSpent === 'number') return s.secondsSpent;
+  return (s.minutesSpent || 0) * 60;
+}
+function localDayKey(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+function weekStartKey(ts) {
+  const d = new Date(ts);
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  return monday.getTime();
+}
+
+export function computeMetrics(profile) {
+  const sessions = (profile.sessions || []).slice().sort((a, b) => (a.date || 0) - (b.date || 0));
+  const days = new Set(), weeks = {}, subjects = new Set(), mastered = new Set(), typesTried = new Set();
+  const firstByTopic = {}, bestGainByTopic = {};
+  let totalSecs = 0, highScores = 0, perfectScores = 0, writtenQuizzes = 0, writtenHigh = 0, fullMixQuizzes = 0;
+
+  sessions.forEach(s => {
+    const pct = s.pct || 0;
+    const secs = sessionSecs(s);
+    totalSecs += secs;
+    if (s.date) {
+      days.add(localDayKey(s.date));
+      const wk = weekStartKey(s.date);
+      weeks[wk] = (weeks[wk] || 0) + secs;
     }
+    if (s.subject) subjects.add(s.subject);
+    if (pct >= 80) highScores++;
+    if (pct === 100) perfectScores++;
+
+    const topicKey = s.topicId || `${s.subject || ''}|${s.topic || ''}`;
+    if (pct >= 80) mastered.add(topicKey);
+    if (!(topicKey in firstByTopic)) firstByTopic[topicKey] = pct;
+    else bestGainByTopic[topicKey] = Math.max(bestGainByTopic[topicKey] || 0, pct - firstByTopic[topicKey]);
+
+    const types = s.types || [];
+    types.forEach(t => typesTried.add(t));
+    if (types.includes('short')) { writtenQuizzes++; if (pct >= 80) writtenHigh++; }
+    if (QUESTION_TYPES.every(t => types.includes(t))) fullMixQuizzes++;
   });
 
+  const gains = Object.values(bestGainByTopic);
+  return {
+    quizzes:        sessions.length,
+    studyDays:      days.size,
+    streak:         profile.streak || 0,
+    totalMins:      Math.floor(totalSecs / 60),
+    bestWeekMins:   Math.floor(Math.max(0, ...Object.values(weeks)) / 60),
+    improvedTopics: gains.filter(g => g > 0).length,
+    bestLeap:       Math.max(0, ...gains),
+    masteredTopics: mastered.size,
+    highScores, perfectScores,
+    subjects:       subjects.size,
+    writtenQuizzes, writtenHigh,
+    typesTried:     QUESTION_TYPES.filter(t => typesTried.has(t)).length,
+    fullMixQuizzes,
+    mindmaps:       profile.mindmapsViewed || 0,
+    level:          getLevelInfo(profile.xp || 0).current.level,
+  };
+}
+
+/* Progress towards each badge, for display */
+export function badgeProgress(profile) {
+  const m = computeMetrics(profile);
+  const earned = new Set(profile.badges || []);
+  return BADGES.map(b => {
+    const value = Math.min(m[b.metric] || 0, b.target);
+    return { ...b, value, earned: earned.has(b.id) || value >= b.target, pct: Math.round(value / b.target * 100) };
+  });
+}
+
+/* ── Badge checker ───────────────────────────────────────── */
+// quiz.html saves the new session before calling awardXp, so it is
+// already in profile.sessions. A mind map view is counted here.
+export function checkBadges(profile, newSessionPct, source) {
+  const earned      = new Set(profile.badges || []);
+  const newlyEarned = [];
+  const metrics = computeMetrics({
+    ...profile,
+    mindmapsViewed: (profile.mindmapsViewed || 0) + (source === 'mindmap' ? 1 : 0),
+  });
+  BADGES.forEach(b => {
+    if (!earned.has(b.id) && (metrics[b.metric] || 0) >= b.target) {
+      earned.add(b.id);
+      newlyEarned.push(b.id);
+    }
+  });
   return { badges: [...earned], newlyEarned };
 }
+
 
 /* ── Main award function ─────────────────────────────────── */
 export async function awardXp(uid, source, options = {}) {
