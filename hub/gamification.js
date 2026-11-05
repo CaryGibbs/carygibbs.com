@@ -50,7 +50,14 @@ export const BADGES = [
   { id: 'level_expert',   name: 'Expert',            icon: '🔬', desc: 'Reached Expert level' },
   { id: 'level_master',   name: 'Master',            icon: '⭐', desc: 'Reached Master level' },
   { id: 'level_legend',   name: 'Legend',            icon: '🏆', desc: 'Reached Legend level' },
+  // Question types
+  { id: 'pen_to_paper',   name: 'Pen to Paper',      icon: '✏️', desc: 'Finished a quiz with written answers' },
+  { id: 'all_rounder',    name: 'All-Rounder',       icon: '🧩', desc: 'Tried every question type' },
+  { id: 'mix_master',     name: 'Mix Master',        icon: '🎨', desc: 'Finished a quiz with all 5 question types' },
+  { id: 'wordsmith',      name: 'Wordsmith',         icon: '🖋️', desc: 'Finished 5 quizzes with written answers' },
 ];
+
+export const QUESTION_TYPES = ['mcq', 'tf', 'fill', 'match', 'short'];
 
 /* ── Level helpers ───────────────────────────────────────── */
 export function getLevelInfo(totalXp) {
@@ -102,8 +109,13 @@ export function checkBadges(profile, newSessionPct, source) {
   const earned       = new Set(profile.badges || []);
   const newlyEarned  = [];
   const sessions     = profile.sessions || [];
-  const totalQuizzes = sessions.length + (source === 'quiz' ? 1 : 0);
-  const highScores   = sessions.filter(s => s.pct >= 80).length + (source === 'quiz' && newSessionPct >= 80 ? 1 : 0);
+  // quiz.html saves the new session before calling awardXp, so it is already in `sessions`
+  const totalQuizzes = sessions.length;
+  const highScores   = sessions.filter(s => s.pct >= 80).length;
+  // Question type badges (sessions before Nov 2026 have no `types` field)
+  const typesTried   = new Set(sessions.flatMap(s => s.types || []));
+  const writtenCount = sessions.filter(s => (s.types || []).includes('short')).length;
+  const lastTypes    = source === 'quiz' ? (sessions[sessions.length - 1]?.types || []) : [];
   const mindmaps     = (profile.mindmapsViewed || 0) + (source === 'mindmap' ? 1 : 0);
   const streak       = profile.streak || 0;
   const totalXp      = (profile.xp || 0);
@@ -126,6 +138,10 @@ export function checkBadges(profile, newSessionPct, source) {
     { id: 'level_expert',   pass: level.level >= 4 },
     { id: 'level_master',   pass: level.level >= 5 },
     { id: 'level_legend',   pass: level.level >= 6 },
+    { id: 'pen_to_paper',   pass: writtenCount >= 1 },
+    { id: 'all_rounder',    pass: QUESTION_TYPES.every(t => typesTried.has(t)) },
+    { id: 'mix_master',     pass: QUESTION_TYPES.every(t => lastTypes.includes(t)) },
+    { id: 'wordsmith',      pass: writtenCount >= 5 },
   ];
 
   checks.forEach(({ id, pass }) => {

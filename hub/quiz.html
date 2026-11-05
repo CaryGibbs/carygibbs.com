@@ -54,6 +54,33 @@
     .loading-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .loading-screen p { color: var(--color-text-muted); }
 
+
+    /* ── Setup (question type picker) ────────────────────── */
+    .setup-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-xs); text-align: center; }
+    .setup-sub { color: var(--color-text-muted); text-align: center; margin-bottom: var(--space-lg); font-size: 0.92rem; }
+    .setup-presets { display: flex; gap: var(--space-sm); justify-content: center; flex-wrap: wrap; margin-bottom: var(--space-md); }
+    .setup-presets .btn { padding: 8px 14px; font-size: 0.85rem; }
+    .type-list { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+    .type-opt {
+      display: flex; align-items: center; gap: var(--space-md); width: 100%; text-align: left;
+      background: var(--color-surface); border: 2px solid var(--color-border); border-radius: var(--radius-card);
+      padding: 12px 16px; cursor: pointer; font: inherit; color: var(--color-text); transition: border-color .15s, background .15s;
+    }
+    .type-opt:hover:not(:disabled) { border-color: var(--color-primary); }
+    .type-opt.on { border-color: var(--color-primary); background: var(--color-primary-glow); }
+    .type-opt:disabled { opacity: 0.4; cursor: not-allowed; }
+    .type-check {
+      width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--color-border); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; color: #fff;
+    }
+    .type-opt.on .type-check { background: var(--color-primary); border-color: var(--color-primary); }
+    .type-text { flex: 1; min-width: 0; }
+    .type-name { font-family: var(--font-ui); font-weight: 700; font-size: 0.95rem; }
+    .type-desc { font-size: 0.8rem; color: var(--color-text-muted); }
+    .type-level { font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
+    .setup-start { width: 100%; padding: 14px; font-size: 1rem; }
+    .setup-note { text-align: center; font-size: 0.82rem; color: var(--color-text-muted); margin-top: var(--space-sm); min-height: 1.2em; }
+
     /* ── Question card ───────────────────────────────────── */
     .q-header { margin-bottom: var(--space-lg); }
     .q-number {
@@ -283,6 +310,21 @@
     </div>
   </div>
 
+  <!-- Setup: choose question types -->
+  <div class="screen" id="screen-setup">
+    <div class="setup-screen">
+      <h2>Choose your question types</h2>
+      <p class="setup-sub">Start with the easier ones and add more as you get confident.</p>
+      <div class="setup-presets">
+        <button class="btn btn-secondary" onclick="presetTypes('easy')">🌱 Easier start</button>
+        <button class="btn btn-secondary" onclick="presetTypes('all')">🎨 All types</button>
+      </div>
+      <div class="type-list" id="type-list"></div>
+      <button class="btn btn-primary setup-start" id="btn-start-quiz" onclick="startQuiz()">Start quiz</button>
+      <div class="setup-note" id="setup-note"></div>
+    </div>
+  </div>
+
   <!-- No questions -->
   <div class="screen" id="screen-no-questions">
     <div class="no-q-screen">
@@ -425,6 +467,7 @@
 
       <div class="results-actions">
         <button class="btn btn-primary" onclick="restartQuiz()">🔄 Try again</button>
+        <button class="btn btn-secondary" onclick="changeTypes()">🎛️ Change question types</button>
         <a href="profile.html" class="btn btn-secondary">📊 My profile</a>
         <a href="hub.html" class="btn btn-secondary">← Hub</a>
       </div>
@@ -437,6 +480,10 @@
   function submitAnswer() { window._submitAnswer && window._submitAnswer(); }
   function nextQuestion() { window._nextQuestion && window._nextQuestion(); }
   function restartQuiz() { window._restartQuiz && window._restartQuiz(); }
+  function startQuiz()   { window._startQuiz && window._startQuiz(); }
+  function changeTypes() { window._changeTypes && window._changeTypes(); }
+  function toggleType(t) { window._toggleType && window._toggleType(t); }
+  function presetTypes(p){ window._presetTypes && window._presetTypes(p); }
   function submitTF(btn) { window._submitTF && window._submitTF(btn); }
 </script>
 
@@ -469,6 +516,19 @@ let matchState   = { selectedLeft: null, matched: [] }; // for match pairs
 let currentUser   = null;
 let currentProfile = null;
 let quizStartTime  = null;
+let questionPool   = [];   // every question for this topic/subject
+let selectedTypes  = new Set();
+
+const TYPE_INFO = {
+  mcq:   { name: 'Multiple choice',   desc: 'Pick the right answer from a list', level: 'Easier' },
+  tf:    { name: 'True or false',     desc: 'Decide if a statement is right',    level: 'Easier' },
+  match: { name: 'Match the pairs',   desc: 'Link terms to their meanings',      level: 'Medium' },
+  fill:  { name: 'Fill in the blank', desc: 'Type the missing word',             level: 'Medium' },
+  short: { name: 'Written answer',    desc: 'Explain in your own words',         level: 'Harder' },
+};
+const TYPE_ORDER = ['mcq', 'tf', 'match', 'fill', 'short'];
+const EASY_TYPES = ['mcq', 'tf'];
+const TYPES_KEY  = () => 'clasp_qtypes_' + (currentUser?.uid || 'anon');
 
 /* ── Auth ────────────────────────────────────────────────── */
 requireAuth(async (user, profile) => {
@@ -514,20 +574,110 @@ async function loadQuestions() {
       showScreen('no-questions'); return;
     }
 
-    // Shuffle and take up to QUIZ_SIZE
-    allQs = shuffle(allQs).slice(0, QUIZ_SIZE);
-    questions = allQs;
-
-    document.getElementById('q-total').textContent = questions.length;
-    document.getElementById('stat-total').textContent = questions.length;
-    quizStartTime = Date.now();
-    showScreen('question');
-    renderQuestion();
+    questionPool = allQs.filter(q => TYPE_INFO[q.type]);
+    if (questionPool.length === 0) { showScreen('no-questions'); return; }
+    initSelectedTypes();
+    renderTypeList();
+    showScreen('setup');
   } catch(e) {
     showToast('Failed to load questions: ' + e.message, 'error');
     showScreen('no-questions');
   }
 }
+
+/* ── Question type picker ────────────────────────────────── */
+function countByType() {
+  const c = {};
+  questionPool.forEach(q => { c[q.type] = (c[q.type] || 0) + 1; });
+  return c;
+}
+
+function initSelectedTypes() {
+  const counts = countByType();
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(TYPES_KEY()) || 'null'); } catch(e) {}
+  const wanted = Array.isArray(saved) && saved.length ? saved : EASY_TYPES;
+  selectedTypes = new Set(wanted.filter(t => counts[t]));
+  // Nothing usable from the saved/easy set? Fall back to whatever this topic has
+  if (selectedTypes.size === 0) selectedTypes = new Set(Object.keys(counts));
+}
+
+function renderTypeList() {
+  const counts = countByType();
+  document.getElementById('type-list').innerHTML = TYPE_ORDER.map(t => {
+    const info = TYPE_INFO[t];
+    const n = counts[t] || 0;
+    const on = selectedTypes.has(t);
+    return `<button class="type-opt${on ? ' on' : ''}" ${n ? '' : 'disabled'} onclick="toggleType('${t}')">
+      <span class="type-check">${on ? '✓' : ''}</span>
+      <span class="type-text">
+        <span class="type-name">${info.name}</span><br>
+        <span class="type-desc">${n ? info.desc : 'None for this topic yet'}</span>
+      </span>
+      <span class="type-level">${info.level}</span>
+    </button>`;
+  }).join('');
+  const btn  = document.getElementById('btn-start-quiz');
+  const note = document.getElementById('setup-note');
+  const available = questionPool.filter(q => selectedTypes.has(q.type)).length;
+  btn.disabled = selectedTypes.size === 0;
+  if (selectedTypes.size === 0) note.textContent = 'Pick at least one question type.';
+  else if (selectedTypes.size === Object.keys(counts).length && selectedTypes.size >= 5) note.textContent = '🎨 All five types: this one counts towards Mix Master!';
+  else if (available < QUIZ_SIZE) note.textContent = `${available} question${available !== 1 ? 's' : ''} available with these types.`;
+  else note.textContent = `${QUIZ_SIZE} questions, mixed from your chosen types.`;
+}
+
+window._toggleType = function(t) {
+  if (selectedTypes.has(t)) selectedTypes.delete(t); else selectedTypes.add(t);
+  renderTypeList();
+};
+
+window._presetTypes = function(p) {
+  const counts = countByType();
+  const list = p === 'easy' ? EASY_TYPES : TYPE_ORDER;
+  selectedTypes = new Set(list.filter(t => counts[t]));
+  renderTypeList();
+};
+
+// Spread the quiz across the chosen types so each one appears
+function pickQuestions() {
+  const buckets = {};
+  shuffle(questionPool.filter(q => selectedTypes.has(q.type)))
+    .forEach(q => (buckets[q.type] = buckets[q.type] || []).push(q));
+  const order = shuffle(Object.keys(buckets));
+  const picked = [];
+  while (picked.length < QUIZ_SIZE && order.some(t => buckets[t].length)) {
+    for (const t of order) {
+      if (picked.length >= QUIZ_SIZE) break;
+      if (buckets[t].length) picked.push(buckets[t].pop());
+    }
+  }
+  return shuffle(picked);
+}
+
+function beginQuestions() {
+  currentIdx = 0; score = 0; selectedMCQIdx = null;
+  questions = pickQuestions();
+  document.getElementById('q-total').textContent = questions.length;
+  document.getElementById('stat-total').textContent = questions.length;
+  document.getElementById('xp-earned-wrap').style.display = 'none';
+  document.getElementById('new-badges-wrap').style.display = 'none';
+  quizStartTime = Date.now();
+  showScreen('question');
+  renderQuestion();
+}
+
+window._startQuiz = function() {
+  if (selectedTypes.size === 0) return;
+  try { localStorage.setItem(TYPES_KEY(), JSON.stringify([...selectedTypes])); } catch(e) {}
+  beginQuestions();
+};
+
+window._changeTypes = function() {
+  document.getElementById('progress-bar').style.width = '0%';
+  renderTypeList();
+  showScreen('setup');
+};
 
 /* ── Render current question ─────────────────────────────── */
 function renderQuestion() {
@@ -901,6 +1051,7 @@ async function showResults() {
       topic: topicName || subjectName,
       score, total, pct,
       minutesSpent,
+      types: [...new Set(questions.map(q => q.type))],
       groupId: groupId || null,
       subjectId: subjectId || null,
       topicId: topicId || null,
@@ -961,10 +1112,7 @@ function showXpEarned(result, minutes) {
 }
 
 window._restartQuiz = function() {
-  currentIdx = 0; score = 0; selectedMCQIdx = null;
-  questions = shuffle(questions);
-  showScreen('question');
-  renderQuestion();
+  beginQuestions(); // fresh set of questions, same types
 };
 
 /* ── Screens ─────────────────────────────────────────────── */
