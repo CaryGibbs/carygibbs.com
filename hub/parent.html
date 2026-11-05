@@ -220,6 +220,8 @@
       <button class="btn btn-primary" id="btn-save-child" onclick="saveChild()">Save changes</button>
     </div>
     <div class="danger-zone">
+      <p>Reset progress clears XP, level, badges, streak and quiz history. Their login, groups and theme are kept.</p>
+      <button class="btn btn-danger" id="btn-reset-progress" style="width:100%;padding:10px;margin-bottom:var(--space-md);" onclick="resetProgress()">Reset progress</button>
       <p>Removing a child will delete their account data. This cannot be undone.</p>
       <button class="btn btn-danger" style="width:100%;padding:10px;" onclick="confirmRemoveChild()">Remove child</button>
     </div>
@@ -285,6 +287,7 @@
   function selectManageTheme(t)  { window._selectManageTheme && window._selectManageTheme(t); }
   function saveChild()           { window._saveChild && window._saveChild(); }
   function confirmRemoveChild()  { window._confirmRemoveChild && window._confirmRemoveChild(); }
+  function resetProgress()       { window._resetProgress && window._resetProgress(); }
   function openProgressModal(id) { window._openProgressModal && window._openProgressModal(id); }
   function openNotifyModal(id)   { window._openNotifyModal && window._openNotifyModal(id); }
   function sendNotification()    { window._sendNotification && window._sendNotification(); }
@@ -296,7 +299,7 @@
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, generatePassword, showToast } from './auth.js';
 import {
-  doc, setDoc, getDoc, updateDoc, deleteDoc,
+  doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -532,6 +535,33 @@ window._confirmRemoveChild = function() {
   deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
   document.getElementById('modal-manage').classList.remove('open');
   showToast('Child account removed.', 'info');
+};
+
+/* ── Reset progress ──────────────────────────────────────── */
+window._resetProgress = async function() {
+  const child = childrenData[managingChildId];
+  if (!child) return;
+  const first = child.name.split(' ')[0];
+  if (!confirm(`Reset ${first}'s progress?\n\nThis clears XP, level, badges, streak and all quiz history. Their login, groups and theme stay the same.\n\nThis cannot be undone.`)) return;
+  const btn = document.getElementById('btn-reset-progress');
+  btn.classList.add('loading');
+  try {
+    // Student's own record (what hub, profile and gamification read)
+    await updateDoc(doc(db, 'users', managingChildId), {
+      xp: 0, level: 1, streak: 0,
+      badges: [], sessions: [],
+      mindmapsViewed: 0,
+      lastRevisionDate: deleteField()
+    });
+    // Parent's mirror (what the child cards and progress modal read)
+    await updateDoc(doc(db, 'users', parentUid, 'children', managingChildId), {
+      sessions: [], streak: 0
+    });
+    document.getElementById('modal-manage').classList.remove('open');
+    showToast(`${first}'s progress has been reset.`, 'success');
+  } catch(e) {
+    showErr('manage-error', 'Reset failed. Please try again.');
+  } finally { btn.classList.remove('loading'); }
 };
 
 /* ── Progress modal ──────────────────────────────────────── */
