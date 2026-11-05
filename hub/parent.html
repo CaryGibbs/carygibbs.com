@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Parent Dashboard</title>
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="stats.css">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -97,14 +98,25 @@
     .group-check-desc { font-size: 0.78rem; color: var(--color-text-muted); }
 
     /* ── Progress modal ──────────────────────────────────── */
-    .progress-modal { max-width: 580px; }
+    .progress-modal { max-width: 860px; }
+    .progress-modal .st-section { scroll-margin-top: 0; }
+    .progress-modal .goal-list { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    .progress-modal .badges-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .progress-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-lg); }
+    .progress-tab { font-family: var(--font-ui); font-size: 0.8rem; font-weight: 700; color: var(--color-text); background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 6px 12px; cursor: pointer; }
+    .progress-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .progress-xp { margin-left: auto; text-align: right; font-family: var(--font-ui); font-size: 0.8rem; color: var(--color-text-muted); }
+    .progress-xp strong { display: block; font-family: var(--font-heading); font-size: 1rem; color: var(--color-text); }
+    .session-types { font-size: 0.72rem; color: var(--color-text-muted); }
+    .child-week { font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted); margin: -4px 0 var(--space-md); display: flex; gap: var(--space-md); flex-wrap: wrap; }
+    .child-week strong { color: var(--color-text); }
     .progress-header-info { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); padding-bottom: var(--space-lg); border-bottom: 1px solid var(--color-border); }
     .progress-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; flex-shrink: 0; }
-    .progress-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); margin-bottom: var(--space-lg); }
+    .progress-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-sm); margin-bottom: var(--space-lg); }
     .progress-stat { background: var(--color-surface-2); border-radius: var(--radius-card); padding: var(--space-md); text-align: center; }
     .progress-stat-val { font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--color-primary); }
     .progress-stat-label { font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-    .sessions-list { display: flex; flex-direction: column; gap: var(--space-sm); max-height: 280px; overflow-y: auto; }
+    .sessions-list { display: flex; flex-direction: column; gap: var(--space-sm); max-height: 360px; overflow-y: auto; }
     .session-row { background: var(--color-surface-2); border-radius: var(--radius-button); padding: 10px var(--space-md); display: flex; align-items: center; justify-content: space-between; }
     .session-topic { font-family: var(--font-ui); font-size: 0.88rem; font-weight: 600; }
     .session-meta { font-size: 0.78rem; color: var(--color-text-muted); }
@@ -123,6 +135,8 @@
       .page { padding: var(--space-lg) var(--space-md); }
       .nav-user { display: none; }
       .progress-stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .modal.progress-modal { padding: var(--space-lg) var(--space-md); }
+      .progress-xp { display: none; }
     }
   </style>
 </head>
@@ -241,14 +255,26 @@
         <div style="font-family:var(--font-heading);font-size:1.05rem;font-weight:700;" id="progress-name"></div>
         <div style="font-size:0.82rem;color:var(--color-text-muted);" id="progress-groups"></div>
       </div>
+      <div class="progress-xp" id="progress-xp"></div>
     </div>
     <div class="progress-stats-grid">
+      <div class="progress-stat"><div class="progress-stat-val" id="stat-level">—</div><div class="progress-stat-label">Level</div></div>
       <div class="progress-stat"><div class="progress-stat-val" id="stat-quizzes">0</div><div class="progress-stat-label">Quizzes taken</div></div>
       <div class="progress-stat"><div class="progress-stat-val" id="stat-avg">—</div><div class="progress-stat-label">Avg score</div></div>
-      <div class="progress-stat"><div class="progress-stat-val" id="stat-best">—</div><div class="progress-stat-label">Best score</div></div>
+      <div class="progress-stat"><div class="progress-stat-val" id="stat-streak">0🔥</div><div class="progress-stat-label">Streak</div></div>
     </div>
-    <div style="font-family:var(--font-ui);font-size:0.82rem;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">Recent sessions</div>
-    <div class="sessions-list" id="sessions-list"></div>
+    <div class="progress-tabs">
+      <button class="progress-tab" data-jump="goals">🎯 Goals</button>
+      <button class="progress-tab" data-jump="time">⏱️ Time</button>
+      <button class="progress-tab" data-jump="subjects">📚 By subject</button>
+      <button class="progress-tab" data-jump="badges">🏅 Badges</button>
+      <button class="progress-tab" data-jump="recent">📋 Recent quizzes</button>
+    </div>
+    <div id="progress-stats-root"></div>
+    <section class="st-section" id="recent">
+      <div class="st-title">📋 Recent quizzes</div>
+      <div class="sessions-list" id="sessions-list"></div>
+    </section>
   </div>
 </div>
 
@@ -298,6 +324,8 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, generatePassword, showToast } from './auth.js';
+import { getLevelInfo } from './gamification.js';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp
@@ -368,6 +396,13 @@ function renderChildren() {
     const quizCount = sessions.length;
     const avgScore  = quizCount ? Math.round(sessions.reduce((a,s) => a + (s.pct||0), 0) / quizCount) : null;
     const streak    = child.streak || 0;
+    const secsOf = x => typeof x.secondsSpent === 'number' ? x.secondsSpent : (x.minutesSpent || 0) * 60;
+    const now = new Date();
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const todaySecs = sessions.filter(x => (x.date || 0) >= startToday).reduce((a, x) => a + secsOf(x), 0);
+    const weekSecs  = sessions.filter(x => (x.date || 0) >= startToday - 6 * 86400000).reduce((a, x) => a + secsOf(x), 0);
+    const lastDate  = sessions.reduce((m, x) => Math.max(m, x.date || 0), 0);
+    const lastLabel = lastDate ? new Date(lastDate).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' }) : 'never';
 
     const card = document.createElement('div');
     card.className = 'child-card';
@@ -385,6 +420,11 @@ function renderChildren() {
           <div class="child-stat"><div class="child-stat-val">${quizCount}</div><div class="child-stat-label">Quizzes</div></div>
           <div class="child-stat"><div class="child-stat-val">${avgScore !== null ? avgScore+'%' : '—'}</div><div class="child-stat-label">Avg score</div></div>
           <div class="child-stat"><div class="child-stat-val">${streak}🔥</div><div class="child-stat-label">Streak</div></div>
+        </div>
+        <div class="child-week">
+          <span>⏱️ Today <strong>${fmtTime(todaySecs)}</strong></span>
+          <span>This week <strong>${fmtTime(weekSecs)}</strong></span>
+          <span>Last quiz <strong>${lastLabel}</strong></span>
         </div>
       </div>
       <div class="child-card-actions">
@@ -579,33 +619,59 @@ window._openProgressModal = async function(uid) {
   const groupNames = groupIds.map(gid => allGroups.find(g=>g.id===gid)?.name || gid);
   document.getElementById('progress-groups').textContent = groupNames.length ? groupNames.join(', ') : 'No groups assigned';
 
-  // Load full profile for sessions
+  // Load the child's full record (sessions, XP, badges, streak)
   const snap = await getDoc(doc(db, 'users', uid)).catch(() => null);
   const profile = snap?.data() || {};
-  const sessions = (profile.sessions || child.sessions || []).slice().reverse();
+  if (!profile.sessions && child.sessions) profile.sessions = child.sessions;
+  const sessions = (profile.sessions || []).slice().reverse();
 
   const quizCount = sessions.length;
   const avgScore  = quizCount ? Math.round(sessions.reduce((a,s)=>a+(s.pct||0),0)/quizCount) : null;
-  const bestScore = quizCount ? Math.max(...sessions.map(s=>s.pct||0)) : null;
+  const { current, next, xpIntoLevel, xpNeeded } = getLevelInfo(profile.xp || 0);
 
+  document.getElementById('stat-level').textContent   = `${current.icon} ${current.level}`;
   document.getElementById('stat-quizzes').textContent = quizCount;
-  document.getElementById('stat-avg').textContent  = avgScore !== null ? avgScore+'%' : '—';
-  document.getElementById('stat-best').textContent = bestScore !== null ? bestScore+'%' : '—';
+  document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
+  document.getElementById('stat-streak').textContent  = (profile.streak || 0) + '🔥';
+  document.getElementById('progress-xp').innerHTML =
+    `<strong>${current.name} · ${profile.xp || 0} XP</strong>${next ? `${xpIntoLevel} / ${xpNeeded} to ${next.name}` : 'Top level'}`;
 
+  // Same goals, time, subject and badge views the child sees on their hub
+  document.getElementById('progress-stats-root').innerHTML = statsSectionsHtml();
+  renderStats(profile, { goalLimit: 4 });
+
+  const typeNames = { mcq:'Multiple choice', tf:'True/false', fill:'Fill blank', match:'Match pairs', short:'Written' };
   const list = document.getElementById('sessions-list');
   if (!sessions.length) {
-    list.innerHTML = `<div class="no-sessions">No quiz sessions yet — encourage ${child.name.split(' ')[0]} to try a quiz!</div>`;
+    list.innerHTML = `<div class="no-sessions">No quiz sessions yet. Encourage ${esc(child.name.split(' ')[0])} to try a quiz!</div>`;
   } else {
-    list.innerHTML = sessions.slice(0,20).map(s => {
+    list.innerHTML = sessions.slice(0,30).map(s => {
       const pct = s.pct || 0;
       const cls = pct >= 80 ? 'score-good' : pct >= 50 ? 'score-mid' : 'score-low';
-      const date = s.date ? new Date(s.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+      const date = s.date ? new Date(s.date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) : '';
+      const secs = typeof s.secondsSpent === 'number' ? s.secondsSpent : (s.minutesSpent || 0) * 60;
+      const meta = [date, s.subject && s.topic && s.subject !== s.topic ? s.subject : '', secs ? fmtTime(secs) : '', `${s.score ?? '?'}/${s.total ?? '?'} correct`].filter(Boolean).join(' · ');
+      const types = (s.types || []).map(t => typeNames[t] || t).join(', ');
       return `<div class="session-row">
-        <div><div class="session-topic">${esc(s.topic||s.subject||'Quiz')}</div><div class="session-meta">${date}</div></div>
+        <div>
+          <div class="session-topic">${esc(s.topic||s.subject||'Quiz')}</div>
+          <div class="session-meta">${esc(meta)}</div>
+          ${types ? `<div class="session-types">${esc(types)}</div>` : ''}
+        </div>
         <div class="session-score ${cls}">${pct}%</div>
       </div>`;
     }).join('');
   }
+
+  // Jump buttons scroll within the modal
+  const modalEl = document.querySelector('#modal-progress .modal');
+  document.querySelectorAll('#modal-progress .progress-tab').forEach(btn => {
+    btn.onclick = () => {
+      const target = document.getElementById(btn.dataset.jump);
+      if (target) modalEl.scrollTo({ top: modalEl.scrollTop + target.getBoundingClientRect().top - modalEl.getBoundingClientRect().top - 12, behavior: 'smooth' });
+    };
+  });
+  modalEl.scrollTop = 0;
   document.getElementById('modal-progress').classList.add('open');
 };
 

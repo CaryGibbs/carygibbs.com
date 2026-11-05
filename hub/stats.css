@@ -80,3 +80,6 @@
   .day-labels span { font-size: 0.56rem; letter-spacing: -0.02em; }
   .time-tile-val { font-size: 1.1rem; }
 }
+
+/* Collapsed items must stay hidden even though their cards use display:flex/grid */
+.goal-card[hidden], #locked-wrap[hidden] { display: none !important; }
