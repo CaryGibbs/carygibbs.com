@@ -1044,13 +1044,15 @@ async function showResults() {
 
   // Save session + award XP (students only)
   if (currentUser && currentProfile?.role === 'student') {
-    const minutesSpent = Math.round((Date.now() - (quizStartTime || Date.now())) / 60000);
+    const secondsSpent = Math.round((Date.now() - (quizStartTime || Date.now())) / 1000);
+    const minutesSpent = Math.round(secondsSpent / 60);
     const session = {
       date: Date.now(),
       subject: subjectName,
       topic: topicName || subjectName,
       score, total, pct,
       minutesSpent,
+      secondsSpent,
       types: [...new Set(questions.map(q => q.type))],
       groupId: groupId || null,
       subjectId: subjectId || null,

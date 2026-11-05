@@ -149,10 +149,36 @@
     .score-mid  { color: var(--color-warning); }
     .score-low  { color: var(--color-danger); }
 
+    /* ── Time & subject stats ────────────────────────────── */
+    .time-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); margin-bottom: var(--space-md); }
+    .time-tile { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-md); text-align: center; }
+    .time-tile-val { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 800; color: var(--color-text); }
+    .time-tile-label { font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+    .day-chart { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-md) var(--space-md) var(--space-sm); }
+    .day-bars { display: flex; align-items: flex-end; gap: 4px; height: 140px; }
+    .day-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+    .day-val { font-family: var(--font-ui); font-size: 0.62rem; color: var(--color-text-muted); margin-bottom: 3px; white-space: nowrap; }
+    .day-bar { width: 100%; max-width: 28px; background: var(--color-primary); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.6s ease; }
+    .day-bar.empty { background: var(--color-border); }
+    .day-labels { display: flex; gap: 4px; margin-top: 6px; border-top: 1px solid var(--color-border); padding-top: 4px; }
+    .day-labels span { flex: 1; text-align: center; font-family: var(--font-ui); font-size: 0.62rem; color: var(--color-text-muted); min-width: 0; }
+    .day-labels span.today { color: var(--color-primary); font-weight: 700; }
+    .subject-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .subject-row { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-button); padding: 10px var(--space-md); }
+    .subject-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-sm); }
+    .subject-name { font-family: var(--font-ui); font-size: 0.9rem; font-weight: 700; }
+    .subject-time { font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; white-space: nowrap; }
+    .subject-track { height: 6px; background: var(--color-surface-2); border-radius: var(--radius-pill); margin: 6px 0 4px; overflow: hidden; }
+    .subject-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-pill); }
+    .subject-meta { font-size: 0.76rem; color: var(--color-text-muted); }
+    .badge-subhead { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); margin: var(--space-md) 0 var(--space-sm); }
+    .badge-subhead:first-child { margin-top: 0; }
+
     .empty-state { text-align: center; padding: var(--space-xl); color: var(--color-text-muted); font-size: 0.9rem; }
 
     @media (max-width: 600px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .day-val { display: none; }
       .profile-hero { flex-direction: column; text-align: center; gap: var(--space-lg); }
       .topnav { padding: 0 var(--space-md); }
       .page { padding: var(--space-lg) var(--space-md); }
@@ -200,16 +226,36 @@
     <div class="stat-card"><div class="stat-val" id="stat-streak">0🔥</div><div class="stat-label">Streak</div></div>
   </div>
 
+  <!-- Badges -->
+  <div class="section">
+    <div class="section-title">🏅 Badges <span style="font-size:0.8rem;font-weight:400;color:var(--color-text-muted);" id="badge-count"></span></div>
+    <div id="badges-wrap"></div>
+  </div>
+
+  <!-- Revision time -->
+  <div class="section">
+    <div class="section-title">⏱️ Revision time</div>
+    <div class="time-tiles">
+      <div class="time-tile"><div class="time-tile-val" id="time-today">0m</div><div class="time-tile-label">Today</div></div>
+      <div class="time-tile"><div class="time-tile-val" id="time-week">0m</div><div class="time-tile-label">Last 7 days</div></div>
+      <div class="time-tile"><div class="time-tile-val" id="time-total">0m</div><div class="time-tile-label">All time</div></div>
+    </div>
+    <div class="day-chart">
+      <div class="day-bars" id="day-bars"></div>
+      <div class="day-labels" id="day-labels"></div>
+    </div>
+  </div>
+
+  <!-- By subject -->
+  <div class="section">
+    <div class="section-title">📚 By subject</div>
+    <div class="subject-list" id="subject-list"></div>
+  </div>
+
   <!-- Level ladder -->
   <div class="section">
     <div class="section-title">🏆 Levels</div>
     <div class="level-ladder" id="level-ladder"></div>
-  </div>
-
-  <!-- Badges -->
-  <div class="section">
-    <div class="section-title">🏅 Badges <span style="font-size:0.8rem;font-weight:400;color:var(--color-text-muted);" id="badge-count"></span></div>
-    <div class="badges-grid" id="badges-grid"></div>
   </div>
 
   <!-- Recent sessions -->
@@ -295,15 +341,24 @@ requireAuth(async (user, profile) => {
   // Badges grid
   const badgeCount = document.getElementById('badge-count');
   badgeCount.textContent = `${badges.length} / ${BADGES.length} earned`;
-  const bgrid = document.getElementById('badges-grid');
-  bgrid.innerHTML = BADGES.map(b => {
-    const earned = badges.includes(b.id);
-    return `<div class="badge-card ${earned ? 'earned' : 'locked'}">
+  const badgeCard = (b, earned) => `<div class="badge-card ${earned ? 'earned' : 'locked'}">
       <div class="badge-icon">${b.icon}</div>
       <div class="badge-name">${esc(b.name)}</div>
       <div class="badge-desc">${esc(b.desc)}</div>
     </div>`;
-  }).join('');
+  const earnedList = BADGES.filter(b => badges.includes(b.id));
+  const lockedList = BADGES.filter(b => !badges.includes(b.id));
+  document.getElementById('badges-wrap').innerHTML =
+    `<div class="badge-subhead">✅ Earned (${earnedList.length})</div>` +
+    (earnedList.length
+      ? `<div class="badges-grid">${earnedList.map(b => badgeCard(b, true)).join('')}</div>`
+      : `<div class="empty-state" style="padding:var(--space-md);">None yet. Finish a quiz to earn your first!</div>`) +
+    (lockedList.length
+      ? `<div class="badge-subhead">🔒 Still to unlock (${lockedList.length})</div><div class="badges-grid">${lockedList.map(b => badgeCard(b, false)).join('')}</div>`
+      : '');
+
+  renderTimeStats(sessions);
+  renderSubjectStats(sessions);
 
   // Sessions
   const list = document.getElementById('sessions-list');
@@ -329,6 +384,88 @@ requireAuth(async (user, profile) => {
   document.getElementById('loading-wrap').style.display = 'none';
   document.getElementById('page-content').style.display = 'block';
 });
+
+/* ── Time helpers ────────────────────────────────────────── */
+function secsOf(s) {
+  if (typeof s.secondsSpent === 'number') return s.secondsSpent;
+  return (s.minutesSpent || 0) * 60;
+}
+function fmtTime(secs) {
+  const m = Math.round(secs / 60);
+  if (m < 1) return secs > 0 ? '<1m' : '0m';
+  if (m < 60) return m + 'm';
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? `${h}h ${r}m` : `${h}h`;
+}
+function dayKey(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function renderTimeStats(sessions) {
+  const DAYS = 14;
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const byDay = {};
+  let total = 0, week = 0;
+  sessions.forEach(s => {
+    const secs = secsOf(s);
+    total += secs;
+    if (!s.date) return;
+    byDay[dayKey(s.date)] = (byDay[dayKey(s.date)] || 0) + secs;
+    if (s.date >= startToday - 6 * 86400000) week += secs;
+  });
+  document.getElementById('time-today').textContent = fmtTime(byDay[dayKey(now)] || 0);
+  document.getElementById('time-week').textContent  = fmtTime(week);
+  document.getElementById('time-total').textContent = fmtTime(total);
+
+  const days = [];
+  for (let i = DAYS - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    days.push({ d, secs: byDay[dayKey(d)] || 0, today: i === 0 });
+  }
+  const max = Math.max(60, ...days.map(x => x.secs));
+  document.getElementById('day-bars').innerHTML = days.map(x => {
+    const h = x.secs ? Math.max(4, Math.round((x.secs / max) * 100)) : 2;
+    const title = `${x.d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' })}: ${fmtTime(x.secs)}`;
+    return `<div class="day-col" title="${title}">
+      <div class="day-val">${x.secs ? fmtTime(x.secs) : ''}</div>
+      <div class="day-bar${x.secs ? '' : ' empty'}" style="height:${h}%"></div>
+    </div>`;
+  }).join('');
+  document.getElementById('day-labels').innerHTML = days.map(x =>
+    `<span class="${x.today ? 'today' : ''}">${x.today ? 'Today' : x.d.toLocaleDateString('en-GB', { weekday:'narrow' }) + x.d.getDate()}</span>`
+  ).join('');
+}
+
+function renderSubjectStats(sessions) {
+  const subj = {};
+  sessions.forEach(s => {
+    const name = s.subject || 'Other';
+    const r = subj[name] = subj[name] || { secs: 0, quizzes: 0, pctSum: 0, last: 0 };
+    r.secs += secsOf(s); r.quizzes++; r.pctSum += (s.pct || 0); r.last = Math.max(r.last, s.date || 0);
+  });
+  const rows = Object.entries(subj).sort((a, b) => b[1].secs - a[1].secs || b[1].quizzes - a[1].quizzes);
+  const list = document.getElementById('subject-list');
+  if (!rows.length) {
+    list.innerHTML = '<div class="empty-state">Your subjects will appear here once you\'ve done a quiz.</div>';
+    return;
+  }
+  const maxSecs = Math.max(1, ...rows.map(([, r]) => r.secs));
+  list.innerHTML = rows.map(([name, r]) => {
+    const avg = Math.round(r.pctSum / r.quizzes);
+    const cls = avg >= 80 ? 'score-good' : avg >= 50 ? 'score-mid' : 'score-low';
+    const last = r.last ? new Date(r.last).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '';
+    return `<div class="subject-row">
+      <div class="subject-top">
+        <div class="subject-name">${esc(name)}</div>
+        <div class="subject-time">${fmtTime(r.secs)}</div>
+      </div>
+      <div class="subject-track"><div class="subject-fill" style="width:${Math.round(r.secs / maxSecs * 100)}%"></div></div>
+      <div class="subject-meta">${r.quizzes} quiz${r.quizzes !== 1 ? 'zes' : ''} · avg <span class="${cls}" style="font-weight:700;">${avg}%</span>${last ? ' · last ' + last : ''}</div>
+    </div>`;
+  }).join('');
+}
 
 function esc(str) {
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
