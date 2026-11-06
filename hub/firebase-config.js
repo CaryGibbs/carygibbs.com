@@ -6,7 +6,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -21,7 +21,9 @@ const firebaseConfig = {
 
 const app     = initializeApp(firebaseConfig);
 const auth    = getAuth(app);
-const db      = getFirestore(app);
+// Long polling instead of Firestore's default streaming connection, which
+// Safari on iPhone can stall on (mobile data, Private Relay, content blockers).
+const db      = initializeFirestore(app, { experimentalForceLongPolling: true });
 const storage = getStorage(app);
 
 export { app, auth, db, storage };

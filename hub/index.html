@@ -169,7 +169,7 @@
       const cred = await signInWithEmailAndPassword(auth, email, password);
       await redirectByRole(cred.user.uid);
     } catch(e) {
-      console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
+      console.error('Login error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
       setLoading('btn-login', false);
     }
   };
@@ -230,8 +230,21 @@
     } catch(e) { console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code); }
   };
 
+  // Already signed in (e.g. returning visit): go straight through.
+  // Failures here are quiet; the sign-in form is still usable.
   onAuthStateChanged(auth, async (user) => {
-    if (user) await redirectByRole(user.uid);
+    if (!user) return;
+    try { await redirectByRole(user.uid); }
+    catch (e) {
+      console.warn('Auto sign-in redirect failed:', e.message);
+      if (e.code === 'clasp/timeout') showError(friendlyError(e.code));
+    }
+  });
+
+  // Safari restores this page from its back/forward cache with the button
+  // still spinning: reset it whenever the page is shown again.
+  window.addEventListener('pageshow', (ev) => {
+    if (ev.persisted) { setLoading('btn-login', false); setLoading('btn-signup', false); }
   });
 
   function showError(msg) { const el=document.getElementById('error-msg'); el.textContent=msg; el.classList.add('visible'); }
@@ -246,6 +259,10 @@
       'auth/weak-password':'Password must be at least 8 characters.',
       'auth/too-many-requests':'Too many attempts. Please try again later.',
       'auth/invalid-credential':'Incorrect email or password.',
+      'auth/network-request-failed':'Can\'t reach the server. Check your internet connection and try again.',
+      'clasp/timeout':'Signed in, but your account is taking too long to load. Check your connection and tap Sign in again.',
+      'clasp/no-profile':'This account isn\'t set up yet. Ask your parent or teacher to check it.',
+      'unavailable':'Can\'t reach the server. Check your internet connection and try again.',
     };
     return map[code] || 'Something went wrong. Please try again.';
   }

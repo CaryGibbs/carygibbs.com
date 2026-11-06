@@ -543,6 +543,9 @@ let currentProfile = null;
 let quizStartTime  = null;
 let questionPool   = [];   // every question for this topic/subject
 let selectedTypes  = new Set();
+let results        = [];   // per question in this quiz: true if answered correctly
+let scoreAtStart   = 0;    // score when the current question was shown
+let recentQuizIds  = [];   // ids served earlier in this visit (Try again)
 
 const TYPE_INFO = {
   mcq:   { name: 'Multiple choice',   desc: 'Pick the right answer from a list', level: 'Easier' },
@@ -664,25 +667,66 @@ window._presetTypes = function(p) {
   renderTypeList();
 };
 
-// Spread the quiz across the chosen types so each one appears
+/* ── Question selection ──────────────────────────────────
+   Uses the student's history so questions don't keep repeating:
+     1. never seen before
+     2. got wrong last time (worth another go)
+     3. got right before, the longest ago first
+   Each chosen type gets a share in proportion to how many questions
+   it has, so a type with only a few questions isn't drawn every time. */
+function questionHistory() {
+  const lastSeen = {}, lastOk = {};
+  const sessions = (currentProfile?.sessions || []).slice().sort((a, b) => (a.date || 0) - (b.date || 0));
+  sessions.forEach(s => (s.qs || []).forEach(x => {
+    if (!x || !x.id) return;
+    lastSeen[x.id] = s.date || 0;
+    lastOk[x.id] = !!x.ok;
+  }));
+  return { lastSeen, lastOk };
+}
+
+function rankQuestions(list, hist) {
+  const recent = new Set(recentQuizIds);
+  return shuffle(list)
+    .map(q => {
+      const seen = hist.lastSeen[q.id];
+      let tier = seen === undefined ? 0 : (hist.lastOk[q.id] ? 2 : 1);
+      if (recent.has(q.id)) tier = 3;                 // just had it in this visit
+      return { q, tier, seen: seen || 0 };
+    })
+    .sort((a, b) => a.tier - b.tier || a.seen - b.seen) // stable after shuffle: random within ties
+    .map(x => x.q);
+}
+
 function pickQuestions() {
-  const buckets = {};
-  shuffle(questionPool.filter(q => selectedTypes.has(q.type)))
-    .forEach(q => (buckets[q.type] = buckets[q.type] || []).push(q));
-  const order = shuffle(Object.keys(buckets));
-  const picked = [];
-  while (picked.length < QUIZ_SIZE && order.some(t => buckets[t].length)) {
-    for (const t of order) {
-      if (picked.length >= QUIZ_SIZE) break;
-      if (buckets[t].length) picked.push(buckets[t].pop());
-    }
+  const pool = questionPool.filter(q => selectedTypes.has(q.type));
+  const hist = questionHistory();
+  const byType = {};
+  pool.forEach(q => (byType[q.type] = byType[q.type] || []).push(q));
+  const types = Object.keys(byType);
+  const size = Math.min(QUIZ_SIZE, pool.length);
+
+  // Proportional quota per type (at least 1 each, where there's room)
+  const quota = {};
+  types.forEach(t => { quota[t] = Math.max(1, Math.floor(size * byType[t].length / pool.length)); });
+  let total = types.reduce((a, t) => a + quota[t], 0);
+  const bySize = types.slice().sort((a, b) => byType[b].length - byType[a].length);
+  for (let i = 0; total < size; i = (i + 1) % bySize.length) {
+    const t = bySize[i]; if (quota[t] < byType[t].length) { quota[t]++; total++; }
   }
+  for (let i = bySize.length - 1; total > size; i = (i - 1 + bySize.length) % bySize.length) {
+    const t = bySize[i]; if (quota[t] > 1) { quota[t]--; total--; }
+  }
+
+  const picked = [];
+  types.forEach(t => picked.push(...rankQuestions(byType[t], hist).slice(0, quota[t])));
   return shuffle(picked);
 }
 
 function beginQuestions() {
-  currentIdx = 0; score = 0; selectedMCQIdx = null;
+  currentIdx = 0; score = 0; selectedMCQIdx = null; results = [];
   questions = pickQuestions();
+  recentQuizIds.push(...questions.map(q => q.id));
   document.getElementById('q-total').textContent = questions.length;
   document.getElementById('stat-total').textContent = questions.length;
   document.getElementById('xp-earned-wrap').style.display = 'none';
@@ -706,6 +750,7 @@ window._changeTypes = function() {
 
 /* ── Render current question ─────────────────────────────── */
 function renderQuestion() {
+  scoreAtStart = score;
   const q = questions[currentIdx];
   answered = false;
 
@@ -1075,6 +1120,7 @@ function showNextBtn() {
 
 /* ── Next question ───────────────────────────────────────── */
 window._nextQuestion = function() {
+  results[currentIdx] = score > scoreAtStart;
   currentIdx++;
   selectedMCQIdx = null;
   if (currentIdx >= questions.length) {
@@ -1118,6 +1164,7 @@ async function showResults() {
       minutesSpent,
       secondsSpent,
       types: [...new Set(questions.map(q => q.type))],
+      qs: questions.map((q, i) => ({ id: q.id, ok: !!results[i] })),
       groupId: groupId || null,
       subjectId: subjectId || null,
       topicId: topicId || null,
@@ -1127,6 +1174,7 @@ async function showResults() {
       await updateDoc(doc(db, 'users', currentUser.uid), {
         sessions: arrayUnion(session)
       });
+      currentProfile.sessions = [...(currentProfile.sessions || []), session];
       // Mirror to parent
       if (currentProfile.parentUid) {
         await updateDoc(
