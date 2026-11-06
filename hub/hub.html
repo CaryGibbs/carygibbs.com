@@ -218,6 +218,16 @@
     }
     .no-group-banner h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
     .no-group-banner p { color: var(--color-text-muted); font-size: 0.9rem; }
+    /* ── Join a class ─────────────────────────────────────── */
+    .join-toggle { margin-top: 10px; background: none; border: none; padding: 0; cursor: pointer; font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; }
+    .join-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+    .no-group-banner .join-form { justify-content: center; margin-top: var(--space-lg); }
+    .join-form input { width: 9.5em; text-transform: uppercase; letter-spacing: 0.18em; font-family: var(--font-ui); font-weight: 700; font-size: 1rem; text-align: center; padding: 9px 12px; border-radius: var(--radius-button); border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+    .join-form button[type=submit] { padding: 9px 18px; }
+    .join-msg { flex-basis: 100%; font-family: var(--font-ui); font-size: 0.82rem; min-height: 1em; }
+    .no-group-banner .join-msg { text-align: center; }
+    .join-msg.err { color: #e03131; }
+    .join-msg.ok { color: #0ca678; }
   </style>
   <link rel="stylesheet" href="ui.css">
 </head>
@@ -246,6 +256,7 @@
   <div class="welcome-banner">
     <div class="welcome-greeting">Hey, <span id="student-name">...</span></div>
     <div class="welcome-sub" id="welcome-sub">Loading your subjects…</div>
+    <div id="join-wrap"></div>
   </div>
 
   <div id="gamification-wrap" style="display:none;">
@@ -301,6 +312,7 @@ import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js';
 import { getLevelInfo, currentStreak } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
+import { findClass, joinClass, cleanCode } from './join-class.js';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -358,9 +370,18 @@ requireAuth(async (user, profile) => {
       <div class="no-group-banner">
         <div class="empty-state-icon"><i data-icon="library"></i></div>
         <h3>No revision pack yet</h3>
-        <p>Ask your parent or teacher to choose a revision pack for you, and your subjects will appear here.</p>
+        <p>Got a class code from your teacher? Enter it here. Otherwise, ask your parent or teacher to choose a revision pack for you.</p>
+        ${joinFormHtml()}
       </div>`;
+    wireJoinForm(user, profile);
     return;
+  }
+
+  // Small "Join a class" link under the welcome line
+  const jw = document.getElementById('join-wrap');
+  if (jw && !isPreview()) {
+    jw.innerHTML = `<button class="join-toggle" type="button"><i data-icon="plus"></i> Join a class</button>`;
+    jw.querySelector('.join-toggle').onclick = () => { jw.innerHTML = joinFormHtml(); wireJoinForm(user, profile); jw.querySelector('input').focus(); };
   }
 
   await loadSubjects(user, groupId);
@@ -379,6 +400,42 @@ requireAuth(async (user, profile) => {
     await updateDoc(doc(db, 'users', user.uid), { 'notification.read': true }).catch(()=>{});
   }
 });
+
+/* ── Join a class with a code ─────────────────────────────── */
+function joinFormHtml() {
+  return `<form class="join-form" id="join-form" autocomplete="off">
+    <input id="join-code" maxlength="7" placeholder="CODE" aria-label="Class code" inputmode="text" autocapitalize="characters">
+    <button type="submit" class="btn btn-primary" id="join-btn">Join class</button>
+    <div class="join-msg" id="join-msg" role="status"></div>
+  </form>`;
+}
+function wireJoinForm(user, profile) {
+  const form = document.getElementById('join-form');
+  if (!form) return;
+  const msg = (t, cls) => { const m = document.getElementById('join-msg'); m.textContent = t; m.className = 'join-msg ' + (cls || ''); };
+  form.onsubmit = async e => {
+    e.preventDefault();
+    if (isPreview() || user.uid === 'preview-readonly') { msg('Not available while previewing.', 'err'); return; }
+    const code = cleanCode(document.getElementById('join-code').value);
+    if (code.length !== 6) { msg('Class codes are 6 letters and numbers.', 'err'); return; }
+    const btn = document.getElementById('join-btn');
+    btn.disabled = true; msg('Checking code…');
+    try {
+      const info = await findClass(code);
+      if (!info) { msg('That code wasn\'t found. Check it with your teacher.', 'err'); return; }
+      if (profile.classes?.[info.classId]) { msg(`You're already in ${info.className || 'this class'}.`, 'ok'); return; }
+      await joinClass(user.uid, profile, info);
+      const firstNew = (info.packIds || []).find(id => !packIdsFor(profile).includes(id));
+      if (firstNew) { try { localStorage.setItem('clasp_pack_' + user.uid, firstNew); } catch (err) {} }
+      msg(`You've joined ${info.className || 'the class'}!${info.packIds?.length ? ' Loading your revision…' : ' Your teacher hasn\'t chosen a revision pack yet.'}`, 'ok');
+      showToast(`Joined ${info.className || 'class'}`, 'success');
+      if (info.packIds?.length) setTimeout(() => location.reload(), 1200);
+    } catch (err) {
+      console.warn('Join class failed', err);
+      msg('Couldn\'t join just now. Please try again.', 'err');
+    } finally { btn.disabled = false; }
+  };
+}
 
 /* ── Revision pack picker ─────────────────────────────────── */
 function packIdsFor(profile) {

@@ -136,6 +136,7 @@
 <script type="module">
   import { auth, db } from './firebase-config.js';
   import { redirectByRole } from './auth.js';
+  import { findClass } from './join-class.js';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile
@@ -189,9 +190,8 @@
     // Validate class code if provided
     let classInfo = null;
     if (signupType === 'student' && code) {
-      const codeSnap = await getDoc(doc(db, 'classCodes', code));
-      if (!codeSnap.exists()) { showError('Class code not found. Please check and try again.'); return; }
-      classInfo = codeSnap.data();
+      classInfo = await findClass(code).catch(() => null);
+      if (!classInfo) { showError('Class code not found. Please check and try again.'); return; }
     }
 
     setLoading('btn-signup', true);
