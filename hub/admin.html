@@ -1656,6 +1656,7 @@ async function generateEverything() {
     catch { const m = cleaned.match(/\[\s\S]*\]/); questions = m ? JSON.parse(m[0]) : []; }
 
     if (!questions.length) throw new Error('No questions returned');
+    normaliseTf(questions);
 
     statusEl.textContent = `Step 3/3: Saving ${questions.length} questions…`;
 
@@ -1664,7 +1665,7 @@ async function generateEverything() {
     await Promise.all(questions.map(q => addDoc(colRef, { ...q, createdAt: serverTimestamp(), source: 'ai' })));
 
     statusEl.className = 'kp-gen-status';
-    statusEl.textContent = `✅ Done! ${kps.length} key points + ${questions.length} questions saved.`;
+    statusEl.textContent = `✅ Done! ${kps.length} key points + ${questions.length} questions saved.${tfBalanceText(questions)}`;
     showToast(`Everything saved! ${kps.length} key points + ${questions.length} questions`, 'success');
 
     // Refresh questions list
@@ -1676,17 +1677,34 @@ async function generateEverything() {
   document.querySelectorAll('[data-action="generate-everything"]').forEach(b => { b.disabled = false; b.textContent = '⚡ Generate everything'; });
 }
 
+/* True/False balance: normalise answers to real booleans and report the split */
+function normaliseTf(qs) {
+  (qs || []).forEach(q => {
+    if (q && q.type === 'tf' && typeof q.answer !== 'boolean') q.answer = String(q.answer).trim().toLowerCase() === 'true';
+  });
+  return qs;
+}
+function tfBalanceText(qs) {
+  const tf = (qs || []).filter(q => q && q.type === 'tf');
+  if (!tf.length) return '';
+  const t = tf.filter(q => q.answer === true || q.answer === 'true').length, f = tf.length - t;
+  const lopsided = tf.length >= 4 && Math.max(t, f) / tf.length > 0.7;
+  return ` · True/False: ${t} true, ${f} false${lopsided ? ' ⚠️ uneven, consider deleting some or regenerating' : ''}`;
+}
+
 function buildQuestionPrompt(contentText, qty) {
   return `You are a GCSE revision question writer. Generate up to ${qty} high-quality questions based on the revision content below. If the content does not support ${qty} distinct, non-repetitive questions, generate fewer — quality over quantity. Spread questions evenly across ALL the content, covering early and late sections equally. Never repeat the same fact in two different questions.
 Use these types in roughly equal proportions: mcq, tf, fill, match, short.
 
 For MCQ: make all options similar in length. 4 options per MCQ.
+For True/False: make roughly HALF the answers true and HALF false (e.g. 5 of 10), in a random order, not alternating. Build each false statement from a real fact with one key detail changed (a number, term, place, cause or direction) so it is a plausible misconception, not obviously silly. Don't give away the answer through wording: avoid putting words like "always", "never" or "only" mostly in the false ones, and keep true and false statements similar in length.
 For Fill-in-the-blank: use _____ (five underscores) for the gap.
 For Match pairs: include exactly 4 pairs.
 
 Return ONLY a JSON array with no markdown, no preamble, no backticks. Schemas:
 {"type":"mcq","question":"...","options":[{"text":"...","correct":false},{"text":"...","correct":true},{"text":"...","correct":false},{"text":"...","correct":false}],"explanation":"..."}
 {"type":"tf","question":"...","answer":true,"explanation":"..."}
+{"type":"tf","question":"...","answer":false,"explanation":"Explain what is actually correct"}
 {"type":"fill","sentence":"The _____ is ...","answer":"...","alternatives":[]}
 {"type":"match","instruction":"Match each term to its definition","pairs":[{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."}]}
 {"type":"short","question":"...","markScheme":"Key points: 1) ... 2) ..."}
@@ -1774,7 +1792,7 @@ async function loadExistingQuestions() {
   }
   if (header) {
     header.style.display = 'flex';
-    document.getElementById('existing-q-count').textContent = `${qs.length} question${qs.length !== 1 ? 's' : ''}`;
+    document.getElementById('existing-q-count').textContent = `${qs.length} question${qs.length !== 1 ? 's' : ''}${tfBalanceText(qs)}`;
   }
   list.innerHTML = '';
   qs.forEach(q => list.appendChild(buildQCard(q, false)));
@@ -1818,7 +1836,7 @@ async function runGenerate() {
 
   const typeDescriptions = {
     mcq:   'MCQ: {"type":"mcq","question":"...","options":[{"text":"...","correct":false},{"text":"...","correct":true},{"text":"...","correct":false},{"text":"...","correct":false}],"explanation":"..."}',
-    tf:    'True/False: {"type":"tf","question":"...","answer":true,"explanation":"..."}',
+    tf:    'True/False: {"type":"tf","question":"...","answer":true,"explanation":"..."} or {"type":"tf","question":"...","answer":false,"explanation":"Explain what is actually correct"}',
     fill:  'Fill-in-the-blank: {"type":"fill","sentence":"The _____ is ...","answer":"...","alternatives":[]}',
     match: 'Match pairs: {"type":"match","instruction":"Match each term to its definition","pairs":[{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."}]}',
     short: 'Short written: {"type":"short","question":"...","markScheme":"Key points: 1) ... 2) ..."}'
@@ -1830,6 +1848,7 @@ async function runGenerate() {
 Use these types in roughly equal proportions from: ${types.join(', ')}.
 
 For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
+For True/False: make roughly HALF the answers true and HALF false (e.g. 5 of 10), in a random order, not alternating. Build each false statement from a real fact with one key detail changed (a number, term, place, cause or direction) so it is a plausible misconception, not obviously silly. Don't give away the answer through wording: avoid putting words like "always", "never" or "only" mostly in the false ones, and keep true and false statements similar in length.
 For Fill-in-the-blank: use _____ (five underscores) for the gap.
 For Match pairs: include exactly 4 pairs.
 
@@ -1868,10 +1887,10 @@ ${content}`;
 
     if (!Array.isArray(parsed)) throw new Error('AI returned unexpected format');
 
-    generatedQs = parsed;
+    generatedQs = normaliseTf(parsed);
     renderGeneratedQuestions();
     statusEl.className = 'gen-status';
-    statusEl.textContent = `✅ ${parsed.length} questions generated`;
+    statusEl.textContent = `✅ ${parsed.length} questions generated${tfBalanceText(parsed)}`;
   } catch(e) {
     statusEl.className = 'gen-status error';
     statusEl.textContent = '❌ ' + e.message;

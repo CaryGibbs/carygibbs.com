@@ -803,7 +803,13 @@ function renderMCQ(q) {
   const list = document.getElementById('mcq-options');
   list.innerHTML = '';
   const letters = ['A','B','C','D','E','F'];
-  (q.options || []).forEach((opt, i) => {
+  // Shuffle the options every time, so the right answer isn't always in the
+  // same slot. "All/None of the above" style options stay at the end.
+  // q.options is replaced, so marking (which reads q.options) still lines up.
+  const isTail = o => /^(all|none|both|neither) of (the )?(above|these)|^(both|neither) [a-z]+ (and|nor) /i.test((o.text || '').trim());
+  const opts = q.options || [];
+  q.options = [...shuffle(opts.filter(o => !isTail(o))), ...opts.filter(isTail)];
+  q.options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.dataset.idx = i;
@@ -896,7 +902,8 @@ window._submitTF = function(btn) {
   if (answered) return;
   const q = questions[currentIdx];
   const userVal = btn.dataset.val === 'true';
-  const correct = userVal === q.answer;
+  const answer  = q.answer === true || String(q.answer).trim().toLowerCase() === 'true';
+  const correct = userVal === answer;
   answered = true;
 
   document.querySelectorAll('.tf-btn').forEach(b => b.disabled = true);
@@ -910,9 +917,9 @@ window._submitTF = function(btn) {
     btn.classList.add('wrong');
     // Highlight correct
     document.querySelectorAll('.tf-btn').forEach(b => {
-      if ((b.dataset.val === 'true') === q.answer) b.classList.add('correct');
+      if ((b.dataset.val === 'true') === answer) b.classList.add('correct');
     });
-    showFeedback(false, q.explanation || '', `The correct answer is ${q.answer ? 'True' : 'False'}.`);
+    showFeedback(false, q.explanation || '', `The correct answer is ${answer ? 'True' : 'False'}.`);
   }
   showNextBtn();
 };
