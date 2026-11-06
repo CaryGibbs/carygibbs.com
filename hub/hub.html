@@ -431,6 +431,10 @@ async function loadSubjects(user, groupId) {
             onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
             <i data-icon="network"></i> Map
           </button>
+          <button class="topic-btn topic-btn-map"
+            onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}',view:'cheatsheet'})">
+            <i data-icon="file-text"></i> Cheat sheet
+          </button>
         </div>
       </div>`).join('');
 

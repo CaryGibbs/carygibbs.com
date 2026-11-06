@@ -1,0 +1,328 @@
+// ============================================================
+// CLASP: learning tools
+//   • Learn panel: tap a key point to learn about it
+//   • Cheat sheet: one-page printable summary of a topic
+// Content is written by AI the first time it's needed, then saved
+// with the topic so it loads instantly for everyone afterwards.
+// ============================================================
+
+import { db } from './firebase-config.js';
+import { isPreview, previewInfo } from './auth.js';
+import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
+const MODEL = 'claude-sonnet-4-5';
+
+let ctx = null;        // { groupId, subjectId, subjectName, user, profile }
+let current = null;    // { topic, list, index }
+let learned = {};      // topicId -> Set(noteId)
+
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const topicPath = t => `content/${ctx.groupId}/subjects/${ctx.subjectId}/topics/${t.id}`;
+// Admins (including an admin using "View as") can rewrite saved content
+const canEditContent = () => ctx?.profile?.role === 'admin' || previewInfo()?.viewerProfile?.role === 'admin';
+
+export function noteId(term) {
+  const slug = String(term || 'point').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'point';
+  let h = 0; for (const c of String(term)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return `${slug}-${h.toString(36).slice(0, 5)}`;
+}
+
+/* Key points as one flat list: [{ term, explanation, group }] */
+export function flatPoints(topic) {
+  const kps = topic.keyPoints || [];
+  const out = [];
+  kps.forEach(k => {
+    if (k && Array.isArray(k.points)) k.points.forEach(p => out.push({ term: p.term, explanation: p.explanation || '', group: k.group || '' }));
+    else if (k && k.term) out.push({ term: k.term, explanation: k.explanation || '', group: '' });
+  });
+  return out.filter(p => p.term);
+}
+
+/* ── Set-up ──────────────────────────────────────────────── */
+export function initLearn(options) {
+  ctx = options;
+  const l = options.profile?.learned || {};
+  learned = {};
+  Object.entries(l).forEach(([tid, ids]) => { learned[tid] = new Set(ids || []); });
+  if (!document.getElementById('learn-panel')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="learn-scrim" id="learn-scrim"></div>
+      <aside class="learn-panel" id="learn-panel" aria-hidden="true" aria-label="Learn about this point">
+        <div class="learn-head">
+          <div class="learn-crumb" id="learn-crumb"></div>
+          <button class="learn-close" id="learn-close" aria-label="Close"><i data-icon="x"></i></button>
+        </div>
+        <div class="learn-body" id="learn-body"></div>
+        <div class="learn-foot">
+          <button class="btn btn-ghost" id="learn-prev"><i data-icon="arrow-left"></i> Previous</button>
+          <button class="btn btn-secondary learn-mark" id="learn-mark"><i data-icon="circle-check"></i> Mark as learnt</button>
+          <button class="btn btn-ghost" id="learn-next">Next <i data-icon="arrow-right"></i></button>
+        </div>
+      </aside>`);
+    document.getElementById('learn-close').onclick = closeLearn;
+    document.getElementById('learn-scrim').onclick = closeLearn;
+    document.getElementById('learn-prev').onclick = () => step(-1);
+    document.getElementById('learn-next').onclick = () => step(1);
+    document.getElementById('learn-mark').onclick = toggleLearned;
+    document.addEventListener('keydown', e => {
+      if (!document.body.classList.contains('learn-open')) return;
+      if (e.key === 'Escape') closeLearn();
+      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft') step(-1);
+    });
+  }
+}
+
+export function isLearned(topicId, term) { return !!learned[topicId]?.has(noteId(term)); }
+export function learnedCount(topic) {
+  const ids = learned[topic.id]; if (!ids) return 0;
+  return flatPoints(topic).filter(p => ids.has(noteId(p.term))).length;
+}
+
+/* ── Learn panel ─────────────────────────────────────────── */
+export function openPoint(topic, term) {
+  const list = flatPoints(topic);
+  let index = list.findIndex(p => p.term === term);
+  if (index < 0) index = 0;
+  current = { topic, list, index };
+  document.body.classList.add('learn-open');
+  document.getElementById('learn-panel').setAttribute('aria-hidden', 'false');
+  showCurrent();
+}
+
+export function closeLearn() {
+  document.body.classList.remove('learn-open');
+  document.getElementById('learn-panel')?.setAttribute('aria-hidden', 'true');
+  document.dispatchEvent(new CustomEvent('learn:closed'));
+}
+
+function step(d) {
+  if (!current) return;
+  const i = current.index + d;
+  if (i < 0 || i >= current.list.length) return;
+  current.index = i;
+  showCurrent();
+}
+
+async function showCurrent() {
+  const { topic, list, index } = current;
+  const p = list[index];
+  const id = noteId(p.term);
+  document.getElementById('learn-crumb').innerHTML =
+    `${esc(topic.name)}${p.group ? ` <span>›</span> ${esc(p.group)}` : ''} <span class="learn-count">${index + 1} of ${list.length}</span>`;
+  document.getElementById('learn-prev').disabled = index === 0;
+  document.getElementById('learn-next').disabled = index === list.length - 1;
+  updateMarkButton(topic.id, id);
+
+  const body = document.getElementById('learn-body');
+  body.innerHTML = `
+    <h2 class="learn-term">${esc(p.term)}</h2>
+    <p class="learn-short">${esc(p.explanation)}</p>
+    <div id="learn-more"><div class="learn-loading"><div class="spinner" style="width:22px;height:22px;border-width:2px;"></div> Preparing a fuller explanation…</div></div>`;
+  body.scrollTop = 0;
+  document.dispatchEvent(new CustomEvent('learn:opened', { detail: { topicId: topic.id, term: p.term } }));
+
+  const token = `${topic.id}/${id}`;
+  showCurrent.token = token;
+  try {
+    const note = await getNote(topic, p, id);
+    if (showCurrent.token !== token) return;          // moved on while loading
+    document.getElementById('learn-more').innerHTML = noteHtml(note);
+    wireNote(topic, p, id);
+  } catch (e) {
+    if (showCurrent.token !== token) return;
+    document.getElementById('learn-more').innerHTML =
+      `<div class="learn-error"><i data-icon="circle-alert"></i> Couldn't load more detail just now. <button class="btn btn-ghost" id="learn-retry">Try again</button></div>`;
+    document.getElementById('learn-retry').onclick = showCurrent;
+  }
+}
+
+function noteHtml(n) {
+  const list = a => (a || []).map(x => `<li>${esc(x)}</li>`).join('');
+  return `
+    ${n.simple ? `<section class="learn-sec"><h3><i data-icon="lightbulb"></i> In simple terms</h3><p>${esc(n.simple)}</p></section>` : ''}
+    ${n.keyFacts?.length ? `<section class="learn-sec"><h3><i data-icon="list-checks"></i> Key facts</h3><ul>${list(n.keyFacts)}</ul></section>` : ''}
+    ${n.example ? `<section class="learn-sec"><h3><i data-icon="compass"></i> Example</h3><p>${esc(n.example)}</p></section>` : ''}
+    ${n.mistake ? `<section class="learn-sec learn-warn"><h3><i data-icon="triangle-alert"></i> Common mistake</h3><p>${esc(n.mistake)}</p></section>` : ''}
+    ${n.examTip ? `<section class="learn-sec learn-tip"><h3><i data-icon="graduation-cap"></i> Exam tip</h3><p>${esc(n.examTip)}</p></section>` : ''}
+    ${n.check?.question ? `<section class="learn-sec learn-check"><h3><i data-icon="circle-help"></i> Quick check</h3><p>${esc(n.check.question)}</p>
+      <button class="btn btn-secondary" id="learn-reveal">Show answer</button><p class="learn-answer" id="learn-answer" hidden>${esc(n.check.answer)}</p></section>` : ''}
+    <p class="learn-note">Written by AI from your revision notes. If anything doesn't match what you've been taught, go with your teacher.</p>
+    ${canEditContent() ? `<button class="btn btn-ghost learn-regen" id="learn-regen"><i data-icon="refresh-cw"></i> Rewrite this explanation</button>` : ''}`;
+}
+
+function wireNote(topic, p, id) {
+  const r = document.getElementById('learn-reveal');
+  if (r) r.onclick = () => { document.getElementById('learn-answer').hidden = false; r.remove(); };
+  const g = document.getElementById('learn-regen');
+  if (g) g.onclick = async () => {
+    document.getElementById('learn-more').innerHTML = `<div class="learn-loading"><div class="spinner" style="width:22px;height:22px;border-width:2px;"></div> Rewriting…</div>`;
+    try { const n = await getNote(topic, p, id, true); document.getElementById('learn-more').innerHTML = noteHtml(n); wireNote(topic, p, id); }
+    catch (e) { showCurrent(); }
+  };
+}
+
+async function getNote(topic, p, id, force = false) {
+  const ref = doc(db, `${topicPath(topic)}/notes/${id}`);
+  if (!force) {
+    const snap = await getDoc(ref).catch(() => null);
+    if (snap?.exists()) return snap.data();
+  }
+  const siblings = flatPoints(topic).filter(x => x.term !== p.term).slice(0, 30).map(x => `- ${x.term}: ${x.explanation}`).join('\n');
+  const prompt = `You are a friendly, accurate GCSE tutor in the UK helping a student aged 13 to 16 learn one point from their revision notes.
+
+Subject: ${ctx.subjectName}
+Topic: ${topic.name}${p.group ? `\nSection: ${p.group}` : ''}
+Point to explain: ${p.term}
+What their notes say: ${p.explanation}
+
+Other points in this topic (for context only):
+${siblings || '(none)'}
+
+Write a short lesson on this one point. Use British English and plain, encouraging language. Stay at GCSE level and consistent with their notes. Do not invent statistics, dates or case-study details you are not sure of; if in doubt, keep it general.
+
+Respond ONLY with a JSON object, no markdown, in exactly this shape:
+{"simple":"2 to 3 sentences explaining it simply","keyFacts":["3 to 5 short facts worth remembering"],"example":"one concrete example or well-known case study, 1 to 2 sentences","mistake":"one common misconception and the correct idea, 1 sentence","examTip":"how this tends to come up in exams and what to include, 1 to 2 sentences","check":{"question":"one quick question to test understanding","answer":"the answer in 1 sentence"}}`;
+  const note = await askAi(prompt, 1400);
+  note.term = p.term; note.createdAt = Date.now();
+  setDoc(ref, note).catch(() => {});               // save for next time
+  return note;
+}
+
+function updateMarkButton(topicId, id) {
+  const btn = document.getElementById('learn-mark');
+  const on = !!learned[topicId]?.has(id);
+  btn.classList.toggle('on', on);
+  btn.innerHTML = on ? '<i data-icon="circle-check"></i> Learnt' : '<i data-icon="circle-check"></i> Mark as learnt';
+  btn.style.display = ctx?.profile?.role === 'student' ? '' : 'none';
+}
+
+async function toggleLearned() {
+  if (!current) return;
+  const { topic, list, index } = current;
+  const id = noteId(list[index].term);
+  const set = learned[topic.id] = learned[topic.id] || new Set();
+  const on = !set.has(id);
+  on ? set.add(id) : set.delete(id);
+  updateMarkButton(topic.id, id);
+  document.dispatchEvent(new CustomEvent('learn:changed', { detail: { topicId: topic.id } }));
+  if (on && index < list.length - 1) setTimeout(() => step(1), 350);   // keep the flow going
+  if (isPreview() || ctx?.profile?.role !== 'student') return;
+  try {
+    await updateDoc(doc(db, 'users', ctx.user.uid), { [`learned.${topic.id}`]: on ? arrayUnion(id) : arrayRemove(id) });
+  } catch (e) { /* not critical */ }
+}
+
+/* ── Cheat sheets ────────────────────────────────────────── */
+export async function renderCheatSheet(container, topic, { force = false } = {}) {
+  container.innerHTML = `<div class="cs-loading"><div class="spinner" style="width:28px;height:28px;"></div><p>${force ? 'Rewriting' : 'Preparing'} the cheat sheet for <strong>${esc(topic.name)}</strong>…</p><small>The first time takes about 20 seconds. After that it's instant.</small></div>`;
+  try {
+    let sheet = !force && topic.cheatSheet && topic.cheatSheet.sections ? topic.cheatSheet : null;
+    if (!sheet) {
+      const fresh = await getDoc(doc(db, topicPath(topic))).catch(() => null);
+      const saved = fresh?.data()?.cheatSheet;
+      if (!force && saved?.sections) sheet = saved;
+    }
+    if (!sheet) {
+      sheet = await makeCheatSheet(topic);
+      topic.cheatSheet = sheet;
+      updateDoc(doc(db, topicPath(topic)), { cheatSheet: sheet }).catch(() => {});
+    }
+    container.innerHTML = cheatSheetHtml(topic, sheet);
+    container.querySelector('[data-cs-print]')?.addEventListener('click', () => printSheet(container));
+    container.querySelector('[data-cs-regen]')?.addEventListener('click', () => renderCheatSheet(container, topic, { force: true }));
+  } catch (e) {
+    container.innerHTML = `<div class="cs-loading"><i data-icon="circle-alert"></i><p>Couldn't make the cheat sheet just now.</p><button class="btn btn-secondary" data-cs-retry>Try again</button></div>`;
+    container.querySelector('[data-cs-retry]').onclick = () => renderCheatSheet(container, topic);
+  }
+}
+
+async function makeCheatSheet(topic) {
+  const pts = flatPoints(topic);
+  let source = pts.map(p => `- ${p.group ? `[${p.group}] ` : ''}${p.term}: ${p.explanation}`).join('\n');
+  if (!source && topic.questions?.length) {
+    source = topic.questions.slice(0, 40).map(q => {
+      if (q.type === 'mcq') return `- ${q.question} → ${(q.options || []).find(o => o.correct)?.text || ''}`;
+      if (q.type === 'tf') return `- ${q.question} → ${q.answer === true || q.answer === 'true' ? 'True' : 'False'}${q.explanation ? ` (${q.explanation})` : ''}`;
+      if (q.type === 'fill') return `- ${q.sentence} → ${q.answer}`;
+      if (q.type === 'match') return (q.pairs || []).map(x => `- ${x.left}: ${x.right}`).join('\n');
+      if (q.type === 'short') return `- ${q.question} → ${q.markScheme || ''}`;
+      return '';
+    }).join('\n');
+  }
+  if (!source) throw new Error('No content for this topic yet');
+  const prompt = `You are making a one-page revision cheat sheet for a UK GCSE student (aged 13 to 16).
+
+Subject: ${ctx.subjectName}
+Topic: ${topic.name}
+
+Their revision notes:
+${source}
+
+Make a concise, accurate cheat sheet using only GCSE-level content consistent with these notes. British English. Short phrases, not paragraphs. Do not invent statistics or case-study details you are not sure of.
+
+Respond ONLY with a JSON object, no markdown, in exactly this shape:
+{"summary":"the big idea of the topic in 1 to 2 sentences","sections":[{"heading":"section name","points":["short must-know fact"]}],"keyTerms":[{"term":"word","definition":"short definition"}],"remember":["1 to 3 memory aids or must-remember lines"],"examTips":["2 to 4 exam tips"],"mistakes":["2 to 3 common mistakes to avoid"]}
+Use 2 to 5 sections with 3 to 6 points each, and 4 to 10 key terms.`;
+  const sheet = await askAi(prompt, 3000);
+  sheet.createdAt = Date.now();
+  return sheet;
+}
+
+function cheatSheetHtml(topic, s) {
+  const li = a => (a || []).map(x => `<li>${esc(x)}</li>`).join('');
+  return `
+  <article class="cheatsheet">
+    <header class="cs-head">
+      <div>
+        <div class="cs-kicker">${esc(ctx.subjectName)} · Cheat sheet</div>
+        <h2 class="cs-title">${esc(topic.name)}</h2>
+        ${s.summary ? `<p class="cs-summary">${esc(s.summary)}</p>` : ''}
+      </div>
+      <div class="cs-actions no-print">
+        <button class="btn btn-secondary" data-cs-print><i data-icon="file-text"></i> Print or save PDF</button>
+        ${canEditContent() ? `<button class="btn btn-ghost" data-cs-regen><i data-icon="refresh-cw"></i> Rewrite</button>` : ''}
+      </div>
+    </header>
+    <div class="cs-grid">
+      ${(s.sections || []).map(sec => `<section class="cs-box"><h3>${esc(sec.heading)}</h3><ul>${li(sec.points)}</ul></section>`).join('')}
+    </div>
+    ${s.keyTerms?.length ? `<section class="cs-box cs-terms"><h3><i data-icon="book-open"></i> Key terms</h3>
+      <dl>${s.keyTerms.map(k => `<div><dt>${esc(k.term)}</dt><dd>${esc(k.definition)}</dd></div>`).join('')}</dl></section>` : ''}
+    <div class="cs-grid cs-grid-3">
+      ${s.remember?.length ? `<section class="cs-box cs-remember"><h3><i data-icon="lightbulb"></i> Remember</h3><ul>${li(s.remember)}</ul></section>` : ''}
+      ${s.examTips?.length ? `<section class="cs-box cs-tips"><h3><i data-icon="graduation-cap"></i> Exam tips</h3><ul>${li(s.examTips)}</ul></section>` : ''}
+      ${s.mistakes?.length ? `<section class="cs-box cs-mistakes"><h3><i data-icon="triangle-alert"></i> Avoid</h3><ul>${li(s.mistakes)}</ul></section>` : ''}
+    </div>
+    <p class="cs-foot">Made by AI from your revision notes. Check anything that doesn't match what you've been taught.</p>
+  </article>`;
+}
+
+function printSheet(container) {
+  document.body.classList.add('printing-cheatsheet');
+  container.classList.add('cs-print-target');
+  const done = () => { document.body.classList.remove('printing-cheatsheet'); container.classList.remove('cs-print-target'); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  window.print();
+  setTimeout(done, 1500);
+}
+
+/* ── AI helper ───────────────────────────────────────────── */
+async function askAi(prompt, maxTokens) {
+  const resp = await fetch(PROXY_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!resp.ok) throw new Error('AI request failed: ' + resp.status);
+  const data = await resp.json();
+  const raw = (data.content || []).map(c => c.text || '').join('');
+  const cleaned = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(cleaned); }
+  catch { const m = cleaned.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error('Unexpected AI response'); }
+}
+
+/* Admin: clear saved content for a topic so it is rewritten next time */
+export async function clearTopicLearning(topic) {
+  await updateDoc(doc(db, topicPath(topic)), { cheatSheet: deleteField() }).catch(() => {});
+}

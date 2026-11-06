@@ -262,6 +262,7 @@
     }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
   </style>
+  <link rel="stylesheet" href="learn.css">
   <link rel="stylesheet" href="ui.css">
 </head>
 <body>
@@ -273,7 +274,8 @@
   <div class="view-toggle">
     <button class="view-btn active" data-view="spider" onclick="switchView('spider')"><i data-icon="network"></i> Spider</button>
     <button class="view-btn" data-view="outline" onclick="switchView('outline')"><i data-icon="list"></i> Outline</button>
-    <button class="view-btn" data-view="flashcards" onclick="switchView('flashcards')">🃏 Cards</button>
+    <button class="view-btn" data-view="flashcards" onclick="switchView('flashcards')"><i data-icon="layers"></i> Cards</button>
+    <button class="view-btn" data-view="cheatsheet" onclick="switchView('cheatsheet')"><i data-icon="file-text"></i> Cheat sheet</button>
   </div>
 </nav>
 
@@ -287,7 +289,7 @@
 <!-- Spider view -->
 <div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;overflow:hidden;">
   <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-  <div class="spider-hint" id="spider-hint">Tap a key point · Drag to pan · Pinch to zoom</div>
+  <div class="spider-hint" id="spider-hint">Tap a key point to learn about it · Drag to pan · Pinch to zoom</div>
   <div style="position:absolute;top:var(--space-md);right:var(--space-md);display:flex;gap:6px;z-index:5;">
     <button id="btn-spider-back" onclick="spiderBack()" style="display:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">← Back</button>
     <button onclick="resetSpiderView()" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">⊙ Centre</button>
@@ -301,6 +303,9 @@
 
 <!-- Outline view -->
 <div class="view-panel" id="view-outline"></div>
+
+<!-- Cheat sheet view -->
+<div class="view-panel" id="view-cheatsheet"><div class="cs-wrap" id="cs-wrap"></div></div>
 
 <!-- Flashcards view -->
 <div class="view-panel" id="view-flashcards">
@@ -343,6 +348,7 @@
 import { auth, db } from './firebase-config.js';
 import { requireAuth, showToast, isPreview } from './auth.js';
 import { awardXp } from './gamification.js';
+import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId } from './learn.js';
 import {
   collection, getDocs, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -428,8 +434,11 @@ async function loadData() {
 
     buildFlashcards();
     document.getElementById('loading-wrap').style.display = 'none';
+    initLearn({ groupId, subjectId, subjectName: subjects[0]?.name || subjectName, user: _currentUser, profile: _currentProfile });
     showView('spider');
     buildOutline();
+    if (params.get('view') === 'cheatsheet') window._switchView('cheatsheet');
+    else if (params.get('view') === 'outline') window._switchView('outline');
     // Defer spider build until after layout
     requestAnimationFrame(() => { requestAnimationFrame(() => buildSpider()); });
     // Award mindmap XP (students only)
@@ -528,7 +537,50 @@ window._switchView = function(v) {
   showView(v);
   if (v === 'flashcards') { fcIdx = 0; fcFlipped = false; buildFlashcards(); renderFlashcard(); }
   if (v === 'spider') buildSpider();
+  if (v === 'cheatsheet') showCheatSheets();
 };
+
+/* ── Learning helpers ─────────────────────────────────────── */
+function allTopics() { return (subjects[0]?.topics) || []; }
+function topicForTerm(term) {
+  return allTopics().find(t => flatPoints(t).some(p => p.term === term)) || null;
+}
+let csTopicId = null;
+function showCheatSheets() {
+  const wrap = document.getElementById('cs-wrap');
+  const topics = allTopics().filter(t => (t.keyPoints || []).length || (t.questions || []).length);
+  if (!topics.length) { wrap.innerHTML = '<div class="cs-loading"><p>No content in this subject yet.</p></div>'; return; }
+  if (!csTopicId || !topics.some(t => t.id === csTopicId)) csTopicId = topics[0].id;
+  wrap.innerHTML = (topics.length > 1
+      ? `<div class="cs-topic-pick no-print">${topics.map(t => `<button data-cs-topic="${t.id}" class="${t.id === csTopicId ? 'on' : ''}">${esc(t.name)}</button>`).join('')}</div>`
+      : '') + '<div id="cs-sheet"></div>';
+  wrap.querySelectorAll('[data-cs-topic]').forEach(b => b.onclick = () => { csTopicId = b.dataset.csTopic; showCheatSheets(); });
+  renderCheatSheet(document.getElementById('cs-sheet'), topics.find(t => t.id === csTopicId));
+}
+// Outline: tap a point to learn about it
+document.addEventListener('click', e => {
+  const kp = e.target.closest('.keypoint-item.learnable');
+  if (!kp) return;
+  const t = allTopics().find(x => x.id === kp.dataset.topic);
+  if (t) openPoint(t, kp.dataset.term);
+});
+// Keep the "learnt" ticks up to date
+document.addEventListener('learn:changed', () => updateLearnMarks());
+function updateLearnMarks() {
+  document.querySelectorAll('.keypoint-item.learnable').forEach(el => {
+    const done = isLearned(el.dataset.topic, el.dataset.term);
+    const term = el.querySelector('.keypoint-term');
+    let tick = el.querySelector('.kp-done');
+    if (done && !tick) term.insertAdjacentHTML('beforeend', '<span class="kp-done" title="Learnt"><i data-icon="circle-check"></i></span>');
+    if (!done && tick) tick.remove();
+  });
+  document.querySelectorAll('[data-learn-progress]').forEach(el => {
+    const t = allTopics().find(x => x.id === el.dataset.learnProgress);
+    const n = t ? learnedCount(t) : 0, total = t ? flatPoints(t).length : 0;
+    el.textContent = `${n}/${total} learnt`;
+    el.style.display = n ? '' : 'none';
+  });
+}
 
 function showView(v) {
   document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
@@ -984,6 +1036,14 @@ function handleSpiderClick(clientX, clientY, canvas) {
 
   if (hit && hit.detail) {
     selectedLeaf = hit;
+    // Open the full learn panel when we know which topic the point belongs to
+    const owner = topicForTerm(hit.label);
+    if (owner) {
+      openPoint(owner, hit.label);
+      document.getElementById('spider-hint').style.opacity = '0';
+      drawSpider(canvas.getContext('2d'), canvas);
+      return;
+    }
     document.getElementById('spider-detail-term').textContent = hit.label;
     document.getElementById('spider-detail-explanation').textContent = hit.detail;
     document.getElementById('spider-detail').classList.add('open');
@@ -1164,7 +1224,7 @@ function buildOutline() {
           // Single unnamed group — treat as flat
           const flat = normaliseKps(kps);
           pointsHtml = flat.map(kp => `
-            <div class="keypoint-item">
+            <div class="keypoint-item learnable" data-topic="${t.id}" data-term="${esc(kp.term||'')}">
               <div class="keypoint-term">${esc(kp.term||'')}</div>
               <div class="keypoint-explanation">${esc(kp.explanation||'')}</div>
             </div>`).join('');
@@ -1173,14 +1233,14 @@ function buildOutline() {
             <div style="margin-bottom:var(--space-sm);">
               <div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-primary);padding:6px 0 4px;border-bottom:1px solid var(--color-border);margin-bottom:4px;"><i data-icon="folder-open"></i> ${esc(g.group)}</div>
               ${(g.points||[]).map(kp => `
-                <div class="keypoint-item">
+                <div class="keypoint-item learnable" data-topic="${t.id}" data-term="${esc(kp.term)}">
                   <div class="keypoint-term">${esc(kp.term)}</div>
                   <div class="keypoint-explanation">${esc(kp.explanation)}</div>
                 </div>`).join('')}
             </div>`).join('');
         } else {
           pointsHtml = kps.map(kp => `
-            <div class="keypoint-item">
+            <div class="keypoint-item learnable" data-topic="${t.id}" data-term="${esc(kp.term)}">
               <div class="keypoint-term">${esc(kp.term)}</div>
               <div class="keypoint-explanation">${esc(kp.explanation)}</div>
             </div>`).join('');
@@ -1199,6 +1259,7 @@ function buildOutline() {
       topicEl.innerHTML = `
         <div class="outline-topic-header" data-action="toggle-topic">
           <span class="outline-topic-name">${esc(t.name)}</span>
+          <span class="outline-learn-progress" data-learn-progress="${t.id}" style="display:none;"></span>
           <span class="outline-topic-count">${kps.length ? (isGroupedKps(kps) ? kps.reduce((a,g)=>a+(g.points||[]).length,0)+' pts' : kps.length+' pts') : qs.length+' Q'}</span>
           <span class="outline-topic-chevron">›</span>
         </div>
@@ -1208,6 +1269,7 @@ function buildOutline() {
       topicsWrap.appendChild(topicEl);
     });
   });
+  updateLearnMarks();
 }
 
 function questionToKeypoint(q) {
@@ -1271,7 +1333,7 @@ function shuffle(arr) {
 }
 
 function esc(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 <script>

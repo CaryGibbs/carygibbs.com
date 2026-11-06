@@ -367,3 +367,7 @@ body[data-view] .app-layout .nav-item.active, body.app-layout[data-view] .nav-it
   background: color-mix(in srgb, var(--view-colour) 12%, transparent); color: var(--view-colour);
 }
 body.app-layout[data-view] .nav-item.active .nav-icon { color: var(--view-colour); }
+
+/* Topic rows on the hub: let the buttons wrap under the name on narrow cards */
+.topic-row { flex-wrap: wrap; row-gap: 6px; }
+.topic-row-actions { flex-wrap: wrap; }
