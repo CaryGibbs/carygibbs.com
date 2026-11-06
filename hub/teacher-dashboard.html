@@ -154,6 +154,50 @@
 
     /* ── Students modal ───────────────────────────────────── */
     .modal-wide { max-width: 640px; }
+    .modal-xwide { max-width: 1040px; }
+    .class-actions { flex-wrap: wrap; }
+    .class-packs { display:flex; flex-wrap:wrap; gap:6px; margin: 0 0 var(--space-md); min-height: 24px; }
+    .pack-chip { font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+      background: var(--color-primary-glow); color: var(--color-primary); border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent); }
+    .pack-chip.none { background: var(--color-surface-2); color: var(--color-text-muted); border-color: var(--color-border); }
+    .pack-option { display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border:1px solid var(--color-border);
+      border-radius: var(--radius-button); margin-bottom:8px; cursor:pointer; font-family: var(--font-ui); }
+    .pack-option:hover { border-color: var(--color-primary); }
+    .pack-option input { margin-top:3px; accent-color: var(--color-primary); width:16px; height:16px; }
+    .pack-option small { display:block; color: var(--color-text-muted); font-size:0.78rem; margin-top:2px; }
+    .modal-note { font-family: var(--font-ui); font-size:0.85rem; color: var(--color-text-muted); margin-bottom: var(--space-md); }
+    .student-row-actions { margin-left:auto; display:flex; gap:6px; }
+    .student-row-actions .btn { padding:6px 10px; font-size:0.78rem; }
+    /* Class progress */
+    .prog-filters { display:flex; gap: var(--space-sm); flex-wrap:wrap; margin-bottom: var(--space-md); }
+    .prog-filters select { font-family: var(--font-ui); font-size:0.85rem; padding:8px 10px; border-radius: var(--radius-button);
+      border:1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
+    .prog-summary { display:grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: var(--space-sm); margin-bottom: var(--space-md); }
+    .prog-tile { background: var(--color-surface-2); border-radius: var(--radius-button); padding: 10px 14px; font-family: var(--font-ui); }
+    .prog-tile b { display:block; font-family: var(--font-heading); font-size:1.4rem; color: var(--color-text); }
+    .prog-tile span { font-size:0.75rem; color: var(--color-text-muted); }
+    .prog-tile.warn b { color: #e8590c; }
+    .prog-wrap { overflow-x:auto; border:1px solid var(--color-border); border-radius: var(--radius-button); }
+    .prog-table { border-collapse: collapse; width:100%; font-family: var(--font-ui); font-size:0.8rem; }
+    .prog-table th, .prog-table td { padding: 8px 10px; border-bottom:1px solid var(--color-border); text-align:center; white-space:nowrap; }
+    .prog-table th { background: var(--color-surface-2); font-weight:600; color: var(--color-text-muted); font-size:0.72rem; }
+    .prog-table th.topic { max-width:120px; white-space:normal; line-height:1.25; vertical-align:bottom; }
+    .prog-table td.name, .prog-table th.name { text-align:left; position:sticky; left:0; background: var(--color-surface); z-index:1; }
+    .prog-table th.name { background: var(--color-surface-2); }
+    .prog-table tr.behind td.name { box-shadow: inset 3px 0 0 #e8590c; }
+    .prog-name { font-weight:600; color: var(--color-text); }
+    .prog-sub { font-size:0.72rem; color: var(--color-text-muted); }
+    .prog-flag { display:inline-block; font-size:0.66rem; font-weight:700; color:#e8590c; background:#e8590c18; padding:1px 7px; border-radius:999px; margin-left:6px; }
+    .cell { display:inline-flex; flex-direction:column; align-items:center; min-width:46px; padding:4px 6px; border-radius:8px; }
+    .cell b { font-size:0.85rem; }
+    .cell small { font-size:0.66rem; opacity:0.8; }
+    .cell.good { background:#12b88620; color:#0b8a65; }
+    .cell.mid  { background:#f59f0020; color:#b07000; }
+    .cell.low  { background:#fa525220; color:#c92a2a; }
+    .cell.learn { background: var(--color-primary-glow); color: var(--color-primary); }
+    .cell.none { color: var(--color-text-muted); }
+    .prog-key { display:flex; gap: var(--space-md); flex-wrap:wrap; margin-top: var(--space-sm); font-family: var(--font-ui); font-size:0.75rem; color: var(--color-text-muted); }
+    .prog-key .cell { min-width:auto; padding:1px 8px; }
     .students-tabs {
       display: flex; background: var(--color-surface-2);
       border-radius: var(--radius-button); padding: 4px;
@@ -320,10 +364,11 @@
         <label>Email</label>
         <input type="email" id="student-email" placeholder="jamie@example.com">
       </div>
+      <p class="modal-note" id="existing-note">Student already has a Clasp account? Just enter their email and leave the password blank to add them to this class.</p>
       <div class="form-group">
         <label>Password</label>
         <div class="password-row">
-          <input type="text" id="student-password" placeholder="Set a password">
+          <input type="text" id="student-password" placeholder="Set a password (new accounts only)">
           <button class="btn-generate" onclick="generateStudentPw()"><i data-icon="sparkles"></i> Generate</button>
         </div>
         <div class="password-reveal" id="student-pw-reveal">
@@ -354,6 +399,34 @@
   </div>
 </div>
 
+<!-- Revision packs modal -->
+<div class="modal-overlay" id="modal-packs">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2 id="packs-modal-title">Revision packs</h2>
+      <button class="modal-close" onclick="closeModal('modal-packs')" aria-label="Close"><i data-icon="x"></i></button>
+    </div>
+    <p class="modal-note">Every student in the class gets these packs on their hub, and so does anyone who joins later with the class code. Students with more than one pack choose which to revise.</p>
+    <div class="error-msg" id="packs-error"></div>
+    <div id="packs-list"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-packs')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-packs" onclick="savePacks()">Save packs</button>
+    </div>
+  </div>
+</div>
+
+<!-- Class progress modal -->
+<div class="modal-overlay" id="modal-progress">
+  <div class="modal modal-xwide">
+    <div class="modal-header">
+      <h2 id="progress-modal-title">Class progress</h2>
+      <button class="modal-close" onclick="closeModal('modal-progress')" aria-label="Close"><i data-icon="x"></i></button>
+    </div>
+    <div id="progress-body"></div>
+  </div>
+</div>
+
 <!-- Edit class modal -->
 <div class="modal-overlay" id="modal-edit-class">
   <div class="modal">
@@ -375,7 +448,7 @@
       <button class="btn btn-primary" id="btn-save-class" onclick="saveClass()">Save changes</button>
     </div>
     <div class="danger-zone">
-      <p>Deleting this class removes all student links but does not delete student accounts.</p>
+      <p>Deleting this class removes its students and packs from the class, but keeps every student's account and progress.</p>
       <button class="btn btn-danger" style="width:100%; padding:10px;" onclick="confirmDeleteClass()">Delete class</button>
     </div>
   </div>
@@ -385,6 +458,7 @@
   function doSignOut()             { window._doSignOut && window._doSignOut(); }
   function openCreateClass()       { window._openCreateClass && window._openCreateClass(); }
   function createClass()           { window._createClass && window._createClass(); }
+  function openModal(id)           { document.getElementById(id).classList.add("open"); }
   function closeModal(id)          { window._closeModal && window._closeModal(id); }
   function openStudentsModal(id)   { window._openStudentsModal && window._openStudentsModal(id); }
   function switchStudentsTab(t)    { window._switchStudentsTab && window._switchStudentsTab(t); }
@@ -396,17 +470,20 @@
   function openEditClass(id)       { window._openEditClass && window._openEditClass(id); }
   function saveClass()             { window._saveClass && window._saveClass(); }
   function confirmDeleteClass()    { window._confirmDeleteClass && window._confirmDeleteClass(); }
+  function openPacks(id)           { window._openPacks && window._openPacks(id); }
+  function savePacks()             { window._savePacks && window._savePacks(); }
+  function openProgress(id)        { window._openProgress && window._openProgress(id); }
 </script>
 
 <script type="module">
   import { auth, db } from './firebase-config.js';
-  import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js';
   import { mountShell } from './shell.js';
   import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
   import { app as firebaseApp } from './firebase-config.js';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let teacherUid = null;
   let teacherProfile = null;
@@ -414,6 +491,9 @@
   let activeClassId = null;
   let activeClassStudents = {};
   let studentTheme = 'light';
+  let packs = {};            // packId -> { name, description }
+  let studentCounts = {};    // classId -> number
+  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
   // Theme picker for new students (same swatches as the parent dashboard)
   document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
@@ -439,8 +519,22 @@
     teacherProfile = profile;
     mountShell(user, profile, { view: 'teacher', active: 'classes' });
     if (profile.school) document.getElementById('school-name').textContent = profile.school;
-    loadClasses();
+    loadPacks().then(loadClasses);
   });
+
+  async function loadPacks() {
+    const snap = await getDocs(collection(db, 'content')).catch(() => null);
+    packs = {};
+    snap?.forEach(d => { packs[d.id] = d.data(); });
+  }
+
+  async function countStudents() {
+    await Promise.all(Object.keys(classesData).map(async id => {
+      const s = await getDocs(collection(db, 'users', teacherUid, 'classes', id, 'students')).catch(() => null);
+      studentCounts[id] = s ? s.size : 0;
+    }));
+    renderClasses();
+  }
 
   window._doSignOut = () => handleSignOut();
 
@@ -450,6 +544,7 @@
       classesData = {};
       snap.forEach(d => { classesData[d.id] = d.data(); });
       renderClasses();
+      countStudents();
     });
   }
 
@@ -471,12 +566,15 @@
     }
 
     grid.innerHTML = Object.entries(classesData).map(([id, cls]) => {
-      const studentCount = cls.students ? Object.keys(cls.students).length : 0;
+      const studentCount = studentCounts[id] ?? '–';
+      const chips = (cls.packIds || []).filter(p => packs[p]).map(p => `<span class="pack-chip">${esc(packs[p].name)}</span>`).join('')
+        || '<span class="pack-chip none">No revision pack yet</span>';
       return `
         <div class="class-card">
           <div class="class-icon"><i data-icon="library"></i></div>
-          <div class="class-name">${cls.name}</div>
-          <div class="class-meta">${cls.subject || ''}</div>
+          <div class="class-name">${esc(cls.name)}</div>
+          <div class="class-meta">${esc(cls.subject || '')}</div>
+          <div class="class-packs">${chips}</div>
           <div class="class-stats">
             <div class="class-stat">
               <div class="class-stat-value">${studentCount}</div>
@@ -491,7 +589,9 @@
             <button class="copy-btn" onclick="event.stopPropagation(); copyCode('${cls.joinCode}')">Copy</button>
           </div>
           <div class="class-actions">
+            <button class="btn btn-primary" onclick="openProgress('${id}')"><i data-icon="bar-chart"></i> Progress</button>
             <button class="btn btn-secondary" onclick="openStudentsModal('${id}')">Students</button>
+            <button class="btn btn-secondary" onclick="openPacks('${id}')">Packs</button>
             <button class="btn btn-ghost" onclick="openEditClass('${id}')">Edit</button>
           </div>
         </div>`;
@@ -518,12 +618,13 @@
       const classRef = doc(collection(db, 'users', teacherUid, 'classes'));
       const classId  = classRef.id;
       await setDoc(classRef, {
-        name, subject, joinCode, joinMethod: method,
+        name, subject, joinCode, joinMethod: method, packIds: [],
         createdAt: Date.now()
       });
-      await setDoc(doc(db, 'classCodes', joinCode), { classId, teacherUid, className: name });
+      await setDoc(doc(db, 'classCodes', joinCode), { classId, teacherUid, className: name, packIds: [] });
       closeModal('modal-create-class');
-      showToast(`Class "${name}" created!`, 'success');
+      showToast(`Class "${name}" created. Next, choose its revision packs.`, 'success');
+      setTimeout(() => window._openPacks(classId), 400);
     } catch(e) {
       showModalError('create-class-error', 'Failed to create class. Please try again.');
     } finally {
@@ -557,13 +658,30 @@
       const initials = s.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
       return `
         <div class="student-row">
-          <div class="student-avatar">${initials}</div>
+          <div class="student-avatar">${esc(initials)}</div>
           <div class="student-info">
-            <div class="student-name">${s.name}</div>
-            <div class="student-email">${s.email}</div>
+            <div class="student-name">${esc(s.name)}</div>
+            <div class="student-email">${esc(s.email)}</div>
+          </div>
+          <div class="student-row-actions">
+            <button class="btn btn-secondary" data-view-as="${esc(uid)}" title="Open their hub in a new window"><i data-icon="eye"></i> View as</button>
+            <button class="btn btn-ghost" data-remove="${esc(uid)}" title="Remove from this class">Remove</button>
           </div>
         </div>`;
     }).join('');
+    list.querySelectorAll('[data-view-as]').forEach(b => b.onclick = () => openViewAs(b.dataset.viewAs));
+    list.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => removeFromClass(b.dataset.remove));
+  }
+
+  async function removeFromClass(uid) {
+    const s = activeClassStudents[uid];
+    if (!confirm(`Remove ${s?.name || 'this student'} from ${classesData[activeClassId]?.name}? Their account and progress are kept.`)) return;
+    try {
+      await deleteDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid));
+      await updateDoc(doc(db, 'users', uid), { [`classes.${activeClassId}`]: deleteField(), [`classPacks.${activeClassId}`]: deleteField() }).catch(() => {});
+      showToast('Removed from class.', 'info');
+      loadStudentList(activeClassId); countStudents();
+    } catch (e) { showToast('Could not remove. Please try again.', 'error'); }
   }
 
   window._switchStudentsTab = function(tab) {
@@ -590,8 +708,15 @@
     const password = document.getElementById('student-password').value.trim();
     if (!name)               { showModalError('add-student-error','Please enter the student\'s name.'); return; }
     if (!email)              { showModalError('add-student-error','Please enter an email address.'); return; }
-    if (password.length < 8) { showModalError('add-student-error','Password must be at least 8 characters.'); return; }
     const btn = document.getElementById('btn-add-student');
+    const classPacksNow = classesData[activeClassId]?.packIds || [];
+    if (!password) {                       // link an existing account
+      btn.classList.add('loading');
+      try { await linkExisting(name, email, classPacksNow); }
+      finally { btn.classList.remove('loading'); }
+      return;
+    }
+    if (password.length < 8) { showModalError('add-student-error','Password must be at least 8 characters.'); return; }
     btn.classList.add('loading');
     try {
       const secondaryApp = initializeApp(firebaseApp.options, 'student_' + Date.now());
@@ -603,7 +728,8 @@
         name, email, role: 'student',
         teacherUid, theme: studentTheme,
         createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
-        classes: { [activeClassId]: true }
+        classes: { [activeClassId]: true },
+        classPacks: { [activeClassId]: classPacksNow }
       });
       await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email });
       await secondaryAuth.signOut();
@@ -616,11 +742,210 @@
       switchStudentsTab('list');
       showToast(`${name} added to class!`, 'success');
     } catch(e) {
-      showModalError('add-student-error', friendlyError(e.code));
+      if (e.code === 'auth/email-already-in-use') {
+        showModalError('add-student-error', 'That email already has a Clasp account. Clear the password box to add the existing student to this class.');
+      } else showModalError('add-student-error', friendlyError(e.code));
     } finally {
       btn.classList.remove('loading');
     }
   };
+
+  async function findUserByEmail(email) {
+    const forms = [...new Set([email, email.toLowerCase()])];
+    const snap = await getDocs(query(collection(db, 'users'), where('email', 'in', forms)));
+    let found = null;
+    snap.forEach(d => { if (!found) found = { id: d.id, ...d.data() }; });
+    return found;
+  }
+
+  async function linkExisting(name, email, packIds) {
+    let student;
+    try { student = await findUserByEmail(email); }
+    catch (e) { showModalError('add-student-error', 'Could not look up that email. Please try again.'); return; }
+    if (!student) { showModalError('add-student-error', 'No Clasp account uses that email. Set a password to create one.'); return; }
+    if (!isStudent(student)) { showModalError('add-student-error', 'That account isn\'t a student account.'); return; }
+    await updateDoc(doc(db, 'users', student.id), { [`classes.${activeClassId}`]: true, [`classPacks.${activeClassId}`]: packIds });
+    await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', student.id), { name: student.name || name, email: student.email || email });
+    document.getElementById('student-name').value = '';
+    document.getElementById('student-email').value = '';
+    loadStudentList(activeClassId); countStudents();
+    switchStudentsTab('list');
+    showToast(`${student.name || name} added to class!`, 'success');
+  }
+
+  // ── Revision packs for a class ────────────────────────────
+  window._openPacks = function(classId) {
+    activeClassId = classId;
+    const cls = classesData[classId] || {};
+    const chosen = new Set(cls.packIds || []);
+    document.getElementById('packs-modal-title').textContent = `Revision packs · ${cls.name || ''}`;
+    document.getElementById('packs-error').classList.remove('visible');
+    const entries = Object.entries(packs).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+    document.getElementById('packs-list').innerHTML = entries.length ? entries.map(([id, p]) => `
+      <label class="pack-option">
+        <input type="checkbox" value="${esc(id)}" ${chosen.has(id) ? 'checked' : ''}>
+        <span><strong>${esc(p.name)}</strong>${p.description ? `<small>${esc(p.description)}</small>` : ''}</span>
+      </label>`).join('') : '<div class="empty-students">No revision packs exist yet.</div>';
+    openModal('modal-packs');
+  };
+
+  window._savePacks = async function() {
+    const packIds = [...document.querySelectorAll('#packs-list input:checked')].map(i => i.value);
+    const classId = activeClassId, cls = classesData[classId];
+    const btn = document.getElementById('btn-save-packs');
+    btn.classList.add('loading');
+    try {
+      await updateDoc(doc(db, 'users', teacherUid, 'classes', classId), { packIds });
+      cls.packIds = packIds; renderClasses();
+      if (cls.joinCode) await updateDoc(doc(db, 'classCodes', cls.joinCode), { packIds }).catch(() => {});
+      // Give every student in the class the packs (read by their hub)
+      const snap = await getDocs(collection(db, 'users', teacherUid, 'classes', classId, 'students'));
+      const ids = []; snap.forEach(d => ids.push(d.id));
+      const results = await Promise.allSettled(ids.map(uid => updateDoc(doc(db, 'users', uid), { [`classPacks.${classId}`]: packIds })));
+      const failed = results.filter(r => r.status === 'rejected').length;
+      closeModal('modal-packs');
+      showToast(failed ? `Saved, but ${failed} student${failed > 1 ? 's' : ''} couldn't be updated.` : `Packs saved for ${ids.length} student${ids.length === 1 ? '' : 's'}.`, failed ? 'error' : 'success');
+    } catch (e) {
+      showModalError('packs-error', 'Could not save. Please try again.');
+    } finally { btn.classList.remove('loading'); }
+  };
+
+  // ── Class progress ────────────────────────────────────────
+  const contentCache = {};   // packId -> [{ id, name, topics:[{id,name}] }]
+  async function packTree(packId) {
+    if (contentCache[packId]) return contentCache[packId];
+    const byOrder = (a, b) => (a.order ?? 999) - (b.order ?? 999) || (a.name || '').localeCompare(b.name || '');
+    const subSnap = await getDocs(collection(db, `content/${packId}/subjects`));
+    const subjects = [];
+    subSnap.forEach(d => subjects.push({ id: d.id, ...d.data() }));
+    await Promise.all(subjects.map(async s => {
+      const tSnap = await getDocs(collection(db, `content/${packId}/subjects/${s.id}/topics`));
+      s.topics = []; tSnap.forEach(d => s.topics.push({ id: d.id, name: d.data().name, order: d.data().order }));
+      s.topics.sort(byOrder);
+    }));
+    subjects.sort(byOrder);
+    return (contentCache[packId] = subjects);
+  }
+
+  const DAY = 86400000;
+  const dayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  // One student's results for one topic
+  function topicResult(student, subject, topic) {
+    const sess = (student.sessions || []).filter(x => x.topic === topic.name && (!x.subject || x.subject === subject.name || x.subject === x.topic));
+    const learnt = (student.learned?.[topic.id] || []).length;
+    const done = (student.topicsCompleted || []).includes(topic.id);
+    if (!sess.length) return { learnt, done, quizzes: 0 };
+    const last = sess.reduce((a, b) => (b.date > a.date ? b : a));
+    const best = Math.max(...sess.map(x => x.pct ?? 0));
+    return { learnt, done, quizzes: sess.length, last: last.pct ?? 0, best, lastDate: last.date };
+  }
+
+  function studentSummary(student) {
+    const now = Date.now();
+    const lastRev = student.lastRevisionDate ? new Date(student.lastRevisionDate).getTime() : 0;
+    const lastSess = Math.max(0, ...(student.sessions || []).map(x => x.date || 0));
+    const lastActive = Math.max(lastRev || 0, lastSess);
+    let weekSecs = 0;
+    for (let i = 0; i < 7; i++) {
+      const day = student.study?.[dayKey(new Date(now - i * DAY))] || {};
+      weekSecs += Object.values(day).reduce((a, b) => a + (b || 0), 0);
+    }
+    const weekQuizzes = (student.sessions || []).filter(x => now - (x.date || 0) < 7 * DAY);
+    weekSecs += weekQuizzes.reduce((a, x) => a + (x.secondsSpent || (x.minutesSpent || 0) * 60), 0);
+    return { lastActive, weekMins: Math.round(weekSecs / 60), weekQuizzes: weekQuizzes.length };
+  }
+
+  function ago(ts) {
+    if (!ts) return 'Never';
+    const d = Math.floor((Date.now() - ts) / DAY);
+    return d <= 0 ? 'Today' : d === 1 ? 'Yesterday' : `${d} days ago`;
+  }
+
+  let progressState = null;
+  window._openProgress = async function(classId) {
+    const cls = classesData[classId] || {};
+    document.getElementById('progress-modal-title').textContent = `Class progress · ${cls.name || ''}`;
+    const body = document.getElementById('progress-body');
+    body.innerHTML = '<div class="empty-students">Loading progress…</div>';
+    openModal('modal-progress');
+    const packIds = (cls.packIds || []).filter(p => packs[p]);
+    const snap = await getDocs(collection(db, 'users', teacherUid, 'classes', classId, 'students')).catch(() => null);
+    const ids = []; snap?.forEach(d => ids.push({ id: d.id, ...d.data() }));
+    if (!ids.length) { body.innerHTML = '<div class="empty-students">No students in this class yet. Add some from the Students button.</div>'; return; }
+    if (!packIds.length) { body.innerHTML = `<div class="empty-students">Choose a revision pack for this class first, so there are topics to track.<br><br><button class="btn btn-primary" onclick="closeModal('modal-progress'); openPacks('${esc(classId)}')">Choose packs</button></div>`; return; }
+    const students = (await Promise.all(ids.map(s => getDoc(doc(db, 'users', s.id)).then(d => d.exists() ? { id: s.id, ...d.data() } : { id: s.id, name: s.name, email: s.email, missing: true }).catch(() => ({ id: s.id, name: s.name, missing: true })))))
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    progressState = { classId, packIds, students, packId: packIds[0], subjectId: null };
+    renderProgress();
+  };
+
+  async function renderProgress() {
+    const st = progressState;
+    const body = document.getElementById('progress-body');
+    const tree = await packTree(st.packId).catch(() => []);
+    if (!st.subjectId || !tree.find(s => s.id === st.subjectId)) st.subjectId = tree[0]?.id || null;
+    const subject = tree.find(s => s.id === st.subjectId);
+    const topics = subject?.topics || [];
+
+    const rows = st.students.map(stu => {
+      const sum = studentSummary(stu);
+      const res = topics.map(t => topicResult(stu, subject, t));
+      const quizzed = res.filter(r => r.quizzes);
+      const avg = quizzed.length ? Math.round(quizzed.reduce((a, r) => a + r.last, 0) / quizzed.length) : null;
+      const touched = res.filter(r => r.quizzes || r.learnt).length;
+      const inactive = Date.now() - sum.lastActive > 7 * DAY;
+      const reasons = [];
+      if (inactive) reasons.push(sum.lastActive ? 'Inactive 7+ days' : 'Not started');
+      if (avg !== null && avg < 50) reasons.push('Low scores');
+      return { stu, sum, res, avg, touched, behind: reasons.length > 0, reasons };
+    });
+
+    const activeWeek = rows.filter(r => Date.now() - r.sum.lastActive <= 7 * DAY).length;
+    const avgs = rows.map(r => r.avg).filter(a => a !== null);
+    const classAvg = avgs.length ? Math.round(avgs.reduce((a, b) => a + b, 0) / avgs.length) : null;
+    const behind = rows.filter(r => r.behind).length;
+    const coverage = topics.length ? Math.round(rows.reduce((a, r) => a + r.touched, 0) / (rows.length * topics.length) * 100) : 0;
+
+    const cell = r => {
+      if (r.quizzes) {
+        const c = r.last >= 70 ? 'good' : r.last >= 50 ? 'mid' : 'low';
+        return `<span class="cell ${c}" title="Last quiz ${r.last}% · best ${r.best}% · ${r.quizzes} quiz${r.quizzes > 1 ? 'zes' : ''}${r.learnt ? ` · ${r.learnt} points learnt` : ''}"><b>${r.last}%</b><small>${r.quizzes}× ${r.learnt ? `· ${r.learnt} learnt` : ''}</small></span>`;
+      }
+      if (r.learnt) return `<span class="cell learn" title="${r.learnt} points learnt, no quiz yet"><b>${r.done ? '✓' : r.learnt}</b><small>learnt</small></span>`;
+      return '<span class="cell none">–</span>';
+    };
+
+    body.innerHTML = `
+      <div class="prog-filters">
+        ${st.packIds.length > 1 ? `<select id="prog-pack" aria-label="Revision pack">${st.packIds.map(p => `<option value="${esc(p)}" ${p === st.packId ? 'selected' : ''}>${esc(packs[p].name)}</option>`).join('')}</select>` : ''}
+        <select id="prog-subject" aria-label="Subject">${tree.map(s => `<option value="${esc(s.id)}" ${s.id === st.subjectId ? 'selected' : ''}>${esc(s.name)}</option>`).join('') || '<option>No subjects</option>'}</select>
+      </div>
+      <div class="prog-summary">
+        <div class="prog-tile"><b>${activeWeek}/${rows.length}</b><span>active in the last 7 days</span></div>
+        <div class="prog-tile"><b>${classAvg === null ? '–' : classAvg + '%'}</b><span>average latest score</span></div>
+        <div class="prog-tile"><b>${coverage}%</b><span>of topics started</span></div>
+        <div class="prog-tile ${behind ? 'warn' : ''}"><b>${behind}</b><span>need a nudge</span></div>
+      </div>
+      ${topics.length ? `<div class="prog-wrap"><table class="prog-table">
+        <thead><tr><th class="name">Student</th><th>Last active</th><th>This week</th>${topics.map(t => `<th class="topic" title="${esc(t.name)}">${esc(t.name)}</th>`).join('')}<th></th></tr></thead>
+        <tbody>${rows.map(r => `
+          <tr class="${r.behind ? 'behind' : ''}">
+            <td class="name"><div class="prog-name">${esc(r.stu.name || 'Student')}${r.reasons.map(x => `<span class="prog-flag">${x}</span>`).join('')}</div>
+              <div class="prog-sub">${r.stu.streak ? `🔥 ${r.stu.streak}-day streak · ` : ''}${r.avg === null ? 'No quizzes in this subject' : `Avg ${r.avg}%`}</div></td>
+            <td>${ago(r.sum.lastActive)}</td>
+            <td>${r.sum.weekMins} min<div class="prog-sub">${r.sum.weekQuizzes} quiz${r.sum.weekQuizzes === 1 ? '' : 'zes'}</div></td>
+            ${r.res.map(x => '<td>' + cell(x) + '</td>').join('')}
+            <td>${r.stu.missing ? '' : `<button class="btn btn-ghost" style="padding:5px 9px;font-size:0.75rem" data-view-as="${esc(r.stu.id)}"><i data-icon="eye"></i> View</button>`}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>
+      <div class="prog-key"><span><span class="cell good">70%+</span> on track</span><span><span class="cell mid">50–69%</span> getting there</span><span><span class="cell low">under 50%</span> needs help</span><span><span class="cell learn">n</span> points learnt, no quiz yet</span><span>Scores are each student's latest quiz on the topic.</span></div>`
+      : '<div class="empty-students">This subject has no topics yet.</div>'}`;
+
+    body.querySelector('#prog-pack')?.addEventListener('change', e => { st.packId = e.target.value; st.subjectId = null; renderProgress(); });
+    body.querySelector('#prog-subject')?.addEventListener('change', e => { st.subjectId = e.target.value; renderProgress(); });
+    body.querySelectorAll('[data-view-as]').forEach(b => b.onclick = () => openViewAs(b.dataset.viewAs));
+  }
 
   window._copyJoinCode = function() {
     const code = document.getElementById('modal-join-code').textContent;
@@ -667,6 +992,14 @@
   async function deleteClass() {
     const cls = classesData[activeClassId];
     try {
+      const classId = activeClassId;
+      const snap = await getDocs(collection(db, 'users', teacherUid, 'classes', classId, 'students')).catch(() => null);
+      const tidy = [];
+      snap?.forEach(d => {
+        tidy.push(updateDoc(doc(db, 'users', d.id), { [`classes.${classId}`]: deleteField(), [`classPacks.${classId}`]: deleteField() }).catch(() => {}));
+        tidy.push(deleteDoc(d.ref).catch(() => {}));
+      });
+      await Promise.all(tidy);
       await deleteDoc(doc(db, 'users', teacherUid, 'classes', activeClassId));
       await deleteDoc(doc(db, 'classCodes', cls.joinCode));
       closeModal('modal-edit-class');

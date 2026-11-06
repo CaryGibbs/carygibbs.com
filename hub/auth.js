@@ -61,7 +61,11 @@ function viewAsId() {
 
 export function exitPreview() {
   try { sessionStorage.removeItem(VIEW_AS_KEY); } catch (e) {}
-  const back = hasRole(_preview?.viewerProfile, 'admin') ? 'admin.html' : 'parent.html';
+  // back to the view the viewer was last using (admin, teacher or parent)
+  let last = null;
+  try { last = localStorage.getItem('clasp_view_' + _preview?.viewer?.uid); } catch (e) {}
+  const views = viewsOf(_preview?.viewerProfile);
+  const back = VIEW_HOME[views.includes(last) ? last : views[views.length - 1]] || 'parent.html';
   window.close();                                   // works when we opened the window
   setTimeout(() => { window.location.href = back; }, 150); // otherwise go back to the dashboard
 }

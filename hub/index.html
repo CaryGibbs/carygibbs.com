@@ -209,7 +209,8 @@
         const profile = {
           name, email, role: 'student', theme: 'edge',
           createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
-          classes: classInfo ? { [classInfo.classId]: true } : {}
+          classes: classInfo ? { [classInfo.classId]: true } : {},
+          classPacks: classInfo ? { [classInfo.classId]: classInfo.packIds || [] } : {}
         };
         await setDoc(doc(db, 'users', uid), profile);
         if (classInfo) {
