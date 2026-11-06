@@ -8,7 +8,7 @@
 // ============================================================
 
 import { db } from './firebase-config.js';
-import { isPreview } from './auth.js';
+import { isPreview, isStudent } from './auth.js';
 import { awardXp } from './gamification.js';
 import { doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -23,7 +23,7 @@ function dayKey(d = new Date()) {
 }
 
 export function startStudyTimer({ user, profile, subjectId, subjectName, onBadges }) {
-  if (!user || profile?.role !== 'student' || isPreview() || !subjectId) return;
+  if (!user || !isStudent(profile) || isPreview() || !subjectId) return;
   if (state) return;
   state = { user, profile, subjectId, subjectName, onBadges, pending: 0, xpBank: 0, lastActive: Date.now(), lastTick: Date.now(), lastFlush: Date.now() };
 

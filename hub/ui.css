@@ -371,3 +371,5 @@ body.app-layout[data-view] .nav-item.active .nav-icon { color: var(--view-colour
 /* Topic rows on the hub: let the buttons wrap under the name on narrow cards */
 .topic-row { flex-wrap: wrap; row-gap: 6px; }
 .topic-row-actions { flex-wrap: wrap; }
+.view-switch-3 .view-switch-opt { font-size: 0.78rem; padding: 7px 2px; }
+.view-switch-3 .view-switch-opt .icon { display: none; }

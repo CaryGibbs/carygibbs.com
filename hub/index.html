@@ -178,7 +178,7 @@
 
   window._handleSignup = async function() {
     const name     = document.getElementById('signup-name').value.trim();
-    const email    = document.getElementById('signup-email').value.trim();
+    const email    = document.getElementById('signup-email').value.trim().toLowerCase();
     const password = document.getElementById('signup-password').value;
     const code     = document.getElementById('signup-class-code').value.trim().toUpperCase();
 

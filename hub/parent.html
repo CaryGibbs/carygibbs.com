@@ -85,6 +85,13 @@
     .error-msg.visible { display: block; }
     .btn.loading { opacity: 0.7; pointer-events: none; }
     .btn.loading::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin-left: 8px; vertical-align: middle; }
+    .share-zone { border-top: 1px solid var(--color-border); margin-top: var(--space-lg); padding-top: var(--space-lg); }
+    .share-zone > label { font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600; }
+    .guardian-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .guardian-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--color-surface-2); font-size: 0.86rem; }
+    .guardian-row small { color: var(--color-text-muted); margin-left: auto; }
+    .share-row { display: flex; gap: 8px; }
+    .share-row input { flex: 1; }
     .danger-zone { border-top: 1px solid var(--color-border); margin-top: var(--space-lg); padding-top: var(--space-lg); }
     .danger-zone p { font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: var(--space-sm); }
     .btn-danger { background: rgba(250,82,82,0.1); color: var(--color-danger); border: 1px solid rgba(250,82,82,0.3); }
@@ -148,16 +155,16 @@
 <aside id="app-sidebar"></aside>
 <main class="main">
   <header class="topbar">
-    <div class="breadcrumb"><span>Family</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">My children</span></div>
+    <div class="breadcrumb"><span>Students</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">My students</span></div>
     <div class="topbar-actions"></div>
   </header>
   <div class="content-area page-fade">
     <div class="panel-header">
       <div>
-        <div class="panel-title">My children</div>
-        <div class="panel-subtitle">Manage accounts, assign revision groups and track progress.</div>
+        <div class="panel-title">My students</div>
+        <div class="panel-subtitle">Manage accounts, choose revision packs and track progress.</div>
       </div>
-      <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add child</button>
+      <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add student</button>
     </div>
     <div class="children-count" id="children-count">Loading…</div>
     <div class="children-grid" id="children-grid"></div>
@@ -168,11 +175,11 @@
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-header">
-      <h2>Add a child</h2>
+      <h2>Add a student</h2>
       <button class="modal-close" onclick="closeModal('modal-add')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="error-msg" id="add-error"></div>
-    <div class="form-group"><label>Child's name</label><input type="text" id="child-name" placeholder="e.g. Emily"></div>
+    <div class="form-group"><label>Student's name</label><input type="text" id="child-name" placeholder="e.g. Emily"></div>
     <div class="form-group"><label>Email address</label><input type="email" id="child-email" placeholder="emily@example.com"></div>
     <div class="form-group">
       <label>Password</label>
@@ -181,7 +188,7 @@
         <button class="btn-generate" onclick="generatePw()"><i data-icon="sparkles"></i> Generate</button>
       </div>
       <div class="password-reveal" id="pw-reveal">
-        <div><div class="pw-value" id="pw-value"></div><div class="pw-note">Share this with your child — save it somewhere safe.</div></div>
+        <div><div class="pw-value" id="pw-value"></div><div class="pw-note">Share this with the student and keep a copy somewhere safe.</div></div>
       </div>
     </div>
     <div class="form-group">
@@ -190,9 +197,9 @@
       <div class="form-hint">They can change this themselves later from their profile.</div>
     </div>
     <div class="form-group">
-      <label>Assign to groups</label>
+      <label>Revision packs</label>
       <div class="group-check-list" id="add-group-list">
-        <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading groups…</div>
+        <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading packs…</div>
       </div>
     </div>
     <div class="modal-footer">
@@ -206,7 +213,7 @@
 <div class="modal-overlay" id="modal-manage">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="manage-title">Manage child</h2>
+      <h2 id="manage-title">Manage student</h2>
       <button class="modal-close" onclick="closeModal('modal-manage')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="error-msg" id="manage-error"></div>
@@ -216,20 +223,30 @@
       <div class="theme-grid" id="manage-theme-grid"></div>
     </div>
     <div class="form-group">
-      <label>Revision groups</label>
+      <label>Revision packs</label>
       <div class="group-check-list" id="manage-group-list">
-        <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading groups…</div>
+        <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading packs…</div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-manage')">Cancel</button>
       <button class="btn btn-primary" id="btn-save-child" onclick="saveChild()">Save changes</button>
     </div>
+    <div class="share-zone">
+      <label>Parents and guardians</label>
+      <p class="form-hint" style="margin:2px 0 8px;">Everyone listed can see progress, send messages and manage this student.</p>
+      <div id="guardian-list" class="guardian-list"></div>
+      <div class="share-row">
+        <input type="email" id="share-email" placeholder="Another parent's email address">
+        <button class="btn btn-secondary" id="btn-share" onclick="shareStudent()"><i data-icon="user-plus"></i> Share</button>
+      </div>
+      <div class="form-hint" id="share-hint">They need their own Clasp parent account with that email.</div>
+    </div>
     <div class="danger-zone">
       <p>Reset progress clears XP, level, badges, streak and quiz history. Their login, groups and theme are kept.</p>
       <button class="btn btn-danger" id="btn-reset-progress" style="width:100%;padding:10px;margin-bottom:var(--space-md);" onclick="resetProgress()">Reset progress</button>
-      <p>Removing a child will delete their account data. This cannot be undone.</p>
-      <button class="btn btn-danger" style="width:100%;padding:10px;" onclick="confirmRemoveChild()">Remove child</button>
+      <p id="remove-note">Removing a student will delete their account data. This cannot be undone.</p>
+      <button class="btn btn-danger" id="btn-remove-student" style="width:100%;padding:10px;" onclick="confirmRemoveChild()">Remove student</button>
     </div>
   </div>
 </div>
@@ -277,7 +294,7 @@
       <h2 id="notify-title">Send message</h2>
       <button class="modal-close" onclick="closeModal('modal-notify')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
-    <p style="font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">This message will appear as a notification on your child's hub next time they log in.</p>
+    <p style="font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">This message will appear on the student's hub next time they log in.</p>
     <div class="form-group">
       <label>Message</label>
       <textarea id="notify-message" placeholder="e.g. Great work this week! Try the Geography quiz today." oninput="updateNotifyPreview()"></textarea>
@@ -305,6 +322,7 @@
   function selectManageTheme(t)  { window._selectManageTheme && window._selectManageTheme(t); }
   function saveChild()           { window._saveChild && window._saveChild(); }
   function confirmRemoveChild()  { window._confirmRemoveChild && window._confirmRemoveChild(); }
+  function shareStudent()        { window._shareStudent && window._shareStudent(); }
   function resetProgress()       { window._resetProgress && window._resetProgress(); }
   function openProgressModal(id) { window._openProgressModal && window._openProgressModal(id); }
   function viewAs(id)            { window._viewAs && window._viewAs(id); }
@@ -316,14 +334,14 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs } from './auth.js';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js';
 import { getLevelInfo, studyEntries, currentStreak } from './gamification.js';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
 import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
-  collection, getDocs, onSnapshot, serverTimestamp
+  collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const API_KEY = 'AIzaSyDjkqzERaCoaGUBeQCHpaVtwPEbcWN5yB4';
@@ -350,7 +368,7 @@ let allGroups     = []; // [{ id, name }]
 
 /* ── Auth ────────────────────────────────────────────────── */
 requireAuth((user, profile) => {
-  if (profile.role !== 'parent' && profile.role !== 'admin') {
+  if (!hasRole(profile, 'parent')) {
     window.location.href = 'index.html'; return;
   }
   parentUid = user.uid;
@@ -381,8 +399,9 @@ function loadChildren() {
   });
 }
 
-// The cards use a summary copy kept under the parent. Older copies may be
-// missing the streak, so read each child's own record once and fix the copy.
+// Each card shows the student's own record (the copy under the parent is
+// just the list of "my students"). Read once per page load, then the live
+// record wins over anything in the copy.
 const liveStats = {};
 async function refreshFromChildRecords() {
   const ids = Object.keys(childrenData).filter(id => !(id in liveStats));
@@ -391,13 +410,12 @@ async function refreshFromChildRecords() {
   await Promise.all(ids.map(async id => {
     const snap = await getDoc(doc(db, 'users', id)).catch(() => null);
     const p = snap?.data(); if (!p) return;
-    const fresh = { streak: p.streak || 0, lastRevisionDate: p.lastRevisionDate || 0, xp: p.xp || 0, level: p.level || 1 };
-    if (p.study) fresh.study = p.study;
-    if (p.studySubjects) fresh.studySubjects = p.studySubjects;
+    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'lastRevisionDate', 'xp', 'level',
+                  'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks'];
+    const fresh = {};
+    keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
     liveStats[id] = fresh;
     Object.assign(childrenData[id] || {}, fresh);
-    const copy = { streak: fresh.streak, lastRevisionDate: fresh.lastRevisionDate, xp: fresh.xp, level: fresh.level };
-    updateDoc(doc(db, 'users', parentUid, 'children', id), copy).catch(() => {});
   }));
   renderChildren();
 }
@@ -406,10 +424,10 @@ function renderChildren() {
   const grid  = document.getElementById('children-grid');
   const count = Object.keys(childrenData).length;
   document.getElementById('children-count').textContent =
-    count === 0 ? 'No children yet' : `${count} child${count !== 1 ? 'ren' : ''}`;
+    count === 0 ? 'No students yet' : `${count} student${count !== 1 ? 's' : ''}`;
 
   if (count === 0) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-icon"><i data-icon="users"></i></div><h3>No children added yet</h3><p>Create an account for your child and they'll be able to log in and start revising.</p><button class="btn btn-primary" onclick="openAddModal()">＋ Add your first child</button></div>`;
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon"><i data-icon="users"></i></div><h3>No students added yet</h3><p>Create an account for a student and they'll be able to log in and start revising.</p><button class="btn btn-primary" onclick="openAddModal()">＋ Add your first student</button></div>`;
     return;
   }
 
@@ -421,7 +439,7 @@ function renderChildren() {
     const groupNames = groupIds.map(gid => allGroups.find(g => g.id === gid)?.name || gid);
     const groupsHtml = groupNames.length
       ? groupNames.map(n => `<span class="group-chip">${esc(n)}</span>`).join('')
-      : `<span class="no-group-chip">No groups assigned</span>`;
+      : `<span class="no-group-chip">No packs assigned</span>`;
     const sessions = child.sessions || [];
     const quizCount = sessions.length;
     const avgScore  = quizCount ? Math.round(sessions.reduce((a,s) => a + (s.pct||0), 0) / quizCount) : null;
@@ -476,7 +494,7 @@ function renderChildren() {
 function renderGroupChecks(containerId, selectedIds = []) {
   const wrap = document.getElementById(containerId);
   if (!allGroups.length) {
-    wrap.innerHTML = `<div style="color:var(--color-text-muted);font-size:0.85rem;">No groups yet — create one in the admin panel first.</div>`;
+    wrap.innerHTML = `<div style="color:var(--color-text-muted);font-size:0.85rem;">No revision packs yet. Create one in the admin panel first.</div>`;
     return;
   }
   wrap.innerHTML = allGroups.map(g => {
@@ -521,10 +539,10 @@ window._generatePw = () => {
 
 window._addChild = async function() {
   const name     = document.getElementById('child-name').value.trim();
-  const email    = document.getElementById('child-email').value.trim();
+  const email    = document.getElementById('child-email').value.trim().toLowerCase();
   const password = document.getElementById('child-password').value.trim();
   const groupIds = getCheckedGroupIds('add-group-list');
-  if (!name)               { showErr('add-error', "Please enter the child's name."); return; }
+  if (!name)               { showErr('add-error', "Please enter the student's name."); return; }
   if (!email)              { showErr('add-error', 'Please enter an email address.'); return; }
   if (password.length < 8) { showErr('add-error', 'Password must be at least 8 characters.'); return; }
   const btn = document.getElementById('btn-add-child');
@@ -571,6 +589,8 @@ window._openManageModal = function(uid) {
   document.getElementById('manage-error').classList.remove('visible');
   manageTheme = child.theme || 'edge';
   renderThemeGrid('manage-theme-grid', manageTheme, t => { manageTheme = t; });
+  document.getElementById('share-email').value = '';
+  renderGuardians(uid);
   const currentGroupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
   renderGroupChecks('manage-group-list', currentGroupIds);
   document.getElementById('modal-manage').classList.add('open');
@@ -598,13 +618,74 @@ window._saveChild = async function() {
   finally { btn.classList.remove('loading'); }
 };
 
-window._confirmRemoveChild = function() {
+/* ── Parents and guardians ───────────────────────────────── */
+function guardiansOf(child) {
+  return [...new Set([child.parentUid, ...(child.guardianIds || [])].filter(Boolean))];
+}
+async function renderGuardians(uid) {
+  const child = childrenData[uid];
+  const list = document.getElementById('guardian-list');
+  const ids = guardiansOf(child);
+  if (!ids.includes(parentUid)) ids.unshift(parentUid);
+  const people = await Promise.all(ids.map(id => getDoc(doc(db, 'users', id)).then(s => ({ id, ...(s.data() || {}) })).catch(() => ({ id }))));
+  list.innerHTML = people.map(p => `<div class="guardian-row"><i data-icon="user"></i>${esc(p.name || p.email || 'Unknown')}<small>${p.id === parentUid ? 'You' : esc(p.email || '')}</small></div>`).join('');
+  const shared = ids.length > 1;
+  document.getElementById('remove-note').textContent = shared
+    ? 'This student is shared with another parent. Removing takes them off your list only; their account and progress stay.'
+    : 'Removing a student will delete their account data. This cannot be undone.';
+  document.getElementById('btn-remove-student').textContent = shared ? 'Remove from my list' : 'Remove student';
+}
+
+window._shareStudent = async function() {
+  const typed = document.getElementById('share-email').value.trim();
+  const email = typed.toLowerCase();
   const child = childrenData[managingChildId];
+  if (!email) { showErr('manage-error', 'Enter the other parent\'s email address.'); return; }
+  const btn = document.getElementById('btn-share'); btn.disabled = true;
+  try {
+    // Emails may have been saved with capitals, so look for both spellings
+    const found = await getDocs(query(collection(db, 'users'), where('email', 'in', [...new Set([typed, email])])));
+    let other = null; found.forEach(d => { other = other || { id: d.id, ...d.data() }; });
+    if (!other) { showErr('manage-error', 'No Clasp account uses that email. Ask them to create a parent account first.'); return; }
+    if (other.id === parentUid) { showErr('manage-error', 'That\'s your own account.'); return; }
+    const theirRoles = Array.isArray(other.roles) && other.roles.length ? other.roles : [other.role];
+    if (!theirRoles.some(r => r === 'parent' || r === 'admin')) { showErr('manage-error', 'That account isn\'t a parent account. They need to sign up as a parent.'); return; }
+    // Link the student to them, and add the student to their list
+    await updateDoc(doc(db, 'users', managingChildId), { guardianIds: arrayUnion(other.id) });
+    await setDoc(doc(db, 'users', other.id, 'children', managingChildId), {
+      name: child.name, email: child.email, theme: child.theme || 'edge',
+      groupIds: child.groupIds || [], createdAt: Date.now(), sharedBy: parentUid
+    }, { merge: true });
+    child.guardianIds = [...new Set([...(child.guardianIds || []), other.id])];
+    document.getElementById('share-email').value = '';
+    document.getElementById('manage-error').classList.remove('visible');
+    showToast(`Shared with ${other.name || email}`, 'success');
+    renderGuardians(managingChildId);
+  } catch (e) {
+    showErr('manage-error', 'Could not share: ' + e.message);
+  } finally { btn.disabled = false; }
+};
+
+window._confirmRemoveChild = async function() {
+  const child = childrenData[managingChildId];
+  const others = guardiansOf(child).filter(id => id !== parentUid);
+  if (others.length) {
+    // Shared: just unlink this parent; the account and progress stay
+    if (!confirm(`Remove ${child.name} from your list? The other parent keeps access and nothing is deleted.`)) return;
+    const changes = { guardianIds: arrayRemove(parentUid) };
+    if (child.parentUid === parentUid) changes.parentUid = others[0];
+    await updateDoc(doc(db, 'users', managingChildId), changes).catch(() => {});
+    if (child.parentUid === parentUid) await updateDoc(doc(db, 'users', managingChildId), { guardianIds: arrayRemove(others[0]) }).catch(() => {});
+    await deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
+    document.getElementById('modal-manage').classList.remove('open');
+    showToast(`${child.name} removed from your list.`, 'info');
+    return;
+  }
   if (!confirm(`Remove ${child.name}? This will delete their account data.`)) return;
   deleteDoc(doc(db, 'users', managingChildId));
   deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
   document.getElementById('modal-manage').classList.remove('open');
-  showToast('Child account removed.', 'info');
+  showToast('Student account removed.', 'info');
 };
 
 /* ── Reset progress ──────────────────────────────────────── */
@@ -647,7 +728,7 @@ window._openProgressModal = async function(uid) {
 
   const groupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
   const groupNames = groupIds.map(gid => allGroups.find(g=>g.id===gid)?.name || gid);
-  document.getElementById('progress-groups').textContent = groupNames.length ? groupNames.join(', ') : 'No groups assigned';
+  document.getElementById('progress-groups').textContent = groupNames.length ? groupNames.join(', ') : 'No packs assigned';
 
   // Load the child's full record (sessions, XP, badges, streak)
   const snap = await getDoc(doc(db, 'users', uid)).catch(() => null);

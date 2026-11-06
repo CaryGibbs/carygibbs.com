@@ -228,7 +228,8 @@
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const snap = await getDoc(doc(db, 'users', cred.user.uid));
-      if (!snap.exists() || snap.data().role !== 'teacher') {
+      const d = snap.exists() ? snap.data() : {};
+      if (!snap.exists() || !(d.role === 'teacher' || (d.roles || []).includes('teacher'))) {
         showError('This account is not a teacher account. Use the main login page.');
         setLoading('btn-login', false);
         return;
@@ -279,7 +280,8 @@
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
     const snap = await getDoc(doc(db, 'users', user.uid));
-    if (snap.exists() && snap.data().role === 'teacher') window.location.href = 'teacher-dashboard.html';
+    const d = snap.exists() ? snap.data() : {};
+    if (d.role === 'teacher' || (d.roles || []).includes('teacher')) window.location.href = 'teacher-dashboard.html';
   });
 
   function showError(msg) { const el=document.getElementById('error-msg'); el.textContent=msg; el.classList.add('visible'); }

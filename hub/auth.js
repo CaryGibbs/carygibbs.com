@@ -4,7 +4,7 @@
 
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -61,15 +61,21 @@ function viewAsId() {
 
 export function exitPreview() {
   try { sessionStorage.removeItem(VIEW_AS_KEY); } catch (e) {}
-  const back = _preview?.viewerProfile?.role === 'parent' ? 'parent.html' : 'admin.html';
+  const back = hasRole(_preview?.viewerProfile, 'admin') ? 'admin.html' : 'parent.html';
   window.close();                                   // works when we opened the window
   setTimeout(() => { window.location.href = back; }, 150); // otherwise go back to the dashboard
 }
 
 async function canView(user, viewerProfile, studentUid, student) {
-  if (viewerProfile.role === 'admin') return true;
-  if (viewerProfile.role !== 'parent') return false;
-  if (student.parentUid === user.uid) return true;
+  if (hasRole(viewerProfile, 'admin')) return true;
+  if (student.parentUid === user.uid || (student.guardianIds || []).includes(user.uid)) return true;
+  if (hasRole(viewerProfile, 'teacher') && Object.keys(student.classes || {}).length) {
+    // a teacher can preview students in their own classes
+    const mine = await getDocs(collection(db, 'users', user.uid, 'classes')).catch(() => null);
+    const ids = new Set(); mine?.forEach(d => ids.add(d.id));
+    if (Object.keys(student.classes).some(c => ids.has(c))) return true;
+  }
+  if (!hasRole(viewerProfile, 'parent')) return false;
   const link = await getDoc(doc(db, 'users', user.uid, 'children', studentUid)).catch(() => null);
   return !!link?.exists();
 }
@@ -123,9 +129,33 @@ export function requireAuth(callback) {
   });
 }
 
+/* ── Roles ────────────────────────────────────────────────
+   A person can hold several roles: profile.roles = ['parent','admin'].
+   Older accounts only have profile.role (one string); both are read.
+   Admins can always use the parent view (as before). */
+export function rolesOf(profile) {
+  const set = new Set(Array.isArray(profile?.roles) && profile.roles.length ? profile.roles : [profile?.role].filter(Boolean));
+  if (set.has('admin')) set.add('parent');
+  return set;
+}
+export function hasRole(profile, role) { return rolesOf(profile).has(role); }
+export function isStudent(profile) { return hasRole(profile, 'student'); }
+// The adult views a person can switch between, in a fixed order
+export function viewsOf(profile) {
+  const r = rolesOf(profile);
+  return ['parent', 'teacher', 'admin'].filter(v => r.has(v));
+}
+// Highest role, stored in profile.role for older code
+export function primaryRole(roles) {
+  return ['admin', 'teacher', 'parent', 'student'].find(r => roles.includes(r)) || 'student';
+}
+const VIEW_HOME = { parent: 'parent.html', teacher: 'teacher-dashboard.html', admin: 'admin.html' };
+export function rememberView(uid, view) { try { localStorage.setItem('clasp_view_' + uid, view); } catch (e) {} }
+function lastView(uid) { try { return localStorage.getItem('clasp_view_' + uid); } catch (e) { return null; } }
+
 export function requireRole(role, callback) {
   requireAuth((user, profile) => {
-    if (profile.role !== role) { window.location.href = 'index.html'; return; }
+    if (!hasRole(profile, role)) { window.location.href = 'index.html'; return; }
     callback(user, profile);
   });
 }
@@ -147,11 +177,13 @@ export function redirectByRole(uid) {
       await signOut(auth);
       const e = new Error('No profile'); e.code = 'clasp/no-profile'; throw e;
     }
-    const role = profile.role;
-    if (role === 'parent')  { window.location.href = 'parent.html'; return; }
-    if (role === 'teacher') { window.location.href = 'teacher-dashboard.html'; return; }
-    if (role === 'admin')   { window.location.href = 'admin.html'; return; }
-    window.location.href = 'hub.html';
+    // Students go to their hub. Adults go to the view they used last,
+    // or their highest role.
+    const views = viewsOf(profile);
+    if (!views.length) { window.location.href = 'hub.html'; return; }
+    const last = lastView(uid);
+    const view = views.includes(last) ? last : (views.includes('admin') ? 'admin' : views.includes('teacher') ? 'teacher' : 'parent');
+    window.location.href = VIEW_HOME[view];
   })().finally(() => { _redirecting = null; });
   return _redirecting;
 }

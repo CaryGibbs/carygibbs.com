@@ -7,7 +7,7 @@
 // ============================================================
 
 import { db } from './firebase-config.js';
-import { isPreview, previewInfo, showToast } from './auth.js';
+import { isPreview, previewInfo, showToast, hasRole, isStudent } from './auth.js';
 import { awardXp, BADGES } from './gamification.js';
 import { askClaude, jsonOf } from './ai.js';
 import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -20,7 +20,7 @@ let learned = {};      // topicId -> Set(noteId)
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const topicPath = t => `content/${ctx.groupId}/subjects/${ctx.subjectId}/topics/${t.id}`;
 // Admins (including an admin using "View as") can rewrite saved content
-const canEditContent = () => ctx?.profile?.role === 'admin' || previewInfo()?.viewerProfile?.role === 'admin';
+const canEditContent = () => hasRole(ctx?.profile, 'admin') || hasRole(previewInfo()?.viewerProfile, 'admin');
 
 export function noteId(term) {
   const slug = String(term || 'point').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'point';
@@ -195,7 +195,7 @@ function updateMarkButton(topicId, id) {
   const on = !!learned[topicId]?.has(id);
   btn.classList.toggle('on', on);
   btn.innerHTML = on ? '<i data-icon="circle-check"></i> Learnt' : '<i data-icon="circle-check"></i> Mark as learnt';
-  btn.style.display = ctx?.profile?.role === 'student' ? '' : 'none';
+  btn.style.display = isStudent(ctx?.profile) ? '' : 'none';
 }
 
 async function toggleLearned() {
@@ -208,7 +208,7 @@ async function toggleLearned() {
   updateMarkButton(topic.id, id);
   document.dispatchEvent(new CustomEvent('learn:changed', { detail: { topicId: topic.id } }));
   if (on && index < list.length - 1) setTimeout(() => step(1), 350);   // keep the flow going
-  if (isPreview() || ctx?.profile?.role !== 'student') return;
+  if (isPreview() || !isStudent(ctx?.profile)) return;
   // Has the whole topic now been learnt?
   const allDone = list.every(p => set.has(noteId(p.term)));
   try {
@@ -231,7 +231,7 @@ export function celebrate(result) {
 
 // First time a student opens a topic's cheat sheet: count it and award XP
 async function recordCheatSheet(topic) {
-  if (isPreview() || ctx?.profile?.role !== 'student') return;
+  if (isPreview() || !isStudent(ctx?.profile)) return;
   const seen = ctx.profile.cheatSheetsViewed = ctx.profile.cheatSheetsViewed || [];
   if (seen.includes(topic.id)) return;
   seen.push(topic.id);

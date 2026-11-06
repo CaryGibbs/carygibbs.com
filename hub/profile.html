@@ -216,7 +216,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, handleSignOut, isPreview } from './auth.js';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js';
 import { getLevelInfo, LEVELS, BADGES, currentStreak } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js';
@@ -247,7 +247,7 @@ function renderThemePicker(user, profile) {
 }
 
 requireAuth(async (user, profile) => {
-  if (profile.role !== 'student') { location.href = 'hub.html'; return; }
+  if (!isStudent(profile)) { location.href = 'hub.html'; return; }
 
   // Apply theme
   if (profile.theme) document.body.setAttribute('data-theme', profile.theme);

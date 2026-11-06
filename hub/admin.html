@@ -402,6 +402,20 @@
     .ai-test-row.ok .icon { color: var(--color-success); }
     .ai-test-row.warn .icon { color: var(--color-warning); }
     .ai-test-row.bad .icon { color: var(--color-danger); }
+    /* ── Users & roles ─────────────────────────────────── */
+    .users-table { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: 0.88rem; }
+    .users-table th { text-align: left; padding: 8px 12px; color: var(--color-text-muted); border-bottom: 2px solid var(--color-border); font-weight: 600; }
+    .users-table td { padding: 10px 12px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+    .users-table .muted { color: var(--color-text-muted); }
+    .users-table .actions { text-align: right; white-space: nowrap; }
+    .user-name { display: inline-flex; align-items: center; gap: 8px; }
+    .user-icon { color: var(--color-text-muted); display: inline-flex; }
+    .btn-sm { padding: 5px 12px !important; font-size: 0.8rem !important; }
+    .roles-editor { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 12px; background: var(--color-surface-2); border-radius: 10px; }
+    .roles-editor-label { font-weight: 600; }
+    .roles-check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .roles-check input { width: 16px; height: 16px; accent-color: var(--color-primary); }
+    @media (max-width: 760px) { .users-table th:nth-child(2), .users-table td:nth-child(2), .users-table th:nth-child(4), .users-table td:nth-child(4) { display: none; } }
     /* ── Responsive ───────────────────────────────────────── */
     @media (max-width: 768px) {
       .content-area { padding: var(--space-md); }
@@ -473,7 +487,7 @@
 <main class="main">
   <header class="topbar">
     <div class="breadcrumb" id="breadcrumb">
-      <span>Content</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">Groups</span>
+      <span>Content</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">Revision packs</span>
     </div>
     <div class="topbar-actions" id="topbar-actions">
     <div id="preview-actions" style="display:none;align-items:center;gap:var(--space-sm);">
@@ -490,10 +504,10 @@
     <div class="panel active" id="panel-groups">
       <div class="panel-header">
         <div>
-          <div class="panel-title">Groups</div>
-          <div class="panel-subtitle">Organise content by class or cohort</div>
+          <div class="panel-title">Revision packs</div>
+          <div class="panel-subtitle">Each pack holds the subjects and topics for one set of exams</div>
         </div>
-        <button class="btn btn-primary" data-action="new-group">＋ New group</button>
+        <button class="btn btn-primary" data-action="new-group">＋ New pack</button>
       </div>
       <div class="cards-grid" id="groups-grid">
         <div class="empty-state" style="grid-column:1/-1;">
@@ -507,7 +521,7 @@
       <div class="panel-header">
         <div>
           <div class="panel-title" id="subjects-panel-title">Subjects</div>
-          <div class="panel-subtitle">Subjects within this group</div>
+          <div class="panel-subtitle">Subjects in this revision pack</div>
         </div>
         <button class="btn btn-primary" data-action="new-subject">＋ New subject</button>
       </div>
@@ -678,8 +692,8 @@
     <div class="panel" id="panel-users">
       <div class="panel-header">
         <div>
-          <div class="panel-title">Users</div>
-          <div class="panel-subtitle">All registered accounts</div>
+          <div class="panel-title">Users & roles</div>
+          <div class="panel-subtitle">Everyone with an account. Adults can hold several roles and switch between them.</div>
         </div>
       </div>
       <div id="users-list">
@@ -732,16 +746,16 @@
 <div class="modal-overlay" id="modal-group">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="modal-group-title">New group</div>
+      <div class="modal-title" id="modal-group-title">New revision pack</div>
       <button class="modal-close" data-close="modal-group" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="form-group">
-      <label>Group name</label>
+      <label>Pack name</label>
       <input type="text" id="group-name-input" placeholder="e.g. Year 10 GCSE" maxlength="60">
     </div>
     <div class="form-group">
       <label>Description <span style="font-weight:400;text-transform:none;">(optional)</span></label>
-      <input type="text" id="group-desc-input" placeholder="e.g. Emily's revision group" maxlength="120">
+      <input type="text" id="group-desc-input" placeholder="e.g. Autumn mock exams" maxlength="120">
     </div>
     <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
       <button class="btn btn-secondary" data-close="modal-group">Cancel</button>
@@ -962,7 +976,7 @@
 
 <script type="module">
 import { auth, db, storage } from './firebase-config.js';
-import { requireRole, handleSignOut, showToast, openViewAs } from './auth.js';
+import { requireRole, handleSignOut, showToast, openViewAs, primaryRole } from './auth.js';
 import { mountShell } from './shell.js';
 import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf } from './ai.js';
 
@@ -1005,7 +1019,9 @@ let confirmCallback = null;
 let currentQType    = 'mcq';
 
 /* ── Auth guard ──────────────────────────────────────────── */
+let currentAdminUid = null;
 requireRole('admin', (user, profile) => {
+  currentAdminUid = user.uid;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
   const start = ['groups', 'users', 'settings'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'groups';
   mountShell(user, profile, { view: 'admin', active: start });
@@ -1085,7 +1101,7 @@ function updateBreadcrumb() {
   if (currentPanel === 'users')    { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
   // Content: Content › Groups › group › subject › topic (last one is the current page)
-  const crumbs = [`<span style="cursor:pointer;" data-bc="groups">Groups</span>`];
+  const crumbs = [`<span style="cursor:pointer;" data-bc="groups">Revision packs</span>`];
   if (selectedGroup)   crumbs.push(`<span style="cursor:pointer;" data-bc="group">${esc(selectedGroup.name)}</span>`);
   if (selectedSubject) crumbs.push(`<span style="cursor:pointer;" data-bc="subject">${esc(selectedSubject.emoji)} ${esc(selectedSubject.name)}</span>`);
   if (selectedTopic)   crumbs.push(`<span>${esc(selectedTopic.name)}</span>`);
@@ -1108,6 +1124,9 @@ document.addEventListener('click', e => {
 
   if (nav)    { showPanel(nav); return; }
   if (action === 'view-as') { openViewAs(t.dataset.uid); return; }
+  if (action === 'edit-roles') { openRolesEditor(t.dataset.uid); return; }
+  if (action === 'save-roles') { saveRoles(t.dataset.uid); return; }
+  if (action === 'cancel-roles') { document.querySelectorAll('.roles-editor-row').forEach(r => r.remove()); return; }
   if (close)  { closeModal(close); return; }
   if (bc)     { handleBreadcrumb(bc); return; }
   if (qtype)  { selectQType(qtype); return; }
@@ -1198,7 +1217,7 @@ async function loadGroups() {
   snap.forEach(d => {
     grid.appendChild(groupCard(d.id, d.data()));
   });
-  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">＋ New group</div>`);
+  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">＋ New pack</div>`);
 }
 
 function groupCard(id, data) {
@@ -1231,7 +1250,7 @@ function openGroup(id, data) {
 
 async function openGroupModal(id) {
   editingItem = id ? { type:'group', id } : null;
-  document.getElementById('modal-group-title').textContent = id ? 'Edit group' : 'New group';
+  document.getElementById('modal-group-title').textContent = id ? 'Edit revision pack' : 'New revision pack';
   document.getElementById('group-name-input').value = '';
   document.getElementById('group-desc-input').value = '';
   if (id) {
@@ -1248,7 +1267,7 @@ async function openGroupModal(id) {
 async function saveGroup() {
   const name = document.getElementById('group-name-input').value.trim();
   const desc = document.getElementById('group-desc-input').value.trim();
-  if (!name) { showToast('Group name is required', 'error'); return; }
+  if (!name) { showToast('Pack name is required', 'error'); return; }
   const btn = document.getElementById('btn-save-group');
   btn.classList.add('loading'); btn.disabled = true;
   try {
@@ -1259,7 +1278,7 @@ async function saveGroup() {
     }
     closeModal('modal-group');
     await loadGroups();
-    showToast(editingItem ? 'Group updated' : 'Group created', 'success');
+    showToast(editingItem ? 'Revision pack updated' : 'Revision pack created', 'success');
     editingItem = null;
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
   btn.classList.remove('loading'); btn.disabled = false;
@@ -2242,7 +2261,7 @@ function handleImagePreview(input) {
 
 /* ── DELETE ──────────────────────────────────────────────── */
 function confirmDelete(type, id, name) {
-  document.getElementById('confirm-title').textContent = `Delete ${type}?`;
+  document.getElementById('confirm-title').textContent = `Delete ${type === 'group' ? 'revision pack' : type}?`;
   document.getElementById('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone.`;
   confirmCallback = async () => {
     try {
@@ -2284,33 +2303,59 @@ async function confirmDeleteAllQuestions() {
 }
 
 /* ── USERS (basic list) ───────────────────────────────────── */
+let usersCache = [];
 async function loadUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
   const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','asc'))).catch(() => ({ forEach:()=>{} }));
   const users = [];
   snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+  usersCache = users;
   if (!users.length) { list.innerHTML = `<div class="empty-state"><h3>No users yet</h3></div>`; return; }
-  const roleIcon = { parent:'<i data-icon="house"></i>', student:'<i data-icon="graduation-cap"></i>', teacher:'<i data-icon="school"></i>', admin:'<i data-icon="shield"></i>' };
-  const roleColour = { parent:'badge-primary', student:'badge-success', teacher:'badge-warning', admin:'badge-primary' };
-  list.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:var(--font-ui);font-size:0.88rem;">
-    <thead><tr style="border-bottom:2px solid var(--color-border);">
-      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Name</th>
-      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Email</th>
-      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Role</th>
-      <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Joined</th>
-      <th style="padding:8px 12px;"></th>
-    </tr></thead>
-    <tbody>${users.map(u => `<tr style="border-bottom:1px solid var(--color-border);">
-      <td style="padding:10px 12px;"><span style="display:inline-flex;align-items:center;gap:8px;"><span style="color:var(--color-text-muted);display:inline-flex;">${roleIcon[u.role]||'<i data-icon="user"></i>'}</span>${esc(u.name||'—')}</span></td>
-      <td style="padding:10px 12px;color:var(--color-text-muted);">${esc(u.email||'—')}</td>
-      <td style="padding:10px 12px;"><span class="badge ${roleColour[u.role]||'badge-primary'}">${u.role||'?'}</span></td>
-      <td style="padding:10px 12px;color:var(--color-text-muted);">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
-      <td style="padding:10px 12px;text-align:right;">${u.role === 'student'
-        ? `<button class="btn btn-secondary" style="padding:5px 12px;font-size:0.8rem;white-space:nowrap;" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
-        : ''}</td>
-    </tr>`).join('')}</tbody>
+  const roleIcon = { parent:'house', student:'graduation-cap', teacher:'school', admin:'shield' };
+  const roleColour = { parent:'badge-success', student:'badge-primary', teacher:'badge-warning', admin:'badge-primary' };
+  const rolesFor = u => (Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role || 'student']);
+  list.innerHTML = `<table class="users-table">
+    <thead><tr><th>Name</th><th>Email</th><th>Roles</th><th>Joined</th><th></th></tr></thead>
+    <tbody>${users.map(u => {
+      const roles = rolesFor(u), student = roles.includes('student');
+      return `<tr data-user-row="${esc(u.id)}">
+      <td><span class="user-name"><span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span></td>
+      <td class="muted">${esc(u.email||'—')}</td>
+      <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
+      <td class="muted">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
+      <td class="actions">${student
+        ? `<button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
+        : `<button class="btn btn-ghost btn-sm" data-action="edit-roles" data-uid="${esc(u.id)}"><i data-icon="pencil"></i> Roles</button>`}</td>
+    </tr>`; }).join('')}</tbody>
   </table>`;
+}
+
+// Inline editor for an adult's roles
+function openRolesEditor(uid) {
+  document.querySelectorAll('.roles-editor-row').forEach(r => r.remove());
+  const u = usersCache.find(x => x.id === uid); if (!u) return;
+  const roles = Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role];
+  const row = document.querySelector(`[data-user-row="${CSS.escape(uid)}"]`);
+  const isMe = uid === currentAdminUid;
+  row.insertAdjacentHTML('afterend', `<tr class="roles-editor-row"><td colspan="5">
+    <div class="roles-editor">
+      <span class="roles-editor-label">Roles for ${esc(u.name || u.email)}:</span>
+      ${['parent','teacher','admin'].map(r => `<label class="roles-check"><input type="checkbox" value="${r}" ${roles.includes(r) || (r === 'parent' && roles.includes('admin')) ? 'checked' : ''} ${isMe && r === 'admin' ? 'disabled title="You can\'t remove your own admin role"' : ''}> ${r[0].toUpperCase() + r.slice(1)}</label>`).join('')}
+      <button class="btn btn-primary btn-sm" data-action="save-roles" data-uid="${esc(uid)}">Save</button>
+      <button class="btn btn-ghost btn-sm" data-action="cancel-roles">Cancel</button>
+    </div></td></tr>`);
+}
+async function saveRoles(uid) {
+  const boxes = [...document.querySelectorAll('.roles-editor input[type=checkbox]')];
+  const roles = boxes.filter(b => b.checked).map(b => b.value);
+  if (uid === currentAdminUid && !roles.includes('admin')) roles.push('admin');
+  if (!roles.length) { showToast('Choose at least one role', 'error'); return; }
+  try {
+    await updateDoc(doc(db, 'users', uid), { roles, role: primaryRole(roles) });
+    showToast('Roles updated', 'success');
+    loadUsers();
+  } catch (e) { showToast('Could not save roles: ' + e.message, 'error'); }
 }
 
 /* ── Utils ───────────────────────────────────────────────── */

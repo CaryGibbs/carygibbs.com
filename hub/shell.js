@@ -1,7 +1,7 @@
 // ============================================================
 // CLASP: shared sidebar for the adult pages (parent, admin, teacher)
 // One navigation, same sections and labels everywhere:
-//   Family   · My children, then "View as <child>" shortcuts
+//   Students · My students, then "View as <student>" shortcuts
 //   Content  · Groups & questions, Users          (admin only)
 //   Settings                                       (admin only)
 //   Account  · name, role, Sign out
@@ -9,7 +9,7 @@
 // ============================================================
 
 import { db } from './firebase-config.js';
-import { handleSignOut, openViewAs } from './auth.js';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js';
 import { themeColour } from './themes.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -27,13 +27,16 @@ export const VIEWS = {
 
 // view:   'parent' | 'admin' | 'teacher'  (which workspace this page is)
 // active: 'children' | 'groups' | 'questions' | 'users' | 'settings' | 'classes'
+// The sidebar shows the sections for the current view only; people with
+// several roles switch view at the top.
 export function mountShell(user, profile, { view, active } = {}) {
-  const isAdmin = profile.role === 'admin';
-  const isTeacher = profile.role === 'teacher';
-  view = view || (isAdmin ? 'admin' : isTeacher ? 'teacher' : 'parent');
+  const views = viewsOf(profile);
+  view = view || views[views.length - 1] || 'parent';
   const V = VIEWS[view];
-  const accountRole = { admin: 'Admin account', parent: 'Parent account', teacher: 'Teacher account' }[profile.role] || 'Account';
+  const roleNames = { parent: 'Parent', teacher: 'Teacher', admin: 'Admin' };
+  const accountRole = views.map(v => roleNames[v]).reverse().join(' · ') || 'Account';
   const initials = (profile.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  rememberView(user.uid, view);
 
   // Colour the whole page chrome with the view's colour
   document.body.dataset.view = view;
@@ -46,31 +49,36 @@ export function mountShell(user, profile, { view, active } = {}) {
     ? `<a class="nav-item" href="#${panel}" data-nav="${panel}" ${extra}><span class="nav-icon"><i data-icon="${icon}"></i></span><span>${label}</span></a>`
     : `<a class="nav-item" href="admin.html#${panel}" ${extra}><span class="nav-icon"><i data-icon="${icon}"></i></span><span>${label}</span></a>`;
 
-  // Admins use two views: show a switch. Everyone else: a fixed label.
-  const viewBlock = isAdmin ? `
-      <div class="view-switch" role="tablist" aria-label="Switch view">
-        ${['parent', 'admin'].map(k => `<a role="tab" href="${VIEWS[k].home}" class="view-switch-opt${k === view ? ' on' : ''}" style="--c:${VIEWS[k].colour}" aria-selected="${k === view}"><i data-icon="${VIEWS[k].icon}"></i> ${k === 'parent' ? 'Parent' : 'Admin'}</a>`).join('')}
+  // Several roles: a switch. One role: a fixed label.
+  const viewBlock = views.length > 1 ? `
+      <div class="view-switch${views.length > 2 ? ' view-switch-3' : ''}" role="tablist" aria-label="Switch view" style="grid-template-columns:repeat(${views.length},1fr)">
+        ${views.map(k => `<a role="tab" href="${VIEWS[k].home}" class="view-switch-opt${k === view ? ' on' : ''}" style="--c:${VIEWS[k].colour}" aria-selected="${k === view}"><i data-icon="${VIEWS[k].icon}"></i> ${roleNames[k]}</a>`).join('')}
       </div>` : `
       <div class="view-label" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</div>`;
 
-  const familySection = isTeacher ? '' : `
-      <div class="nav-section-label">Family</div>
+  const sections = {
+    parent: `
+      <div class="nav-section-label">Students</div>
       <a class="nav-item${active === 'children' ? ' active' : ''}" href="parent.html">
-        <span class="nav-icon"><i data-icon="users"></i></span><span>My children</span>
+        <span class="nav-icon"><i data-icon="users"></i></span><span>My students</span>
       </a>
-      <div id="shell-children"></div>`;
-  const teachingSection = isTeacher ? `
+      <div id="shell-children"></div>`,
+    teacher: `
       <div class="nav-section-label">Teaching</div>
       <a class="nav-item${active === 'classes' ? ' active' : ''}" href="teacher-dashboard.html">
         <span class="nav-icon"><i data-icon="school"></i></span><span>My classes</span>
-      </a>` : '';
-  const adminSections = isAdmin ? `
+      </a>`,
+    admin: `
       <div class="nav-section-label">Content</div>
-      ${adminLink('groups', 'folder', 'Groups & questions')}
+      ${adminLink('groups', 'folder', 'Revision packs')}
       ${onAdminPage() ? `<a class="nav-item nav-sub" href="#questions" data-nav="questions" id="nav-questions-btn" style="display:none;"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Current topic</span></a>` : ''}
-      ${adminLink('users', 'user', 'Users')}
+      <div class="nav-section-label">People</div>
+      ${adminLink('users', 'user', 'Users & roles')}
+      ${onAdminPage() ? `<a class="nav-item nav-sub" href="#users"><span class="nav-icon"><i data-icon="eye"></i></span><span>View as a student</span></a>` : `<a class="nav-item nav-sub" href="admin.html#users"><span class="nav-icon"><i data-icon="eye"></i></span><span>View as a student</span></a>`}
       <div class="nav-section-label">Settings</div>
-      ${adminLink('settings', 'settings', 'Settings')}` : '';
+      ${adminLink('settings', 'settings', 'Settings')}`,
+  };
+  const navHtml = sections[view] || '';
 
   const sidebar = document.getElementById('app-sidebar');
   sidebar.classList.add('sidebar');
@@ -83,7 +91,7 @@ export function mountShell(user, profile, { view, active } = {}) {
       <button class="sidebar-close" aria-label="Close menu"><i data-icon="x"></i></button>
     </div>
     <div class="sidebar-view">${viewBlock}</div>
-    <nav class="sidebar-nav">${familySection}${teachingSection}${adminSections}
+    <nav class="sidebar-nav">${navHtml}
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-account">
@@ -120,31 +128,28 @@ export function mountShell(user, profile, { view, active } = {}) {
   sidebar.addEventListener('click', e => { if (e.target.closest('a.nav-item, button.nav-item')) close(); });
   document.getElementById('shell-signout').onclick = () => handleSignOut();
 
-  if (!isTeacher) loadChildShortcuts(user, isAdmin);
+  if (view === 'parent') loadChildShortcuts(user);
 }
 
-// "View as" shortcuts for each of the user's children
-async function loadChildShortcuts(user, isAdmin) {
+// "View as" shortcuts for each of the user's students
+async function loadChildShortcuts(user) {
   const wrap = document.getElementById('shell-children');
+  if (!wrap) return;
   const snap = await getDocs(collection(db, 'users', user.uid, 'children')).catch(() => null);
   const kids = [];
   snap?.forEach(d => kids.push({ id: d.id, ...d.data() }));
   kids.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  let html = kids.map(k => {
+  wrap.innerHTML = kids.map(k => {
     const c = themeColour(k.theme);
     return `<button class="nav-item nav-sub" data-view-as="${esc(k.id)}" title="Open ${esc(k.name)}'s hub in a new window">
       <span class="nav-icon"><span class="nav-dot" style="background:${c}22;color:${c}">${esc((k.name || '?')[0])}</span></span>
       <span>View as ${esc((k.name || '').split(' ')[0])}</span><i data-icon="external-link" class="nav-trail"></i>
     </button>`;
   }).join('');
-  if (isAdmin) html += onAdminPage()
-    ? `<a class="nav-item nav-sub" href="#users"><span class="nav-icon"><i data-icon="eye"></i></span><span>View as another student</span></a>`
-    : `<a class="nav-item nav-sub" href="admin.html#users"><span class="nav-icon"><i data-icon="eye"></i></span><span>View as another student</span></a>`;
-  wrap.innerHTML = html;
   wrap.querySelectorAll('[data-view-as]').forEach(b => b.onclick = () => openViewAs(b.dataset.viewAs));
 }
 
-// Keep the sidebar's children list fresh after adding/removing a child
+// Keep the sidebar's student list fresh after adding/removing a student
 export function refreshShellChildren(user, profile) {
-  loadChildShortcuts(user, profile.role === 'admin');
+  loadChildShortcuts(user);
 }

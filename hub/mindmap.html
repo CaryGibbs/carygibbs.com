@@ -346,7 +346,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, showToast, isPreview } from './auth.js';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js';
 import { awardXp } from './gamification.js';
 import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js';
 import { startStudyTimer } from './study-timer.js';
@@ -381,13 +381,15 @@ let _currentUser = null;
 let _currentProfile = null;
 
 requireAuth(async (user, profile) => {
-  if (!['student','admin','parent'].includes(profile.role)) { location.href = 'hub.html'; return; }
+  if (!isStudent(profile) && !viewsOf(profile).length) { location.href = 'hub.html'; return; }
   _currentUser = user;
   _currentProfile = profile;
   // Set smart back link
-  if (profile.role === 'admin' || profile.role === 'parent') {
+  if (!isStudent(profile)) {
+    // An adult looking at content: "Back" returns to their dashboard
     const bl = document.getElementById('nav-back-link');
-    if (bl) { bl.href = 'admin.html'; bl.textContent = '← Admin'; }
+    const home = hasRole(profile, 'admin') ? ['admin.html', 'Admin'] : hasRole(profile, 'teacher') ? ['teacher-dashboard.html', 'Classes'] : ['parent.html', 'Students'];
+    if (bl) { bl.href = home[0]; bl.textContent = '← ' + home[1]; }
   }
   if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
   document.getElementById('nav-title').textContent = topicName || subjectName;
@@ -446,7 +448,7 @@ async function loadData() {
     // Defer spider build until after layout
     requestAnimationFrame(() => { requestAnimationFrame(() => buildSpider()); });
     // Award mindmap XP (students only)
-    if (_currentUser && _currentProfile?.role === 'student' && !isPreview()) {
+    if (_currentUser && isStudent(_currentProfile) && !isPreview()) {
       awardXp(_currentUser.uid, 'mindmap').catch(() => {});
     }
   } catch(e) {

@@ -516,7 +516,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, showToast, isPreview } from './auth.js';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js';
 import { askClaude, jsonOf } from './ai.js';
 import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js';
 import {
@@ -563,13 +563,15 @@ const TYPES_KEY  = () => 'clasp_qtypes_' + (currentUser?.uid || 'anon');
 
 /* ── Auth ────────────────────────────────────────────────── */
 requireAuth(async (user, profile) => {
-  if (!['student','admin','parent'].includes(profile.role)) { location.href = 'hub.html'; return; }
+  if (!isStudent(profile) && !viewsOf(profile).length) { location.href = 'hub.html'; return; }
   currentUser = user;
   currentProfile = profile;
   // Set smart back link
-  if (profile.role === 'admin' || profile.role === 'parent') {
+  if (!isStudent(profile)) {
+    // An adult looking at content: "Back" returns to their dashboard
     const bl = document.getElementById('nav-back-link');
-    if (bl) { bl.href = 'admin.html'; bl.textContent = '← Admin'; }
+    const home = hasRole(profile, 'admin') ? ['admin.html', 'Admin'] : hasRole(profile, 'teacher') ? ['teacher-dashboard.html', 'Classes'] : ['parent.html', 'Students'];
+    if (bl) { bl.href = home[0]; bl.textContent = '← ' + home[1]; }
   }
   if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
   document.getElementById('nav-title').textContent =
@@ -1162,7 +1164,7 @@ async function showResults() {
     document.getElementById('xp-next-label').textContent = '';
   }
   // Save session + award XP (students only)
-  else if (currentUser && currentProfile?.role === 'student') {
+  else if (currentUser && isStudent(currentProfile)) {
     const secondsSpent = Math.round((Date.now() - (quizStartTime || Date.now())) / 1000);
     const minutesSpent = Math.round(secondsSpent / 60);
     const session = {

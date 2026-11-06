@@ -47,6 +47,10 @@
     }
     .welcome-greeting span { color: var(--color-primary); }
     .welcome-sub { color: var(--color-text-muted); font-size: 0.95rem; }
+    .pack-picker { display: inline-flex; align-items: center; gap: 8px; position: relative; font-family: var(--font-ui); }
+    .pack-picker span { color: var(--color-text-muted); }
+    .pack-picker select { width: auto; appearance: none; -webkit-appearance: none; padding: 7px 34px 7px 12px; font-weight: 700; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 999px; cursor: pointer; font-family: var(--font-ui); font-size: 0.92rem; }
+    .pack-picker .icon { position: absolute; right: 12px; pointer-events: none; width: 16px; height: 16px; color: var(--color-text-muted); }
 
     /* ── Section header ──────────────────────────────────── */
     .section-header {
@@ -294,7 +298,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, handleSignOut, showToast, isPreview } from './auth.js';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js';
 import { getLevelInfo, currentStreak } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import {
@@ -328,7 +332,7 @@ requireAuth(async (user, profile) => {
   document.getElementById('nav-name').textContent = firstName;
 
   // Admin/parent: show admin link and load first available group for preview
-  if (profile.role === 'admin' || profile.role === 'parent') {
+  if (!isStudent(profile)) {
     document.getElementById('welcome-sub').textContent = 'Previewing student hub';
     const adminBar = document.createElement('div');
     adminBar.style.cssText = 'background:var(--color-primary-glow);border:1px solid var(--color-primary);border-radius:var(--radius-card);padding:10px 16px;margin-bottom:var(--space-lg);display:flex;align-items:center;justify-content:space-between;font-family:var(--font-ui);font-size:0.85rem;';
@@ -339,27 +343,28 @@ requireAuth(async (user, profile) => {
     let firstGroupId = null;
     groupsSnap.forEach(d => { if (!firstGroupId) firstGroupId = d.id; });
     if (firstGroupId) await loadSubjects(user, firstGroupId);
-    else document.getElementById('hub-content').innerHTML = `<div class="no-group-banner"><h3>No groups yet</h3><p>Create a group in the admin panel first.</p></div>`;
+    else document.getElementById('hub-content').innerHTML = `<div class="no-group-banner"><h3>No revision packs yet</h3><p>Create one in the admin panel first.</p></div>`;
     return;
   }
 
-  // Student: get groupId from profile
-  // Support both groupIds array and legacy single groupId
-  const groupIds = profile.groupIds || (profile.groupId ? [profile.groupId] : []);
-  const groupId = groupIds[0] || null;
+  // Student: which revision packs do they have? (chosen by a parent, or via
+  // a class). If several, they pick one; the choice is remembered.
+  const groupIds = packIdsFor(profile);
+  const groupId = chosenPack(user, profile, groupIds);
 
   if (!groupId) {
-    document.getElementById('welcome-sub').textContent = 'Your revision content will appear here once your parent assigns you to a group.';
+    document.getElementById('welcome-sub').textContent = 'Your revision content will appear here once a revision pack is chosen for you.';
     document.getElementById('hub-content').innerHTML = `
       <div class="no-group-banner">
         <div class="empty-state-icon"><i data-icon="library"></i></div>
-        <h3>No group assigned yet</h3>
-        <p>Ask your parent to assign you to a revision group so your subjects appear here.</p>
+        <h3>No revision pack yet</h3>
+        <p>Ask your parent or teacher to choose a revision pack for you, and your subjects will appear here.</p>
       </div>`;
     return;
   }
 
   await loadSubjects(user, groupId);
+  if (groupIds.length > 1) renderPackPicker(user, groupIds, groupId);
   renderGamification(profile, user);
   // Show parent notification if any
   if (profile.notification && !profile.notification.read) {
@@ -375,13 +380,47 @@ requireAuth(async (user, profile) => {
   }
 });
 
+/* ── Revision pack picker ─────────────────────────────────── */
+function packIdsFor(profile) {
+  const ids = [...(profile.groupIds || (profile.groupId ? [profile.groupId] : []))];
+  Object.values(profile.classPacks || {}).forEach(list => (list || []).forEach(id => ids.push(id)));
+  return [...new Set(ids.filter(Boolean))];
+}
+function chosenPack(user, profile, ids) {
+  let saved = null;
+  try { saved = localStorage.getItem('clasp_pack_' + user.uid); } catch (e) {}
+  if (ids.includes(saved)) return saved;
+  if (ids.includes(profile.currentPackId)) return profile.currentPackId;
+  return ids[0] || null;
+}
+async function renderPackPicker(user, ids, current) {
+  const names = await Promise.all(ids.map(id => getDoc(doc(db, 'content', id)).then(s => s.exists() ? s.data().name : null).catch(() => null)));
+  const options = ids.map((id, i) => ({ id, name: names[i] })).filter(o => o.name);
+  if (options.length < 2) return;
+  const sub = document.getElementById('welcome-sub');
+  sub.innerHTML = `<label class="pack-picker"><span>Revising for</span>
+    <select id="pack-select" aria-label="Choose a revision pack">${options.map(o => `<option value="${o.id}"${o.id === current ? ' selected' : ''}>${esc(o.name)}</option>`).join('')}</select>
+    <i data-icon="chevron-down"></i></label>`;
+  document.getElementById('pack-select').onchange = async e => {
+    const id = e.target.value;
+    try { localStorage.setItem('clasp_pack_' + user.uid, id); } catch (err) {}
+    if (!isPreview() && user.uid !== 'preview-readonly') {
+      const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      updateDoc(doc(db, 'users', user.uid), { currentPackId: id }).catch(() => {});
+    }
+    document.getElementById('hub-content').innerHTML = '<div class="subjects-grid"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>';
+    await loadSubjects(user, id);
+    renderPackPicker(user, ids, id);
+  };
+}
+
 async function loadSubjects(user, groupId) {
   const grid = document.getElementById('hub-content');
 
   // Get group info
   const groupSnap = await getDoc(doc(db, 'content', groupId));
   if (!groupSnap.exists()) {
-    grid.innerHTML = `<div class="no-group-banner"><h3>Group not found</h3><p>Ask your parent to reassign you.</p></div>`;
+    grid.innerHTML = `<div class="no-group-banner"><h3>Revision pack not found</h3><p>Ask your parent or teacher to choose another pack for you.</p></div>`;
     return;
   }
 
@@ -471,7 +510,7 @@ async function loadSubjects(user, groupId) {
 }
 
 function renderGamification(profile, user) {
-  if (profile.role !== 'student') return;
+  if (!isStudent(profile)) return;
   const wrap = document.getElementById('gamification-wrap');
   wrap.style.display = 'block';
 
