@@ -479,6 +479,9 @@
     <a href="parent.html" class="nav-item" style="text-decoration:none;">
       <span class="nav-icon">👨‍👩‍👧</span><span>Parent dashboard</span>
     </a>
+    <button class="nav-item" data-nav="users" title="Pick a student from the Users list">
+      <span class="nav-icon">👁️</span><span>View as a student</span>
+    </button>
     <button class="nav-item" onclick="doSignOut()">
       <span class="nav-icon">🚪</span><span>Sign out</span>
     </button>
@@ -970,7 +973,7 @@
 
 <script type="module">
 import { auth, db, storage } from './firebase-config.js';
-import { requireRole, handleSignOut, showToast } from './auth.js';
+import { requireRole, handleSignOut, showToast, openViewAs } from './auth.js';
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp
@@ -1041,6 +1044,7 @@ document.addEventListener('click', e => {
   const qtab   = t.dataset.qtab;
 
   if (nav)    { showPanel(nav); return; }
+  if (action === 'view-as') { openViewAs(t.dataset.uid); return; }
   if (close)  { closeModal(close); return; }
   if (bc)     { handleBreadcrumb(bc); return; }
   if (qtype)  { selectQType(qtype); return; }
@@ -2252,12 +2256,16 @@ async function loadUsers() {
       <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Email</th>
       <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Role</th>
       <th style="text-align:left;padding:8px 12px;color:var(--color-text-muted);">Joined</th>
+      <th style="padding:8px 12px;"></th>
     </tr></thead>
     <tbody>${users.map(u => `<tr style="border-bottom:1px solid var(--color-border);">
       <td style="padding:10px 12px;">${roleIcon[u.role]||'👤'} ${esc(u.name||'—')}</td>
       <td style="padding:10px 12px;color:var(--color-text-muted);">${esc(u.email||'—')}</td>
       <td style="padding:10px 12px;"><span class="badge ${roleColour[u.role]||'badge-primary'}">${u.role||'?'}</span></td>
       <td style="padding:10px 12px;color:var(--color-text-muted);">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
+      <td style="padding:10px 12px;text-align:right;">${u.role === 'student'
+        ? `<button class="btn btn-secondary" style="padding:5px 12px;font-size:0.8rem;white-space:nowrap;" data-action="view-as" data-uid="${esc(u.id)}">👁️ View as</button>`
+        : ''}</td>
     </tr>`).join('')}</tbody>
   </table>`;
 }

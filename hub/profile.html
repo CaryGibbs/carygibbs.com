@@ -208,7 +208,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, handleSignOut } from './auth.js';
+import { requireAuth, handleSignOut, isPreview } from './auth.js';
 import { getLevelInfo, LEVELS, BADGES } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -276,7 +276,7 @@ requireAuth(async (user, profile) => {
   // Goals, time, subjects and badges (shared with the hub)
   document.getElementById('stats-root').innerHTML = statsSectionsHtml();
   const owed = renderStats(profile);
-  if (owed.length) {
+  if (owed.length && !isPreview()) {
     updateDoc(doc(db, 'users', user.uid), { badges: [...(profile.badges || []), ...owed] }).catch(() => {});
     showToast(`🎉 ${owed.length} new badge${owed.length !== 1 ? 's' : ''} unlocked!`, 'success');
   }

@@ -315,6 +315,7 @@
   function confirmRemoveChild()  { window._confirmRemoveChild && window._confirmRemoveChild(); }
   function resetProgress()       { window._resetProgress && window._resetProgress(); }
   function openProgressModal(id) { window._openProgressModal && window._openProgressModal(id); }
+  function viewAs(id)            { window._viewAs && window._viewAs(id); }
   function openNotifyModal(id)   { window._openNotifyModal && window._openNotifyModal(id); }
   function sendNotification()    { window._sendNotification && window._sendNotification(); }
   function updateNotifyPreview() { window._updateNotifyPreview && window._updateNotifyPreview(); }
@@ -323,7 +324,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, handleSignOut, generatePassword, showToast } from './auth.js';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs } from './auth.js';
 import { getLevelInfo } from './gamification.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
 import {
@@ -354,6 +355,7 @@ requireAuth((user, profile) => {
 });
 
 window._doSignOut = () => handleSignOut();
+window._viewAs = (uid) => openViewAs(uid);
 
 /* ── Load available groups ───────────────────────────────── */
 async function loadGroups() {
@@ -429,6 +431,7 @@ function renderChildren() {
       </div>
       <div class="child-card-actions">
         <button class="child-action-btn" onclick="openProgressModal('${uid}')">📊 Progress</button>
+        <button class="child-action-btn" onclick="viewAs('${uid}')" title="Open ${esc(child.name.split(' ')[0])}'s hub in a new window">👁️ View as</button>
         <button class="child-action-btn" onclick="openNotifyModal('${uid}')">📨 Message</button>
         <button class="child-action-btn" onclick="openManageModal('${uid}')">⚙️ Manage</button>
       </div>`;

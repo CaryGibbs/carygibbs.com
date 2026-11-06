@@ -29,12 +29,90 @@ export async function getUserProfile(uid) {
   throw lastErr;
 }
 
+/* ── "View as" preview ────────────────────────────────────
+   An admin or parent opens hub.html?viewAs=<studentUid> in a new window.
+   The student id is kept in sessionStorage, which belongs to that one
+   window, so every page in it shows the student's view while other
+   windows stay normal. The viewer stays signed in as themselves.
+   Pages receive a stand-in user whose uid is not a real account, and
+   check isPreview() to skip saving anything. */
+const VIEW_AS_KEY = 'clasp_viewAs';
+(function captureViewAs() {
+  try {
+    const id = new URLSearchParams(location.search).get('viewAs');
+    if (id) sessionStorage.setItem(VIEW_AS_KEY, id);
+  } catch (e) {}
+})();
+
+let _preview = null; // { viewer, viewerProfile, student }
+export function isPreview() { return !!_preview; }
+export function previewInfo() { return _preview; }
+
+// Only the student-facing pages can be previewed. Opening any other page
+// (admin, parent, teacher) in the window ends the preview.
+const PREVIEW_PAGES = ['hub.html', 'profile.html', 'quiz.html', 'mindmap.html'];
+function viewAsId() {
+  const page = location.pathname.split('/').pop() || 'index.html';
+  try {
+    if (!PREVIEW_PAGES.includes(page)) { sessionStorage.removeItem(VIEW_AS_KEY); return null; }
+    return sessionStorage.getItem(VIEW_AS_KEY);
+  } catch (e) { return null; }
+}
+
+export function exitPreview() {
+  try { sessionStorage.removeItem(VIEW_AS_KEY); } catch (e) {}
+  const back = _preview?.viewerProfile?.role === 'parent' ? 'parent.html' : 'admin.html';
+  window.close();                                   // works when we opened the window
+  setTimeout(() => { window.location.href = back; }, 150); // otherwise go back to the dashboard
+}
+
+async function canView(user, viewerProfile, studentUid, student) {
+  if (viewerProfile.role === 'admin') return true;
+  if (viewerProfile.role !== 'parent') return false;
+  if (student.parentUid === user.uid) return true;
+  const link = await getDoc(doc(db, 'users', user.uid, 'children', studentUid)).catch(() => null);
+  return !!link?.exists();
+}
+
+function showPreviewBanner(student) {
+  if (document.getElementById('clasp-preview-bar')) return;
+  const first = (student.name || 'student').split(' ')[0];
+  const bar = document.createElement('div');
+  bar.id = 'clasp-preview-bar';
+  bar.style.cssText = 'position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 16px;background:#f59f00;color:#1a1a1a;font-family:var(--font-ui,system-ui);font-size:0.85rem;font-weight:700;text-align:center;';
+  bar.innerHTML = `<span>👁️ Viewing as ${first.replace(/</g,'&lt;')} · preview only, nothing is saved</span>
+    <button id="clasp-preview-exit" style="background:#1a1a1a;color:#fff;border:none;border-radius:999px;padding:5px 12px;font:inherit;font-size:0.8rem;cursor:pointer;">Exit preview</button>`;
+  document.body.prepend(bar);
+  document.getElementById('clasp-preview-exit').onclick = exitPreview;
+  // "Sign out" buttons only leave the preview here, so say so
+  document.querySelectorAll('[onclick*="doSignOut"]').forEach(b => { b.textContent = 'Exit preview'; });
+  // Sticky page headers sit just under the bar
+  const h = bar.offsetHeight;
+  const style = document.createElement('style');
+  style.textContent = `.topnav{top:${h}px !important;} .jumpbar{top:${h + 64}px !important;}`;
+  document.head.appendChild(style);
+}
+
 export function requireAuth(callback) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'index.html'; return; }
     try {
-      const profile = await getUserProfile(user.uid);
+      let profile = await getUserProfile(user.uid);
       if (!profile) { await signOut(auth); window.location.href = 'index.html'; return; }
+
+      const targetId = viewAsId();
+      if (targetId && targetId !== user.uid) {
+        const student = await getUserProfile(targetId);
+        if (student && await canView(user, profile, targetId, student)) {
+          _preview = { viewer: user, viewerProfile: profile, student: { id: targetId, ...student } };
+          showPreviewBanner(student);
+          profile = student;
+          user = { uid: 'preview-readonly', previewOf: targetId, isPreview: true };
+        } else {
+          try { sessionStorage.removeItem(VIEW_AS_KEY); } catch (e) {}
+        }
+      }
+
       if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
       callback(user, profile);
     } catch(e) {
@@ -53,6 +131,7 @@ export function requireRole(role, callback) {
 }
 
 export async function handleSignOut() {
+  if (_preview) { exitPreview(); return; } // in a preview window, "Sign out" just leaves the preview
   await signOut(auth);
   window.location.href = 'index.html';
 }
@@ -91,6 +170,12 @@ function showConnectionProblem() {
   </div>`;
   document.body.appendChild(el);
   document.getElementById('clasp-conn-signout').onclick = () => handleSignOut();
+}
+
+// Open a student's view in a new window (used by admin and parent dashboards)
+export function openViewAs(studentUid) {
+  const w = window.open(`hub.html?viewAs=${encodeURIComponent(studentUid)}`, `clasp-view-${studentUid}`);
+  if (!w) window.location.href = `hub.html?viewAs=${encodeURIComponent(studentUid)}`; // pop-up blocked
 }
 
 export function generatePassword() {

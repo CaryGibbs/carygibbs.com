@@ -339,7 +339,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, showToast } from './auth.js';
+import { requireAuth, showToast, isPreview } from './auth.js';
 import { awardXp } from './gamification.js';
 import {
   collection, getDocs, doc, getDoc
@@ -431,7 +431,7 @@ async function loadData() {
     // Defer spider build until after layout
     requestAnimationFrame(() => { requestAnimationFrame(() => buildSpider()); });
     // Award mindmap XP (students only)
-    if (_currentUser && _currentProfile?.role === 'student') {
+    if (_currentUser && _currentProfile?.role === 'student' && !isPreview()) {
       awardXp(_currentUser.uid, 'mindmap').catch(() => {});
     }
   } catch(e) {

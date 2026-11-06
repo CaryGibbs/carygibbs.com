@@ -514,7 +514,7 @@
 
 <script type="module">
 import { auth, db } from './firebase-config.js';
-import { requireAuth, showToast } from './auth.js';
+import { requireAuth, showToast, isPreview } from './auth.js';
 import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js';
 import {
   collection, getDocs, query, orderBy,
@@ -1159,8 +1159,17 @@ async function showResults() {
     `You scored ${score} out of ${total} on ${topicName || subjectName}`;
   document.getElementById('results-icon').textContent = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
 
+  // Preview: show the result but save nothing
+  if (isPreview()) {
+    const wrap = document.getElementById('xp-earned-wrap');
+    wrap.style.display = 'block';
+    document.getElementById('xp-earned-text').textContent = '👁️ Preview: this quiz was not saved to their record';
+    document.getElementById('xp-progress-bar').parentElement.style.display = 'none';
+    document.getElementById('xp-level-label').textContent = '';
+    document.getElementById('xp-next-label').textContent = '';
+  }
   // Save session + award XP (students only)
-  if (currentUser && currentProfile?.role === 'student') {
+  else if (currentUser && currentProfile?.role === 'student') {
     const secondsSpent = Math.round((Date.now() - (quizStartTime || Date.now())) / 1000);
     const minutesSpent = Math.round(secondsSpent / 60);
     const session = {
