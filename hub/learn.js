@@ -9,10 +9,9 @@
 import { db } from './firebase-config.js';
 import { isPreview, previewInfo, showToast } from './auth.js';
 import { awardXp, BADGES } from './gamification.js';
+import { askClaude, jsonOf } from './ai.js';
 import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
-const MODEL = 'claude-sonnet-4-5';
 
 let ctx = null;        // { groupId, subjectId, subjectName, user, profile }
 let current = null;    // { topic, list, index }
@@ -391,16 +390,7 @@ function printSheet(container) {
 
 /* ── AI helper ───────────────────────────────────────────── */
 async function askAi(prompt, maxTokens) {
-  const resp = await fetch(PROXY_URL, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
-  });
-  if (!resp.ok) throw new Error('AI request failed: ' + resp.status);
-  const data = await resp.json();
-  const raw = (data.content || []).map(c => c.text || '').join('');
-  const cleaned = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
-  try { return JSON.parse(cleaned); }
-  catch { const m = cleaned.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error('Unexpected AI response'); }
+  return jsonOf(await askClaude('learning', prompt, maxTokens));
 }
 
 /* Admin: clear saved content for a topic so it is rewritten next time */

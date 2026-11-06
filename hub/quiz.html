@@ -517,6 +517,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, showToast, isPreview } from './auth.js';
+import { askClaude, jsonOf } from './ai.js';
 import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js';
 import {
   collection, getDocs, query, orderBy,
@@ -1065,19 +1066,8 @@ Respond ONLY with a JSON object in this exact format (no markdown, no backticks)
 {"score":3,"outOf":5,"feedback":"Specific feedback in 2-3 sentences. What they got right. What was missing or could be improved."}`;
 
   try {
-    const resp = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 300,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await resp.json();
-    const raw = (data.content || []).map(c => c.text || '').join('');
-    const cleaned = raw.replace(/```[a-z]*\n?/gi,'').replace(/```/g,'').trim();
-    const result = JSON.parse(cleaned);
+    // Model chosen in Admin → Settings (falls back automatically if it fails)
+    const result = jsonOf(await askClaude('marking', prompt, 300));
 
     document.getElementById('ai-thinking').style.display = 'none';
     document.getElementById('ai-result').style.display = 'block';

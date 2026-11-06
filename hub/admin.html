@@ -387,6 +387,21 @@
     .save-batch-count { font-family: var(--font-ui); font-size: 0.9rem; color: var(--color-text-muted); }
     .save-batch-count strong { color: var(--color-text); }
 
+    /* ── AI model settings ─────────────────────────────── */
+    .ai-settings h3 { font-size: 1.02rem; margin-bottom: 4px; }
+    .ai-settings-head p { font-size: 0.86rem; color: var(--color-text-muted); margin-bottom: 14px; }
+    .ai-field { padding: 12px 0; border-top: 1px solid var(--color-border); }
+    .ai-field label { display: block; font-family: var(--font-ui); font-weight: 600; font-size: 0.88rem; margin-bottom: 2px; }
+    .ai-field p { font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 8px; }
+    .ai-field select { max-width: 100%; }
+    .ai-settings-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--color-border); }
+    .ai-status { font-size: 0.84rem; color: var(--color-text-muted); }
+    .ai-test { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .ai-test-row { display: flex; gap: 8px; align-items: flex-start; font-size: 0.85rem; padding: 8px 10px; border-radius: 8px; background: var(--color-surface-2); }
+    .ai-test-row .icon { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
+    .ai-test-row.ok .icon { color: var(--color-success); }
+    .ai-test-row.warn .icon { color: var(--color-warning); }
+    .ai-test-row.bad .icon { color: var(--color-danger); }
     /* ── Responsive ───────────────────────────────────────── */
     @media (max-width: 768px) {
       .content-area { padding: var(--space-md); }
@@ -682,17 +697,27 @@
           <div class="panel-subtitle">Platform configuration</div>
         </div>
       </div>
-      <div class="card" style="max-width:480px;">
+      <div class="card" style="max-width:640px;">
         <div class="form-group">
           <label>Firestore rules status</label>
           <p style="font-size:0.88rem;color:var(--color-text-muted);">Content path is <code>content/{groupId}/subjects/{subjectId}/topics/{topicId}/questions/{questionId}</code></p>
         </div>
-        <div class="form-group">
-          <label>AI model</label>
-          <select id="ai-model-select">
-            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (default)</option>
-          </select>
+      </div>
+
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
+        <div class="ai-settings-head">
+          <div>
+            <h3>AI models</h3>
+            <p>Choose which Claude model does each job. Saved learning notes and cheat sheets aren't affected; new ones use the new choice.</p>
+          </div>
         </div>
+        <div id="ai-model-fields"></div>
+        <div class="ai-settings-actions">
+          <button class="btn btn-primary" id="btn-save-ai"><i data-icon="save"></i> Save</button>
+          <button class="btn btn-secondary" id="btn-test-ai"><i data-icon="zap"></i> Test models</button>
+          <span class="ai-status" id="ai-status"></span>
+        </div>
+        <div class="ai-test" id="ai-test" hidden></div>
       </div>
     </div>
 
@@ -939,6 +964,18 @@
 import { auth, db, storage } from './firebase-config.js';
 import { requireRole, handleSignOut, showToast, openViewAs } from './auth.js';
 import { mountShell } from './shell.js';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf } from './ai.js';
+
+// Content generation uses the model chosen in Settings. Wraps the result so
+// the existing code (which expected a fetch Response) works unchanged.
+async function aiFetch(prompt, maxTokens) {
+  try {
+    const data = await askClaude('generation', prompt, maxTokens);
+    return { ok: true, status: 200, json: async () => data };
+  } catch (e) {
+    return { ok: false, status: 500, json: async () => ({ error: { message: e.message }, content: [] }) };
+  }
+}
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp
@@ -982,6 +1019,52 @@ requireRole('admin', (user, profile) => {
 });
 
 /* ── Navigation ──────────────────────────────────────────── */
+/* ── AI model settings ──────────────────────────────────── */
+function modelLabel(m, task) {
+  const rec = TASKS[task].recommended === m.id;
+  return `${m.name} (${rec ? 'recommended, ' : ''}${m.note})`;
+}
+async function renderAiSettings() {
+  const s = await loadAiSettings(true);
+  document.getElementById('ai-model-fields').innerHTML = Object.entries(TASKS).map(([task, t]) => {
+    const current = s[task] || FALLBACK_MODEL;
+    return `<div class="ai-field">
+      <label for="ai-${task}">${t.label}</label>
+      <p>${t.help}</p>
+      <select id="ai-${task}" data-task="${task}">
+        ${MODELS.map(m => `<option value="${m.id}"${m.id === current ? ' selected' : ''}>${modelLabel(m, task)}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+  document.getElementById('ai-status').textContent = s.updatedAt ? `Last saved ${new Date(s.updatedAt).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}` : 'Not saved yet: everything uses Claude Sonnet 4.5';
+}
+document.getElementById('btn-save-ai').onclick = async () => {
+  const data = { updatedAt: Date.now() };
+  document.querySelectorAll('#ai-model-fields select').forEach(sel => { data[sel.dataset.task] = sel.value; });
+  try {
+    await setDoc(doc(db, 'settings', 'ai'), data);
+    await renderAiSettings();
+    showToast('AI models saved', 'success');
+  } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
+};
+// Ask each chosen model for a one-word reply, and check which model actually answered
+document.getElementById('btn-test-ai').onclick = async () => {
+  const box = document.getElementById('ai-test');
+  box.hidden = false;
+  box.innerHTML = '<div class="ai-test-row"><span class="spinner" style="width:16px;height:16px;border-width:2px;"></span> Testing…</div>';
+  const rows = await Promise.all([...document.querySelectorAll('#ai-model-fields select')].map(async sel => {
+    const task = sel.dataset.task, want = sel.value, name = MODELS.find(m => m.id === want)?.name || want;
+    try {
+      const data = await askClaude(task, 'Reply with the single word OK.', 10, { model: want, noFallback: true });
+      const got = data.model || '';
+      if (got && !got.startsWith(want)) return `<div class="ai-test-row warn"><i data-icon="triangle-alert"></i><span><strong>${TASKS[task].label}:</strong> asked for ${name}, but your Cloudflare Worker answered with <code>${got}</code>. The Worker is choosing the model itself, so this setting has no effect until the Worker is updated.</span></div>`;
+      return `<div class="ai-test-row ok"><i data-icon="circle-check"></i><span><strong>${TASKS[task].label}:</strong> ${name} is working.</span></div>`;
+    } catch (e) {
+      return `<div class="ai-test-row bad"><i data-icon="circle-x"></i><span><strong>${TASKS[task].label}:</strong> ${name} didn't respond (${e.message}). Until this is fixed, this job automatically falls back to Claude Sonnet 4.5.</span></div>`;
+    }
+  }));
+  box.innerHTML = rows.join('');
+};
 function showPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -991,6 +1074,7 @@ function showPanel(name) {
   currentPanel = name;
   updateBreadcrumb();
   if (name === 'users') loadUsers();
+  if (name === 'settings') renderAiSettings();
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 
@@ -1440,11 +1524,7 @@ Example:
 Content:
 ${contentText.substring(0, 6000)}`;
   try {
-    const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
-    });
+    const resp = await aiFetch(prompt, 8000);
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
     const cleaned = raw.replace(/^```[a-z]*\n?/i,'').replace(/```$/,'').trim();
@@ -1474,11 +1554,7 @@ Topic: ${topic}
 Return ONLY a JSON array of groups, no markdown, no backticks, no preamble:
 [{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits"},{"term":"Easting","explanation":"The horizontal value, read first"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map and real-world distance"}]}]`;
   try {
-    const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
-    });
+    const resp = await aiFetch(prompt, 8000);
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
     const cleaned = raw.replace(/^```[a-z]*\n?/i,'').replace(/```$/,'').trim();
@@ -1626,17 +1702,13 @@ async function generateEverything() {
     // Generate questions
     const qty = 10;
     const prompt = buildQuestionPrompt(contentForQs, qty);
-    const resp = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
-    });
+    const resp = await aiFetch(prompt, 8000);
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
     const cleaned = raw.replace(/^\`\`\`[a-z]*\n?/i,'').replace(/\`\`\`$/,'').trim();
     let questions;
     try { questions = JSON.parse(cleaned); }
-    catch { const m = cleaned.match(/\[\s\S]*\]/); questions = m ? JSON.parse(m[0]) : []; }
+    catch { const m = cleaned.match(/\[[\s\S]*\]/); questions = m ? JSON.parse(m[0]) : []; }
 
     if (!questions.length) throw new Error('No questions returned');
     normaliseTf(questions);
@@ -1842,15 +1914,7 @@ Revision content:
 ${content}`;
 
   try {
-    const response = await fetch('https://curly-recipe-8b84.clasp-hub-app.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 16000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    const response = await aiFetch(prompt, 16000);
 
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
