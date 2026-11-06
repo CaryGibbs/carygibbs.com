@@ -4,9 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bonce — Revision that sticks in your bonce.</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg">
-  <link rel="stylesheet" href="theme.css">
-  <script src="icons.js"></script>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261106c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261106c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261106c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261106c">
+  <meta name="apple-mobile-web-app-title" content="Bonce">
+  <meta name="application-name" content="Bonce">
+  <link rel="stylesheet" href="theme.css?v=20261106c">
+  <script src="icons.js?v=20261106c"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -47,7 +52,7 @@
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
   </style>
-  <link rel="stylesheet" href="ui.css">
+  <link rel="stylesheet" href="ui.css?v=20261106c">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -55,7 +60,7 @@
 <div class="container page-fade">
   <div class="logo-wrap">
     <div class="logo-mark">
-      <div class="logo-icon"><i data-icon="bonce"></i></div>
+      <div class="logo-icon"><svg class="icon brand-b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 2.8v18.4"/><circle cx="12" cy="15.5" r="5.7"/><path d="M9.4 15.5q1.3-2.2 2.6 0t2.6 0" stroke-width="1.9"/></svg></div>
       <div class="logo-text">b<span>o</span>nce</div>
     </div>
     <p class="tagline">Revision that sticks in your bonce.</p>
@@ -95,6 +100,9 @@
         <div class="signup-type-btn" id="type-student" onclick="selectType('student')">
           <span class="role-icon"><i data-icon="graduation-cap"></i></span>Student
         </div>
+        <div class="signup-type-btn" id="type-teacher" onclick="selectType('teacher')">
+          <span class="role-icon"><i data-icon="school"></i></span>Teacher
+        </div>
       </div>
       <div class="form-group">
         <label>Your name</label>
@@ -109,6 +117,10 @@
         <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
         <p class="form-hint">Minimum 8 characters</p>
       </div>
+      <div class="form-group" id="school-group" style="display:none;">
+        <label>School</label>
+        <input type="text" id="signup-school" placeholder="Your school's name" autocomplete="organization">
+      </div>
       <div class="form-group" id="class-code-group" style="display:none;">
         <label>Class code <span class="optional-label">(optional)</span></label>
         <input type="text" id="signup-class-code" placeholder="e.g. XK7P2M" maxlength="6" class="code-input">
@@ -118,9 +130,6 @@
     </div>
   </div>
 
-  <div class="teacher-link">
-    Are you a teacher? <a href="teacher.html" style="color:var(--color-primary);">Teacher portal →</a>
-  </div>
   <div class="auth-footer">
     By signing in you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>
   </div>
@@ -161,6 +170,8 @@
     signupType = type;
     document.getElementById('type-parent').classList.toggle('selected', type==='parent');
     document.getElementById('type-student').classList.toggle('selected', type==='student');
+    document.getElementById('type-teacher').classList.toggle('selected', type==='teacher');
+    document.getElementById('school-group').style.display = type==='teacher' ? 'block' : 'none';
     document.getElementById('class-code-group').style.display = type==='student' ? 'block' : 'none';
   };
 
@@ -187,6 +198,8 @@
     if (!name)               { showError('Please enter your name.'); return; }
     if (!email)              { showError('Please enter your email.'); return; }
     if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
+    const school = (document.getElementById('signup-school')?.value || '').trim();
+    if (signupType === 'teacher' && !school) { showError('Please enter your school name.'); return; }
 
     // Validate class code if provided
     let classInfo = null;
@@ -205,6 +218,11 @@
         await setDoc(doc(db, 'users', uid), {
           name, email, role: 'parent', theme: 'parent',
           createdAt: Date.now(), children: {}
+        });
+      } else if (signupType === 'teacher') {
+        await setDoc(doc(db, 'users', uid), {
+          name, email, school, role: 'teacher', roles: ['teacher'], theme: 'parent',
+          createdAt: Date.now()
         });
       } else {
         const profile = {

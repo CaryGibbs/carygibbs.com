@@ -4,10 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bonce — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg">
-  <link rel="stylesheet" href="theme.css">
-  <script src="icons.js"></script>
-  <link rel="stylesheet" href="stats.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261106c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261106c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261106c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261106c">
+  <meta name="apple-mobile-web-app-title" content="Bonce">
+  <meta name="application-name" content="Bonce">
+  <link rel="stylesheet" href="theme.css?v=20261106c">
+  <script src="icons.js?v=20261106c"></script>
+  <link rel="stylesheet" href="stats.css?v=20261106c">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -230,14 +235,14 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css">
+  <link rel="stylesheet" href="ui.css?v=20261106c">
 </head>
 <body>
 <div id="toast-container"></div>
 
 <nav class="topnav">
   <a href="hub.html" class="nav-logo">
-    <div class="nav-logo-icon"><i data-icon="bonce"></i></div>bonce
+    <div class="nav-logo-icon"><svg class="icon brand-b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 2.8v18.4"/><circle cx="12" cy="15.5" r="5.7"/><path d="M9.4 15.5q1.3-2.2 2.6 0t2.6 0" stroke-width="1.9"/></svg></div>bonce
   </a>
   <div class="nav-right">
     <span class="nav-user">Hey, <strong id="nav-name">...</strong></span>
