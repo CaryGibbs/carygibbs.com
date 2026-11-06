@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clasp — Teacher Dashboard</title>
+  <title>Bonce — Teacher Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg">
   <link rel="stylesheet" href="theme.css">
   <script src="icons.js"></script>
   <style>
@@ -364,7 +365,7 @@
         <label>Email</label>
         <input type="email" id="student-email" placeholder="jamie@example.com">
       </div>
-      <p class="modal-note" id="existing-note">Student already has a Clasp account? Just enter their email and leave the password blank to add them to this class.</p>
+      <p class="modal-note" id="existing-note">Student already has a Bonce account? Just enter their email and leave the password blank to add them to this class.</p>
       <div class="form-group">
         <label>Password</label>
         <div class="password-row">
@@ -743,7 +744,7 @@
       showToast(`${name} added to class!`, 'success');
     } catch(e) {
       if (e.code === 'auth/email-already-in-use') {
-        showModalError('add-student-error', 'That email already has a Clasp account. Clear the password box to add the existing student to this class.');
+        showModalError('add-student-error', 'That email already has a Bonce account. Clear the password box to add the existing student to this class.');
       } else showModalError('add-student-error', friendlyError(e.code));
     } finally {
       btn.classList.remove('loading');
@@ -762,7 +763,7 @@
     let student;
     try { student = await findUserByEmail(email); }
     catch (e) { showModalError('add-student-error', 'Could not look up that email. Please try again.'); return; }
-    if (!student) { showModalError('add-student-error', 'No Clasp account uses that email. Set a password to create one.'); return; }
+    if (!student) { showModalError('add-student-error', 'No Bonce account uses that email. Set a password to create one.'); return; }
     if (!isStudent(student)) { showModalError('add-student-error', 'That account isn\'t a student account.'); return; }
     await updateDoc(doc(db, 'users', student.id), { [`classes.${activeClassId}`]: true, [`classPacks.${activeClassId}`]: packIds });
     await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', student.id), { name: student.name || name, email: student.email || email });

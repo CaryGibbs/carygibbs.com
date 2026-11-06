@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clasp — Parent Dashboard</title>
+  <title>Bonce — Parent Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg">
   <link rel="stylesheet" href="theme.css">
   <script src="icons.js"></script>
   <link rel="stylesheet" href="stats.css">
@@ -240,7 +241,7 @@
         <input type="email" id="share-email" placeholder="Another parent's email address">
         <button class="btn btn-secondary" id="btn-share" onclick="shareStudent()"><i data-icon="user-plus"></i> Share</button>
       </div>
-      <div class="form-hint" id="share-hint">They need their own Clasp parent account with that email.</div>
+      <div class="form-hint" id="share-hint">They need their own Bonce parent account with that email.</div>
     </div>
     <div class="danger-zone">
       <p>Reset progress clears XP, level, badges, streak and quiz history. Their login, groups and theme are kept.</p>
@@ -646,7 +647,7 @@ window._shareStudent = async function() {
     // Emails may have been saved with capitals, so look for both spellings
     const found = await getDocs(query(collection(db, 'users'), where('email', 'in', [...new Set([typed, email])])));
     let other = null; found.forEach(d => { other = other || { id: d.id, ...d.data() }; });
-    if (!other) { showErr('manage-error', 'No Clasp account uses that email. Ask them to create a parent account first.'); return; }
+    if (!other) { showErr('manage-error', 'No Bonce account uses that email. Ask them to create a parent account first.'); return; }
     if (other.id === parentUid) { showErr('manage-error', 'That\'s your own account.'); return; }
     const theirRoles = Array.isArray(other.roles) && other.roles.length ? other.roles : [other.role];
     if (!theirRoles.some(r => r === 'parent' || r === 'admin')) { showErr('manage-error', 'That account isn\'t a parent account. They need to sign up as a parent.'); return; }

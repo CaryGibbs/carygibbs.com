@@ -41,7 +41,7 @@ export function mountShell(user, profile, { view, active } = {}) {
   // Colour the whole page chrome with the view's colour
   document.body.dataset.view = view;
   document.body.style.setProperty('--view-colour', V.colour);
-  if (!/·/.test(document.title)) document.title = `${document.title.replace(/^Clasp\s*[—-]\s*/, 'Clasp — ')} · ${V.label}`;
+  if (!/·/.test(document.title)) document.title = `${document.title.replace(/^(Clasp|Bonce)\s*[—-]\s*/, 'Bonce — ')} · ${V.label}`;
 
   // On the admin page, admin links switch panels in place (data-nav);
   // elsewhere they open the admin page at that panel.
@@ -85,8 +85,8 @@ export function mountShell(user, profile, { view, active } = {}) {
   sidebar.innerHTML = `
     <div class="sidebar-logo">
       <a href="${V.home}" class="sidebar-brand">
-        <span class="sidebar-logo-icon"><i data-icon="graduation-cap"></i></span>
-        <span>Clasp</span>
+        <span class="sidebar-logo-icon"><i data-icon="bonce"></i></span>
+        <span>bonce</span>
       </a>
       <button class="sidebar-close" aria-label="Close menu"><i data-icon="x"></i></button>
     </div>
@@ -116,7 +116,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     document.body.insertAdjacentHTML('afterbegin', `
       <div class="shell-mobilebar" id="shell-mobilebar">
         <button class="shell-menu-btn" aria-label="Open menu"><i data-icon="menu"></i></button>
-        <span class="sidebar-logo-icon"><i data-icon="graduation-cap"></i></span><span class="shell-mobile-title">Clasp</span><span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>
+        <span class="sidebar-logo-icon"><i data-icon="bonce"></i></span><span class="shell-mobile-title">bonce</span><span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>
       </div>
       <div class="shell-scrim" id="shell-scrim"></div>`);
   }
