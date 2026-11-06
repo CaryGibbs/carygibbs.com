@@ -51,23 +51,63 @@ export function calcQuizXp(pct) {
 }
 
 /* ── Streak helpers ──────────────────────────────────────── */
+// Whole calendar days between two times (local time), e.g. 23:00 yesterday
+// to 07:00 today is 1, even though it's only 8 hours.
+export function calendarDaysBetween(earlier, later = Date.now()) {
+  const a = new Date(earlier), b = new Date(later);
+  const da = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const db_ = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((db_ - da) / 86400000);
+}
+
+// The streak to show right now: it only counts if they revised today or
+// yesterday; otherwise it has lapsed (even though it's not reset until
+// they next revise).
+export function currentStreak(profile) {
+  if (!profile) return 0;
+  const stored = (profile.lastRevisionDate && calendarDaysBetween(profile.lastRevisionDate) <= 1) ? (profile.streak || 0) : 0;
+  return Math.max(stored, streakFromHistory(profile));
+}
+
+// Count consecutive days of activity (quizzes, study time, last revision)
+// ending today or yesterday. Corrects streaks recorded before the
+// calendar-day fix.
+export function streakFromHistory(profile, { endingYesterday = false } = {}) {
+  const days = new Set();
+  (profile.sessions || []).forEach(s => { if (s.date) days.add(localDayKey(s.date)); });
+  studyEntries(profile).forEach(e => days.add(localDayKey(e.date)));
+  if (profile.lastRevisionDate) days.add(localDayKey(profile.lastRevisionDate));
+  const now = new Date(Date.now());
+  let offset = (!endingYesterday && days.has(localDayKey(now))) ? 0 : 1;
+  let count = 0;
+  for (;; offset++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset);
+    if (!days.has(localDayKey(d))) break;
+    count++;
+  }
+  return count;
+}
+
 export function updateStreak(profile) {
   const now       = Date.now();
   const lastDate  = profile.lastRevisionDate || 0;
-  const oneDayMs  = 86400000;
-  const daysSince = Math.floor((now - lastDate) / oneDayMs);
+  const daysSince = lastDate ? calendarDaysBetween(lastDate, now) : Infinity;
 
+  // Days in a row up to yesterday (today's quiz may already be saved, so
+  // it's left out here and added once below)
+  const before = streakFromHistory(profile, { endingYesterday: true });
   let streak = profile.streak || 0;
   let streakBonus = 0;
 
   if (daysSince === 0) {
-    // Same day — no change
+    // Already revised today: no change (but correct an undercount)
+    streak = Math.max(streak, before + 1);
   } else if (daysSince === 1) {
-    // Consecutive day — extend streak
-    streak++;
+    // Consecutive day: extend the streak
+    streak = Math.max(streak, before) + 1;
     streakBonus = XP.STREAK_BONUS;
   } else {
-    // Streak broken
+    // First revision, or a day was missed: today is day 1
     streak = 1;
   }
 
@@ -404,6 +444,11 @@ export async function awardXp(uid, source, options = {}) {
   };
 
   await updateDoc(doc(db, 'users', uid), updates);
+  // Keep the parent's summary copy in step (used on the child cards)
+  if (profile.parentUid) {
+    updateDoc(doc(db, 'users', profile.parentUid, 'children', uid),
+      { streak, lastRevisionDate, xp: newXp, level: newLevel.level }).catch(() => {});
+  }
 
   return {
     xpGained,

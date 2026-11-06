@@ -217,7 +217,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, isPreview } from './auth.js';
-import { getLevelInfo, LEVELS, BADGES } from './gamification.js';
+import { getLevelInfo, LEVELS, BADGES, currentStreak } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -253,7 +253,7 @@ requireAuth(async (user, profile) => {
   if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
 
   const xp      = profile.xp || 0;
-  const streak  = profile.streak || 0;
+  const streak  = currentStreak(profile);
   const sessions = (profile.sessions || []).slice().reverse();
   const badges  = profile.badges || [];
   const { current, next, progress, xpIntoLevel, xpNeeded } = getLevelInfo(xp);

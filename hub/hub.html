@@ -295,7 +295,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, showToast, isPreview } from './auth.js';
-import { getLevelInfo } from './gamification.js';
+import { getLevelInfo, currentStreak } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
@@ -481,7 +481,7 @@ function renderGamification(profile, user) {
   document.getElementById('xp-level-badge').textContent = current.icon;
   document.getElementById('xp-level-name').textContent  = current.name;
   document.getElementById('xp-level-num').textContent   = 'Level ' + current.level;
-  document.getElementById('xp-streak-val').innerHTML  = (profile.streak || 0) + ' <i data-icon="flame"></i>';
+  document.getElementById('xp-streak-val').innerHTML  = currentStreak(profile) + ' <i data-icon="flame"></i>';
   document.getElementById('xp-total-val').textContent   = xp + ' XP';
 
   setTimeout(() => {

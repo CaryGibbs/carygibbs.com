@@ -317,7 +317,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs } from './auth.js';
-import { getLevelInfo, studyEntries } from './gamification.js';
+import { getLevelInfo, studyEntries, currentStreak } from './gamification.js';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
 import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
@@ -374,10 +374,32 @@ async function loadGroups() {
 function loadChildren() {
   onSnapshot(collection(db, 'users', parentUid, 'children'), snap => {
     childrenData = {};
-    snap.forEach(d => { childrenData[d.id] = d.data(); });
+    snap.forEach(d => { childrenData[d.id] = { ...d.data(), ...(liveStats[d.id] || {}) }; });
     renderChildren();
     if (shellUser) refreshShellChildren(shellUser, shellProfile);
+    refreshFromChildRecords();
   });
+}
+
+// The cards use a summary copy kept under the parent. Older copies may be
+// missing the streak, so read each child's own record once and fix the copy.
+const liveStats = {};
+async function refreshFromChildRecords() {
+  const ids = Object.keys(childrenData).filter(id => !(id in liveStats));
+  if (!ids.length) return;
+  ids.forEach(id => { liveStats[id] = {}; });
+  await Promise.all(ids.map(async id => {
+    const snap = await getDoc(doc(db, 'users', id)).catch(() => null);
+    const p = snap?.data(); if (!p) return;
+    const fresh = { streak: p.streak || 0, lastRevisionDate: p.lastRevisionDate || 0, xp: p.xp || 0, level: p.level || 1 };
+    if (p.study) fresh.study = p.study;
+    if (p.studySubjects) fresh.studySubjects = p.studySubjects;
+    liveStats[id] = fresh;
+    Object.assign(childrenData[id] || {}, fresh);
+    const copy = { streak: fresh.streak, lastRevisionDate: fresh.lastRevisionDate, xp: fresh.xp, level: fresh.level };
+    updateDoc(doc(db, 'users', parentUid, 'children', id), copy).catch(() => {});
+  }));
+  renderChildren();
 }
 
 function renderChildren() {
@@ -403,7 +425,7 @@ function renderChildren() {
     const sessions = child.sessions || [];
     const quizCount = sessions.length;
     const avgScore  = quizCount ? Math.round(sessions.reduce((a,s) => a + (s.pct||0), 0) / quizCount) : null;
-    const streak    = child.streak || 0;
+    const streak    = currentStreak(child);
     const secsOf = x => typeof x.secondsSpent === 'number' ? x.secondsSpent : (x.minutesSpent || 0) * 60;
     const now = new Date();
     const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -640,7 +662,8 @@ window._openProgressModal = async function(uid) {
   document.getElementById('stat-level').textContent   = `${current.icon} ${current.level}`;
   document.getElementById('stat-quizzes').textContent = quizCount;
   document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
-  document.getElementById('stat-streak').textContent  = (profile.streak || 0) + (profile.streak === 1 ? ' day' : ' days');
+  const liveStreak = currentStreak(profile);
+  document.getElementById('stat-streak').textContent  = liveStreak + (liveStreak === 1 ? ' day' : ' days');
   document.getElementById('progress-xp').innerHTML =
     `<strong>${current.name} · ${profile.xp || 0} XP</strong>${next ? `${xpIntoLevel} / ${xpNeeded} to ${next.name}` : 'Top level'}`;
 
