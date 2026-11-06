@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Quiz</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -309,6 +310,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -339,8 +341,8 @@
       <h2>Choose your question types</h2>
       <p class="setup-sub">Start with the easier ones and add more as you get confident.</p>
       <div class="setup-presets">
-        <button class="btn btn-secondary" onclick="presetTypes('easy')">🌱 Easier start</button>
-        <button class="btn btn-secondary" onclick="presetTypes('all')">🎨 All types</button>
+        <button class="btn btn-secondary" onclick="presetTypes('easy')"><i data-icon="sprout"></i> Easier start</button>
+        <button class="btn btn-secondary" onclick="presetTypes('all')"><i data-icon="layers"></i> All types</button>
       </div>
       <div class="type-list" id="type-list"></div>
       <button class="btn btn-primary setup-start" id="btn-start-quiz" onclick="startQuiz()">Start quiz</button>
@@ -351,7 +353,7 @@
   <!-- No questions -->
   <div class="screen" id="screen-no-questions">
     <div class="no-q-screen">
-      <div style="font-size:3rem;margin-bottom:var(--space-md);">📭</div>
+      <div class="results-icon"><i data-icon="inbox"></i></div>
       <h2>No questions yet</h2>
       <p>This topic doesn't have any questions yet. Ask your admin to add some!</p>
       <a href="hub.html" class="btn btn-primary">← Back to hub</a>
@@ -377,8 +379,8 @@
     <!-- T/F -->
     <div id="input-tf" class="q-input" style="display:none;">
       <div class="tf-row">
-        <button class="tf-btn true-btn" data-val="true" onclick="submitTF(this)">✅ True</button>
-        <button class="tf-btn false-btn" data-val="false" onclick="submitTF(this)">❌ False</button>
+        <button class="tf-btn true-btn" data-val="true" onclick="submitTF(this)"><i data-icon="check"></i> True</button>
+        <button class="tf-btn false-btn" data-val="false" onclick="submitTF(this)"><i data-icon="x"></i> False</button>
       </div>
     </div>
 
@@ -446,7 +448,7 @@
   <!-- Results -->
   <div class="screen" id="screen-results">
     <div class="results-screen">
-      <div class="results-icon" id="results-icon">🎉</div>
+      <div class="results-icon" id="results-icon"><i data-icon="party-popper"></i></div>
       <div class="results-title" id="results-title">Quiz complete!</div>
       <div class="results-sub" id="results-sub"></div>
       <div class="score-ring-wrap">
@@ -485,15 +487,15 @@
         </div>
         <!-- New badges -->
         <div id="new-badges-wrap" style="display:none;">
-          <div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);margin-bottom:var(--space-sm);">🏅 Badges earned</div>
+          <div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);margin-bottom:var(--space-sm);">Badges earned</div>
           <div id="new-badges-list" style="display:flex;flex-wrap:wrap;gap:var(--space-sm);justify-content:center;"></div>
         </div>
       </div>
 
       <div class="results-actions">
-        <button class="btn btn-primary" onclick="restartQuiz()">🔄 Try again</button>
-        <button class="btn btn-secondary" onclick="changeTypes()">🎛️ Change question types</button>
-        <a href="profile.html" class="btn btn-secondary">📊 My profile</a>
+        <button class="btn btn-primary" onclick="restartQuiz()"><i data-icon="refresh-cw"></i> Try again</button>
+        <button class="btn btn-secondary" onclick="changeTypes()"><i data-icon="sliders-horizontal"></i> Change question types</button>
+        <a href="profile.html" class="btn btn-secondary"><i data-icon="user"></i> My profile</a>
         <a href="hub.html" class="btn btn-secondary">← Hub</a>
       </div>
     </div>
@@ -637,7 +639,7 @@ function renderTypeList() {
     const n = counts[t] || 0;
     const on = selectedTypes.has(t);
     return `<button class="type-opt${on ? ' on' : ''}" ${n ? '' : 'disabled'} onclick="toggleType('${t}')">
-      <span class="type-check">${on ? '✓' : ''}</span>
+      <span class="type-check">${on ? '<i data-icon="check"></i>' : ''}</span>
       <span class="type-text">
         <span class="type-name">${info.name}</span><br>
         <span class="type-desc">${n ? info.desc : 'None for this topic yet'}</span>
@@ -650,7 +652,7 @@ function renderTypeList() {
   const available = questionPool.filter(q => selectedTypes.has(q.type)).length;
   btn.disabled = selectedTypes.size === 0;
   if (selectedTypes.size === 0) note.textContent = 'Pick at least one question type.';
-  else if (selectedTypes.size === Object.keys(counts).length && selectedTypes.size >= 5) note.textContent = '🎨 All five types: this one counts towards Mix Master!';
+  else if (selectedTypes.size === Object.keys(counts).length && selectedTypes.size >= 5) note.textContent = 'All five types: this one counts towards Mix Master!';
   else if (available < QUIZ_SIZE) note.textContent = `${available} question${available !== 1 ? 's' : ''} available with these types.`;
   else note.textContent = `${QUIZ_SIZE} questions, mixed from your chosen types.`;
 }
@@ -979,7 +981,7 @@ function showMatchReview() {
     const right = pick === i;
     const yours = pick !== undefined && !right ? pairs[pick]?.right : '';
     return `<div class="mr-row${right ? '' : ' wrong'}">
-      <div class="mr-icon">${right ? '✅' : '❌'}</div>
+      <div class="mr-icon">${right ? '<i data-icon="circle-check"></i>' : '<i data-icon="circle-x"></i>'}</div>
       <div class="mr-term">${esc(p.left)}</div>
       <div class="mr-answer">${esc(p.right)}</div>
       ${yours ? `<div class="mr-yours"><span class="mr-yours-label">You picked:</span> ${esc(yours)}</div>` : ''}
@@ -1110,7 +1112,7 @@ function showFeedback(correct, explanation, correctAnswer) {
   banner.classList.add('visible', correct ? 'correct' : 'wrong');
 
   const resultEl = document.getElementById('feedback-result');
-  resultEl.textContent = correct ? '✅ Correct!' : '❌ Incorrect';
+  resultEl.innerHTML = correct ? '<i data-icon="circle-check"></i> Correct!' : '<i data-icon="circle-x"></i> Not quite';
   resultEl.className = 'feedback-result ' + (correct ? 'correct' : 'wrong');
 
   document.getElementById('feedback-explanation').textContent = explanation || '';
@@ -1153,17 +1155,18 @@ async function showResults() {
   document.getElementById('stat-wrong').textContent = total - score;
   document.getElementById('stat-total').textContent = total;
 
-  const resultTitle = pct >= 80 ? '🎉 Excellent work!' : pct >= 60 ? '👍 Good effort!' : pct >= 40 ? '📚 Keep practising' : '💪 Don\'t give up!';
+  const resultTitle = pct >= 80 ? 'Excellent work!' : pct >= 60 ? 'Good effort!' : pct >= 40 ? 'Keep practising' : 'Don\'t give up!';
   document.getElementById('results-title').textContent = resultTitle;
   document.getElementById('results-sub').textContent =
     `You scored ${score} out of ${total} on ${topicName || subjectName}`;
-  document.getElementById('results-icon').textContent = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+  document.getElementById('results-icon').innerHTML = `<i data-icon="${pct >= 80 ? 'party-popper' : pct >= 60 ? 'thumbs-up' : pct >= 40 ? 'book-open' : 'dumbbell'}"></i>`;
+  document.getElementById('results-icon').dataset.band = pct >= 80 ? 'great' : pct >= 60 ? 'good' : 'low';
 
   // Preview: show the result but save nothing
   if (isPreview()) {
     const wrap = document.getElementById('xp-earned-wrap');
     wrap.style.display = 'block';
-    document.getElementById('xp-earned-text').textContent = '👁️ Preview: this quiz was not saved to their record';
+    document.getElementById('xp-earned-text').textContent = 'Preview: this quiz was not saved to their record';
     document.getElementById('xp-progress-bar').parentElement.style.display = 'none';
     document.getElementById('xp-level-label').textContent = '';
     document.getElementById('xp-next-label').textContent = '';
@@ -1213,8 +1216,8 @@ function showXpEarned(result, minutes) {
 
   // XP text
   let xpText = `+${result.xpGained} XP earned`;
-  if (result.streakBonus > 0) xpText += ` (includes +${result.streakBonus} streak bonus 🔥)`;
-  if (result.levelledUp) xpText = `🎉 Level up! You're now ${result.newLevel.icon} ${result.newLevel.name}! ` + xpText;
+  if (result.streakBonus > 0) xpText += ` (includes +${result.streakBonus} streak bonus)`;
+  if (result.levelledUp) xpText = `Level up! You're now ${result.newLevel.icon} ${result.newLevel.name}! ` + xpText;
   document.getElementById('xp-earned-text').textContent = xpText;
 
   // Progress bar

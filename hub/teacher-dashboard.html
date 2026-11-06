@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Teacher Dashboard</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -209,6 +210,8 @@
     .password-reveal.visible { display: flex; align-items: center; justify-content: space-between; }
     .pw-value { font-weight: 700; color: var(--color-primary); letter-spacing: 0.05em; }
     .pw-note { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
+    .children-count { font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+    .class-icon .icon, .empty-icon .icon { width: 1em; height: 1em; }
     .theme-options { display: flex; gap: var(--space-sm); }
     .theme-option {
       flex: 1; padding: 10px var(--space-sm); border-radius: var(--radius-card);
@@ -233,40 +236,36 @@
       .nav-user { display: none; }
     }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
-<body>
+<body class="app-layout">
 <div id="toast-container"></div>
 
-<nav class="topnav">
-  <a href="teacher-dashboard.html" class="nav-logo">
-    <div class="nav-logo-icon">📎</div>
-    Clasp
-    <span class="nav-badge">Teacher</span>
-  </a>
-  <div class="nav-right">
-    <span class="nav-user">Welcome, <strong id="nav-name">...</strong></span>
-    <button class="btn btn-ghost" style="padding:8px 14px; font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+<aside id="app-sidebar"></aside>
+<main class="main">
+  <header class="topbar">
+    <div class="breadcrumb"><span>Teaching</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">My classes</span></div>
+    <div class="topbar-actions"></div>
+  </header>
+  <div class="content-area page-fade">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">My classes</div>
+        <div class="panel-subtitle" id="school-name">Create classes and share join codes with your students.</div>
+      </div>
+      <button class="btn btn-primary" onclick="openCreateClass()"><i data-icon="plus"></i> Create class</button>
+    </div>
+    <div class="children-count" id="classes-count">Loading…</div>
+    <div class="classes-grid" id="classes-grid"></div>
   </div>
-</nav>
-
-<div class="page page-fade">
-  <div class="page-header">
-    <h1>Your classes</h1>
-    <p id="school-name" style="color:var(--color-text-muted); font-size:0.95rem;">Loading...</p>
-  </div>
-  <div class="section-header">
-    <h2 id="classes-count">Loading...</h2>
-    <button class="btn btn-primary" onclick="openCreateClass()" style="padding:10px 20px; font-size:0.9rem;">+ Create class</button>
-  </div>
-  <div class="classes-grid" id="classes-grid"></div>
-</div>
+</main>
 
 <!-- Create class modal -->
 <div class="modal-overlay" id="modal-create-class">
   <div class="modal">
     <div class="modal-header">
       <h2>Create a class</h2>
-      <button class="modal-close" onclick="closeModal('modal-create-class')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-create-class')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="error-msg" id="create-class-error"></div>
     <div class="form-group">
@@ -297,7 +296,7 @@
   <div class="modal modal-wide">
     <div class="modal-header">
       <h2 id="students-modal-title">Class students</h2>
-      <button class="modal-close" onclick="closeModal('modal-students')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-students')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="students-tabs">
       <button class="students-tab active" onclick="switchStudentsTab('list')">Students</button>
@@ -325,7 +324,7 @@
         <label>Password</label>
         <div class="password-row">
           <input type="text" id="student-password" placeholder="Set a password">
-          <button class="btn-generate" onclick="generateStudentPw()">✨ Generate</button>
+          <button class="btn-generate" onclick="generateStudentPw()"><i data-icon="sparkles"></i> Generate</button>
         </div>
         <div class="password-reveal" id="student-pw-reveal">
           <div>
@@ -336,11 +335,7 @@
       </div>
       <div class="form-group">
         <label>Theme</label>
-        <div class="theme-options">
-          <div class="theme-option" id="st-spark" onclick="selectStudentTheme('spark')"><span class="t-icon">🌟</span>Spark</div>
-          <div class="theme-option selected" id="st-edge" onclick="selectStudentTheme('edge')"><span class="t-icon">⚡</span>Edge</div>
-          <div class="theme-option" id="st-focus" onclick="selectStudentTheme('focus')"><span class="t-icon">🎯</span>Focus</div>
-        </div>
+        <div class="theme-grid" id="st-theme-grid"></div>
       </div>
       <button class="btn btn-primary" id="btn-add-student" onclick="addStudent()" style="width:100%; padding:12px; margin-top:var(--space-sm);">Add to class</button>
     </div>
@@ -364,7 +359,7 @@
   <div class="modal">
     <div class="modal-header">
       <h2>Edit class</h2>
-      <button class="modal-close" onclick="closeModal('modal-edit-class')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-edit-class')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="error-msg" id="edit-class-error"></div>
     <div class="form-group">
@@ -406,6 +401,8 @@
 <script type="module">
   import { auth, db } from './firebase-config.js';
   import { requireRole, handleSignOut, generatePassword, showToast } from './auth.js';
+  import { mountShell } from './shell.js';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
   import { app as firebaseApp } from './firebase-config.js';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -416,7 +413,19 @@
   let classesData = {};
   let activeClassId = null;
   let activeClassStudents = {};
-  let studentTheme = 'edge';
+  let studentTheme = 'light';
+
+  // Theme picker for new students (same swatches as the parent dashboard)
+  document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
+  function renderStudentThemes() {
+    const grid = document.getElementById('st-theme-grid');
+    if (!grid) return;
+    grid.innerHTML = THEMES.map(t => themeSwatchHtml(t, t.id === studentTheme)).join('');
+    grid.querySelectorAll('[data-theme-id]').forEach(btn => btn.onclick = () => {
+      studentTheme = btn.dataset.themeId;
+      grid.querySelectorAll('.theme-swatch').forEach(b => b.classList.toggle('selected', b === btn));
+    });
+  }
 
   function generateClassCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -428,8 +437,8 @@
   requireRole('teacher', (user, profile) => {
     teacherUid = user.uid;
     teacherProfile = profile;
-    document.getElementById('nav-name').textContent = profile.name.split(' ')[0];
-    document.getElementById('school-name').textContent = profile.school || '';
+    mountShell(user, profile, { view: 'teacher', active: 'classes' });
+    if (profile.school) document.getElementById('school-name').textContent = profile.school;
     loadClasses();
   });
 
@@ -453,7 +462,7 @@
     if (count === 0) {
       grid.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">🏫</div>
+          <div class="empty-icon"><i data-icon="school"></i></div>
           <h3>No classes yet</h3>
           <p>Create your first class to start adding students and tracking their progress.</p>
           <button class="btn btn-primary" onclick="openCreateClass()">+ Create your first class</button>
@@ -465,7 +474,7 @@
       const studentCount = cls.students ? Object.keys(cls.students).length : 0;
       return `
         <div class="class-card">
-          <div class="class-icon">📚</div>
+          <div class="class-icon"><i data-icon="library"></i></div>
           <div class="class-name">${cls.name}</div>
           <div class="class-meta">${cls.subject || ''}</div>
           <div class="class-stats">
@@ -524,6 +533,7 @@
 
   // ── Students modal ────────────────────────────────────────
   window._openStudentsModal = async function(classId) {
+    renderStudentThemes();
     activeClassId = classId;
     const cls = classesData[classId];
     document.getElementById('students-modal-title').textContent = cls.name;
@@ -565,12 +575,7 @@
     document.getElementById(`tab-${tab}`).classList.add('active');
   };
 
-  window._selectStudentTheme = function(t) {
-    studentTheme = t;
-    ['spark','edge','focus'].forEach(x => {
-      document.getElementById(`st-${x}`).classList.toggle('selected', x === t);
-    });
-  };
+  window._selectStudentTheme = function(t) { studentTheme = t; renderStudentThemes(); };
 
   window._generateStudentPw = function() {
     const pw = generatePassword();

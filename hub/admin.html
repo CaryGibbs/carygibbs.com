@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Admin</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -388,9 +389,6 @@
 
     /* ── Responsive ───────────────────────────────────────── */
     @media (max-width: 768px) {
-      .sidebar { width: 56px; min-width: 56px; }
-      .sidebar-logo span, .nav-item span:not(.nav-icon) { display: none; }
-      .nav-section-label { display: none; }
       .content-area { padding: var(--space-md); }
     }
 
@@ -444,49 +442,15 @@
       padding: 0 6px;
     }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
-<body>
+<body class="app-layout">
 <div id="toast-container"></div>
 
 <!-- ═══════════════════════════════════════════════════════════
      SIDEBAR
 ════════════════════════════════════════════════════════════ -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="sidebar-logo-icon">📎</div>
-    <span>Clasp <span class="admin-badge">Admin</span></span>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Content</div>
-    <button class="nav-item active" data-nav="groups">
-      <span class="nav-icon">🗂️</span><span>Groups</span>
-    </button>
-    <button class="nav-item" data-nav="questions" id="nav-questions-btn" style="display:none;">
-      <span class="nav-icon">❓</span><span>Questions</span>
-    </button>
-
-    <div class="nav-section-label">Admin</div>
-    <button class="nav-item" data-nav="users">
-      <span class="nav-icon">👥</span><span>Users</span>
-    </button>
-
-    <div class="nav-section-label">Settings</div>
-    <button class="nav-item" data-nav="settings">
-      <span class="nav-icon">⚙️</span><span>Settings</span>
-    </button>
-  </nav>
-  <div class="sidebar-footer">
-    <a href="parent.html" class="nav-item" style="text-decoration:none;">
-      <span class="nav-icon">👨‍👩‍👧</span><span>Parent dashboard</span>
-    </a>
-    <button class="nav-item" data-nav="users" title="Pick a student from the Users list">
-      <span class="nav-icon">👁️</span><span>View as a student</span>
-    </button>
-    <button class="nav-item" onclick="doSignOut()">
-      <span class="nav-icon">🚪</span><span>Sign out</span>
-    </button>
-  </div>
-</aside>
+<aside id="app-sidebar"></aside>
 
 <!-- ═══════════════════════════════════════════════════════════
      MAIN
@@ -494,13 +458,13 @@
 <main class="main">
   <header class="topbar">
     <div class="breadcrumb" id="breadcrumb">
-      <span class="breadcrumb-current">Groups</span>
+      <span>Content</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">Groups</span>
     </div>
     <div class="topbar-actions" id="topbar-actions">
     <div id="preview-actions" style="display:none;align-items:center;gap:var(--space-sm);">
       <span style="font-family:var(--font-ui);font-size:0.78rem;color:var(--color-text-muted);">Preview:</span>
-      <a id="preview-quiz-btn" href="#" target="_blank" class="btn btn-ghost" style="padding:6px 12px;font-size:0.82rem;">⚡ Quiz</a>
-      <a id="preview-mindmap-btn" href="#" target="_blank" class="btn btn-ghost" style="padding:6px 12px;font-size:0.82rem;">🗺️ Mindmap</a>
+      <a id="preview-quiz-btn" href="#" target="_blank" class="btn btn-ghost" style="padding:6px 12px;font-size:0.82rem;"><i data-icon="zap"></i> Quiz</a>
+      <a id="preview-mindmap-btn" href="#" target="_blank" class="btn btn-ghost" style="padding:6px 12px;font-size:0.82rem;"><i data-icon="network"></i> Mind map</a>
     </div>
   </div>
   </header>
@@ -558,16 +522,16 @@
       </div>
 
       <div class="tab-bar">
-        <button class="tab-btn active" data-qtab="generate">✨ AI Generate</button>
-        <button class="tab-btn" data-qtab="existing">📋 Saved questions</button>
-        <button class="tab-btn" data-qtab="keypoints">🗺️ Key points</button>
+        <button class="tab-btn active" data-qtab="generate"><i data-icon="sparkles"></i> AI generate</button>
+        <button class="tab-btn" data-qtab="existing"><i data-icon="list-checks"></i> Saved questions</button>
+        <button class="tab-btn" data-qtab="keypoints"><i data-icon="network"></i> Key points</button>
       </div>
 
       <!-- AI Generate tab -->
       <div class="tab-panel active" id="qtab-generate">
         <div class="gen-container">
           <div class="gen-header">
-            <span style="font-size:1.4rem;">✨</span>
+            <span style="font-size:1.3rem;color:var(--color-primary);display:inline-flex;"><i data-icon="sparkles"></i></span>
             <div>
               <div class="gen-title">AI Question Generator</div>
               <div class="gen-subtitle">Generate questions from topic key points or pasted content</div>
@@ -575,8 +539,8 @@
           </div>
           <!-- Source selector -->
           <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
-            <button class="tab-btn active" data-gen-source="keypoints" onclick="switchGenSource('keypoints')">🗺️ Topic key points</button>
-            <button class="tab-btn" data-gen-source="paste" onclick="switchGenSource('paste')">📋 Paste content</button>
+            <button class="tab-btn active" data-gen-source="keypoints" onclick="switchGenSource('keypoints')"><i data-icon="network"></i> Topic key points</button>
+            <button class="tab-btn" data-gen-source="paste" onclick="switchGenSource('paste')"><i data-icon="clipboard-list"></i> Paste content</button>
           </div>
           <!-- Key points source -->
           <div id="gen-source-keypoints">
@@ -591,18 +555,18 @@
           </div>
           <div class="gen-options">
             <span class="gen-option-label">Include:</span>
-            <label class="q-type-toggle checked"><input type="checkbox" value="mcq" checked> 📝 MCQ</label>
-            <label class="q-type-toggle checked"><input type="checkbox" value="tf" checked> ✅ True/False</label>
-            <label class="q-type-toggle checked"><input type="checkbox" value="fill" checked> ✏️ Fill blank</label>
-            <label class="q-type-toggle checked"><input type="checkbox" value="match" checked> 🔗 Match pairs</label>
-            <label class="q-type-toggle checked"><input type="checkbox" value="short" checked> 📖 Short written</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="mcq" checked> Multiple choice</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="tf" checked> True/False</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="fill" checked> Fill blank</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="match" checked> Match pairs</label>
+            <label class="q-type-toggle checked"><input type="checkbox" value="short" checked> Written answer</label>
             <span class="gen-option-label" style="margin-left:var(--space-md);">Target:</span>
             <input type="number" class="qty-input" id="gen-qty" value="40" min="3" max="200">
             <span class="gen-option-label">questions</span>
           </div>
           <div class="gen-footer">
             <div class="gen-status" id="gen-status"></div>
-            <button class="btn btn-primary" data-action="generate-questions" id="btn-generate">✨ Generate questions</button>
+            <button class="btn btn-primary" data-action="generate-questions" id="btn-generate"><i data-icon="sparkles"></i> Generate questions</button>
           </div>
         </div>
 
@@ -614,7 +578,7 @@
             </div>
             <div style="display:flex;gap:var(--space-sm);">
               <button class="btn btn-secondary" data-action="clear-generated">Clear</button>
-              <button class="btn btn-primary" data-action="save-all-generated" id="btn-save-all">💾 Save all to Firestore</button>
+              <button class="btn btn-primary" data-action="save-all-generated" id="btn-save-all"><i data-icon="save"></i> Save all</button>
             </div>
           </div>
           <div class="question-list" id="gen-question-list"></div>
@@ -625,11 +589,11 @@
       <div class="tab-panel" id="qtab-existing">
         <div id="existing-questions-header" style="display:none;justify-content:space-between;align-items:center;margin-bottom:var(--space-md);">
           <span id="existing-q-count" style="font-family:var(--font-ui);font-size:0.88rem;color:var(--color-text-muted);"></span>
-          <button class="btn" style="background:rgba(250,82,82,0.1);color:var(--color-danger);border:1px solid rgba(250,82,82,0.3);padding:7px 14px;font-size:0.82rem;" data-action="delete-all-questions">🗑️ Delete all questions</button>
+          <button class="btn btn-danger" style="padding:7px 14px;font-size:0.82rem;" data-action="delete-all-questions"><i data-icon="trash-2"></i> Delete all questions</button>
         </div>
         <div class="question-list" id="existing-question-list">
           <div class="empty-state">
-            <div class="empty-state-icon">❓</div>
+            <div class="empty-state-icon"><i data-icon="circle-help"></i></div>
             <h3>No questions yet</h3>
             <p>Use AI generation or manual entry to add questions to this topic.</p>
           </div>
@@ -640,7 +604,7 @@
       <div class="tab-panel" id="qtab-keypoints">
         <div class="gen-container" style="margin-bottom:var(--space-lg);">
           <div class="gen-header">
-            <span style="font-size:1.4rem;">🗺️</span>
+            <span style="font-size:1.3rem;color:var(--color-primary);display:inline-flex;"><i data-icon="network"></i></span>
             <div>
               <div class="gen-title">Key Points</div>
               <div class="gen-subtitle">These appear in mindmaps as the primary revision content</div>
@@ -649,19 +613,19 @@
 
           <!-- AI generation options -->
           <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
-            <button class="tab-btn active" data-kptab="paste" onclick="switchKpTab('paste')">📋 Paste content</button>
-            <button class="tab-btn" data-kptab="research" onclick="switchKpTab('research')">🔍 Research topic</button>
+            <button class="tab-btn active" data-kptab="paste" onclick="switchKpTab('paste')"><i data-icon="clipboard-list"></i> Paste content</button>
+            <button class="tab-btn" data-kptab="research" onclick="switchKpTab('research')"><i data-icon="search"></i> Research topic</button>
           </div>
 
           <div id="kptab-paste">
             <textarea class="gen-textarea" id="kp-paste-content" placeholder="Paste your revision notes, textbook passage, or any content here…" style="min-height:100px;margin-bottom:var(--space-sm);"></textarea>
-            <button class="kp-gen-btn" data-action="gen-keypoints-panel" id="btn-gen-kp-panel">✨ Generate from content</button>
+            <button class="kp-gen-btn" data-action="gen-keypoints-panel" id="btn-gen-kp-panel"><i data-icon="sparkles"></i> Generate from content</button>
           </div>
 
           <div id="kptab-research" style="display:none;">
             <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm);">
               <input type="text" id="kp-research-topic" placeholder="e.g. GCSE Geography — Antarctica and climate change" style="flex:1;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.92rem;">
-              <button class="kp-gen-btn" data-action="research-keypoints-panel" id="btn-research-kp">🔍 Research &amp; generate</button>
+              <button class="kp-gen-btn" data-action="research-keypoints-panel" id="btn-research-kp"><i data-icon="search"></i> Research &amp; generate</button>
             </div>
             <p style="font-size:0.78rem;color:var(--color-text-muted);">AI will write GCSE-level key points from its own knowledge. Be specific — include subject and topic name.</p>
           </div>
@@ -675,12 +639,12 @@
         </div>
         <!-- Unsaved state banner -->
         <div id="kp-unsaved-banner" style="display:none;" class="unsaved-banner">
-          <span>⚠️ Unsaved key points — save before generating questions</span>
-          <button class="btn-save-now" data-action="save-keypoints-panel">💾 Save key points now</button>
+          <span><i data-icon="triangle-alert"></i> Unsaved key points. Save them before generating questions.</span>
+          <button class="btn-save-now" data-action="save-keypoints-panel"><i data-icon="save"></i> Save key points now</button>
         </div>
         <!-- Saved confirmation (auto-hides) -->
         <div id="kp-saved-flash" style="display:none;" class="saved-flash">
-          ✅ Key points saved!
+          <i data-icon="circle-check"></i> Key points saved!
         </div>
         <!-- Generate questions section — shown after key points are saved -->
         <div id="kp-gen-questions-section" style="display:none;margin-top:var(--space-lg);padding-top:var(--space-lg);border-top:1px solid var(--color-border);">
@@ -688,7 +652,7 @@
           <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
             <label style="font-family:var(--font-ui);font-size:0.82rem;color:var(--color-text-muted);">How many questions?</label>
             <input type="number" id="gen-everything-qty" value="40" min="5" max="200" style="width:80px;padding:8px 12px;font-size:0.9rem;border-radius:var(--radius-button);">
-            <button class="btn btn-primary" data-action="also-generate-questions" style="padding:10px 24px;font-size:0.9rem;">⚡ Generate questions →</button>
+            <button class="btn btn-primary" data-action="also-generate-questions" style="padding:10px 24px;font-size:0.9rem;"><i data-icon="zap"></i> Generate questions</button>
           </div>
           <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:6px;">Questions appear in the AI Generate tab for review before saving to Firestore.</p>
         </div>
@@ -744,7 +708,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-group-title">New group</div>
-      <button class="modal-close" data-close="modal-group">✕</button>
+      <button class="modal-close" data-close="modal-group" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="form-group">
       <label>Group name</label>
@@ -766,7 +730,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-subject-title">New subject</div>
-      <button class="modal-close" data-close="modal-subject">✕</button>
+      <button class="modal-close" data-close="modal-subject" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="form-row">
       <div class="form-group" style="flex:0 0 80px;">
@@ -790,7 +754,7 @@
   <div class="modal" style="max-width:680px;">
     <div class="modal-header">
       <div class="modal-title" id="modal-topic-title">New topic</div>
-      <button class="modal-close" data-close="modal-topic">✕</button>
+      <button class="modal-close" data-close="modal-topic" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="form-group">
       <label>Topic name</label>
@@ -799,17 +763,17 @@
     <div class="form-group" style="margin-top:var(--space-lg);">
       <label style="margin-bottom:var(--space-sm);display:block;">Key points <span style="font-weight:400;text-transform:none;">(for mindmaps)</span></label>
       <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
-        <button class="tab-btn active" data-kptab-modal="paste" onclick="switchKpTabModal('paste')">📋 Paste</button>
-        <button class="tab-btn" data-kptab-modal="research" onclick="switchKpTabModal('research')">🔍 Research</button>
+        <button class="tab-btn active" data-kptab-modal="paste" onclick="switchKpTabModal('paste')"><i data-icon="clipboard-list"></i> Paste</button>
+        <button class="tab-btn" data-kptab-modal="research" onclick="switchKpTabModal('research')"><i data-icon="search"></i> Research</button>
       </div>
       <div id="kptab-modal-paste" style="margin-bottom:var(--space-sm);">
         <textarea id="kp-modal-paste-content" placeholder="Paste content to generate key points from…" style="min-height:80px;resize:vertical;width:100%;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.88rem;margin-bottom:var(--space-sm);"></textarea>
-        <button class="kp-gen-btn" data-action="gen-keypoints" id="btn-gen-kp">✨ Generate from content</button>
+        <button class="kp-gen-btn" data-action="gen-keypoints" id="btn-gen-kp"><i data-icon="sparkles"></i> Generate from content</button>
       </div>
       <div id="kptab-modal-research" style="display:none;margin-bottom:var(--space-sm);">
         <div style="display:flex;gap:var(--space-sm);">
           <input type="text" id="kp-modal-research-topic" placeholder="e.g. GCSE Biology — Cell Division" style="flex:1;padding:8px 12px;border-radius:var(--radius-button);font-size:0.88rem;">
-          <button class="kp-gen-btn" data-action="research-keypoints" id="btn-research-kp-modal">🔍 Research</button>
+          <button class="kp-gen-btn" data-action="research-keypoints" id="btn-research-kp-modal"><i data-icon="search"></i> Research</button>
         </div>
         <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:6px;">Be specific — include subject and topic name for best results.</p>
       </div>
@@ -829,14 +793,14 @@
   <div class="modal" style="max-width:620px;">
     <div class="modal-header">
       <div class="modal-title" id="modal-question-title">New question</div>
-      <button class="modal-close" data-close="modal-question">✕</button>
+      <button class="modal-close" data-close="modal-question" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="q-type-grid" id="q-type-grid">
-      <div class="q-type-btn active" data-qtype="mcq"><span class="qt-icon">📝</span>MCQ</div>
-      <div class="q-type-btn" data-qtype="tf"><span class="qt-icon">✅</span>True/False</div>
-      <div class="q-type-btn" data-qtype="fill"><span class="qt-icon">✏️</span>Fill blank</div>
-      <div class="q-type-btn" data-qtype="match"><span class="qt-icon">🔗</span>Match pairs</div>
-      <div class="q-type-btn" data-qtype="short"><span class="qt-icon">📖</span>Short written</div>
+      <div class="q-type-btn active" data-qtype="mcq"><span class="qt-icon"><i data-icon="list"></i></span>MCQ</div>
+      <div class="q-type-btn" data-qtype="tf"><span class="qt-icon"><i data-icon="circle-check"></i></span>True/False</div>
+      <div class="q-type-btn" data-qtype="fill"><span class="qt-icon"><i data-icon="pencil"></i></span>Fill blank</div>
+      <div class="q-type-btn" data-qtype="match"><span class="qt-icon"><i data-icon="link"></i></span>Match pairs</div>
+      <div class="q-type-btn" data-qtype="short"><span class="qt-icon"><i data-icon="notebook-pen"></i></span>Short written</div>
     </div>
 
     <!-- MCQ fields -->
@@ -848,10 +812,10 @@
       <div class="form-group">
         <label>Options <span style="font-weight:400;text-transform:none;">(select the correct answer)</span></label>
         <div class="options-list" id="mcq-options-list">
-          <div class="option-row"><input type="radio" name="mcq-correct" value="0" checked><input type="text" placeholder="Option A" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="0">✕</button></div>
-          <div class="option-row"><input type="radio" name="mcq-correct" value="1"><input type="text" placeholder="Option B" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="1">✕</button></div>
-          <div class="option-row"><input type="radio" name="mcq-correct" value="2"><input type="text" placeholder="Option C" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="2">✕</button></div>
-          <div class="option-row"><input type="radio" name="mcq-correct" value="3"><input type="text" placeholder="Option D" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="3">✕</button></div>
+          <div class="option-row"><input type="radio" name="mcq-correct" value="0" checked><input type="text" placeholder="Option A" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="0" aria-label="Close"><i data-icon="x"></i></button></div>
+          <div class="option-row"><input type="radio" name="mcq-correct" value="1"><input type="text" placeholder="Option B" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="1" aria-label="Close"><i data-icon="x"></i></button></div>
+          <div class="option-row"><input type="radio" name="mcq-correct" value="2"><input type="text" placeholder="Option C" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="2" aria-label="Close"><i data-icon="x"></i></button></div>
+          <div class="option-row"><input type="radio" name="mcq-correct" value="3"><input type="text" placeholder="Option D" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="3" aria-label="Close"><i data-icon="x"></i></button></div>
         </div>
         <button class="add-option-btn" data-action="add-option">＋ Add option</button>
       </div>
@@ -871,10 +835,10 @@
         <label>Answer</label>
         <div style="display:flex;gap:var(--space-md);">
           <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;">
-            <input type="radio" name="tf-answer" value="true" checked style="width:16px;height:16px;"> ✅ True
+            <input type="radio" name="tf-answer" value="true" checked style="width:16px;height:16px;"> True
           </label>
           <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;font-weight:500;text-transform:none;letter-spacing:0;cursor:pointer;">
-            <input type="radio" name="tf-answer" value="false" style="width:16px;height:16px;"> ❌ False
+            <input type="radio" name="tf-answer" value="false" style="width:16px;height:16px;"> False
           </label>
         </div>
       </div>
@@ -906,9 +870,9 @@
       <div class="form-group">
         <label>Pairs <span style="font-weight:400;text-transform:none;">(left → right)</span></label>
         <div class="pairs-list" id="match-pairs-list">
-          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>
-          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>
-          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>
+          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair" aria-label="Close"><i data-icon="x"></i></button></div>
+          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair" aria-label="Close"><i data-icon="x"></i></button></div>
+          <div class="pair-row"><input type="text" placeholder="Left item" class="pair-left"><span class="pair-sep">→</span><input type="text" placeholder="Right item" class="pair-right"><button class="icon-btn icon-btn-del" data-action="del-pair" aria-label="Close"><i data-icon="x"></i></button></div>
         </div>
         <button class="add-option-btn" data-action="add-pair">＋ Add pair</button>
       </div>
@@ -932,7 +896,7 @@
       <div class="img-upload-area" id="img-upload-area">
         <input type="file" id="q-image-input" accept="image/*">
         <div id="img-upload-prompt">
-          <div style="font-size:1.5rem;margin-bottom:4px;">🖼️</div>
+          <div style="font-size:1.5rem;margin-bottom:4px;color:var(--color-text-muted);display:flex;justify-content:center;"><i data-icon="file-text"></i></div>
           <div style="font-size:0.82rem;color:var(--color-text-muted);">Click or drag to upload an image</div>
         </div>
         <img id="img-preview" class="img-preview">
@@ -974,6 +938,7 @@
 <script type="module">
 import { auth, db, storage } from './firebase-config.js';
 import { requireRole, handleSignOut, showToast, openViewAs } from './auth.js';
+import { mountShell } from './shell.js';
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp
@@ -1004,7 +969,16 @@ let currentQType    = 'mcq';
 
 /* ── Auth guard ──────────────────────────────────────────── */
 requireRole('admin', (user, profile) => {
+  // Open the panel named in the address (e.g. admin.html#users from the parent page)
+  const start = ['groups', 'users', 'settings'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'groups';
+  mountShell(user, profile, { view: 'admin', active: start });
   loadGroups();
+  if (start !== 'groups') showPanel(start);
+  // Address changes (e.g. the sidebar's "View as another student") switch panels too
+  window.addEventListener('hashchange', () => {
+    const p = location.hash.slice(1);
+    if (['groups', 'users', 'settings'].includes(p) && p !== currentPanel) showPanel(p);
+  });
 });
 
 /* ── Navigation ──────────────────────────────────────────── */
@@ -1022,13 +996,18 @@ function showPanel(name) {
 
 function updateBreadcrumb() {
   const bc = document.getElementById('breadcrumb');
-  const parts = [];
-  if (selectedGroup)   parts.push(`<span class="breadcrumb-sep">›</span><span style="cursor:pointer;color:var(--color-primary);" data-bc="group">${selectedGroup.name}</span>`);
-  if (selectedSubject) parts.push(`<span class="breadcrumb-sep">›</span><span style="cursor:pointer;color:var(--color-primary);" data-bc="subject">${selectedSubject.emoji} ${selectedSubject.name}</span>`);
-  if (selectedTopic)   parts.push(`<span class="breadcrumb-sep">›</span><span class="breadcrumb-current">${selectedTopic.name}</span>`);
-
-  const panelLabel = { groups:'Groups', subjects:'Subjects', topics:'Topics', questions:'Questions', users:'Users', settings:'Settings' };
-  bc.innerHTML = `<span style="cursor:pointer;" data-bc="groups">Groups</span>` + parts.join('');
+  const sep = '<span class="breadcrumb-sep">›</span>';
+  // Users and Settings: "Section › Page", like the parent pages
+  if (currentPanel === 'users')    { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
+  if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
+  // Content: Content › Groups › group › subject › topic (last one is the current page)
+  const crumbs = [`<span style="cursor:pointer;" data-bc="groups">Groups</span>`];
+  if (selectedGroup)   crumbs.push(`<span style="cursor:pointer;" data-bc="group">${esc(selectedGroup.name)}</span>`);
+  if (selectedSubject) crumbs.push(`<span style="cursor:pointer;" data-bc="subject">${esc(selectedSubject.emoji)} ${esc(selectedSubject.name)}</span>`);
+  if (selectedTopic)   crumbs.push(`<span>${esc(selectedTopic.name)}</span>`);
+  const last = crumbs.length - 1;
+  crumbs[last] = crumbs[last].replace('<span', '<span class="breadcrumb-current"');
+  bc.innerHTML = `<span>Content</span>${sep}` + crumbs.join(sep);
 }
 
 /* ── Delegation ──────────────────────────────────────────── */
@@ -1143,10 +1122,10 @@ function groupCard(id, data) {
   div.className = 'item-card';
   div.innerHTML = `
     <div class="item-card-actions">
-      <button class="icon-btn icon-btn-edit" data-action="edit-group" data-id="${id}" data-name="${esc(data.name)}">✏️</button>
-      <button class="icon-btn icon-btn-del" data-action="del-group" data-id="${id}" data-name="${esc(data.name)}">🗑️</button>
+      <button class="icon-btn icon-btn-edit" data-action="edit-group" data-id="${id}" data-name="${esc(data.name)}" title="Edit"><i data-icon="pencil"></i></button>
+      <button class="icon-btn icon-btn-del" data-action="del-group" data-id="${id}" data-name="${esc(data.name)}" title="Delete"><i data-icon="trash-2"></i></button>
     </div>
-    <div class="item-card-emoji">🗂️</div>
+    <div class="item-card-emoji"><i data-icon="folder"></i></div>
     <div class="item-card-name">${esc(data.name)}</div>
     <div class="item-card-meta">${data.description || 'No description'}</div>`;
   div.addEventListener('click', e => {
@@ -1221,8 +1200,8 @@ function subjectCard(id, data) {
   div.className = 'item-card';
   div.innerHTML = `
     <div class="item-card-actions">
-      <button class="icon-btn icon-btn-edit" data-action="edit-subject" data-id="${id}">✏️</button>
-      <button class="icon-btn icon-btn-del" data-action="del-subject" data-id="${id}" data-name="${esc(data.name)}">🗑️</button>
+      <button class="icon-btn icon-btn-edit" data-action="edit-subject" data-id="${id}" title="Edit"><i data-icon="pencil"></i></button>
+      <button class="icon-btn icon-btn-del" data-action="del-subject" data-id="${id}" data-name="${esc(data.name)}" title="Delete"><i data-icon="trash-2"></i></button>
     </div>
     <div class="item-card-emoji">${data.emoji || '📚'}</div>
     <div class="item-card-name">${esc(data.name)}</div>
@@ -1307,10 +1286,10 @@ function topicCard(id, data, qCount) {
   div.className = 'item-card';
   div.innerHTML = `
     <div class="item-card-actions">
-      <button class="icon-btn icon-btn-edit" data-action="edit-topic" data-id="${id}">✏️</button>
-      <button class="icon-btn icon-btn-del" data-action="del-topic" data-id="${id}" data-name="${esc(data.name)}">🗑️</button>
+      <button class="icon-btn icon-btn-edit" data-action="edit-topic" data-id="${id}" title="Edit"><i data-icon="pencil"></i></button>
+      <button class="icon-btn icon-btn-del" data-action="del-topic" data-id="${id}" data-name="${esc(data.name)}" title="Delete"><i data-icon="trash-2"></i></button>
     </div>
-    <div class="item-card-emoji">📝</div>
+    <div class="item-card-emoji"><i data-icon="file-text"></i></div>
     <div class="item-card-name">${esc(data.name)}</div>
     <div class="item-card-meta"><span class="count-chip">${qCount}</span> questions</div>`;
   div.addEventListener('click', e => {
@@ -1401,7 +1380,7 @@ function addKpGroup(listId, groupName='', points=[]) {
     <div class="kp-group-header">
       <span class="kp-group-label">Group</span>
       <input type="text" class="kp-group-name" placeholder="Sub-topic group name…" value="${esc(groupName)}">
-      <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-group').remove()" title="Remove group">✕</button>
+      <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-group').remove()" title="Remove group" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="kp-list kp-group-items">${pointsHtml}</div>
     <button class="add-option-btn" style="margin-top:4px;" onclick="addKpRowToGroup(this)">＋ Add key point</button>`;
@@ -1412,7 +1391,7 @@ function buildKpRowHtml(term, explanation) {
   return `<div class="kp-row">
     <div class="kp-term"><input type="text" placeholder="Term / heading" value="${esc(term)}" class="kp-term-input"></div>
     <div class="kp-explanation"><input type="text" placeholder="Explanation / detail" value="${esc(explanation)}" class="kp-exp-input"></div>
-    <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-row').remove()">✕</button>
+    <button class="icon-btn icon-btn-del" onclick="this.closest('.kp-row').remove()" aria-label="Close"><i data-icon="x"></i></button>
   </div>`;
 }
 
@@ -1475,10 +1454,10 @@ ${contentText.substring(0, 6000)}`;
     renderKpList(listId, parsed);
     const kpCount = parsed[0]?.points ? parsed.reduce((a,g)=>a+(g.points||[]).length,0) : parsed.length;
     const grpCount2 = parsed[0]?.points ? parsed.length : 1;
-    statusEl.textContent = `✅ ${kpCount} key points in ${grpCount2} groups generated`;
+    statusEl.textContent = `${kpCount} key points in ${grpCount2} groups generated`;
     if (listId === 'kp-list-panel') showKpPostGenActions();
   } catch(e) {
-    statusEl.textContent = '❌ ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
   }
 }
 
@@ -1513,10 +1492,10 @@ Return ONLY a JSON array of groups, no markdown, no backticks, no preamble:
     renderKpList(listId, parsed);
     const kpCount2 = parsed[0]?.points ? parsed.reduce((a,g)=>a+(g.points||[]).length,0) : parsed.length;
     const grpCount = parsed[0]?.points ? parsed.length : 1;
-    statusEl.textContent = `✅ ${kpCount2} key points in ${grpCount} groups for "${topic}"`;
+    statusEl.textContent = `${kpCount2} key points in ${grpCount} groups for "${topic}"`;
     if (listId === 'kp-list-panel') showKpPostGenActions();
   } catch(e) {
-    statusEl.textContent = '❌ ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
   }
 }
 
@@ -1606,7 +1585,7 @@ async function alsoGenerateQuestions() {
   switchQTab('generate');
   // Scroll to top of generate tab
   document.getElementById('qtab-generate')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  showToast('✅ Key points loaded — review settings and click Generate questions', 'success');
+  showToast('Key points loaded. Review the settings and click Generate questions.', 'success');
 }
 
 async function generateEverything() {
@@ -1636,7 +1615,7 @@ async function generateEverything() {
   }
 
   // Disable all buttons
-  document.querySelectorAll('[data-action="generate-everything"]').forEach(b => { b.disabled = true; b.textContent = '⏳ Generating…'; });
+  document.querySelectorAll('[data-action="generate-everything"]').forEach(b => { b.disabled = true; b.textContent = 'Generating…'; });
   statusEl.textContent = 'Step 1/3: Saving key points…';
 
   try {
@@ -1669,16 +1648,16 @@ async function generateEverything() {
     await Promise.all(questions.map(q => addDoc(colRef, { ...q, createdAt: serverTimestamp(), source: 'ai' })));
 
     statusEl.className = 'kp-gen-status';
-    statusEl.textContent = `✅ Done! ${kps.length} key points + ${questions.length} questions saved.${tfBalanceText(questions)}`;
+    statusEl.textContent = `Done! ${kps.length} key points + ${questions.length} questions saved.${tfBalanceText(questions)}`;
     showToast(`Everything saved! ${kps.length} key points + ${questions.length} questions`, 'success');
 
     // Refresh questions list
     loadExistingQuestions();
   } catch(e) {
-    statusEl.textContent = '❌ ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
     showToast('Error: ' + e.message, 'error');
   }
-  document.querySelectorAll('[data-action="generate-everything"]').forEach(b => { b.disabled = false; b.textContent = '⚡ Generate everything'; });
+  document.querySelectorAll('[data-action="generate-everything"]').forEach(b => { b.disabled = false; b.textContent = 'Generate everything'; });
 }
 
 /* True/False balance: normalise answers to real booleans and report the split */
@@ -1693,7 +1672,7 @@ function tfBalanceText(qs) {
   if (!tf.length) return '';
   const t = tf.filter(q => q.answer === true || q.answer === 'true').length, f = tf.length - t;
   const lopsided = tf.length >= 4 && Math.max(t, f) / tf.length > 0.7;
-  return ` · True/False: ${t} true, ${f} false${lopsided ? ' ⚠️ uneven, consider deleting some or regenerating' : ''}`;
+  return ` · True/False: ${t} true, ${f} false${lopsided ? ' (uneven, consider deleting some or regenerating)' : ''}`;
 }
 
 function buildQuestionPrompt(contentText, qty) {
@@ -1769,9 +1748,9 @@ function updateGenKpPreview(kps) {
   const grouped = isGroupedKps(kps);
   if (grouped) {
     const totalPts = kps.reduce((a, g) => a + (g.points||[]).length, 0);
-    textEl.innerHTML = `✅ <strong>${totalPts} key points</strong> in ${kps.length} groups ready to use`;
+    textEl.innerHTML = `<strong>${totalPts} key points</strong> in ${kps.length} groups ready to use`;
   } else {
-    textEl.innerHTML = `✅ <strong>${kps.length} key points</strong> ready to use`;
+    textEl.innerHTML = `<strong>${kps.length} key points</strong> ready to use`;
   }
   textEl.style.color = 'var(--color-text)';
 }
@@ -1791,7 +1770,7 @@ async function loadExistingQuestions() {
   const qs = [];
   snap.forEach(d => qs.push({ id: d.id, ...d.data() }));
   if (qs.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">❓</div><h3>No questions yet</h3><p>Use AI generation or manual entry to add questions.</p></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><i data-icon="circle-help"></i></div><h3>No questions yet</h3><p>Use AI generation or manual entry to add questions.</p></div>`;
     return;
   }
   if (header) {
@@ -1894,10 +1873,10 @@ ${content}`;
     generatedQs = normaliseTf(parsed);
     renderGeneratedQuestions();
     statusEl.className = 'gen-status';
-    statusEl.textContent = `✅ ${parsed.length} questions generated${tfBalanceText(parsed)}`;
+    statusEl.textContent = `${parsed.length} questions generated${tfBalanceText(parsed)}`;
   } catch(e) {
     statusEl.className = 'gen-status error';
-    statusEl.textContent = '❌ ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
   }
   btn.disabled = false;
 }
@@ -1927,7 +1906,7 @@ function buildQCard(q, isPending, idx) {
     const opts = (q.options||[]).map(o => `<span class="${o.correct?'correct':''}">${esc(o.text)}</span>`).join('');
     detail = opts;
   } else if (q.type === 'tf') {
-    detail = `<span>Answer: ${q.answer ? '✅ True' : '❌ False'}</span>`;
+    detail = `<span>Answer: ${(q.answer === true || String(q.answer).toLowerCase() === 'true') ? 'True' : 'False'}</span>`;
   } else if (q.type === 'fill') {
     detail = `<span class="correct">Answer: ${esc(q.answer)}</span>`;
   } else if (q.type === 'match') {
@@ -1938,8 +1917,8 @@ function buildQCard(q, isPending, idx) {
 
   const questionText = q.question || q.sentence || q.instruction || '';
   const actionsHtml = isPending
-    ? `<button class="icon-btn icon-btn-del" data-action="del-gen-q" data-idx="${idx}" title="Remove">✕</button>`
-    : `<button class="icon-btn icon-btn-del" data-action="del-question" data-id="${q.id}" title="Delete">🗑️</button>`;
+    ? `<button class="icon-btn icon-btn-del" data-action="del-gen-q" data-idx="${idx}" title="Remove" aria-label="Close"><i data-icon="x"></i></button>`
+    : `<button class="icon-btn icon-btn-del" data-action="del-question" data-id="${q.id}" title="Delete" title="Delete"><i data-icon="trash-2"></i></button>`;
 
   div.innerHTML = `
     <span class="q-type-badge ${typeClass[q.type]||''}">${typeLabel[q.type]||q.type}</span>
@@ -1969,7 +1948,7 @@ function clearGenerated() {
 async function saveAllGenerated() {
   if (!generatedQs.length) return;
   const btn = document.getElementById('btn-save-all');
-  btn.disabled = true; btn.textContent = '⏳ Saving…';
+  btn.disabled = true; btn.textContent = 'Saving…';
   try {
     const colRef = collection(db, questionsPath());
     const promises = generatedQs.map(q => addDoc(colRef, { ...q, createdAt: serverTimestamp(), source: 'ai' }));
@@ -1979,7 +1958,7 @@ async function saveAllGenerated() {
     loadExistingQuestions();
     switchQTab('existing');
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
-  btn.disabled = false; btn.textContent = '💾 Save all to Firestore';
+  btn.disabled = false; btn.innerHTML = '<i data-icon="save"></i> Save all';
 }
 
 /* ── QUESTION TABS ───────────────────────────────────────── */
@@ -2056,7 +2035,7 @@ function resetMcqOptions() {
   const list = document.getElementById('mcq-options-list');
   list.innerHTML = '';
   ['Option A','Option B','Option C','Option D'].forEach((ph,i) => {
-    list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}" ${i===0?'checked':''}><input type="text" placeholder="${ph}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}">✕</button></div>`);
+    list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}" ${i===0?'checked':''}><input type="text" placeholder="${ph}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}" aria-label="Close"><i data-icon="x"></i></button></div>`);
   });
 }
 
@@ -2064,14 +2043,14 @@ function populateMcqOptions(options) {
   const list = document.getElementById('mcq-options-list');
   list.innerHTML = '';
   options.forEach((o,i) => {
-    list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}" ${o.correct?'checked':''}><input type="text" value="${esc(o.text)}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}">✕</button></div>`);
+    list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}" ${o.correct?'checked':''}><input type="text" value="${esc(o.text)}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}" aria-label="Close"><i data-icon="x"></i></button></div>`);
   });
 }
 
 function addMcqOption() {
   const list = document.getElementById('mcq-options-list');
   const i = list.children.length;
-  list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}"><input type="text" placeholder="Option ${String.fromCharCode(65+i)}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}">✕</button></div>`);
+  list.insertAdjacentHTML('beforeend', `<div class="option-row"><input type="radio" name="mcq-correct" value="${i}"><input type="text" placeholder="Option ${String.fromCharCode(65+i)}" class="mcq-option-text"><button class="icon-btn icon-btn-del" data-action="del-option" data-idx="${i}" aria-label="Close"><i data-icon="x"></i></button></div>`);
 }
 
 function delMcqOption(btn) {
@@ -2095,13 +2074,13 @@ function populateMatchPairs(pairs) {
   const list = document.getElementById('match-pairs-list');
   list.innerHTML = '';
   pairs.forEach(p => {
-    list.insertAdjacentHTML('beforeend', `<div class="pair-row"><input type="text" value="${esc(p.left)}" class="pair-left" placeholder="Left item"><span class="pair-sep">→</span><input type="text" value="${esc(p.right)}" class="pair-right" placeholder="Right item"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>`);
+    list.insertAdjacentHTML('beforeend', `<div class="pair-row"><input type="text" value="${esc(p.left)}" class="pair-left" placeholder="Left item"><span class="pair-sep">→</span><input type="text" value="${esc(p.right)}" class="pair-right" placeholder="Right item"><button class="icon-btn icon-btn-del" data-action="del-pair" aria-label="Close"><i data-icon="x"></i></button></div>`);
   });
 }
 
 function addMatchPair() {
   document.getElementById('match-pairs-list').insertAdjacentHTML('beforeend',
-    `<div class="pair-row"><input type="text" class="pair-left" placeholder="Left item"><span class="pair-sep">→</span><input type="text" class="pair-right" placeholder="Right item"><button class="icon-btn icon-btn-del" data-action="del-pair">✕</button></div>`);
+    `<div class="pair-row"><input type="text" class="pair-left" placeholder="Left item"><span class="pair-sep">→</span><input type="text" class="pair-right" placeholder="Right item"><button class="icon-btn icon-btn-del" data-action="del-pair" aria-label="Close"><i data-icon="x"></i></button></div>`);
 }
 
 function delMatchPair(btn) {
@@ -2248,7 +2227,7 @@ async function loadUsers() {
   const users = [];
   snap.forEach(d => users.push({ id: d.id, ...d.data() }));
   if (!users.length) { list.innerHTML = `<div class="empty-state"><h3>No users yet</h3></div>`; return; }
-  const roleIcon = { parent:'👨‍👩‍👧', student:'🎓', teacher:'🏫', admin:'⚙️' };
+  const roleIcon = { parent:'<i data-icon="house"></i>', student:'<i data-icon="graduation-cap"></i>', teacher:'<i data-icon="school"></i>', admin:'<i data-icon="shield"></i>' };
   const roleColour = { parent:'badge-primary', student:'badge-success', teacher:'badge-warning', admin:'badge-primary' };
   list.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:var(--font-ui);font-size:0.88rem;">
     <thead><tr style="border-bottom:2px solid var(--color-border);">
@@ -2259,12 +2238,12 @@ async function loadUsers() {
       <th style="padding:8px 12px;"></th>
     </tr></thead>
     <tbody>${users.map(u => `<tr style="border-bottom:1px solid var(--color-border);">
-      <td style="padding:10px 12px;">${roleIcon[u.role]||'👤'} ${esc(u.name||'—')}</td>
+      <td style="padding:10px 12px;"><span style="display:inline-flex;align-items:center;gap:8px;"><span style="color:var(--color-text-muted);display:inline-flex;">${roleIcon[u.role]||'<i data-icon="user"></i>'}</span>${esc(u.name||'—')}</span></td>
       <td style="padding:10px 12px;color:var(--color-text-muted);">${esc(u.email||'—')}</td>
       <td style="padding:10px 12px;"><span class="badge ${roleColour[u.role]||'badge-primary'}">${u.role||'?'}</span></td>
       <td style="padding:10px 12px;color:var(--color-text-muted);">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
       <td style="padding:10px 12px;text-align:right;">${u.role === 'student'
-        ? `<button class="btn btn-secondary" style="padding:5px 12px;font-size:0.8rem;white-space:nowrap;" data-action="view-as" data-uid="${esc(u.id)}">👁️ View as</button>`
+        ? `<button class="btn btn-secondary" style="padding:5px 12px;font-size:0.8rem;white-space:nowrap;" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
         : ''}</td>
     </tr>`).join('')}</tbody>
   </table>`;

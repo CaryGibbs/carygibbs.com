@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Revision that sticks.</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -35,7 +36,7 @@
     .divider::before{left:0} .divider::after{right:0}
     .signup-type-row { display:flex; gap:var(--space-sm); margin-bottom:var(--space-lg); }
     .signup-type-btn { flex:1; padding:12px var(--space-sm); border-radius:var(--radius-card); background:var(--color-surface-2); border:2px solid var(--color-border); color:var(--color-text-muted); font-family:var(--font-ui); font-size:0.82rem; font-weight:600; text-align:center; cursor:pointer; transition:all var(--transition-base); }
-    .signup-type-btn .icon { display:block; font-size:1.4rem; margin-bottom:4px; }
+    .signup-type-btn .role-icon { display:block; font-size:1.4rem; margin-bottom:4px; }
     .signup-type-btn.selected { border-color:var(--color-primary); background:var(--color-primary-glow); color:var(--color-primary); }
     .error-msg { background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); border-radius:var(--radius-sm); color:var(--color-danger); padding:var(--space-sm) var(--space-md); font-size:0.875rem; margin-bottom:var(--space-md); display:none; }
     .error-msg.visible { display:block; }
@@ -45,6 +46,7 @@
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -52,7 +54,7 @@
 <div class="container page-fade">
   <div class="logo-wrap">
     <div class="logo-mark">
-      <div class="logo-icon">📎</div>
+      <div class="logo-icon"><i data-icon="graduation-cap"></i></div>
       <div class="logo-text">Cl<span>a</span>sp</div>
     </div>
     <p class="tagline">Revision that sticks.</p>
@@ -87,10 +89,10 @@
       <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:var(--space-md);">I am a...</p>
       <div class="signup-type-row">
         <div class="signup-type-btn selected" id="type-parent" onclick="selectType('parent')">
-          <span class="icon">👨‍👩‍👧</span>Parent
+          <span class="role-icon"><i data-icon="users"></i></span>Parent
         </div>
         <div class="signup-type-btn" id="type-student" onclick="selectType('student')">
-          <span class="icon">🎓</span>Student
+          <span class="role-icon"><i data-icon="graduation-cap"></i></span>Student
         </div>
       </div>
       <div class="form-group">

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Hub</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <link rel="stylesheet" href="stats.css">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
@@ -214,13 +215,14 @@
     .no-group-banner h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
     .no-group-banner p { color: var(--color-text-muted); font-size: 0.9rem; }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
 <body>
 <div id="toast-container"></div>
 
 <nav class="topnav">
   <a href="hub.html" class="nav-logo">
-    <div class="nav-logo-icon">📎</div>Clasp
+    <div class="nav-logo-icon"><i data-icon="graduation-cap"></i></div>Clasp
   </a>
   <div class="nav-right">
     <span class="nav-user">Hey, <strong id="nav-name">...</strong></span>
@@ -228,17 +230,17 @@
   </div>
 </nav>
 <div class="jumpbar" id="jumpbar" style="display:none;">
-  <a class="jump-link" href="#hub-content">📖 Revise</a>
-  <a class="jump-link" href="#goals">🎯 Goals</a>
-  <a class="jump-link" href="#time">⏱️ Time</a>
-  <a class="jump-link" href="#subjects">📚 By subject</a>
-  <a class="jump-link" href="#badges">🏅 Badges</a>
-  <a class="jump-link" href="profile.html">📋 Full profile</a>
+  <a class="jump-link" href="#hub-content"><i data-icon="book-open"></i> Revise</a>
+  <a class="jump-link" href="#goals"><i data-icon="target"></i> Goals</a>
+  <a class="jump-link" href="#time"><i data-icon="clock"></i> Time</a>
+  <a class="jump-link" href="#subjects"><i data-icon="library"></i> By subject</a>
+  <a class="jump-link" href="#badges"><i data-icon="award"></i> Badges</a>
+  <a class="jump-link" href="profile.html"><i data-icon="user"></i> Full profile</a>
 </div>
 
 <div class="page page-fade">
   <div class="welcome-banner">
-    <div class="welcome-greeting">Hey, <span id="student-name">...</span>! 👋</div>
+    <div class="welcome-greeting">Hey, <span id="student-name">...</span></div>
     <div class="welcome-sub" id="welcome-sub">Loading your subjects…</div>
   </div>
 
@@ -258,7 +260,7 @@
       </div>
       <div class="xp-stats">
         <div class="xp-stat">
-          <div class="xp-stat-val" id="xp-streak-val">0🔥</div>
+          <div class="xp-stat-val" id="xp-streak-val">0 <i data-icon="flame"></i></div>
           <div class="xp-stat-label">Streak</div>
         </div>
         <div class="xp-stat">
@@ -330,7 +332,7 @@ requireAuth(async (user, profile) => {
     document.getElementById('welcome-sub').textContent = 'Previewing student hub';
     const adminBar = document.createElement('div');
     adminBar.style.cssText = 'background:var(--color-primary-glow);border:1px solid var(--color-primary);border-radius:var(--radius-card);padding:10px 16px;margin-bottom:var(--space-lg);display:flex;align-items:center;justify-content:space-between;font-family:var(--font-ui);font-size:0.85rem;';
-    adminBar.innerHTML = `<span style="color:var(--color-primary);font-weight:600;">👁️ Preview mode — viewing as student</span><a href="admin.html" style="color:var(--color-primary);font-weight:700;">← Back to admin</a>`;
+    adminBar.innerHTML = `<span style="color:var(--color-primary);font-weight:600;"><i data-icon="eye"></i> Preview mode, viewing as a student</span><a href="admin.html" style="color:var(--color-primary);font-weight:700;">← Back to admin</a>`;
     document.getElementById('hub-content').before(adminBar);
     // Load first group for preview
     const groupsSnap = await getDocs(collection(db, 'content'));
@@ -350,7 +352,7 @@ requireAuth(async (user, profile) => {
     document.getElementById('welcome-sub').textContent = 'Your revision content will appear here once your parent assigns you to a group.';
     document.getElementById('hub-content').innerHTML = `
       <div class="no-group-banner">
-        <div style="font-size:2.5rem;margin-bottom:var(--space-md);">📚</div>
+        <div class="empty-state-icon"><i data-icon="library"></i></div>
         <h3>No group assigned yet</h3>
         <p>Ask your parent to assign you to a revision group so your subjects appear here.</p>
       </div>`;
@@ -364,7 +366,7 @@ requireAuth(async (user, profile) => {
     const n = profile.notification;
     const banner = document.createElement('div');
     banner.style.cssText = 'background:var(--color-primary-glow);border:1px solid var(--color-primary);border-radius:var(--radius-card);padding:var(--space-md) var(--space-lg);margin-bottom:var(--space-lg);display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);';
-    banner.innerHTML = `<div><div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">📨 Message from your parent</div><div style="font-size:0.92rem;color:var(--color-text);">${esc(n.message)}</div></div><button onclick="dismissNotification()" style="flex-shrink:0;background:none;border:none;color:var(--color-text-muted);cursor:pointer;font-size:1.1rem;padding:4px;">✕</button>`;
+    banner.innerHTML = `<div><div style="font-family:var(--font-ui);font-size:0.78rem;font-weight:700;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;"><i data-icon="message-square"></i> Message from your parent</div><div style="font-size:0.92rem;color:var(--color-text);">${esc(n.message)}</div></div><button onclick="dismissNotification()" style="flex-shrink:0;background:none;border:none;color:var(--color-text-muted);cursor:pointer;font-size:1.1rem;padding:4px;" aria-label="Dismiss"><i data-icon="x"></i></button>`;
     document.getElementById('hub-content').before(banner);
     // Mark as read (not when an adult is previewing, so the child still sees it)
     if (isPreview()) return;
@@ -393,7 +395,7 @@ async function loadSubjects(user, groupId) {
   subjectsSnap.forEach(d => subjects.push({ id: d.id, ...d.data() }));
 
   if (subjects.length === 0) {
-    grid.innerHTML = `<div class="subjects-grid"><div class="empty-state"><div class="empty-state-icon">📭</div><h3>No subjects yet</h3><p>Your admin is still adding content.</p></div></div>`;
+    grid.innerHTML = `<div class="subjects-grid"><div class="empty-state"><div class="empty-state-icon"><i data-icon="inbox"></i></div><h3>No subjects yet</h3><p>Your admin is still adding content.</p></div></div>`;
     return;
   }
 
@@ -419,15 +421,15 @@ async function loadSubjects(user, groupId) {
 
     const topicRowsHtml = topics.map(t => `
       <div class="topic-row">
-        <span class="topic-row-name">📝 ${esc(t.name)}</span>
+        <span class="topic-row-name">${esc(t.name)}</span>
         <div class="topic-row-actions">
           <button class="topic-btn topic-btn-quiz"
             onclick="goQuiz({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
-            ⚡ Quiz
+            <i data-icon="zap"></i> Quiz
           </button>
           <button class="topic-btn topic-btn-map"
             onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
-            🗺️ Map
+            <i data-icon="network"></i> Map
           </button>
         </div>
       </div>`).join('');
@@ -446,11 +448,11 @@ async function loadSubjects(user, groupId) {
       <div class="subject-actions">
         <button class="btn btn-primary"
           onclick="goQuiz({groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'})">
-          ⚡ Quiz whole subject
+          <i data-icon="zap"></i> Quiz subject
         </button>
         <button class="btn btn-secondary"
           onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'})">
-          🗺️ Subject map
+          <i data-icon="network"></i> Subject map
         </button>
       </div>
       ${topicCount > 0 ? `
@@ -475,7 +477,7 @@ function renderGamification(profile, user) {
   document.getElementById('xp-level-badge').textContent = current.icon;
   document.getElementById('xp-level-name').textContent  = current.name;
   document.getElementById('xp-level-num').textContent   = 'Level ' + current.level;
-  document.getElementById('xp-streak-val').textContent  = (profile.streak || 0) + '🔥';
+  document.getElementById('xp-streak-val').innerHTML  = (profile.streak || 0) + ' <i data-icon="flame"></i>';
   document.getElementById('xp-total-val').textContent   = xp + ' XP';
 
   setTimeout(() => {
@@ -486,7 +488,7 @@ function renderGamification(profile, user) {
     document.getElementById('xp-bar-left').textContent  = xpIntoLevel + ' / ' + xpNeeded + ' XP to ' + next.name;
     document.getElementById('xp-bar-right').textContent = next.icon + ' ' + next.name;
   } else {
-    document.getElementById('xp-bar-left').textContent  = 'Max level reached! 🏆';
+    document.getElementById('xp-bar-left').textContent  = 'Max level reached!';
     document.getElementById('xp-bar-right').textContent = '';
   }
 
@@ -497,7 +499,7 @@ function renderGamification(profile, user) {
   const owed = renderStats(profile, { goalLimit: 4 });
   if (owed.length && user && !isPreview()) {
     updateDoc(doc(db, 'users', user.uid), { badges: [...(profile.badges || []), ...owed] }).catch(() => {});
-    showToast(`🎉 ${owed.length} new badge${owed.length !== 1 ? 's' : ''} unlocked!`, 'success');
+    showToast(`${owed.length} new badge${owed.length !== 1 ? 's' : ''} unlocked!`, 'success');
   }
   // Arrived via a jump link from another page? Scroll now the sections exist.
   if (location.hash) document.querySelector(location.hash)?.scrollIntoView();

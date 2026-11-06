@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — My Profile</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <link rel="stylesheet" href="stats.css">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
@@ -141,6 +142,7 @@
       .page { padding: var(--space-lg) var(--space-md); }
     }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -180,21 +182,27 @@
     <div class="stat-card"><div class="stat-val" id="stat-xp">0</div><div class="stat-label">Total XP</div></div>
     <div class="stat-card"><div class="stat-val" id="stat-quizzes">0</div><div class="stat-label">Quizzes</div></div>
     <div class="stat-card"><div class="stat-val" id="stat-avg">—</div><div class="stat-label">Avg score</div></div>
-    <div class="stat-card"><div class="stat-val" id="stat-streak">0🔥</div><div class="stat-label">Streak</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-streak">0 <i data-icon="flame"></i></div><div class="stat-label">Streak</div></div>
   </div>
 
   <!-- Goals, time, subjects, badges (shared with the hub) -->
   <div id="stats-root"></div>
 
+  <!-- Appearance -->
+  <div class="section" id="appearance">
+    <div class="section-title"><i data-icon="palette"></i> Choose your theme</div>
+    <div class="theme-grid" id="theme-grid"></div>
+  </div>
+
   <!-- Level ladder -->
   <div class="section">
-    <div class="section-title">🏆 Levels</div>
+    <div class="section-title"><i data-icon="trophy"></i> Levels</div>
     <div class="level-ladder" id="level-ladder"></div>
   </div>
 
   <!-- Recent sessions -->
   <div class="section">
-    <div class="section-title">📋 Recent quiz sessions</div>
+    <div class="section-title"><i data-icon="clipboard-list"></i> Recent quizzes</div>
     <div class="sessions-list" id="sessions-list"></div>
   </div>
 
@@ -211,7 +219,32 @@ import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, isPreview } from './auth.js';
 import { getLevelInfo, LEVELS, BADGES } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
+
+// Let the student pick their own theme; it applies straight away and is saved
+function renderThemePicker(user, profile) {
+  const grid = document.getElementById('theme-grid');
+  let current = profile.theme || 'edge';
+  grid.innerHTML = THEMES.map(t => themeSwatchHtml(t, t.id === current)).join('');
+  grid.querySelectorAll('[data-theme-id]').forEach(btn => btn.onclick = async () => {
+    const id = btn.dataset.themeId;
+    if (id === current) return;
+    current = id;
+    document.body.setAttribute('data-theme', id);
+    grid.querySelectorAll('.theme-swatch').forEach(b => { b.classList.toggle('selected', b === btn); b.setAttribute('aria-pressed', b === btn); });
+    const av = document.getElementById('profile-avatar');
+    if (av) { const c = themeColour(id); av.style.background = c + '22'; av.style.color = c; }
+    if (isPreview()) return; // previewing adult: try it, but don't save
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { theme: id });
+      if (profile.parentUid) await updateDoc(doc(db, 'users', profile.parentUid, 'children', user.uid), { theme: id }).catch(() => {});
+      window.showToast && window.showToast('Theme saved', 'success');
+    } catch (e) { window.showToast && window.showToast('Could not save your theme. Try again.', 'error'); }
+  });
+}
 
 requireAuth(async (user, profile) => {
   if (profile.role !== 'student') { location.href = 'hub.html'; return; }
@@ -227,7 +260,7 @@ requireAuth(async (user, profile) => {
 
   // Avatar
   const initials = (profile.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const avatarBg = profile.theme==='spark'?'#ff6b35':profile.theme==='focus'?'#2563eb':'#6c63ff';
+  const avatarBg = themeColour(profile.theme);
   const avatarEl = document.getElementById('profile-avatar');
   avatarEl.style.background = avatarBg + '22';
   avatarEl.style.color = avatarBg;
@@ -250,7 +283,7 @@ requireAuth(async (user, profile) => {
   document.getElementById('stat-xp').textContent      = xp;
   document.getElementById('stat-quizzes').textContent = quizCount;
   document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
-  document.getElementById('stat-streak').textContent  = streak + '🔥';
+  document.getElementById('stat-streak').innerHTML  = streak + ' <i data-icon="flame"></i>';
 
   // Level ladder
   const ladder = document.getElementById('level-ladder');
@@ -261,7 +294,7 @@ requireAuth(async (user, profile) => {
     const badge = isCurrent
       ? '<span class="level-row-badge current">Current</span>'
       : achieved
-        ? '<span class="level-row-badge achieved">✓</span>'
+        ? '<span class="level-row-badge achieved"><i data-icon="check"></i></span>'
         : '';
     return `<div class="level-row ${cls}">
       <div class="level-row-icon">${lv.icon}</div>
@@ -274,11 +307,12 @@ requireAuth(async (user, profile) => {
   }).join('');
 
   // Goals, time, subjects and badges (shared with the hub)
+  renderThemePicker(user, profile);
   document.getElementById('stats-root').innerHTML = statsSectionsHtml();
   const owed = renderStats(profile);
   if (owed.length && !isPreview()) {
     updateDoc(doc(db, 'users', user.uid), { badges: [...(profile.badges || []), ...owed] }).catch(() => {});
-    showToast(`🎉 ${owed.length} new badge${owed.length !== 1 ? 's' : ''} unlocked!`, 'success');
+    showToast(`${owed.length} new badge${owed.length !== 1 ? 's' : ''} unlocked!`, 'success');
   }
 
   // Sessions

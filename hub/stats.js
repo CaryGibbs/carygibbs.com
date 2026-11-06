@@ -10,13 +10,13 @@ import { BADGE_FAMILIES, TIERS, badgeProgress } from './gamification.js';
 export function statsSectionsHtml() {
   return `
   <section class="st-section" id="goals">
-    <div class="st-title">🎯 Next goals <small>closest first</small></div>
+    <div class="st-title"><i data-icon="target"></i> Next goals <small>closest first</small></div>
     <div class="goal-list" id="goal-list"></div>
     <button class="st-toggle" id="goal-toggle" style="display:none;"></button>
   </section>
 
   <section class="st-section" id="time">
-    <div class="st-title">⏱️ Revision time</div>
+    <div class="st-title"><i data-icon="clock"></i> Revision time</div>
     <div class="time-tiles">
       <div class="time-tile"><div class="time-tile-val" id="time-today">0m</div><div class="time-tile-label">Today</div></div>
       <div class="time-tile"><div class="time-tile-val" id="time-week">0m</div><div class="time-tile-label">Last 7 days</div></div>
@@ -29,12 +29,12 @@ export function statsSectionsHtml() {
   </section>
 
   <section class="st-section" id="subjects">
-    <div class="st-title">📚 Time by subject</div>
+    <div class="st-title"><i data-icon="library"></i> Time by subject</div>
     <div class="subject-list" id="subject-list"></div>
   </section>
 
   <section class="st-section" id="badges">
-    <div class="st-title">🏅 Badges <small id="badge-count"></small></div>
+    <div class="st-title"><i data-icon="award"></i> Badges <small id="badge-count"></small></div>
     <div id="badges-wrap"></div>
   </section>`;
 }
@@ -65,7 +65,7 @@ function renderGoals(progress, limit) {
   const list = document.getElementById('goal-list');
   const toggle = document.getElementById('goal-toggle');
   if (!goals.length) {
-    list.innerHTML = '<div class="st-empty">🏆 Every badge earned. Incredible work!</div>';
+    list.innerHTML = '<div class="st-empty"><i data-icon="trophy"></i> Every badge earned. Incredible work!</div>';
     return;
   }
   list.innerHTML = goals.map(({ f, next, after }, i) => {
@@ -88,11 +88,11 @@ function renderGoals(progress, limit) {
   if (extra > 0) {
     let open = false;
     toggle.style.display = 'inline-block';
-    toggle.textContent = `Show ${extra} more goal${extra !== 1 ? 's' : ''} ▾`;
+    toggle.textContent = `Show ${extra} more goal${extra !== 1 ? 's' : ''}`;
     toggle.onclick = () => {
       open = !open;
       list.querySelectorAll('[data-extra]').forEach(el => { el.hidden = !open; });
-      toggle.textContent = open ? 'Show fewer ▴' : `Show ${extra} more goal${extra !== 1 ? 's' : ''} ▾`;
+      toggle.textContent = open ? 'Show fewer' : `Show ${extra} more goal${extra !== 1 ? 's' : ''}`;
     };
   }
 }
@@ -113,13 +113,13 @@ function renderBadges(progress) {
   const locked = progress.filter(b => !b.earned);
   document.getElementById('badge-count').textContent = `${earned.length} / ${progress.length} earned`;
 
-  let html = `<div class="badge-subhead">✅ Earned (${earned.length})</div>` +
+  let html = `<div class="badge-subhead">Earned (${earned.length})</div>` +
     (earned.length
       ? `<div class="badges-grid">${earned.map(badgeCard).join('')}</div>`
       : `<div class="st-empty">None yet. Finish a quiz to earn your first!</div>`);
 
   if (locked.length) {
-    html += `<button class="st-toggle" id="locked-toggle">🔒 Show ${locked.length} still to unlock ▾</button><div id="locked-wrap" hidden>`;
+    html += `<button class="st-toggle" id="locked-toggle"><i data-icon="lock"></i> Show ${locked.length} still to unlock</button><div id="locked-wrap" hidden>`;
     BADGE_FAMILIES.forEach(f => {
       const fam = locked.filter(b => b.family === f.id).sort((a, b) => a.tier - b.tier || a.target - b.target);
       if (!fam.length) return;
@@ -135,7 +135,7 @@ function renderBadges(progress) {
     t.onclick = () => {
       const w = document.getElementById('locked-wrap');
       w.hidden = !w.hidden;
-      t.textContent = w.hidden ? `🔒 Show ${locked.length} still to unlock ▾` : `🔒 Hide badges still to unlock ▴`;
+      t.innerHTML = w.hidden ? `<i data-icon="lock"></i> Show ${locked.length} still to unlock` : `<i data-icon="lock"></i> Hide badges still to unlock`;
     };
   }
 }

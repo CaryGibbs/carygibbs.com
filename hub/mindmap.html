@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Mindmap</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <style>
     body { height: 100vh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
 
@@ -261,6 +262,7 @@
     }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -269,8 +271,8 @@
   <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
   <div class="nav-title" id="nav-title">Mindmap</div>
   <div class="view-toggle">
-    <button class="view-btn active" data-view="spider" onclick="switchView('spider')">🕸️ Spider</button>
-    <button class="view-btn" data-view="outline" onclick="switchView('outline')">📋 Outline</button>
+    <button class="view-btn active" data-view="spider" onclick="switchView('spider')"><i data-icon="network"></i> Spider</button>
+    <button class="view-btn" data-view="outline" onclick="switchView('outline')"><i data-icon="list"></i> Outline</button>
     <button class="view-btn" data-view="flashcards" onclick="switchView('flashcards')">🃏 Cards</button>
   </div>
 </nav>
@@ -291,7 +293,7 @@
     <button onclick="resetSpiderView()" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">⊙ Centre</button>
   </div>
   <div class="spider-detail" id="spider-detail">
-    <button class="spider-detail-close" onclick="closeSpiderDetail()">✕</button>
+    <button class="spider-detail-close" onclick="closeSpiderDetail()" aria-label="Close"><i data-icon="x"></i></button>
     <div class="spider-detail-term" id="spider-detail-term"></div>
     <div class="spider-detail-explanation" id="spider-detail-explanation"></div>
   </div>
@@ -472,7 +474,7 @@ function questionToFlashcard(q, topicName) {
     return { front: q.question, back: correct?.text || '?', type: 'MCQ', topic: topicName };
   }
   if (q.type === 'tf') {
-    return { front: q.question, back: (q.answer ? '✅ True' : '❌ False') + (q.explanation ? '\n\n' + q.explanation : ''), type: 'T/F', topic: topicName };
+    return { front: q.question, back: (q.answer === true || String(q.answer).toLowerCase() === 'true' ? 'True' : 'False') + (q.explanation ? '\n\n' + q.explanation : ''), type: 'T/F', topic: topicName };
   }
   if (q.type === 'fill') {
     const front = (q.sentence||'').replace('_____', '_____');
@@ -541,7 +543,7 @@ function showView(v) {
 
 // Spider colours — read from CSS vars once
 function spiderColors() {
-  const s = getComputedStyle(document.documentElement);
+  const s = getComputedStyle(document.body);
   return {
     primary:  s.getPropertyValue('--color-primary').trim()      || '#6c63ff',
     surface:  s.getPropertyValue('--color-surface').trim()      || '#16162a',
@@ -1169,7 +1171,7 @@ function buildOutline() {
         } else if (isGroupedKps(kps)) {
           pointsHtml = kps.map(g => `
             <div style="margin-bottom:var(--space-sm);">
-              <div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-primary);padding:6px 0 4px;border-bottom:1px solid var(--color-border);margin-bottom:4px;">📂 ${esc(g.group)}</div>
+              <div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-primary);padding:6px 0 4px;border-bottom:1px solid var(--color-border);margin-bottom:4px;"><i data-icon="folder-open"></i> ${esc(g.group)}</div>
               ${(g.points||[]).map(kp => `
                 <div class="keypoint-item">
                   <div class="keypoint-term">${esc(kp.term)}</div>
@@ -1196,7 +1198,7 @@ function buildOutline() {
 
       topicEl.innerHTML = `
         <div class="outline-topic-header" data-action="toggle-topic">
-          <span class="outline-topic-name">📝 ${esc(t.name)}</span>
+          <span class="outline-topic-name">${esc(t.name)}</span>
           <span class="outline-topic-count">${kps.length ? (isGroupedKps(kps) ? kps.reduce((a,g)=>a+(g.points||[]).length,0)+' pts' : kps.length+' pts') : qs.length+' Q'}</span>
           <span class="outline-topic-chevron">›</span>
         </div>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clasp — Parent Dashboard</title>
   <link rel="stylesheet" href="theme.css">
+  <script src="icons.js"></script>
   <link rel="stylesheet" href="stats.css">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
@@ -22,6 +23,7 @@
     .section-header h2 { font-size: 1.1rem; font-weight: 700; }
 
     /* ── Child cards ─────────────────────────────────────── */
+    .children-count { font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
     .children-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg); }
     .child-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-card); transition: transform var(--transition-base), box-shadow var(--transition-base); }
     .child-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card), 0 8px 24px rgba(0,0,0,0.08); }
@@ -139,38 +141,35 @@
       .progress-xp { display: none; }
     }
   </style>
+  <link rel="stylesheet" href="ui.css">
 </head>
-<body>
+<body class="app-layout">
 <div id="toast-container"></div>
-<nav class="topnav">
-  <a href="parent.html" class="nav-logo"><div class="nav-logo-icon">📎</div>Clasp</a>
-  <div class="nav-right">
-    <span class="nav-user">Welcome, <strong id="nav-name">...</strong></span>
-    <div style="display:flex;gap:var(--space-sm);">
-      <a href="admin.html" id="admin-link" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;display:none;">⚙️ Admin</a>
-      <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
+<aside id="app-sidebar"></aside>
+<main class="main">
+  <header class="topbar">
+    <div class="breadcrumb"><span>Family</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">My children</span></div>
+    <div class="topbar-actions"></div>
+  </header>
+  <div class="content-area page-fade">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">My children</div>
+        <div class="panel-subtitle">Manage accounts, assign revision groups and track progress.</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add child</button>
     </div>
+    <div class="children-count" id="children-count">Loading…</div>
+    <div class="children-grid" id="children-grid"></div>
   </div>
-</nav>
-
-<div class="page page-fade">
-  <div class="page-header">
-    <h1>Your children</h1>
-    <p>Manage accounts, assign revision groups, and track progress.</p>
-  </div>
-  <div class="section-header">
-    <h2 id="children-count">Loading…</h2>
-    <button class="btn btn-primary" onclick="openAddModal()" style="padding:10px 20px;font-size:0.9rem;">＋ Add child</button>
-  </div>
-  <div class="children-grid" id="children-grid"></div>
-</div>
+</main>
 
 <!-- ── ADD CHILD MODAL ──────────────────────────────────── -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
     <div class="modal-header">
       <h2>Add a child</h2>
-      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-add')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="error-msg" id="add-error"></div>
     <div class="form-group"><label>Child's name</label><input type="text" id="child-name" placeholder="e.g. Emily"></div>
@@ -179,7 +178,7 @@
       <label>Password</label>
       <div class="password-row">
         <input type="text" id="child-password" placeholder="Set a password">
-        <button class="btn-generate" onclick="generatePw()">✨ Generate</button>
+        <button class="btn-generate" onclick="generatePw()"><i data-icon="sparkles"></i> Generate</button>
       </div>
       <div class="password-reveal" id="pw-reveal">
         <div><div class="pw-value" id="pw-value"></div><div class="pw-note">Share this with your child — save it somewhere safe.</div></div>
@@ -187,11 +186,8 @@
     </div>
     <div class="form-group">
       <label>Theme</label>
-      <div class="theme-options">
-        <div class="theme-option" id="theme-spark" onclick="selectTheme('spark')"><span class="t-icon">🌟</span>Spark</div>
-        <div class="theme-option selected" id="theme-edge" onclick="selectTheme('edge')"><span class="t-icon">⚡</span>Edge</div>
-        <div class="theme-option" id="theme-focus" onclick="selectTheme('focus')"><span class="t-icon">🎯</span>Focus</div>
-      </div>
+      <div class="theme-grid" id="add-theme-grid"></div>
+      <div class="form-hint">They can change this themselves later from their profile.</div>
     </div>
     <div class="form-group">
       <label>Assign to groups</label>
@@ -211,17 +207,13 @@
   <div class="modal">
     <div class="modal-header">
       <h2 id="manage-title">Manage child</h2>
-      <button class="modal-close" onclick="closeModal('modal-manage')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-manage')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="error-msg" id="manage-error"></div>
     <div class="form-group"><label>Name</label><input type="text" id="manage-name"></div>
     <div class="form-group">
       <label>Theme</label>
-      <div class="theme-options">
-        <div class="theme-option" id="manage-theme-spark" onclick="selectManageTheme('spark')"><span class="t-icon">🌟</span>Spark</div>
-        <div class="theme-option" id="manage-theme-edge" onclick="selectManageTheme('edge')"><span class="t-icon">⚡</span>Edge</div>
-        <div class="theme-option" id="manage-theme-focus" onclick="selectManageTheme('focus')"><span class="t-icon">🎯</span>Focus</div>
-      </div>
+      <div class="theme-grid" id="manage-theme-grid"></div>
     </div>
     <div class="form-group">
       <label>Revision groups</label>
@@ -247,7 +239,7 @@
   <div class="modal progress-modal">
     <div class="modal-header">
       <h2 id="progress-title">Progress</h2>
-      <button class="modal-close" onclick="closeModal('modal-progress')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-progress')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div class="progress-header-info">
       <div class="progress-avatar" id="progress-avatar"></div>
@@ -261,18 +253,18 @@
       <div class="progress-stat"><div class="progress-stat-val" id="stat-level">—</div><div class="progress-stat-label">Level</div></div>
       <div class="progress-stat"><div class="progress-stat-val" id="stat-quizzes">0</div><div class="progress-stat-label">Quizzes taken</div></div>
       <div class="progress-stat"><div class="progress-stat-val" id="stat-avg">—</div><div class="progress-stat-label">Avg score</div></div>
-      <div class="progress-stat"><div class="progress-stat-val" id="stat-streak">0🔥</div><div class="progress-stat-label">Streak</div></div>
+      <div class="progress-stat"><div class="progress-stat-val" id="stat-streak">0</div><div class="progress-stat-label">Streak</div></div>
     </div>
     <div class="progress-tabs">
-      <button class="progress-tab" data-jump="goals">🎯 Goals</button>
-      <button class="progress-tab" data-jump="time">⏱️ Time</button>
-      <button class="progress-tab" data-jump="subjects">📚 By subject</button>
-      <button class="progress-tab" data-jump="badges">🏅 Badges</button>
-      <button class="progress-tab" data-jump="recent">📋 Recent quizzes</button>
+      <button class="progress-tab" data-jump="goals"><i data-icon="target"></i> Goals</button>
+      <button class="progress-tab" data-jump="time"><i data-icon="clock"></i> Time</button>
+      <button class="progress-tab" data-jump="subjects"><i data-icon="library"></i> By subject</button>
+      <button class="progress-tab" data-jump="badges"><i data-icon="award"></i> Badges</button>
+      <button class="progress-tab" data-jump="recent"><i data-icon="clipboard-list"></i> Recent quizzes</button>
     </div>
     <div id="progress-stats-root"></div>
     <section class="st-section" id="recent">
-      <div class="st-title">📋 Recent quizzes</div>
+      <div class="st-title"><i data-icon="clipboard-list"></i> Recent quizzes</div>
       <div class="sessions-list" id="sessions-list"></div>
     </section>
   </div>
@@ -283,12 +275,12 @@
   <div class="modal">
     <div class="modal-header">
       <h2 id="notify-title">Send message</h2>
-      <button class="modal-close" onclick="closeModal('modal-notify')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-notify')" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <p style="font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">This message will appear as a notification on your child's hub next time they log in.</p>
     <div class="form-group">
       <label>Message</label>
-      <textarea id="notify-message" placeholder="e.g. Great work this week! Try the Geography quiz today 🌍" oninput="updateNotifyPreview()"></textarea>
+      <textarea id="notify-message" placeholder="e.g. Great work this week! Try the Geography quiz today." oninput="updateNotifyPreview()"></textarea>
     </div>
     <div class="notify-preview" id="notify-preview" style="display:none;">
       <div class="notify-preview-label">Preview</div>
@@ -296,7 +288,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-notify')">Cancel</button>
-      <button class="btn btn-primary" id="btn-send-notify" onclick="sendNotification()">📨 Send message</button>
+      <button class="btn btn-primary" id="btn-send-notify" onclick="sendNotification()"><i data-icon="send"></i> Send message</button>
     </div>
   </div>
 </div>
@@ -326,6 +318,8 @@
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs } from './auth.js';
 import { getLevelInfo } from './gamification.js';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
+import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
@@ -335,7 +329,19 @@ import {
 const API_KEY = 'AIzaSyDjkqzERaCoaGUBeQCHpaVtwPEbcWN5yB4';
 
 let parentUid     = null;
+let shellUser = null, shellProfile = null; // for keeping the sidebar's child list fresh
 let selectedTheme = 'edge';
+
+/* ── Theme pickers ───────────────────────────────────────── */
+document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}.form-hint{font-size:.76rem;color:var(--color-text-muted);margin-top:6px;}</style>`);
+function renderThemeGrid(containerId, current, onPick) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = THEMES.map(t => themeSwatchHtml(t, t.id === current)).join('');
+  grid.querySelectorAll('[data-theme-id]').forEach(btn => btn.onclick = () => {
+    grid.querySelectorAll('.theme-swatch').forEach(b => { b.classList.toggle('selected', b === btn); b.setAttribute('aria-pressed', b === btn); });
+    onPick(btn.dataset.themeId);
+  });
+}
 let manageTheme   = 'edge';
 let managingChildId = null;
 let notifyingChildId = null;
@@ -348,10 +354,10 @@ requireAuth((user, profile) => {
     window.location.href = 'index.html'; return;
   }
   parentUid = user.uid;
-  document.getElementById('nav-name').textContent = profile.name.split(' ')[0];
-  if (profile.role === 'admin') document.getElementById('admin-link').style.display = 'inline-flex';
-  loadGroups();
-  loadChildren();
+  mountShell(user, profile, { view: 'parent', active: 'children' });
+  shellUser = user; shellProfile = profile;
+  // Groups first, so child cards show group names rather than ids
+  loadGroups().finally(loadChildren);
 });
 
 window._doSignOut = () => handleSignOut();
@@ -370,6 +376,7 @@ function loadChildren() {
     childrenData = {};
     snap.forEach(d => { childrenData[d.id] = d.data(); });
     renderChildren();
+    if (shellUser) refreshShellChildren(shellUser, shellProfile);
   });
 }
 
@@ -380,15 +387,14 @@ function renderChildren() {
     count === 0 ? 'No children yet' : `${count} child${count !== 1 ? 'ren' : ''}`;
 
   if (count === 0) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">👧👦</div><h3>No children added yet</h3><p>Create an account for your child and they'll be able to log in and start revising.</p><button class="btn btn-primary" onclick="openAddModal()">＋ Add your first child</button></div>`;
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon"><i data-icon="users"></i></div><h3>No children added yet</h3><p>Create an account for your child and they'll be able to log in and start revising.</p><button class="btn btn-primary" onclick="openAddModal()">＋ Add your first child</button></div>`;
     return;
   }
 
   grid.innerHTML = '';
   Object.entries(childrenData).forEach(([uid, child]) => {
     const initials = (child.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const avatarBg = child.theme==='spark'?'#ff6b35':child.theme==='focus'?'#2563eb':'#6c63ff';
-    const themeLabel = { spark:'🌟 Spark', edge:'⚡ Edge', focus:'🎯 Focus' }[child.theme] || child.theme;
+    const avatarBg = themeColour(child.theme);
     const groupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
     const groupNames = groupIds.map(gid => allGroups.find(g => g.id === gid)?.name || gid);
     const groupsHtml = groupNames.length
@@ -421,19 +427,19 @@ function renderChildren() {
         <div class="child-stats">
           <div class="child-stat"><div class="child-stat-val">${quizCount}</div><div class="child-stat-label">Quizzes</div></div>
           <div class="child-stat"><div class="child-stat-val">${avgScore !== null ? avgScore+'%' : '—'}</div><div class="child-stat-label">Avg score</div></div>
-          <div class="child-stat"><div class="child-stat-val">${streak}🔥</div><div class="child-stat-label">Streak</div></div>
+          <div class="child-stat"><div class="child-stat-val">${streak}</div><div class="child-stat-label">Day streak</div></div>
         </div>
         <div class="child-week">
-          <span>⏱️ Today <strong>${fmtTime(todaySecs)}</strong></span>
+          <span><i data-icon="clock"></i> Today <strong>${fmtTime(todaySecs)}</strong></span>
           <span>This week <strong>${fmtTime(weekSecs)}</strong></span>
           <span>Last quiz <strong>${lastLabel}</strong></span>
         </div>
       </div>
       <div class="child-card-actions">
-        <button class="child-action-btn" onclick="openProgressModal('${uid}')">📊 Progress</button>
-        <button class="child-action-btn" onclick="viewAs('${uid}')" title="Open ${esc(child.name.split(' ')[0])}'s hub in a new window">👁️ View as</button>
-        <button class="child-action-btn" onclick="openNotifyModal('${uid}')">📨 Message</button>
-        <button class="child-action-btn" onclick="openManageModal('${uid}')">⚙️ Manage</button>
+        <button class="child-action-btn" onclick="openProgressModal('${uid}')"><i data-icon="chart-column"></i> Progress</button>
+        <button class="child-action-btn" onclick="viewAs('${uid}')" title="Open ${esc(child.name.split(' ')[0])}'s hub in a new window"><i data-icon="eye"></i> View as</button>
+        <button class="child-action-btn" onclick="openNotifyModal('${uid}')"><i data-icon="message-square"></i> Message</button>
+        <button class="child-action-btn" onclick="openManageModal('${uid}')"><i data-icon="settings"></i> Manage</button>
       </div>`;
     grid.appendChild(card);
   });
@@ -470,17 +476,14 @@ window._openAddModal = function() {
   document.getElementById('child-password').value = '';
   document.getElementById('pw-reveal').classList.remove('visible');
   document.getElementById('add-error').classList.remove('visible');
-  selectedTheme = 'edge';
-  ['spark','edge','focus'].forEach(t => document.getElementById(`theme-${t}`).classList.toggle('selected', t==='edge'));
+  selectedTheme = 'light';
+  renderThemeGrid('add-theme-grid', selectedTheme, t => { selectedTheme = t; });
   renderGroupChecks('add-group-list', []);
   document.getElementById('modal-add').classList.add('open');
   setTimeout(() => document.getElementById('child-name').focus(), 100);
 };
 
-window._selectTheme = t => {
-  selectedTheme = t;
-  ['spark','edge','focus'].forEach(x => document.getElementById(`theme-${x}`).classList.toggle('selected', x===t));
-};
+window._selectTheme = t => { selectedTheme = t; };
 
 window._generatePw = () => {
   const pw = generatePassword();
@@ -540,16 +543,13 @@ window._openManageModal = function(uid) {
   document.getElementById('manage-name').value = child.name;
   document.getElementById('manage-error').classList.remove('visible');
   manageTheme = child.theme || 'edge';
-  ['spark','edge','focus'].forEach(t => document.getElementById(`manage-theme-${t}`).classList.toggle('selected', t===manageTheme));
+  renderThemeGrid('manage-theme-grid', manageTheme, t => { manageTheme = t; });
   const currentGroupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
   renderGroupChecks('manage-group-list', currentGroupIds);
   document.getElementById('modal-manage').classList.add('open');
 };
 
-window._selectManageTheme = t => {
-  manageTheme = t;
-  ['spark','edge','focus'].forEach(x => document.getElementById(`manage-theme-${x}`).classList.toggle('selected', x===t));
-};
+window._selectManageTheme = t => { manageTheme = t; };
 
 window._saveChild = async function() {
   const name = document.getElementById('manage-name').value.trim();
@@ -610,13 +610,13 @@ window._resetProgress = async function() {
 /* ── Progress modal ──────────────────────────────────────── */
 window._openProgressModal = async function(uid) {
   const child = childrenData[uid];
-  const avatarBg = child.theme==='spark'?'#ff6b35':child.theme==='focus'?'#2563eb':'#6c63ff';
+  const avatarBg = themeColour(child.theme);
   const initials = (child.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 
   document.getElementById('progress-title').textContent = `${child.name}'s progress`;
   document.getElementById('progress-name').textContent = child.name;
   document.getElementById('progress-avatar').textContent = initials;
-  document.getElementById('progress-avatar').style.cssText = `background:${avatarBg}22;color:${avatarBg};width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;flex-shrink:0;`;
+  document.getElementById('progress-avatar').style.cssText = `background:${avatarBg}22;color:${avatarBg};width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;flex-shrink:0;`;
 
   const groupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
   const groupNames = groupIds.map(gid => allGroups.find(g=>g.id===gid)?.name || gid);
@@ -635,7 +635,7 @@ window._openProgressModal = async function(uid) {
   document.getElementById('stat-level').textContent   = `${current.icon} ${current.level}`;
   document.getElementById('stat-quizzes').textContent = quizCount;
   document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
-  document.getElementById('stat-streak').textContent  = (profile.streak || 0) + '🔥';
+  document.getElementById('stat-streak').textContent  = (profile.streak || 0) + (profile.streak === 1 ? ' day' : ' days');
   document.getElementById('progress-xp').innerHTML =
     `<strong>${current.name} · ${profile.xp || 0} XP</strong>${next ? `${xpIntoLevel} / ${xpNeeded} to ${next.name}` : 'Top level'}`;
 

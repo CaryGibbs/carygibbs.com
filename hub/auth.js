@@ -80,7 +80,7 @@ function showPreviewBanner(student) {
   const bar = document.createElement('div');
   bar.id = 'clasp-preview-bar';
   bar.style.cssText = 'position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 16px;background:#f59f00;color:#1a1a1a;font-family:var(--font-ui,system-ui);font-size:0.85rem;font-weight:700;text-align:center;';
-  bar.innerHTML = `<span>👁️ Viewing as ${first.replace(/</g,'&lt;')} · preview only, nothing is saved</span>
+  bar.innerHTML = `<span><i data-icon="eye"></i> Viewing as ${first.replace(/</g,'&lt;')} · preview only, nothing is saved</span>
     <button id="clasp-preview-exit" style="background:#1a1a1a;color:#fff;border:none;border-radius:999px;padding:5px 12px;font:inherit;font-size:0.8rem;cursor:pointer;">Exit preview</button>`;
   document.body.prepend(bar);
   document.getElementById('clasp-preview-exit').onclick = exitPreview;
@@ -162,7 +162,7 @@ function showConnectionProblem() {
   el.id = 'clasp-conn-problem';
   el.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--color-bg,#111);';
   el.innerHTML = `<div style="max-width:360px;text-align:center;font-family:var(--font-ui,system-ui);color:var(--color-text,#eee);">
-    <div style="font-size:2.5rem;margin-bottom:12px;">📶</div>
+    <div style="font-size:2.5rem;margin-bottom:12px;color:var(--color-text-muted,#999);"><i data-icon="wifi-off"></i></div>
     <h2 style="font-family:var(--font-heading,system-ui);margin-bottom:8px;">Connection problem</h2>
     <p style="color:var(--color-text-muted,#aaa);margin-bottom:20px;line-height:1.5;">We couldn't load your account. Check your internet connection and try again.</p>
     <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="location.reload()">Try again</button>
