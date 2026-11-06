@@ -348,7 +348,8 @@
 import { auth, db } from './firebase-config.js';
 import { requireAuth, showToast, isPreview } from './auth.js';
 import { awardXp } from './gamification.js';
-import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId } from './learn.js';
+import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js';
+import { startStudyTimer } from './study-timer.js';
 import {
   collection, getDocs, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -435,6 +436,9 @@ async function loadData() {
     buildFlashcards();
     document.getElementById('loading-wrap').style.display = 'none';
     initLearn({ groupId, subjectId, subjectName: subjects[0]?.name || subjectName, user: _currentUser, profile: _currentProfile });
+    // Count active study time on this page (students only, not in preview)
+    startStudyTimer({ user: _currentUser, profile: _currentProfile, subjectId, subjectName: subjects[0]?.name || subjectName,
+                      onBadges: ids => celebrate({ newlyEarned: ids }) });
     showView('spider');
     buildOutline();
     if (params.get('view') === 'cheatsheet') window._switchView('cheatsheet');

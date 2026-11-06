@@ -317,7 +317,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs } from './auth.js';
-import { getLevelInfo } from './gamification.js';
+import { getLevelInfo, studyEntries } from './gamification.js';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
 import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
@@ -407,9 +407,14 @@ function renderChildren() {
     const secsOf = x => typeof x.secondsSpent === 'number' ? x.secondsSpent : (x.minutesSpent || 0) * 60;
     const now = new Date();
     const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const todaySecs = sessions.filter(x => (x.date || 0) >= startToday).reduce((a, x) => a + secsOf(x), 0);
-    const weekSecs  = sessions.filter(x => (x.date || 0) >= startToday - 6 * 86400000).reduce((a, x) => a + secsOf(x), 0);
-    const lastDate  = sessions.reduce((m, x) => Math.max(m, x.date || 0), 0);
+    // Quiz time plus study time (subject map, learn panel, cheat sheets)
+    const study = studyEntries(child);
+    const todaySecs = sessions.filter(x => (x.date || 0) >= startToday).reduce((a, x) => a + secsOf(x), 0)
+                    + study.filter(e => e.date >= startToday).reduce((a, e) => a + e.secs, 0);
+    const weekSecs  = sessions.filter(x => (x.date || 0) >= startToday - 6 * 86400000).reduce((a, x) => a + secsOf(x), 0)
+                    + study.filter(e => e.date >= startToday - 6 * 86400000).reduce((a, e) => a + e.secs, 0);
+    const lastStudy = study.reduce((m, e) => Math.max(m, e.date), 0);
+    const lastDate  = Math.max(lastStudy, sessions.reduce((m, x) => Math.max(m, x.date || 0), 0));
     const lastLabel = lastDate ? new Date(lastDate).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' }) : 'never';
 
     const card = document.createElement('div');
@@ -432,7 +437,7 @@ function renderChildren() {
         <div class="child-week">
           <span><i data-icon="clock"></i> Today <strong>${fmtTime(todaySecs)}</strong></span>
           <span>This week <strong>${fmtTime(weekSecs)}</strong></span>
-          <span>Last quiz <strong>${lastLabel}</strong></span>
+          <span>Last active <strong>${lastLabel}</strong></span>
         </div>
       </div>
       <div class="child-card-actions">

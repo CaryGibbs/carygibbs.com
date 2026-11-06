@@ -3,7 +3,7 @@
 // Next goals, revision time, time by subject, badge collection.
 // ============================================================
 
-import { BADGE_FAMILIES, TIERS, badgeProgress } from './gamification.js';
+import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js';
 
 /* ── Markup ──────────────────────────────────────────────── */
 // Section ids (goals, time, subjects, badges) are the jump-link targets.
@@ -23,6 +23,7 @@ export function statsSectionsHtml() {
       <div class="time-tile"><div class="time-tile-val" id="time-total">0m</div><div class="time-tile-label">All time</div></div>
     </div>
     <div class="day-chart">
+      <div class="day-legend"><span><i class="dot dot-quiz"></i>Quizzes</span><span><i class="dot dot-study"></i>Studying</span></div>
       <div class="day-bars" id="day-bars"></div>
       <div class="day-labels" id="day-labels"></div>
     </div>
@@ -45,8 +46,8 @@ export function renderStats(profile, { goalLimit = 6 } = {}) {
   const progress = badgeProgress(profile);
   renderGoals(progress, goalLimit);
   renderBadges(progress);
-  renderTimeStats(sessions);
-  renderSubjectStats(sessions);
+  renderTimeStats(sessions, studyEntries(profile));
+  renderSubjectStats(sessions, studyEntries(profile));
   const saved = new Set(profile.badges || []);
   return progress.filter(b => b.earned && !saved.has(b.id)).map(b => b.id);
 }
@@ -157,35 +158,42 @@ function dayKey(ts) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-function renderTimeStats(sessions) {
+function renderTimeStats(sessions, study) {
   const DAYS = 14;
   const now = new Date();
   const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const byDay = {};
+  const quizDay = {}, studyDay = {};
   let total = 0, week = 0;
-  sessions.forEach(s => {
-    const secs = secsOf(s);
+  const add = (map, date, secs) => {
     total += secs;
-    if (!s.date) return;
-    byDay[dayKey(s.date)] = (byDay[dayKey(s.date)] || 0) + secs;
-    if (s.date >= startToday - 6 * 86400000) week += secs;
-  });
-  document.getElementById('time-today').textContent = fmtTime(byDay[dayKey(now)] || 0);
+    map[dayKey(date)] = (map[dayKey(date)] || 0) + secs;
+    if (date >= startToday - 6 * 86400000) week += secs;
+  };
+  sessions.forEach(s => { const secs = secsOf(s); if (s.date) add(quizDay, s.date, secs); else total += secs; });
+  study.forEach(e => add(studyDay, e.date, e.secs));
+  const today = (quizDay[dayKey(now)] || 0) + (studyDay[dayKey(now)] || 0);
+  document.getElementById('time-today').textContent = fmtTime(today);
   document.getElementById('time-week').textContent  = fmtTime(week);
   document.getElementById('time-total').textContent = fmtTime(total);
 
   const days = [];
   for (let i = DAYS - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    days.push({ d, secs: byDay[dayKey(d)] || 0, today: i === 0 });
+    const q = quizDay[dayKey(d)] || 0, st = studyDay[dayKey(d)] || 0;
+    days.push({ d, q, st, secs: q + st, today: i === 0 });
   }
   const max = Math.max(60, ...days.map(x => x.secs));
   document.getElementById('day-bars').innerHTML = days.map(x => {
-    const h = x.secs ? Math.max(4, Math.round((x.secs / max) * 100)) : 2;
-    const title = `${x.d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' })}: ${fmtTime(x.secs)}`;
+    const title = `${x.d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' })}: ${fmtTime(x.secs)}` +
+      (x.secs ? ` (quizzes ${fmtTime(x.q)}, studying ${fmtTime(x.st)})` : '');
+    if (!x.secs) return `<div class="day-col" title="${title}"><div class="day-val"></div><div class="day-bar empty" style="height:2%"></div></div>`;
+    const h = Math.max(4, Math.round((x.secs / max) * 100));
     return `<div class="day-col" title="${title}">
-      <div class="day-val">${x.secs ? fmtTime(x.secs) : ''}</div>
-      <div class="day-bar${x.secs ? '' : ' empty'}" style="height:${h}%"></div>
+      <div class="day-val">${fmtTime(x.secs)}</div>
+      <div class="day-stack" style="height:${h}%">
+        ${x.st ? `<div class="day-bar day-bar-study" style="flex:${x.st}"></div>` : ''}
+        ${x.q ? `<div class="day-bar" style="flex:${x.q}"></div>` : ''}
+      </div>
     </div>`;
   }).join('');
   document.getElementById('day-labels').innerHTML = days.map(x =>
@@ -193,31 +201,43 @@ function renderTimeStats(sessions) {
   ).join('');
 }
 
-function renderSubjectStats(sessions) {
+function renderSubjectStats(sessions, study) {
   const subj = {};
+  const row = name => subj[name] = subj[name] || { secs: 0, studySecs: 0, quizzes: 0, pctSum: 0, last: 0 };
   sessions.forEach(s => {
-    const name = s.subject || 'Other';
-    const r = subj[name] = subj[name] || { secs: 0, quizzes: 0, pctSum: 0, last: 0 };
+    const r = row(s.subject || 'Other');
     r.secs += secsOf(s); r.quizzes++; r.pctSum += (s.pct || 0); r.last = Math.max(r.last, s.date || 0);
+  });
+  study.forEach(e => {
+    const r = row(e.subject || 'Other');
+    r.secs += e.secs; r.studySecs += e.secs; r.last = Math.max(r.last, e.date || 0);
   });
   const rows = Object.entries(subj).sort((a, b) => b[1].secs - a[1].secs || b[1].quizzes - a[1].quizzes);
   const list = document.getElementById('subject-list');
   if (!rows.length) {
-    list.innerHTML = '<div class="st-empty">Your subjects will appear here once you\'ve done a quiz.</div>';
+    list.innerHTML = '<div class="st-empty">Your subjects will appear here once you\'ve done a quiz or some studying.</div>';
     return;
   }
   const maxSecs = Math.max(1, ...rows.map(([, r]) => r.secs));
   list.innerHTML = rows.map(([name, r]) => {
-    const avg = Math.round(r.pctSum / r.quizzes);
+    const avg = r.quizzes ? Math.round(r.pctSum / r.quizzes) : null;
     const cls = avg >= 80 ? 'st-good' : avg >= 50 ? 'st-mid' : 'st-low';
     const last = r.last ? new Date(r.last).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '';
+    const quizSecs = r.secs - r.studySecs;
+    const parts = [
+      r.quizzes ? `${r.quizzes} quiz${r.quizzes !== 1 ? 'zes' : ''} · avg <span class="${cls}" style="font-weight:700;">${avg}%</span>` : 'No quizzes yet',
+      r.studySecs ? `${fmtTime(r.studySecs)} studying` : '',
+      last ? 'last ' + last : '',
+    ].filter(Boolean);
     return `<div class="subject-row">
       <div class="subject-top">
         <div class="subject-name">${esc(name)}</div>
         <div class="subject-time">${fmtTime(r.secs)}</div>
       </div>
-      <div class="subject-track"><div class="subject-fill" style="width:${Math.round(r.secs / maxSecs * 100)}%"></div></div>
-      <div class="subject-meta">${r.quizzes} quiz${r.quizzes !== 1 ? 'zes' : ''} · avg <span class="${cls}" style="font-weight:700;">${avg}%</span>${last ? ' · last ' + last : ''}</div>
+      <div class="subject-track subject-track-split">
+        <div class="subject-fill" style="width:${Math.round(quizSecs / maxSecs * 100)}%"></div><div class="subject-fill subject-fill-study" style="width:${Math.round(r.studySecs / maxSecs * 100)}%"></div>
+      </div>
+      <div class="subject-meta">${parts.join(' · ')}</div>
     </div>`;
   }).join('');
 }

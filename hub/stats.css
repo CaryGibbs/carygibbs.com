@@ -83,3 +83,15 @@
 
 /* Collapsed items must stay hidden even though their cards use display:flex/grid */
 .goal-card[hidden], #locked-wrap[hidden] { display: none !important; }
+
+/* Quiz time and study time in two shades */
+.day-legend { display: flex; gap: 14px; justify-content: flex-end; font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted); margin-bottom: 6px; }
+.day-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.day-legend .dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; background: var(--color-primary); }
+.day-legend .dot-study, .day-bar-study { background: color-mix(in srgb, var(--color-primary) 40%, var(--color-surface)) !important; }
+.day-stack { width: 100%; max-width: 28px; display: flex; flex-direction: column; border-radius: 5px 5px 2px 2px; overflow: hidden; min-height: 4px; }
+.day-stack .day-bar { width: 100%; max-width: none; min-height: 2px; border-radius: 0 !important; height: auto; }
+.subject-track-split { display: flex; }
+.subject-track-split .subject-fill { border-radius: 0; }
+.subject-track-split .subject-fill:first-child { border-radius: 999px 0 0 999px; }
+.subject-fill-study { background: color-mix(in srgb, var(--color-primary) 40%, var(--color-surface)) !important; }

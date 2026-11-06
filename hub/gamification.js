@@ -15,6 +15,8 @@ export const XP = {
   MINDMAP_VIEW:    2,
   STREAK_BONUS:    5,
   TIME_PER_5MIN:   1,
+  LEARN_POINT:     2,   // marking a key point as learnt
+  CHEATSHEET:      3,   // first time reading a topic's cheat sheet
 };
 
 /* ── Level thresholds ────────────────────────────────────── */
@@ -101,6 +103,10 @@ export const BADGE_FAMILIES = [
   { id: 'written',  name: 'Written answers',  icon: '✏️', blurb: 'Take on written-answer questions' },
   { id: 'types',    name: 'Question types',   icon: '🧩', blurb: 'Try every kind of question' },
   { id: 'mindmaps', name: 'Mind maps',        icon: '🗺️', blurb: 'Use mind maps to review topics' },
+  { id: 'learner',  name: 'Learning',         icon: '🧠', blurb: 'Mark key points as learnt' },
+  { id: 'topicsDone', name: 'Topics learnt',  icon: '📗', blurb: 'Learn every point in a topic' },
+  { id: 'sheets',   name: 'Cheat sheets',     icon: '📄', blurb: 'Read topic cheat sheets' },
+  { id: 'study',    name: 'Study time',       icon: '📖', blurb: 'Time spent learning, not just quizzing' },
   { id: 'levels',   name: 'Levels',           icon: '🏆', blurb: 'Earn XP to level up' },
 ];
 
@@ -187,6 +193,28 @@ export const BADGES = [
   B('mindmap_10',    'mindmaps', 2, 'mindmaps', 10, 'Visual Learner', '🕸️', 'Viewed 10 mind maps'),
   B('mindmap_30',    'mindmaps', 3, 'mindmaps', 30, 'Cartographer',   '🧭', 'Viewed 30 mind maps'),
 
+  // Learning: key points marked as learnt
+  B('learn_10',  'learner', 1, 'pointsLearned', 10,  'Curious Mind',      '🧠', 'Marked 10 key points as learnt'),
+  B('learn_50',  'learner', 2, 'pointsLearned', 50,  'Knowledge Builder', '🧱', 'Marked 50 key points as learnt'),
+  B('learn_150', 'learner', 3, 'pointsLearned', 150, 'Walking Textbook',  '📘', 'Marked 150 key points as learnt'),
+  B('learn_300', 'learner', 4, 'pointsLearned', 300, 'Encyclopedia',      '🏛️', 'Marked 300 key points as learnt'),
+
+  // Learning: whole topics learnt
+  B('topic_done_1',  'topicsDone', 1, 'topicsLearned', 1,  'Topic Complete',  '📗', 'Learnt every point in a topic'),
+  B('topic_done_5',  'topicsDone', 2, 'topicsLearned', 5,  'Topic Collector', '📚', 'Learnt every point in 5 topics'),
+  B('topic_done_15', 'topicsDone', 3, 'topicsLearned', 15, 'Master of Topics','🎓', 'Learnt every point in 15 topics'),
+
+  // Learning: cheat sheets read
+  B('sheet_1',  'sheets', 1, 'cheatSheets', 1,  'Quick Reference', '📄', 'Read your first cheat sheet'),
+  B('sheet_5',  'sheets', 2, 'cheatSheets', 5,  'Note Taker',      '🗒️', 'Read 5 different cheat sheets'),
+  B('sheet_15', 'sheets', 3, 'cheatSheets', 15, 'Revision Pro',    '📑', 'Read 15 different cheat sheets'),
+
+  // Learning: time spent studying (subject map, learn panel, cheat sheets)
+  B('study_30',  'study', 1, 'studyMins', 30,  'Bookworm',        '📖', '30 minutes of studying'),
+  B('study_120', 'study', 2, 'studyMins', 120, 'Deep Diver',      '🤿', '2 hours of studying'),
+  B('study_300', 'study', 3, 'studyMins', 300, 'Study Champion',  '🥇', '5 hours of studying'),
+  B('study_600', 'study', 4, 'studyMins', 600, 'Scholar',         '🦉', '10 hours of studying'),
+
   // Levels
   B('level_explorer', 'levels', 1, 'level', 2, 'Explorer', '🧭', 'Reached Explorer level'),
   B('level_scholar',  'levels', 1, 'level', 3, 'Scholar',  '📚', 'Reached Scholar level'),
@@ -210,6 +238,22 @@ function weekStartKey(ts) {
   const d = new Date(ts);
   const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
   return monday.getTime();
+}
+
+/* Study time (subject map, learn panel, cheat sheets) is stored per day
+   and subject:  study = { 'YYYY-MM-DD': { subjectId: seconds } },
+   studySubjects = { subjectId: 'Subject name' }.  This turns it into a list. */
+export function studyEntries(profile) {
+  const out = [], names = profile.studySubjects || {};
+  Object.entries(profile.study || {}).forEach(([day, subs]) => {
+    const [y, m, d] = day.split('-').map(Number);
+    if (!y || !m || !d) return;
+    const date = new Date(y, m - 1, d, 12).getTime();   // midday that day, local time
+    Object.entries(subs || {}).forEach(([sid, secs]) => {
+      if (secs > 0) out.push({ date, day, subjectId: sid, subject: names[sid] || 'Other', secs });
+    });
+  });
+  return out;
 }
 
 export function computeMetrics(profile) {
@@ -242,6 +286,17 @@ export function computeMetrics(profile) {
     if (QUESTION_TYPES.every(t => types.includes(t))) fullMixQuizzes++;
   });
 
+  // Study time counts towards time, days and weeks too
+  let studySecs = 0;
+  studyEntries(profile).forEach(e => {
+    studySecs += e.secs; totalSecs += e.secs;
+    days.add(localDayKey(e.date));
+    const wk = weekStartKey(e.date);
+    weeks[wk] = (weeks[wk] || 0) + e.secs;
+    subjects.add(e.subject);
+  });
+  const pointsLearned = Object.values(profile.learned || {}).reduce((a, ids) => a + (ids || []).length, 0);
+
   const gains = Object.values(bestGainByTopic);
   return {
     quizzes:        sessions.length,
@@ -258,6 +313,10 @@ export function computeMetrics(profile) {
     typesTried:     QUESTION_TYPES.filter(t => typesTried.has(t)).length,
     fullMixQuizzes,
     mindmaps:       profile.mindmapsViewed || 0,
+    studyMins:      Math.floor(studySecs / 60),
+    pointsLearned,
+    topicsLearned:  (profile.topicsCompleted || []).length,
+    cheatSheets:    (profile.cheatSheetsViewed || []).length,
     level:          getLevelInfo(profile.xp || 0).current.level,
   };
 }
@@ -294,7 +353,7 @@ export function checkBadges(profile, newSessionPct, source) {
 
 /* ── Main award function ─────────────────────────────────── */
 export async function awardXp(uid, source, options = {}) {
-  // source: 'quiz' | 'mindmap' | 'time'
+  // source: 'quiz' | 'mindmap' | 'time' | 'learn' | 'cheatsheet'
   // options: { pct, minutes }
   const snap = await getDoc(doc(db, 'users', uid));
   if (!snap.exists()) return null;
@@ -308,6 +367,10 @@ export async function awardXp(uid, source, options = {}) {
     xpGained = XP.MINDMAP_VIEW;
   } else if (source === 'time') {
     xpGained = Math.floor((options.minutes || 0) / 5) * XP.TIME_PER_5MIN;
+  } else if (source === 'learn') {
+    xpGained = XP.LEARN_POINT;
+  } else if (source === 'cheatsheet') {
+    xpGained = XP.CHEATSHEET;
   }
 
   const { streak, lastRevisionDate, streakBonus } = updateStreak(profile);

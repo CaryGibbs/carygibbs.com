@@ -7,7 +7,8 @@
 // ============================================================
 
 import { db } from './firebase-config.js';
-import { isPreview, previewInfo } from './auth.js';
+import { isPreview, previewInfo, showToast } from './auth.js';
+import { awardXp, BADGES } from './gamification.js';
 import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -209,8 +210,35 @@ async function toggleLearned() {
   document.dispatchEvent(new CustomEvent('learn:changed', { detail: { topicId: topic.id } }));
   if (on && index < list.length - 1) setTimeout(() => step(1), 350);   // keep the flow going
   if (isPreview() || ctx?.profile?.role !== 'student') return;
+  // Has the whole topic now been learnt?
+  const allDone = list.every(p => set.has(noteId(p.term)));
   try {
-    await updateDoc(doc(db, 'users', ctx.user.uid), { [`learned.${topic.id}`]: on ? arrayUnion(id) : arrayRemove(id) });
+    await updateDoc(doc(db, 'users', ctx.user.uid), {
+      [`learned.${topic.id}`]: on ? arrayUnion(id) : arrayRemove(id),
+      topicsCompleted: allDone ? arrayUnion(topic.id) : arrayRemove(topic.id),
+    });
+    if (allDone && on) showToast(`Topic complete: you've learnt every point in ${topic.name}!`, 'success');
+    if (on) celebrate(await awardXp(ctx.user.uid, 'learn'));
+  } catch (e) { /* not critical */ }
+}
+
+// Tell the student about any badges they've just earned
+export function celebrate(result) {
+  (result?.newlyEarned || []).forEach((id, i) => {
+    const b = BADGES.find(x => x.id === id);
+    if (b) setTimeout(() => showToast(`${b.icon} New badge: ${b.name}`, 'success'), 600 * i);
+  });
+}
+
+// First time a student opens a topic's cheat sheet: count it and award XP
+async function recordCheatSheet(topic) {
+  if (isPreview() || ctx?.profile?.role !== 'student') return;
+  const seen = ctx.profile.cheatSheetsViewed = ctx.profile.cheatSheetsViewed || [];
+  if (seen.includes(topic.id)) return;
+  seen.push(topic.id);
+  try {
+    await updateDoc(doc(db, 'users', ctx.user.uid), { cheatSheetsViewed: arrayUnion(topic.id) });
+    celebrate(await awardXp(ctx.user.uid, 'cheatsheet'));
   } catch (e) { /* not critical */ }
 }
 
@@ -230,6 +258,7 @@ export async function renderCheatSheet(container, topic, { force = false } = {})
       updateDoc(doc(db, topicPath(topic)), { cheatSheet: sheet }).catch(() => {});
     }
     container.innerHTML = cheatSheetHtml(topic, sheet);
+    recordCheatSheet(topic);
     container.querySelector('[data-cs-print]')?.addEventListener('click', () => printSheet(container));
     container.querySelector('[data-cs-regen]')?.addEventListener('click', () => renderCheatSheet(container, topic, { force: true }));
   } catch (e) {
@@ -299,7 +328,59 @@ function cheatSheetHtml(topic, s) {
   </article>`;
 }
 
+// Print from a separate, self-contained page. The app keeps a database
+// connection open in the background, and Safari can hold the print dialog
+// back until that connection refreshes (up to a couple of minutes). A clean
+// page with no connection prints straight away.
+const PRINT_CSS = `
+  @page { size: A4; margin: 10mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: Inter, -apple-system, system-ui, sans-serif; color: #111; background: #fff; padding: 16px; }
+  .no-print { display: none !important; }
+  .cs-head { border-bottom: 2px solid ACCENT; padding-bottom: 10px; margin-bottom: 12px; }
+  .cs-kicker { font-size: 9pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: ACCENT; }
+  .cs-title { font-size: 20pt; letter-spacing: -.02em; margin: 2px 0 4px; }
+  .cs-summary { color: #444; font-size: 10.5pt; line-height: 1.45; }
+  .cs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+  .cs-box { border: 1px solid #d9d9d9; border-radius: 8px; padding: 8px 10px; break-inside: avoid; }
+  .cs-box h3 { display: flex; align-items: center; gap: 5px; font-size: 10.5pt; margin-bottom: 4px; color: ACCENT; }
+  .cs-box h3 svg { width: 13px; height: 13px; }
+  .cs-box ul { padding-left: 1.1em; }
+  .cs-box li { font-size: 9.5pt; line-height: 1.4; margin-bottom: 2px; }
+  .cs-terms { margin-bottom: 8px; }
+  .cs-terms dl { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .cs-terms dt { display: inline; font-weight: 700; font-size: 9.5pt; }
+  .cs-terms dt::after { content: ' — '; font-weight: 400; color: #666; }
+  .cs-terms dd { display: inline; font-size: 9.5pt; }
+  .cs-remember { background: ACCENT_SOFT; }
+  .cs-tips h3 { color: #15803d; } .cs-mistakes h3 { color: #b45309; }
+  .cs-foot { font-size: 8pt; color: #666; margin-top: 6px; }
+  .print-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; }
+  .print-bar button { font: 600 14px Inter, system-ui, sans-serif; padding: 10px 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+  .print-bar button.primary { background: ACCENT; border-color: ACCENT; color: #fff; }
+  @media print { body { padding: 0; } .print-bar { display: none; } }
+  @media screen { body { max-width: 900px; margin: 0 auto; } }
+`;
+
 function printSheet(container) {
+  const sheet = container.querySelector('.cheatsheet');
+  if (!sheet) return;
+  const accent = getComputedStyle(document.body).getPropertyValue('--color-primary').trim() || '#2563eb';
+  const title = sheet.querySelector('.cs-title')?.textContent || 'Cheat sheet';
+  const css = PRINT_CSS.replaceAll('ACCENT_SOFT', accent + '1a').replaceAll('ACCENT', accent);
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${esc(title)} · Cheat sheet</title><style>${css}</style></head>
+    <body><div class="print-bar"><button class="primary" onclick="window.print()">Print or save as PDF</button><button onclick="window.close()">Close</button></div>
+    ${sheet.outerHTML}
+    <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 250); });<\/script></body></html>`;
+
+  const w = window.open('', '_blank');
+  if (w) {
+    w.document.open(); w.document.write(html); w.document.close();
+    return;
+  }
+  // Pop-ups blocked: print here instead (may be slower in Safari)
   document.body.classList.add('printing-cheatsheet');
   container.classList.add('cs-print-target');
   const done = () => { document.body.classList.remove('printing-cheatsheet'); container.classList.remove('cs-print-target'); window.removeEventListener('afterprint', done); };
