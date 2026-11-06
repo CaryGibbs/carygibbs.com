@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bonce — Mindmap</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261106d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261106d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261106d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261106d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261106e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261106e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261106e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261106e">
   <meta name="apple-mobile-web-app-title" content="Bonce">
   <meta name="application-name" content="Bonce">
-  <link rel="stylesheet" href="theme.css?v=20261106d">
-  <script src="icons.js?v=20261106d"></script>
+  <link rel="stylesheet" href="theme.css?v=20261106e">
+  <script src="icons.js?v=20261106e"></script>
   <style>
-    body { height: 100vh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
+    body { height: 100vh; height: 100dvh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
 
     /* ── Top nav ─────────────────────────────────────────── */
     .topnav {
@@ -49,6 +49,16 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     }
 
+    /* Phones and narrow tablets: back + title on one row, the four
+       view buttons full width underneath, so nothing runs off the screen */
+    @media (max-width: 760px) {
+      .topnav { flex-wrap: wrap; height: auto !important; padding: 8px 12px 10px !important; row-gap: 8px; column-gap: 12px; }
+      .nav-title { text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .view-toggle { flex: 1 1 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .view-btn { flex-direction: column; gap: 2px !important; padding: 6px 2px; font-size: 0.7rem; justify-content: center; }
+      .view-btn .icon { width: 18px !important; height: 18px !important; }
+      .spider-hint { max-width: calc(100% - 32px); white-space: normal; text-align: center; bottom: 12px; }
+    }
     /* ── Loading ─────────────────────────────────────────── */
     .loading-wrap {
       display: flex; align-items: center; justify-content: center;
@@ -78,6 +88,11 @@
       width: 100%; overflow: hidden; cursor: grab;
     }
     #view-spider:active { cursor: grabbing; }
+    .spider-zoom-btn {
+      width: 34px; height: 34px; border-radius: 50%; background: var(--color-surface);
+      border: 1px solid var(--color-border); color: var(--color-text); font-size: 1.15rem; font-weight: 700;
+      line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    }
     #spider-canvas {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
@@ -268,8 +283,8 @@
     }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
   </style>
-  <link rel="stylesheet" href="learn.css?v=20261106d">
-  <link rel="stylesheet" href="ui.css?v=20261106d">
+  <link rel="stylesheet" href="learn.css?v=20261106e">
+  <link rel="stylesheet" href="ui.css?v=20261106e">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -293,12 +308,14 @@
 
 <div class="panels-container">
 <!-- Spider view -->
-<div class="view-panel" id="view-spider" style="width:100%;height:calc(100vh - 64px);position:relative;overflow:hidden;">
+<div class="view-panel" id="view-spider" style="width:100%;overflow:hidden;">
   <canvas id="spider-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
-  <div class="spider-hint" id="spider-hint">Tap a key point to learn about it · Drag to pan · Pinch to zoom</div>
+  <div class="spider-hint" id="spider-hint">Tap a key point to learn · Pinch or + to zoom</div>
   <div style="position:absolute;top:var(--space-md);right:var(--space-md);display:flex;gap:6px;z-index:5;">
     <button id="btn-spider-back" onclick="spiderBack()" style="display:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">← Back</button>
-    <button onclick="resetSpiderView()" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">⊙ Centre</button>
+    <button class="spider-zoom-btn" onclick="spiderZoom(1/1.4)" aria-label="Zoom out">−</button>
+    <button class="spider-zoom-btn" onclick="spiderZoom(1.4)" aria-label="Zoom in">+</button>
+    <button onclick="resetSpiderView()" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-ui);font-size:0.78rem;font-weight:600;color:var(--color-text-muted);cursor:pointer;">⊙ Fit</button>
   </div>
   <div class="spider-detail" id="spider-detail">
     <button class="spider-detail-close" onclick="closeSpiderDetail()" aria-label="Close"><i data-icon="x"></i></button>
@@ -344,6 +361,7 @@
   function switchView(v) { window._switchView && window._switchView(v); }
   function closeSpiderDetail() { window._closeSpiderDetail && window._closeSpiderDetail(); }
   function resetSpiderView() { window._resetSpiderView && window._resetSpiderView(); }
+  function spiderZoom(f) { window._spiderZoom && window._spiderZoom(f); }
   function spiderBack() { window._spiderBack && window._spiderBack(); }
   function flipCard() { window._flipCard && window._flipCard(); }
   function prevCard() { window._prevCard && window._prevCard(); }
@@ -381,6 +399,37 @@ let selectedLeaf = null;
 let focusedGroupIdx = null; // index into spiderNodes for focused group
 let spiderEdges = [];
 let panX = 0, panY = 0, zoom = 1;
+// The map is laid out on a "virtual" sheet at least 900px across, so on a
+// phone nothing has to be squashed together. It then starts zoomed to fit
+// the screen (fitZoom); pinch or the + button zooms in up to MAX_ZOOM.
+let fitZoom = 1;
+const MAX_ZOOM = 5;
+function minZoom() { return fitZoom * 0.6; }
+function clampZoom(z) { return Math.max(minZoom(), Math.min(MAX_ZOOM, z)); }
+// Zoom keeping the point under the finger/mouse (sx, sy in canvas px) still
+// Start zoomed so the whole map just fits the screen, centred
+function fitToContent(canvas) {
+  const W = canvas._w || canvas.width, H = canvas._h || canvas.height;
+  if (!spiderNodes.length) { zoom = fitZoom; panX = panY = 0; return; }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  spiderNodes.forEach(n => {
+    const rx = n.r || 70, ry = n.r || 22;     // circles, or label pills
+    x0 = Math.min(x0, n.x - rx); x1 = Math.max(x1, n.x + rx);
+    y0 = Math.min(y0, n.y - ry); y1 = Math.max(y1, n.y + ry);
+  });
+  const pad = 24;
+  const z = Math.min((W - pad * 2) / (x1 - x0), (H - pad * 2 - 40) / (y1 - y0), 1.4);
+  fitZoom = z;
+  zoom = z;
+  panX = W / 2 - ((x0 + x1) / 2) * z;
+  panY = H / 2 - ((y0 + y1) / 2) * z;
+}
+function zoomAt(newZoom, sx, sy) {
+  newZoom = clampZoom(newZoom);
+  const wx = (sx - panX) / zoom, wy = (sy - panY) / zoom;
+  zoom = newZoom;
+  panX = sx - wx * zoom; panY = sy - wy * zoom;
+}
 let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
 
 let _currentUser = null;
@@ -520,9 +569,18 @@ window._spiderBack = async function() {
 };
 
 window._resetSpiderView = function() {
-  panX = 0; panY = 0; zoom = 1;
   // If drilled in, just re-centre without reloading
   const canvas = document.getElementById('spider-canvas');
+  fitToContent(canvas);
+  drawSpider(canvas.getContext('2d'), canvas);
+};
+
+// read-only snapshot for troubleshooting from the browser console
+window.__spider = () => ({ zoom, fitZoom, panX, panY, nodes: spiderNodes });
+
+window._spiderZoom = function(f) {
+  const canvas = document.getElementById('spider-canvas');
+  zoomAt(zoom * f, (canvas._w || canvas.width) / 2, (canvas._h || canvas.height) / 2);
   drawSpider(canvas.getContext('2d'), canvas);
 };
 
@@ -622,10 +680,17 @@ function spiderColors() {
 function buildSpider() {
   const canvas = document.getElementById('spider-canvas');
   const wrap   = document.getElementById('view-spider');
-  const w = wrap.offsetWidth  || window.innerWidth;
-  const h = wrap.offsetHeight || (window.innerHeight - 64);
-  canvas.width  = w;
-  canvas.height = h;
+  const vw = wrap.offsetWidth  || window.innerWidth;
+  const vh = wrap.offsetHeight || (window.innerHeight - 64);
+  // Sharp on high-resolution (retina) screens
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width  = Math.round(vw * dpr);
+  canvas.height = Math.round(vh * dpr);
+  canvas._w = vw; canvas._h = vh; canvas._dpr = dpr;
+  // Lay out on a virtual sheet at least 900px on its shorter side
+  const S = Math.max(1, 900 / Math.min(vw, vh));
+  const w = vw * S, h = vh * S;
+  fitZoom = 1 / S;
 
   // Gather content — single topic or first topic of subject
   const sub = subjects[0];
@@ -745,8 +810,8 @@ function buildSpider() {
     });
   }
 
-  panX = 0; panY = 0; zoom = 1;
   focusedGroupIdx = null;
+  fitToContent(canvas);
   const ctx = canvas.getContext('2d');
   drawSpider(ctx, canvas);
   setupSpiderInteraction(canvas, ctx);
@@ -845,11 +910,12 @@ function drawSpider(ctx, canvas) {
   try {
   const C = spiderColors();
   ctx.globalAlpha = 1.0; // always start clean
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(canvas._dpr || 1, 0, 0, canvas._dpr || 1, 0, 0);
+  ctx.clearRect(0, 0, canvas._w || canvas.width, canvas._h || canvas.height);
 
   // Background
   ctx.fillStyle = C.bg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, canvas._w || canvas.width, canvas._h || canvas.height);
 
   ctx.save();
   ctx.translate(panX, panY);
@@ -989,7 +1055,7 @@ function drawSpider(ctx, canvas) {
     ctx.fillStyle = '#ff6b6b';
     ctx.font = '14px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Spider error: ' + err.message, canvas.width/2, canvas.height/2);
+    ctx.fillText('Spider error: ' + err.message, (canvas._w || canvas.width)/2, (canvas._h || canvas.height)/2);
   }
 }
 
@@ -1102,16 +1168,16 @@ function handleSpiderClick(clientX, clientY, canvas) {
           const bboxH = maxY - minY;
           // Zoom to fit bounding box with some padding
           const targetZoom = Math.min(
-            (spiderCanvas.width  * 0.85) / bboxW,
-            (spiderCanvas.height * 0.75) / bboxH,
-            3 // max zoom cap
+            (spiderCanvas._w * 0.85) / bboxW,
+            (spiderCanvas._h * 0.75) / bboxH,
+            MAX_ZOOM
           );
-          zoom = targetZoom;
+          zoom = clampZoom(targetZoom);
           // Pan to centre the bounding box
           const bboxCx = (minX + maxX) / 2;
           const bboxCy = (minY + maxY) / 2;
-          panX = spiderCanvas.width  / 2 - bboxCx * zoom;
-          panY = spiderCanvas.height / 2 - bboxCy * zoom;
+          panX = spiderCanvas._w / 2 - bboxCx * zoom;
+          panY = spiderCanvas._h / 2 - bboxCy * zoom;
           document.getElementById('spider-hint').textContent = `${n.label} — tap group again to unfocus`;
         }
         drawSpider(spiderCanvas.getContext('2d'), spiderCanvas);
@@ -1149,23 +1215,37 @@ function setupSpiderInteraction(canvas, ctx) {
   c.addEventListener('wheel', e => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    zoom = Math.max(0.3, Math.min(3, zoom * delta));
+    const r = c.getBoundingClientRect();
+    zoomAt(zoom * delta, e.clientX - r.left, e.clientY - r.top);
     drawFn();
   }, { passive: false });
 
   // Touch
-  let lastTouchDist = 0;
+  let lastTouchDist = 0, lastMidX = 0, lastMidY = 0, pinched = false;
+  const startPan = t => { dragging = true; dragStartX = t.clientX; dragStartY = t.clientY; panStartX = panX; panStartY = panY; };
   c.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) { dragging = true; dragStartX = e.touches[0].clientX; dragStartY = e.touches[0].clientY; panStartX = panX; panStartY = panY; }
-    if (e.touches.length === 2) { lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+    if (e.touches.length === 1) { pinched = false; startPan(e.touches[0]); }
+    if (e.touches.length === 2) {
+      dragging = false; pinched = true;
+      const r = c.getBoundingClientRect();
+      lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      lastMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+      lastMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+    }
   });
   c.addEventListener('touchmove', e => {
     e.preventDefault();
     if (e.touches.length === 1 && dragging) { panX = panStartX + (e.touches[0].clientX - dragStartX); panY = panStartY + (e.touches[0].clientY - dragStartY); drawFn(); }
     if (e.touches.length === 2) {
+      const r = c.getBoundingClientRect();
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      zoom = Math.max(0.3, Math.min(3, zoom * (dist / lastTouchDist)));
-      lastTouchDist = dist; drawFn();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+      // pan with the two fingers, and zoom around the point between them
+      panX += midX - lastMidX; panY += midY - lastMidY;
+      if (lastTouchDist > 0) zoomAt(zoom * (dist / lastTouchDist), midX, midY);
+      lastTouchDist = dist; lastMidX = midX; lastMidY = midY;
+      drawFn();
     }
   }, { passive: false });
   let touchStartX = 0, touchStartY = 0;
@@ -1174,15 +1254,23 @@ function setupSpiderInteraction(canvas, ctx) {
   }, { passive: true });
   c.addEventListener('touchend', e => {
     dragging = false;
+    // lifting one finger after a pinch: carry on panning with the other
+    if (e.touches.length === 1) { startPan(e.touches[0]); return; }
+    if (pinched) { if (!e.touches.length) pinched = false; return; }
     if (e.changedTouches.length === 1) {
       const dist = Math.hypot(e.changedTouches[0].clientX - touchStartX, e.changedTouches[0].clientY - touchStartY);
-      if (dist < 10) handleSpiderClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY, c);
+      if (dist < 10) {
+        // stop the browser's follow-up "click", which would land on the
+        // learn panel's backdrop and close the panel straight away
+        e.preventDefault();
+        handleSpiderClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY, c);
+      }
     }
   });
 
   window.addEventListener('resize', () => {
     const wrap = document.getElementById('view-spider');
-    c.width = wrap.clientWidth; c.height = wrap.clientHeight;
+    if (Math.abs(wrap.clientWidth - (c._w || 0)) < 2 && Math.abs(wrap.clientHeight - (c._h || 0)) < 2) return;
     buildSpider();
   });
 }

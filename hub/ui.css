@@ -229,6 +229,8 @@
 /* ── Small screens ──────────────────────────────────────── */
 @media (max-width: 600px) {
   .topnav { padding: 0 16px !important; }
+  #toast-container { left: 12px !important; right: 12px !important; max-width: none !important; }
+  #toast-container .toast { max-width: 100% !important; min-width: 0 !important; }
   .page { padding: 20px 16px !important; }
   .subject-actions .btn { flex-basis: 100%; }
   #xp-bar-right { display: none; }
