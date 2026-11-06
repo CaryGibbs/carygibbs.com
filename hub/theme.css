@@ -37,8 +37,8 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoot
 
   --color-on-primary:   #ffffff;
 
-  --logo-url:           url('/hub_beta/assets/images/brand/logo.svg');
-  --hero-bg:            url('/hub_beta/assets/images/brand/hero.jpg');
+  --logo-url:           url('/hub/assets/images/brand/logo.svg');
+  --hero-bg:            url('/hub/assets/images/brand/hero.jpg');
 }
 
 /* ============================================================
