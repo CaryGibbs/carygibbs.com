@@ -20,9 +20,9 @@ const onAdminPage = () => /admin\.html$/.test(location.pathname);
 // (coloured label in the sidebar, a chip in the page header, the tab
 // title) so it's always obvious which role you're acting in.
 export const VIEWS = {
-  parent:  { label: 'Parent view',  icon: 'house',  colour: '#0ca678', home: 'parent.html' },
-  admin:   { label: 'Admin view',   icon: 'shield', colour: '#4f46e5', home: 'admin.html' },
-  teacher: { label: 'Teacher view', icon: 'school', colour: '#e8590c', home: 'teacher-dashboard.html' },
+  parent:  { label: 'Parent view',  icon: 'house',  colour: '#0d8a7c', home: 'parent.html' },
+  admin:   { label: 'Admin view',   icon: 'shield', colour: '#8e2c6b', home: 'admin.html' },
+  teacher: { label: 'Teacher view', icon: 'school', colour: '#3f5bd0', home: 'teacher-dashboard.html' },
 };
 
 // view:   'parent' | 'admin' | 'teacher'  (which workspace this page is)

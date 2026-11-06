@@ -30,8 +30,8 @@
 .nav-logo-icon, .logo-icon, .sidebar-logo-icon {
   width: 30px !important; height: 30px !important;
   border-radius: 8px !important;
-  background: #ff8a65 !important;              /* Bonce brand: coral tile, teal b */
-  color: #0f4c5c !important;
+  background: #ff8a65 !important;              /* Bonce brand: coral tile, ink-black b */
+  color: #1c1917 !important;
   display: inline-flex !important; align-items: center; justify-content: center;
   font-size: 16px !important;
   box-shadow: inset 0 -2px 0 rgba(0,0,0,0.12);

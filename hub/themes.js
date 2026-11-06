@@ -1,17 +1,18 @@
 // ============================================================
-// CLASP: student theme list, used by theme pickers.
+// BONCE: student theme list, used by theme pickers.
 // Colours here are only for the preview swatches; the real
 // values live in theme.css.
 // ============================================================
 
 export const THEMES = [
-  { id: 'light',    name: 'Clean light', desc: 'Bright, calm and simple',          bg: '#f7f8fa', surface: '#ffffff', primary: '#2563eb', text: '#111827', dark: false },
-  { id: 'midnight', name: 'Midnight',    desc: 'Dark navy, easy on the eyes',      bg: '#0b1220', surface: '#111a2e', primary: '#38bdf8', text: '#e6edf7', dark: true  },
-  { id: 'calm',     name: 'Calm study',  desc: 'Warm paper with sage green',       bg: '#f7f4ee', surface: '#fffdf8', primary: '#4f7a5f', text: '#2b2a26', dark: false },
-  { id: 'bright',   name: 'Bright',      desc: 'Bold purple and pink',             bg: '#f4f1ff', surface: '#ffffff', primary: '#6d28d9', text: '#1e1238', dark: false },
-  { id: 'edge',     name: 'Edge',        desc: 'Dark with violet highlights',      bg: '#0f1020', surface: '#17182b', primary: '#7c74ff', text: '#eceefe', dark: true  },
-  { id: 'spark',    name: 'Spark',       desc: 'Warm and friendly orange',         bg: '#fff8f1', surface: '#ffffff', primary: '#f2662b', text: '#2b2118', dark: false },
-  { id: 'focus',    name: 'Focus',       desc: 'Minimal, no distractions',         bg: '#f6f7f7', surface: '#ffffff', primary: '#0f766e', text: '#18201f', dark: false },
+  { id: 'edge',     name: 'Ember',       desc: 'Warm dark with Bonce coral',      bg: '#15120f', surface: '#1f1b17', primary: '#ff8a65', text: '#f6efe8', dark: true  },
+  { id: 'midnight', name: 'Deep Sea',    desc: 'Dark teal with coral',             bg: '#0a1c22', surface: '#10282f', primary: '#ff9b73', text: '#e8f4f4', dark: true  },
+  { id: 'cosmic',   name: 'Cosmic',      desc: 'Deep plum night, coral and lilac', bg: '#170f20', surface: '#21162d', primary: '#ff8a65', text: '#f4ecfb', dark: true  },
+  { id: 'light',    name: 'Daylight',    desc: 'Clean white, teal and coral',      bg: '#faf7f4', surface: '#ffffff', primary: '#0f5560', text: '#1c1917', dark: false },
+  { id: 'calm',     name: 'Sage & Clay', desc: 'Warm paper, sage and clay',        bg: '#f5f3ec', surface: '#fffdf8', primary: '#3f6b55', text: '#24231f', dark: false },
+  { id: 'bright',   name: 'Berry Pop',   desc: 'Bold plum with coral',             bg: '#fdf4f6', surface: '#ffffff', primary: '#8e2c6b', text: '#2a1422', dark: false },
+  { id: 'spark',    name: 'Sunshine',    desc: 'Sunny and orange all the way',     bg: '#fff7ef', surface: '#ffffff', primary: '#c2410c', text: '#2b1d14', dark: false },
+  { id: 'focus',    name: 'Ink',         desc: 'Minimal black and white',          bg: '#f7f7f6', surface: '#ffffff', primary: '#1c1917', text: '#1c1917', dark: false },
 ];
 
 export function themeById(id) {
