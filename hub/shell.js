@@ -68,10 +68,14 @@ export function mountShell(user, profile, { view, active } = {}) {
       <div id="shell-children"></div>`,
     teacher: `
       <div class="nav-section-label">Teaching</div>
-      <a class="nav-item${active === 'classes' ? ' active' : ''}" href="teacher-dashboard.html">
+      <a class="nav-item${active === 'home' ? ' active' : ''}" href="teacher-dashboard.html#home" data-ph="home">
+        <span class="nav-icon"><i data-icon="house"></i></span><span>Home</span>
+      </a>
+      <a class="nav-item${active === 'classes' ? ' active' : ''}" href="teacher-dashboard.html#classes" data-ph="classes">
         <span class="nav-icon"><i data-icon="school"></i></span><span>My classes</span>
       </a>`,
     admin: `
+      ${adminLink('home', 'house', 'Home')}
       <div class="nav-section-label">Content</div>
       ${adminLink('groups', 'folder', 'Revision packs')}
       ${onAdminPage() ? `<a class="nav-item nav-sub" href="#questions" data-nav="questions" id="nav-questions-btn" style="display:none;"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Current topic</span></a>` : ''}

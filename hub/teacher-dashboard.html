@@ -294,10 +294,12 @@
 <aside id="app-sidebar"></aside>
 <main class="main">
   <header class="topbar">
-    <div class="breadcrumb"><span>Teaching</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">My classes</span></div>
+    <div class="breadcrumb"><span>Teaching</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current" id="crumb-current">Home</span></div>
     <div class="topbar-actions"></div>
   </header>
   <div class="content-area page-fade">
+  <section id="teacher-home"><div class="home-empty">Loading…</div></section>
+  <section id="teacher-classes" hidden>
     <div class="panel-header">
       <div>
         <div class="panel-title">My classes</div>
@@ -307,6 +309,7 @@
     </div>
     <div class="children-count" id="classes-count">Loading…</div>
     <div class="classes-grid" id="classes-grid"></div>
+  </section>
   </div>
 </main>
 
@@ -485,6 +488,7 @@
   import { auth, db } from './firebase-config.js';
   import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js';
   import { mountShell } from './shell.js';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js';
   import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
   import { app as firebaseApp } from './firebase-config.js';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -523,7 +527,8 @@
   requireRole('teacher', (user, profile) => {
     teacherUid = user.uid;
     teacherProfile = profile;
-    mountShell(user, profile, { view: 'teacher', active: 'classes' });
+    mountShell(user, profile, { view: 'teacher', active: currentSection() === 'classes' ? 'classes' : 'home' });
+    showSection();
     if (profile.school) document.getElementById('school-name').textContent = profile.school;
     loadPacks().then(loadClasses);
   });
@@ -538,8 +543,110 @@
     await Promise.all(Object.keys(classesData).map(async id => {
       const s = await getDocs(collection(db, 'users', teacherUid, 'classes', id, 'students')).catch(() => null);
       studentCounts[id] = s ? s.size : 0;
+      classRoster[id] = [];
+      s?.forEach(d => classRoster[id].push({ id: d.id, ...d.data() }));
     }));
     renderClasses();
+    loadStudentProfiles().then(renderTeacherHome);
+  }
+
+  /* ── Home / My classes sections (#home, #classes) ─────────── */
+  let classRoster = {};        // classId -> [{ id, name, email, joinedAt }]
+  const studentProfiles = {};  // uid -> full student record
+  function currentSection() { return location.hash.replace('#', '') === 'classes' ? 'classes' : 'home'; }
+  function showSection() {
+    const sec = currentSection();
+    document.getElementById('teacher-home').hidden = sec !== 'home';
+    document.getElementById('teacher-classes').hidden = sec !== 'classes';
+    document.getElementById('crumb-current').textContent = sec === 'home' ? 'Home' : 'My classes';
+    document.querySelectorAll('[data-ph]').forEach(a => a.classList.toggle('active', a.dataset.ph === sec));
+  }
+  window.addEventListener('hashchange', showSection);
+
+  async function loadStudentProfiles() {
+    const ids = [...new Set(Object.values(classRoster).flat().map(s => s.id))].filter(id => !studentProfiles[id]);
+    await Promise.all(ids.slice(0, 300).map(id => getDoc(doc(db, 'users', id))
+      .then(d => { if (d.exists()) studentProfiles[id] = { id, ...d.data() }; }).catch(() => {})));
+  }
+
+  function renderTeacherHome() {
+    const box = document.getElementById('teacher-home');
+    const first = (teacherProfile?.name || '').split(' ')[0];
+    const classIds = Object.keys(classesData).sort((a, b) => (classesData[a].name || '').localeCompare(classesData[b].name || ''));
+    const actions = `<button class="btn btn-secondary" onclick="location.hash='classes'"><i data-icon="school"></i> My classes</button>
+      <button class="btn btn-primary" onclick="openCreateClass()"><i data-icon="plus"></i> Create class</button>`;
+    if (!classIds.length) {
+      box.innerHTML = helloHtml({ name: first, sub: 'Create your first class to get started.', actions })
+        + attentionHtml([{ emoji: '🏫', text: 'No classes yet', sub: 'Create a class, choose its revision packs and share the join code.', action: smallBtn('Create class', 'openCreateClass()', true) }]);
+      return;
+    }
+    const weekFrom = startOfDay() - 6 * DAY;
+    const allIds = [...new Set(Object.values(classRoster).flat().map(s => s.id))];
+    const studs = allIds.map(id => studentProfiles[id]).filter(Boolean);
+    const active = studs.filter(s => studentSummary(s).lastActive >= weekFrom);
+    const weekSessions = studs.flatMap(s => (s.sessions || []).filter(x => (x.date || 0) >= weekFrom));
+    const weekAvg = weekSessions.length ? Math.round(weekSessions.reduce((a, x) => a + (x.pct || 0), 0) / weekSessions.length) : null;
+
+    const sub = active.length
+      ? `${active.length} of ${allIds.length} student${allIds.length === 1 ? '' : 's'} revised this week.`
+      : `No revision from your students yet this week.`;
+
+    // Needs attention
+    const items = [];
+    classIds.forEach(cid => {
+      const cls = classesData[cid];
+      const roster = classRoster[cid] || [];
+      const name = esc(cls.name || 'Class');
+      const clsPacks = (cls.packIds || []).filter(p => packs[p]);
+      if (!clsPacks.length) items.push({ p: 0, emoji: '📦', text: `${name} has no revision pack`, sub: 'Students in it have nothing to revise yet.', action: smallBtn('Choose packs', `openPacks('${cid}')`, true) });
+      if (!roster.length) items.push({ p: 1, emoji: '👥', text: `${name} has no students yet`, sub: `Share the join code ${esc(cls.joinCode || '')}.`, action: smallBtn('Students', `openStudentsModal('${cid}')`) });
+      const profs = roster.map(r => studentProfiles[r.id]).filter(Boolean);
+      const idle = profs.filter(s => studentSummary(s).lastActive < Date.now() - 7 * DAY);
+      if (roster.length && idle.length) items.push({ p: 2, emoji: '💤', text: `${idle.length} in ${name} ${idle.length === 1 ? "hasn't" : "haven't"} revised for a week`, sub: idle.slice(0, 3).map(s => esc((s.name || '').split(' ')[0])).join(', ') + (idle.length > 3 ? '…' : ''), action: smallBtn('Progress', `openProgress('${cid}')`) });
+      const low = profs.filter(s => {
+        const ses = (s.sessions || []).filter(x => !x.review && (x.date || 0) >= Date.now() - 30 * DAY);
+        return ses.length >= 2 && ses.reduce((a, x) => a + (x.pct || 0), 0) / ses.length < 50;
+      });
+      if (low.length) items.push({ p: 3, emoji: '📉', text: `${low.length} in ${name} averaging under 50%`, sub: low.slice(0, 3).map(s => esc((s.name || '').split(' ')[0])).join(', ') + (low.length > 3 ? '…' : ''), action: smallBtn('Progress', `openProgress('${cid}')`) });
+      const fresh = roster.filter(r => r.joinedAt && r.joinedAt >= Date.now() - 7 * DAY);
+      if (fresh.length) items.push({ p: 4, emoji: '👋', text: `${fresh.length} new in ${name} this week`, sub: fresh.slice(0, 3).map(r => esc((r.name || '').split(' ')[0])).join(', '), action: smallBtn('Students', `openStudentsModal('${cid}')`) });
+    });
+    items.sort((a, b) => a.p - b.p);
+
+    // Recent activity across classes
+    const classOf = {};
+    classIds.forEach(cid => (classRoster[cid] || []).forEach(r => { classOf[r.id] = classOf[r.id] || classesData[cid].name; }));
+    const events = [];
+    studs.forEach(s => (s.sessions || []).filter(x => (x.date || 0) >= Date.now() - 7 * DAY).forEach(x => events.push({ t: x.date, html:
+      `${dotHtml((s.name || '?')[0])}<div class="act-text">${esc((s.name || '').split(' ')[0])} ${x.review ? 'did a review' : `did a quiz on <strong>${esc(x.topic || x.subject || '')}</strong>`}<small>${agoText(x.date)} · ${esc(classOf[s.id] || '')}</small></div><span class="act-score">${x.pct ?? ''}%</span>` })));
+
+    // Classes this week
+    const rows = classIds.map(cid => {
+      const cls = classesData[cid];
+      const profs = (classRoster[cid] || []).map(r => studentProfiles[r.id]).filter(Boolean);
+      const act = profs.filter(s => studentSummary(s).lastActive >= weekFrom).length;
+      const ses = profs.flatMap(s => (s.sessions || []).filter(x => (x.date || 0) >= weekFrom));
+      const avg = ses.length ? Math.round(ses.reduce((a, x) => a + (x.pct || 0), 0) / ses.length) + '%' : '–';
+      const mins = profs.reduce((a, s) => a + studentSummary(s).weekMins, 0);
+      return `<div class="wk-row">
+        <div class="wk-name">${dotHtml((cls.name || '?')[0])}<div>${esc(cls.name || '')}<small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">${esc(cls.subject || '')}${cls.joinCode ? ' · code ' + esc(cls.joinCode) : ''}</small></div></div>
+        <div class="wk-stat"><b>${(classRoster[cid] || []).length}</b><span>students</span></div>
+        <div class="wk-stat"><b>${act}</b><span>active this week</span></div>
+        <div class="wk-stat"><b>${avg}</b><span>average score</span></div>
+        <div class="wk-stat"><b>${mins >= 60 ? Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm' : mins + 'm'}</b><span>revision this week</span></div>
+        <div class="wk-actions">${smallBtn('Progress', `openProgress('${cid}')`)}${smallBtn('Students', `openStudentsModal('${cid}')`)}</div>
+      </div>`;
+    }).join('');
+
+    box.innerHTML = helloHtml({ name: first, sub, actions })
+      + tilesHtml([
+        { value: classIds.length, label: `class${classIds.length === 1 ? '' : 'es'}` },
+        { value: allIds.length, label: 'students' },
+        { value: `${active.length}/${allIds.length}`, label: 'active this week' },
+        { value: weekAvg === null ? '–' : weekAvg + '%', label: 'average score this week' },
+      ])
+      + `<div class="home-grid">${attentionHtml(items)}${activityHtml(events, 'No quizzes from your students in the last 7 days.')}</div>`
+      + `<div class="home-card"><h3><i data-icon="school"></i> Your classes this week</h3>${rows}</div>`;
   }
 
   window._doSignOut = () => handleSignOut();
@@ -737,7 +844,7 @@
         classes: { [activeClassId]: true },
         classPacks: { [activeClassId]: classPacksNow }
       });
-      await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email });
+      await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email, joinedAt: Date.now() });
       await secondaryAuth.signOut();
       await deleteApp(secondaryApp);
       document.getElementById('student-name').value = '';
@@ -771,7 +878,7 @@
     if (!student) { showModalError('add-student-error', 'No Bonce account uses that email. Set a password to create one.'); return; }
     if (!isStudent(student)) { showModalError('add-student-error', 'That account isn\'t a student account.'); return; }
     await updateDoc(doc(db, 'users', student.id), { [`classes.${activeClassId}`]: true, [`classPacks.${activeClassId}`]: packIds });
-    await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', student.id), { name: student.name || name, email: student.email || email });
+    await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', student.id), { name: student.name || name, email: student.email || email, joinedAt: Date.now() });
     document.getElementById('student-name').value = '';
     document.getElementById('student-email').value = '';
     loadStudentList(activeClassId); countStudents();

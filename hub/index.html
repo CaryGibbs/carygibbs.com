@@ -233,7 +233,7 @@
         };
         await setDoc(doc(db, 'users', uid), profile);
         if (classInfo) {
-          await setDoc(doc(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students`, uid), { name, email });
+          await setDoc(doc(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students`, uid), { name, email, joinedAt: Date.now() });
         }
       }
       await redirectByRole(uid);

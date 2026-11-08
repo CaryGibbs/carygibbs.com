@@ -506,8 +506,11 @@
 
   <div class="content-area page-fade">
 
+    <!-- ── HOME PANEL ────────────────────────────────────── -->
+    <div class="panel" id="panel-home"><div id="admin-home"><div class="home-empty">Loading…</div></div></div>
+
     <!-- ── GROUPS PANEL ──────────────────────────────────── -->
-    <div class="panel active" id="panel-groups">
+    <div class="panel" id="panel-groups">
       <div class="panel-header">
         <div>
           <div class="panel-title">Revision packs</div>
@@ -997,7 +1000,8 @@
 
 <script type="module">
 import { auth, db, storage } from './firebase-config.js';
-import { requireRole, handleSignOut, showToast, openViewAs, primaryRole } from './auth.js';
+import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js';
 import { mountShell } from './shell.js';
 import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js';
 import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js';
@@ -1045,16 +1049,110 @@ let currentAdminUid = null;
 requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
-  const start = ['groups', 'users', 'settings'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'groups';
+  const start = ['home', 'groups', 'users', 'settings'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  adminFirstName = (profile.name || '').split(' ')[0];
   mountShell(user, profile, { view: 'admin', active: start });
   loadGroups();
-  if (start !== 'groups') showPanel(start);
+  showPanel(start);
   // Address changes (e.g. the sidebar's "View as another student") switch panels too
   window.addEventListener('hashchange', () => {
     const p = location.hash.slice(1);
-    if (['groups', 'users', 'settings'].includes(p) && p !== currentPanel) showPanel(p);
+    if (['home', 'groups', 'users', 'settings'].includes(p) && p !== currentPanel) showPanel(p);
   });
 });
+
+/* ── Admin Home ──────────────────────────────────────────────
+   Users and content at a glance, gaps in the content, and recent
+   sign-ups and revision across all students. */
+let adminFirstName = '';
+let adminHomeBusy = false;
+async function renderAdminHome() {
+  if (adminHomeBusy) return; adminHomeBusy = true;
+  const box = document.getElementById('admin-home');
+  const actions = `<button class="btn btn-secondary" onclick="location.hash='users'"><i data-icon="user"></i> Users &amp; roles</button>
+    <button class="btn btn-primary" onclick="location.hash='groups'"><i data-icon="folder"></i> Revision packs</button>`;
+  try {
+    const [uSnap, pSnap] = await Promise.all([getDocs(collection(db, 'users')), getDocs(collection(db, 'content'))]);
+    const users = []; uSnap.forEach(d => users.push({ id: d.id, ...d.data() }));
+    const packList = []; pSnap.forEach(d => packList.push({ id: d.id, ...d.data() }));
+    const has = (u, r) => rolesOf(u).has(r);
+    const students = users.filter(u => has(u, 'student'));
+
+    // Content: every pack → subjects → topics, with key point and question counts
+    const topics = [];
+    await Promise.all(packList.map(async p => {
+      const sSnap = await getDocs(collection(db, `content/${p.id}/subjects`)).catch(() => null);
+      const subs = []; sSnap?.forEach(d => subs.push({ id: d.id, ...d.data() }));
+      p.subjectCount = subs.length;
+      await Promise.all(subs.map(async s => {
+        const tSnap = await getDocs(collection(db, `content/${p.id}/subjects/${s.id}/topics`)).catch(() => null);
+        const ts = []; tSnap?.forEach(d => ts.push({ id: d.id, ...d.data() }));
+        await Promise.all(ts.map(async t => {
+          const qSnap = await getDocs(collection(db, `content/${p.id}/subjects/${s.id}/topics/${t.id}/questions`)).catch(() => null);
+          const kp = (t.keyPoints || []).reduce((a, x) => a + (x && x.points ? x.points.length : 1), 0);
+          topics.push({ pack: p, subject: s, topic: t, questions: qSnap ? qSnap.size : 0, keyPoints: kp });
+        }));
+      }));
+    }));
+    const totalQ = topics.reduce((a, t) => a + t.questions, 0);
+
+    // Needs attention
+    const items = [];
+    packList.filter(p => !p.subjectCount).forEach(p => items.push({ p: 0, emoji: '📦', text: `${esc(p.name)} is empty`, sub: 'Add subjects and topics to this pack.', action: smallBtn('Open', `location.hash='groups'`) }));
+    // Gaps, summarised per pack so a big pack doesn't flood the list
+    const listOf = ts => ts.slice(0, 3).map(t => `${esc(t.topic.name)} (${esc(t.subject.name)})`).join(', ') + (ts.length > 3 ? ` and ${ts.length - 3} more` : '');
+    packList.forEach(p => {
+      const ts = topics.filter(t => t.pack.id === p.id);
+      const noQ = ts.filter(t => !t.questions), noK = ts.filter(t => !t.keyPoints);
+      if (noQ.length) items.push({ p: 1, emoji: '❓', text: `${noQ.length} topic${noQ.length === 1 ? '' : 's'} in ${esc(p.name)} ${noQ.length === 1 ? 'has' : 'have'} no questions`, sub: listOf(noQ), action: smallBtn('Open pack', `location.hash='groups'`) });
+      if (noK.length) items.push({ p: 2, emoji: '🗺️', text: `${noK.length} topic${noK.length === 1 ? '' : 's'} in ${esc(p.name)} ${noK.length === 1 ? 'has' : 'have'} no key points`, sub: `${listOf(noK)} · nothing to learn or map yet`, action: smallBtn('Open pack', `location.hash='groups'`) });
+    });
+    const packless = students.filter(u => !(u.groupIds || []).length && !Object.values(u.classPacks || {}).some(l => (l || []).length));
+    if (packless.length) items.push({ p: 3, emoji: '🎒', text: `${packless.length} student${packless.length === 1 ? ' has' : 's have'} no revision pack`, sub: packless.slice(0, 4).map(u => esc(u.name || u.email || '')).join(', ') + (packless.length > 4 ? '…' : ''), action: smallBtn('Users', `location.hash='users'`) });
+    const noRole = users.filter(u => !rolesOf(u).size);
+    if (noRole.length) items.push({ p: 4, emoji: '🏷️', text: `${noRole.length} account${noRole.length === 1 ? ' has' : 's have'} no role`, sub: noRole.slice(0, 3).map(u => esc(u.email || u.name || '')).join(', '), action: smallBtn('Users', `location.hash='users'`) });
+    items.sort((a, b) => a.p - b.p);
+
+    // Recent activity: sign-ups (14 days) and revision (7 days)
+    const events = [];
+    const roleWord = u => ['admin', 'teacher', 'parent', 'student'].find(r => has(u, r)) || 'user';
+    users.filter(u => u.createdAt && u.createdAt >= Date.now() - 14 * DAY).forEach(u => events.push({ t: u.createdAt, html:
+      `${dotHtml((u.name || '?')[0])}<div class="act-text"><strong>${esc(u.name || u.email || '')}</strong> joined as a ${roleWord(u)}<small>${agoText(u.createdAt)}</small></div><span class="act-score">👋</span>` }));
+    students.forEach(u => (u.sessions || []).filter(x => (x.date || 0) >= Date.now() - 7 * DAY).forEach(x => events.push({ t: x.date, html:
+      `${dotHtml((u.name || '?')[0])}<div class="act-text">${esc((u.name || '').split(' ')[0])} ${x.review ? 'did a review' : `did a quiz on <strong>${esc(x.topic || x.subject || '')}</strong>`}<small>${agoText(x.date)}</small></div><span class="act-score">${x.pct ?? ''}%</span>` })));
+
+    const activeWeek = students.filter(u => (u.sessions || []).some(x => (x.date || 0) >= Date.now() - 7 * DAY)).length;
+    // Packs summary
+    const rows = packList.sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(p => {
+      const ts = topics.filter(t => t.pack.id === p.id);
+      const q = ts.reduce((a, t) => a + t.questions, 0);
+      const gaps = ts.filter(t => !t.questions || !t.keyPoints).length;
+      const users_ = students.filter(u => (u.groupIds || []).includes(p.id) || Object.values(u.classPacks || {}).some(l => (l || []).includes(p.id))).length;
+      return `<div class="wk-row">
+        <div class="wk-name">${dotHtml((p.name || '?')[0])}<div>${esc(p.name || '')}<small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">${esc(p.description || '')}</small></div></div>
+        <div class="wk-stat"><b>${p.subjectCount || 0}</b><span>subjects</span></div>
+        <div class="wk-stat"><b>${ts.length}</b><span>topics</span></div>
+        <div class="wk-stat"><b>${q}</b><span>questions</span></div>
+        <div class="wk-stat"><b>${users_}</b><span>students using it</span></div>
+        <div class="wk-actions">${gaps ? `<span style="font-size:0.78rem;color:var(--color-warning);font-weight:600">${gaps} topic${gaps === 1 ? '' : 's'} to finish</span>` : '<span style="font-size:0.78rem;color:var(--color-success);font-weight:600">Complete</span>'}</div>
+      </div>`;
+    }).join('') || '<div class="home-empty">No revision packs yet.</div>';
+
+    box.innerHTML = helloHtml({ name: adminFirstName, sub: `${students.length} student${students.length === 1 ? '' : 's'}, ${activeWeek} active this week.`, actions })
+      + tilesHtml([
+        { value: students.length, label: 'students' },
+        { value: users.filter(u => has(u, 'parent') && !has(u, 'admin')).length, label: 'parents' },
+        { value: users.filter(u => has(u, 'teacher')).length, label: 'teachers' },
+        { value: packList.length, label: `revision pack${packList.length === 1 ? '' : 's'}` },
+        { value: topics.length, label: 'topics' },
+        { value: totalQ, label: 'questions' },
+      ])
+      + `<div class="home-grid">${attentionHtml(items, '✅ All good: every topic has key points and questions.', 8)}${activityHtml(events, 'No sign-ups or revision in the last week.')}</div>`
+      + `<div class="home-card"><h3><i data-icon="folder"></i> Revision packs</h3>${rows}</div>`;
+  } catch (e) {
+    box.innerHTML = helloHtml({ name: adminFirstName, sub: 'Could not load the overview just now.', actions });
+  } finally { adminHomeBusy = false; }
+}
 
 /* ── Navigation ──────────────────────────────────────────── */
 /* ── AI model settings ──────────────────────────────────── */
@@ -1173,6 +1271,7 @@ function showPanel(name) {
   currentPanel = name;
   updateBreadcrumb();
   if (name === 'users') loadUsers();
+  if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'settings') { renderAiSettings(); renderStreakSettings(); }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
@@ -1181,6 +1280,7 @@ function updateBreadcrumb() {
   const bc = document.getElementById('breadcrumb');
   const sep = '<span class="breadcrumb-sep">›</span>';
   // Users and Settings: "Section › Page", like the parent pages
+  if (currentPanel === 'home')     { bc.innerHTML = `<span>Admin</span>${sep}<span class="breadcrumb-current">Home</span>`; return; }
   if (currentPanel === 'users')    { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
   // Content: Content › Groups › group › subject › topic (last one is the current page)

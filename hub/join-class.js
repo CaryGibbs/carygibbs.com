@@ -32,5 +32,5 @@ export async function joinClass(uid, profile, info) {
     [`classPacks.${info.classId}`]: info.packIds || [],
   });
   await setDoc(doc(db, 'users', info.teacherUid, 'classes', info.classId, 'students', uid),
-    { name: profile.name || '', email: profile.email || '' });
+    { name: profile.name || '', email: profile.email || '', joinedAt: Date.now() });
 }
