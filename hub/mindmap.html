@@ -211,8 +211,13 @@
     }
     .flashcard-meta {
       font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
-      margin-bottom: var(--space-lg);
     }
+    .fc-toolbar { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: var(--space-lg); }
+    .fc-length { display: inline-flex; gap: 3px; padding: 3px; border-radius: 999px; background: var(--color-surface-2); border: 1px solid var(--color-border); }
+    .fc-length button { border: none; background: transparent; color: var(--color-text-muted); font-family: var(--font-ui); font-weight: 600;
+      font-size: 0.8rem; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+    .fc-length button.on { background: var(--color-surface); color: var(--color-text); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+    .fc-length-note { font-family: var(--font-ui); font-size: 0.75rem; color: var(--color-text-muted); min-height: 1em; }
     .flashcard-wrap {
       width: 100%; max-width: 560px; perspective: 1000px; margin-bottom: var(--space-xl);
     }
@@ -332,7 +337,11 @@
 
 <!-- Flashcards view -->
 <div class="view-panel" id="view-flashcards">
-  <div class="flashcard-meta" id="fc-meta"></div>
+  <div class="fc-toolbar">
+    <div class="flashcard-meta" id="fc-meta"></div>
+    <div class="fc-length" role="group" aria-label="Answer length" id="fc-length"></div>
+    <div class="fc-length-note" id="fc-length-note"></div>
+  </div>
   <div class="flashcard-wrap">
     <div class="flashcard" id="flashcard" onclick="flipCard()">
       <div class="flashcard-face flashcard-front">
@@ -374,8 +383,9 @@ import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from '
 import { awardXp } from './gamification.js';
 import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js';
 import { startStudyTimer } from './study-timer.js';
+import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers } from './card-length.js';
 import {
-  collection, getDocs, doc, getDoc
+  collection, getDocs, doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const params    = new URLSearchParams(location.search);
@@ -407,13 +417,91 @@ const MAX_ZOOM = 5;
 function minZoom() { return fitZoom * 0.6; }
 function clampZoom(z) { return Math.max(minZoom(), Math.min(MAX_ZOOM, z)); }
 // Zoom keeping the point under the finger/mouse (sx, sy in canvas px) still
+// Place labels round a ring of the smallest radius (at least minR) where
+// none of them touch. A label's room along the ring depends on its angle:
+// its full width at the top and bottom, only its height at the sides.
+// extraGap(i) adds space before label i (e.g. between groups).
+function ringLayout(labels, minR, extraGap = () => 0) {
+  const mctx = document.createElement('canvas').getContext('2d');
+  mctx.font = '12px sans-serif';
+  const half = labels.map(l => ({ hw: Math.max(mctx.measureText(l.term || l.label || '').width + 20, 60) / 2 + 6, hh: 14 + 6 }));
+  const n = labels.length;
+  if (!n) return { R: minR, angles: [] };
+  const need = (i, t) => half[i].hw * Math.abs(Math.sin(t)) + half[i].hh * Math.abs(Math.cos(t));
+  let R = minR, angles = [];
+  for (let pass = 0; pass < 8; pass++) {
+    angles = []; let t = -Math.PI / 2, total = 0;
+    for (let i = 0; i < n; i++) {
+      if (i > 0) { const step = (need(i - 1, t) + need(i, t) + extraGap(i)) / R; t += step; total += step; }
+      angles.push(t);
+    }
+    // close the loop: room between the last label and the first
+    total += (need(n - 1, t) + need(0, -Math.PI / 2) + extraGap(0)) / R;
+    if (total <= Math.PI * 2 + 1e-6 && pass > 0) {
+      // spread any spare angle evenly so the ring looks balanced
+      const spare = (Math.PI * 2 - total) / n;
+      angles = angles.map((a, i) => a + spare * i);
+      break;
+    }
+    R = Math.max(minR, R * total / (Math.PI * 2) * 1.02);
+  }
+  return { R, angles };
+}
+
+// Push apart anything that overlaps: label pills are rectangles, topic and
+// group nodes are circles; the centre node stays put. Runs once after layout.
+function spreadOverlaps() {
+  const mctx = document.createElement('canvas').getContext('2d');
+  mctx.font = '12px sans-serif';
+  const PAD = 8;
+  const items = spiderNodes.map((n, i) => {
+    if (n.type === 'leaf') {
+      const sf = n.scaleFactor || 1;
+      const pw = Math.max(mctx.measureText(n.label || '').width + 20, 60) * sf;
+      const ph = Math.max(28 * sf, 20);
+      n._hw = pw / 2; n._hh = ph / 2;
+      return { n, rect: true, hw: pw / 2 + PAD / 2, hh: ph / 2 + PAD / 2, fixed: false };
+    }
+    return { n, rect: false, r: (n.r || 30) + PAD, fixed: n.type === 'root' };
+  });
+  for (let iter = 0; iter < 400; iter++) {
+    let moved = false;
+    for (let i = 0; i < items.length; i++) {
+      for (let j = i + 1; j < items.length; j++) {
+        const A = items[i], B = items[j];
+        if (A.fixed && B.fixed) continue;
+        let dx = B.n.x - A.n.x, dy = B.n.y - A.n.y;
+        if (dx === 0 && dy === 0) { dx = (j % 2 ? 1 : -1) * 0.5; dy = 0.5; }
+        let px = 0, py = 0;
+        if (A.rect && B.rect) {
+          const ox = A.hw + B.hw - Math.abs(dx), oy = A.hh + B.hh - Math.abs(dy);
+          if (ox <= 0 || oy <= 0) continue;
+          // separate along the shorter overlap (pills mostly stack vertically)
+          if (ox < oy * 2.5) px = Math.sign(dx) * ox; else py = Math.sign(dy) * oy;
+        } else {
+          const ra = A.rect ? Math.max(A.hw, A.hh) * 0.75 : A.r;
+          const rb = B.rect ? Math.max(B.hw, B.hh) * 0.75 : B.r;
+          const d = Math.hypot(dx, dy), need = ra + rb;
+          if (d >= need) continue;
+          px = dx / d * (need - d); py = dy / d * (need - d);
+        }
+        const wa = A.fixed ? 0 : (B.fixed ? 1 : 0.5), wb = 1 - wa;
+        A.n.x -= px * wa * 0.6; A.n.y -= py * wa * 0.6;
+        B.n.x += px * wb * 0.6; B.n.y += py * wb * 0.6;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+}
+
 // Start zoomed so the whole map just fits the screen, centred
 function fitToContent(canvas) {
   const W = canvas._w || canvas.width, H = canvas._h || canvas.height;
   if (!spiderNodes.length) { zoom = fitZoom; panX = panY = 0; return; }
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   spiderNodes.forEach(n => {
-    const rx = n.r || 70, ry = n.r || 22;     // circles, or label pills
+    const rx = n.r || n._hw || 70, ry = n.r || n._hh || 16;     // circles, or label pills
     x0 = Math.min(x0, n.x - rx); x1 = Math.max(x1, n.x + rx);
     y0 = Math.min(y0, n.y - ry); y1 = Math.max(y1, n.y + ry);
   });
@@ -465,7 +553,7 @@ async function loadData() {
         id: subjectId,
         name: subSnap.exists() ? subSnap.data().name : subjectName,
         emoji: subSnap.exists() ? subSnap.data().emoji || '📚' : '📚',
-        topics: [{ id: topicId, name: topData.name || topicName, keyPoints: topData.keyPoints || [], questions: qs }]
+        topics: [{ id: topicId, name: topData.name || topicName, keyPoints: topData.keyPoints || [], questions: qs, shortAnswers: topData.shortAnswers || {} }]
       }];
     } else {
       // Whole subject mode
@@ -523,14 +611,14 @@ function buildFlashcards() {
         const flatItems = getFlatTopicItems(t);
         flatItems.forEach(item => {
           if (item.term || item.detail) {
-            allFlashcards.push({ front: item.term || item.detail, back: item.detail || item.term, type: 'Key point', topic: t.name });
+            allFlashcards.push({ front: item.term || item.detail, back: item.detail || item.term, type: 'Key point', topic: t.name, tref: t });
           }
         });
       } else {
         // Fallback to questions
         (t.questions || []).forEach(q => {
           const card = questionToFlashcard(q, t.name);
-          if (card) allFlashcards.push(card);
+          if (card) allFlashcards.push((Array.isArray(card) ? card : [card]).map(c => ({ ...c, tref: t })));
         });
       }
     });
@@ -605,7 +693,7 @@ window._switchView = function(v) {
   currentView = v;
   document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
   showView(v);
-  if (v === 'flashcards') { fcIdx = 0; fcFlipped = false; buildFlashcards(); renderFlashcard(); }
+  if (v === 'flashcards') { fcIdx = 0; fcFlipped = false; cardMode = lengthOf(_currentProfile); renderLengthPicker(); buildFlashcards(); renderFlashcard(); prepareShortAnswers(); }
   if (v === 'spider') buildSpider();
   if (v === 'cheatsheet') showCheatSheets();
 };
@@ -712,71 +800,35 @@ function buildSpider() {
     spiderNodes.push({ x: cx, y: cy, label: t.name, type: 'root', r: 56 });
 
     if (items.length && items[0].isGroup) {
-      // Three-level: topic → groups → key points
-      // Each group fans its leaves outward. We need enough angular space per group
-      // to spread its leaves without overlapping adjacent groups' leaves.
+      // Three-level: topic → groups → key points.
+      // Every key point sits on one outer ring round the centre, in group
+      // order, spaced by how much room its label actually needs at that
+      // angle (pills beside each other at the top/bottom, stacked at the
+      // sides). Each group's circle sits on an inner ring in the middle of
+      // its own points. spreadOverlaps() tidies anything left over.
+      const leaves = [];
+      items.forEach((grp, gi) => (grp.points || []).forEach(pt =>
+        leaves.push({ gi, term: pt.term, detail: pt.explanation || '' })));
       const groupCount = items.length;
-      const totalLeaves = items.reduce((a, g) => a + (g.points||[]).length, 0);
-      const maxLeafsPerGroup = Math.max(...items.map(g => (g.points||[]).length));
-      const sliceAngle = (Math.PI * 2) / groupCount;
-
-      // Three-level layout needs:
-      //   rootR (56) + gap + groupR + gap + leafR + pill(~28px) < min(w,h)/2
-      // We work outward from centre.
-      const canvasR = Math.min(w, h) / 2 - 80; // usable radius with margin
-      const rootR   = 56;
-      const groupNodeR = 38;
-
-      // Group ring: just far enough from centre that group nodes don't overlap root
-      // Minimum arc gap between adjacent group nodes = groupNodeR * 2.5
-      const minGroupArc = groupNodeR * 2.5;
-      const minGroupR = Math.max(rootR + groupNodeR + 60, (groupCount * minGroupArc) / (Math.PI * 2));
-      const groupR = Math.min(canvasR * 0.38, minGroupR);
-
-      // Leaf ring: fills the remaining space from groupR to canvas edge
-      // Leaves radiate from the GROUP NODE position, not the canvas centre
-      // So leafR is the distance FROM the group node to the leaf
-      const remainingR = canvasR - groupR; // space left between group ring and canvas edge
-      // Each leaf pill ~130px; fit maxLeafsPerGroup in the fan (80% of slice)
-      const fanAngle = sliceAngle * 0.8;
-      const pillW = 120;
-      // Arc length needed = maxLeafsPerGroup * (pillW + 12)
-      const neededArc = maxLeafsPerGroup * (pillW + 12);
-      const minLeafR = neededArc / fanAngle;
-      const leafR = Math.max(100, Math.min(remainingR * 0.85, minLeafR));
-
-      // If leaves still won't fit, scale pills down
-      const actualArc = leafR * fanAngle;
-      const sf = actualArc < neededArc ? Math.max(0.6, actualArc / neededArc) : 1;
+      const groupNodeR = 38, rootR = 56;
+      const groupR = Math.max(rootR + groupNodeR + 70, (groupCount * groupNodeR * 2.6) / (Math.PI * 2));
+      const ring = ringLayout(leaves, groupR + 170, (i) => i > 0 && leaves[i].gi !== leaves[i - 1].gi ? 40 : 0);
 
       items.forEach((grp, gi) => {
-        const centreAngle = (gi / groupCount) * Math.PI * 2 - Math.PI / 2;
-        const gx = cx + Math.cos(centreAngle) * groupR;
-        const gy = cy + Math.sin(centreAngle) * groupR;
+        const mine = ring.angles.filter((_, i) => leaves[i].gi === gi);
+        // middle of this group's points (or an even share if it has none)
+        const mid = mine.length
+          ? Math.atan2(mine.reduce((a, t) => a + Math.sin(t), 0), mine.reduce((a, t) => a + Math.cos(t), 0))
+          : (gi / groupCount) * Math.PI * 2 - Math.PI / 2;
         const grpIdx = spiderNodes.length;
-        spiderNodes.push({ x: gx, y: gy, label: grp.term, type: 'topic', r: groupNodeR });
+        spiderNodes.push({ x: cx + Math.cos(mid) * groupR, y: cy + Math.sin(mid) * groupR, label: grp.term, type: 'topic', r: groupNodeR });
         spiderEdges.push({ from: 0, to: grpIdx });
-
-        const pts = (grp.points || []).map(p => ({ term: p.term, detail: p.explanation || '' }));
-        if (!pts.length) return;
-
-        pts.forEach((pt, pi) => {
-          const t2 = pts.length === 1 ? 0.5 : pi / (pts.length - 1);
-          const leafAngle = centreAngle - fanAngle / 2 + t2 * fanAngle;
-
-          // Stagger alternating leaves at slightly different radii to prevent overlap
-          // when group is near top/bottom (fan is nearly horizontal)
-          const angleFromHoriz = Math.abs(Math.sin(centreAngle)); // 0=horizontal, 1=vertical
-          const staggerAmount = angleFromHoriz < 0.5 ? leafR * 0.22 : leafR * 0.08;
-          const staggeredR = leafR + (pi % 2 === 0 ? -staggerAmount : staggerAmount);
-
-          const lx = gx + Math.cos(leafAngle) * staggeredR;
-          const ly = gy + Math.sin(leafAngle) * staggeredR;
-          const margin = 50;
+        leaves.forEach((lf, i) => {
+          if (lf.gi !== gi) return;
           spiderNodes.push({
-            x: Math.max(margin, Math.min(w - margin, lx)),
-            y: Math.max(margin, Math.min(h - margin, ly)),
-            label: pt.term, detail: pt.detail, type: 'leaf', r: 0, scaleFactor: sf
+            x: cx + Math.cos(ring.angles[i]) * ring.R,
+            y: cy + Math.sin(ring.angles[i]) * ring.R,
+            label: lf.term, detail: lf.detail, type: 'leaf', r: 0, scaleFactor: 1
           });
           spiderEdges.push({ from: grpIdx, to: spiderNodes.length - 1 });
         });
@@ -811,6 +863,7 @@ function buildSpider() {
   }
 
   focusedGroupIdx = null;
+  spreadOverlaps();
   fitToContent(canvas);
   const ctx = canvas.getContext('2d');
   drawSpider(ctx, canvas);
@@ -883,17 +936,13 @@ function layoutBranches(cx, cy, items, startIdx, C, w, h) {
   const maxRadius = Math.min(w / 2, h / 2) - margin;
 
   // Use whichever is larger — fit all pills, but cap to canvas
-  const r = Math.min(Math.max(minRadius, rootR + 120), maxRadius);
-
-  // If items still won't fit at maxRadius, scale down pill rendering (handled in draw)
-  const scaleFactor = r === maxRadius && minRadius > maxRadius
-    ? maxRadius / minRadius
-    : 1;
+  const scaleFactor = 1;   // never shrink labels; zoom instead
+  const ring = ringLayout(items, rootR + 120);
 
   items.forEach((item, i) => {
-    const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
-    const bx = cx + Math.cos(angle) * r;
-    const by = cy + Math.sin(angle) * r;
+    const angle = ring.angles[i];
+    const bx = cx + Math.cos(angle) * ring.R;
+    const by = cy + Math.sin(angle) * ring.R;
     const nodeIdx = spiderNodes.length;
     spiderNodes.push({
       x: bx, y: by,
@@ -1384,7 +1433,40 @@ function questionToKeypoint(q) {
 /* ══════════════════════════════════════════════════════════
    FLASHCARDS
 ══════════════════════════════════════════════════════════ */
-function renderFlashcard() {
+// Answer length: Full / Short / Key words (saved on the student's record)
+let cardMode = 'full';
+function renderLengthPicker() {
+  const box = document.getElementById('fc-length');
+  if (!box) return;
+  box.innerHTML = LENGTHS.map(l => `<button type="button" class="${l.id === cardMode ? 'on' : ''}" data-len="${l.id}" title="${l.desc}" aria-pressed="${l.id === cardMode}">${l.label}</button>`).join('');
+  box.querySelectorAll('[data-len]').forEach(b => b.onclick = () => setCardMode(b.dataset.len));
+}
+async function setCardMode(mode) {
+  cardMode = mode;
+  try { localStorage.setItem('bonce_cardLength', mode); } catch (e) {}
+  renderLengthPicker();
+  renderFlashcard(true);
+  if (_currentProfile) _currentProfile.cardLength = mode;
+  if (_currentUser && isStudent(_currentProfile) && !isPreview()) {
+    updateDoc(doc(db, 'users', _currentUser.uid), { cardLength: mode }).catch(() => {});
+  }
+  prepareShortAnswers();
+}
+// Ask the AI for short versions of any long answers (once per topic, shared)
+async function prepareShortAnswers() {
+  if (cardMode === 'full') { document.getElementById('fc-length-note').textContent = ''; return; }
+  const note = document.getElementById('fc-length-note');
+  const byTopic = new Map();
+  flattenFlashcards().forEach(c => { if (c.tref) (byTopic.get(c.tref) || byTopic.set(c.tref, []).get(c.tref)).push(c); });
+  const jobs = [...byTopic].map(([t, cards]) => ensureShortAnswers({ p: groupId, s: subjectId }, t, cards, { subjectName }));
+  if (!jobs.length) return;
+  note.textContent = 'Making shorter answers…';
+  const results = await Promise.allSettled(jobs);
+  note.textContent = results.some(r => r.status === 'rejected') ? 'Some answers are shortened roughly for now.' : '';
+  if (results.some(r => r.value)) renderFlashcard(true);
+}
+
+function renderFlashcard(keepFlip = false) {
   const cards = flattenFlashcards();
   if (!cards.length) {
     document.getElementById('fc-front').textContent = 'No cards available';
@@ -1397,16 +1479,18 @@ function renderFlashcard() {
   const card = cards[fcIdx];
   document.getElementById('fc-hint').style.display = 'block';
   document.getElementById('fc-front').textContent = card.front;
-  document.getElementById('fc-back').textContent = card.back;
+  document.getElementById('fc-back').textContent = displayAnswer(card.tref, card.back, cardMode);
   document.getElementById('fc-type').textContent = card.type || '';
   document.getElementById('fc-topic-label').textContent = card.topic || '';
   document.getElementById('fc-counter').textContent = `${fcIdx + 1} / ${cards.length}`;
   document.getElementById('fc-prev').disabled = fcIdx === 0;
   document.getElementById('fc-next').disabled = fcIdx === cards.length - 1;
 
-  // Reset flip
-  document.getElementById('flashcard').classList.remove('flipped');
-  fcFlipped = false;
+  // Reset flip (unless just changing the answer length)
+  if (!keepFlip) {
+    document.getElementById('flashcard').classList.remove('flipped');
+    fcFlipped = false;
+  }
 }
 
 function flattenFlashcards() {

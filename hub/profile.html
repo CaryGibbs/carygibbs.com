@@ -147,7 +147,13 @@
       .topnav { padding: 0 var(--space-md); }
       .page { padding: var(--space-lg) var(--space-md); }
     }
-  </style>
+      .card-length-help { color: var(--color-text-muted); font-size: 0.88rem; margin-bottom: var(--space-md); }
+    .card-length-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .card-length-opt { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 12px 14px; border-radius: var(--radius-card);
+      border: 2px solid var(--color-border); background: var(--color-surface); color: var(--color-text); cursor: pointer; font-family: var(--font-ui); }
+    .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
+    .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
+</style>
   <link rel="stylesheet" href="ui.css?v=20261106e">
 </head>
 <body>
@@ -200,6 +206,13 @@
     <div class="theme-grid" id="theme-grid"></div>
   </div>
 
+  <!-- Flashcard answers -->
+  <div class="section" id="card-length-section">
+    <div class="section-title"><i data-icon="layers"></i> Flashcard answers</div>
+    <p class="card-length-help">How much of each answer your flashcards show. Shorter answers are easier to remember.</p>
+    <div class="card-length-options" id="card-length-options"></div>
+  </div>
+
   <!-- Level ladder -->
   <div class="section">
     <div class="section-title"><i data-icon="trophy"></i> Levels</div>
@@ -226,9 +239,31 @@ import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js';
 import { getLevelInfo, LEVELS, BADGES, currentStreak } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js';
+import { LENGTHS, lengthOf } from './card-length.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
+
+// Flashcard answer length: Full / Short / Key words
+function renderCardLength(user, profile) {
+  const box = document.getElementById('card-length-options');
+  if (!box) return;
+  let current = lengthOf(profile);
+  const draw = () => {
+    box.innerHTML = LENGTHS.map(l => `<button type="button" class="card-length-opt${l.id === current ? ' on' : ''}" data-len="${l.id}" aria-pressed="${l.id === current}">
+      <strong>${l.label}</strong><span>${l.desc}</span></button>`).join('');
+    box.querySelectorAll('[data-len]').forEach(b => b.onclick = async () => {
+      current = b.dataset.len; draw();
+      try { localStorage.setItem('bonce_cardLength', current); } catch (e) {}
+      if (isPreview()) return;
+      try {
+        await updateDoc(doc(db, 'users', user.uid), { cardLength: current });
+        window.showToast && window.showToast('Flashcard answers saved', 'success');
+      } catch (e) { window.showToast && window.showToast('Could not save. Try again.', 'error'); }
+    });
+  };
+  draw();
+}
 
 // Let the student pick their own theme; it applies straight away and is saved
 function renderThemePicker(user, profile) {
@@ -314,6 +349,7 @@ requireAuth(async (user, profile) => {
 
   // Goals, time, subjects and badges (shared with the hub)
   renderThemePicker(user, profile);
+  renderCardLength(user, profile);
   document.getElementById('stats-root').innerHTML = statsSectionsHtml();
   const owed = renderStats(profile);
   if (owed.length && !isPreview()) {

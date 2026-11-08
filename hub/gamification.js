@@ -146,6 +146,8 @@ export const BADGE_FAMILIES = [
   { id: 'learner',  name: 'Learning',         icon: '🧠', blurb: 'Mark key points as learnt' },
   { id: 'topicsDone', name: 'Topics learnt',  icon: '📗', blurb: 'Learn every point in a topic' },
   { id: 'sheets',   name: 'Cheat sheets',     icon: '📄', blurb: 'Read topic cheat sheets' },
+  { id: 'review',   name: 'Review today',     icon: '🔁', blurb: 'Come back to review what\'s due' },
+  { id: 'memory',   name: 'Long-term memory', icon: '🧲', blurb: 'Keep questions right for weeks at a time' },
   { id: 'study',    name: 'Study time',       icon: '📖', blurb: 'Time spent learning, not just quizzing' },
   { id: 'levels',   name: 'Levels',           icon: '🏆', blurb: 'Earn XP to level up' },
 ];
@@ -249,6 +251,15 @@ export const BADGES = [
   B('sheet_5',  'sheets', 2, 'cheatSheets', 5,  'Note Taker',      '🗒️', 'Read 5 different cheat sheets'),
   B('sheet_15', 'sheets', 3, 'cheatSheets', 15, 'Revision Pro',    '📑', 'Read 15 different cheat sheets'),
 
+  // Review today (spaced repetition)
+  B('review_1',   'review', 1, 'reviews', 1,   'Comeback',       '🔁', 'Finish your first review'),
+  B('review_10',  'review', 2, 'reviews', 10,  'Memory Builder', '🧱', 'Finish 10 reviews'),
+  B('review_30',  'review', 3, 'reviews', 30,  'Steel Trap',     '🪤', 'Finish 30 reviews'),
+  B('review_100', 'review', 4, 'reviews', 100, 'Elephant',       '🐘', 'Finish 100 reviews'),
+  B('memory_25',  'memory', 1, 'longTerm', 25,  'Locked In',     '🔒', '25 questions remembered for 2 weeks or more'),
+  B('memory_100', 'memory', 2, 'longTerm', 100, 'The Vault',     '🏦', '100 questions remembered for 2 weeks or more'),
+  B('memory_250', 'memory', 3, 'longTerm', 250, 'Encyclopedia',  '📚', '250 questions remembered for 2 weeks or more'),
+
   // Learning: time spent studying (subject map, learn panel, cheat sheets)
   B('study_30',  'study', 1, 'studyMins', 30,  'Bookworm',        '📖', '30 minutes of studying'),
   B('study_120', 'study', 2, 'studyMins', 120, 'Deep Diver',      '🤿', '2 hours of studying'),
@@ -315,10 +326,13 @@ export function computeMetrics(profile) {
     if (pct >= 80) highScores++;
     if (pct === 100) perfectScores++;
 
-    const topicKey = s.topicId || `${s.subject || ''}|${s.topic || ''}`;
-    if (pct >= 80) mastered.add(topicKey);
-    if (!(topicKey in firstByTopic)) firstByTopic[topicKey] = pct;
-    else bestGainByTopic[topicKey] = Math.max(bestGainByTopic[topicKey] || 0, pct - firstByTopic[topicKey]);
+    // A review mixes topics, so it doesn't count towards topic mastery or improvement
+    if (!s.review) {
+      const topicKey = s.topicId || `${s.subject || ''}|${s.topic || ''}`;
+      if (pct >= 80) mastered.add(topicKey);
+      if (!(topicKey in firstByTopic)) firstByTopic[topicKey] = pct;
+      else bestGainByTopic[topicKey] = Math.max(bestGainByTopic[topicKey] || 0, pct - firstByTopic[topicKey]);
+    }
 
     const types = s.types || [];
     types.forEach(t => typesTried.add(t));
@@ -357,6 +371,8 @@ export function computeMetrics(profile) {
     pointsLearned,
     topicsLearned:  (profile.topicsCompleted || []).length,
     cheatSheets:    (profile.cheatSheetsViewed || []).length,
+    reviews:        sessions.filter(s => s.review).length,
+    longTerm:       Object.values(profile.srs || {}).filter(e => e && e.b >= 3).length,
     level:          getLevelInfo(profile.xp || 0).current.level,
   };
 }

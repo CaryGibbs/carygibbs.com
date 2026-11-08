@@ -143,6 +143,11 @@ export function rolesOf(profile) {
   return set;
 }
 export function hasRole(profile, role) { return rolesOf(profile).has(role); }
+
+// Plans: 'free' (default) or 'plus'. Nothing is locked yet; this lets any
+// feature be switched to Plus later with one check: hasPlus(profile).
+export function planOf(profile) { return profile?.plan === 'plus' ? 'plus' : 'free'; }
+export function hasPlus(profile) { return planOf(profile) === 'plus' || hasRole(profile, 'admin'); }
 export function isStudent(profile) { return hasRole(profile, 'student'); }
 // The adult views a person can switch between, in a fixed order
 export function viewsOf(profile) {

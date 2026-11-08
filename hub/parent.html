@@ -229,6 +229,15 @@
       <div class="theme-grid" id="manage-theme-grid"></div>
     </div>
     <div class="form-group">
+      <label for="manage-card-length">Flashcard answers</label>
+      <select id="manage-card-length">
+        <option value="full">Full: the whole answer</option>
+        <option value="short">Short: 15 words or fewer</option>
+        <option value="keywords">Key words: just the words that matter</option>
+      </select>
+      <div class="form-hint">They can also change this themselves on the Cards screen.</div>
+    </div>
+    <div class="form-group">
       <label>Revision packs</label>
       <div class="group-check-list" id="manage-group-list">
         <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading packs…</div>
@@ -345,6 +354,7 @@ import { getLevelInfo, studyEntries, currentStreak } from './gamification.js';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
 import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
+import { dueEntries, scheduledCount } from './srs.js';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -417,7 +427,7 @@ async function refreshFromChildRecords() {
     const snap = await getDoc(doc(db, 'users', id)).catch(() => null);
     const p = snap?.data(); if (!p) return;
     const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'lastRevisionDate', 'xp', 'level',
-                  'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks'];
+                  'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength'];
     const fresh = {};
     keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
     liveStats[id] = fresh;
@@ -484,6 +494,7 @@ function renderChildren() {
           <span><i data-icon="clock"></i> Today <strong>${fmtTime(todaySecs)}</strong></span>
           <span>This week <strong>${fmtTime(weekSecs)}</strong></span>
           <span>Last active <strong>${lastLabel}</strong></span>
+          ${scheduledCount(child) ? `<span><i data-icon="repeat"></i> Review due <strong>${dueEntries(child).length}</strong></span>` : ''}
         </div>
       </div>
       <div class="child-card-actions">
@@ -595,6 +606,7 @@ window._openManageModal = function(uid) {
   document.getElementById('manage-error').classList.remove('visible');
   manageTheme = child.theme || 'edge';
   renderThemeGrid('manage-theme-grid', manageTheme, t => { manageTheme = t; });
+  document.getElementById('manage-card-length').value = child.cardLength || 'full';
   document.getElementById('share-email').value = '';
   renderGuardians(uid);
   const currentGroupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
@@ -611,10 +623,12 @@ window._saveChild = async function() {
   const btn = document.getElementById('btn-save-child');
   btn.classList.add('loading');
   try {
+    const cardLength = document.getElementById('manage-card-length').value;
     await updateDoc(doc(db, 'users', managingChildId), {
-      name, theme: manageTheme, groupIds,
+      name, theme: manageTheme, groupIds, cardLength,
       groupId: groupIds[0] || null
     });
+    childrenData[managingChildId].cardLength = cardLength;
     await updateDoc(doc(db, 'users', parentUid, 'children', managingChildId), {
       name, theme: manageTheme, groupIds
     });

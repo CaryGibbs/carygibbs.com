@@ -360,8 +360,8 @@
   <div class="screen" id="screen-no-questions">
     <div class="no-q-screen">
       <div class="results-icon"><i data-icon="inbox"></i></div>
-      <h2>No questions yet</h2>
-      <p>This topic doesn't have any questions yet. Ask your admin to add some!</p>
+      <h2 id="noq-title">No questions yet</h2>
+      <p id="noq-text">This topic doesn't have any questions yet. Ask your admin to add some!</p>
       <a href="hub.html" class="btn btn-primary">← Back to hub</a>
     </div>
   </div>
@@ -525,8 +525,9 @@ import { auth, db } from './firebase-config.js';
 import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js';
 import { askClaude, jsonOf } from './ai.js';
 import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js';
 import {
-  collection, getDocs, query, orderBy,
+  collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -540,6 +541,8 @@ const subjectId = params.get('subjectId');
 const topicId  = params.get('topicId');
 const subjectName = params.get('subjectName') || 'Quiz';
 const topicName   = params.get('topicName') || '';
+const reviewMode  = params.get('review') === '1';   // "Review today": questions that are due
+let reviewSubject = '';                                // subject name to file a review session under
 
 /* ── State ───────────────────────────────────────────────── */
 let questions    = [];
@@ -579,6 +582,15 @@ requireAuth(async (user, profile) => {
     const home = hasRole(profile, 'admin') ? ['admin.html', 'Admin'] : hasRole(profile, 'teacher') ? ['teacher-dashboard.html', 'Classes'] : ['parent.html', 'Students'];
     if (bl) { bl.href = home[0]; bl.textContent = '← ' + home[1]; }
   }
+  if (reviewMode && groupId) {
+    document.getElementById('nav-title').textContent = 'Review today';
+    const again = document.querySelector('[onclick="restartQuiz()"]');
+    if (again) again.innerHTML = '<i data-icon="refresh-cw"></i> Review more';
+    const types = document.querySelector('[onclick="changeTypes()"]');
+    if (types) types.style.display = 'none';
+    await loadReview();
+    return;
+  }
   if (!groupId || !subjectId) { location.href = 'hub.html'; return; }
   document.getElementById('nav-title').textContent =
     topicName ? `${topicName}` : subjectName;
@@ -594,7 +606,7 @@ async function loadQuestions() {
       // Single topic
       const snap = await getDocs(collection(db,
         `content/${groupId}/subjects/${subjectId}/topics/${topicId}/questions`));
-      snap.forEach(d => allQs.push({ id: d.id, ...d.data() }));
+      snap.forEach(d => allQs.push({ id: d.id, ...d.data(), loc: { p: groupId, s: subjectId, t: topicId } }));
     } else {
       // Whole subject — gather from all topics
       const topicsSnap = await getDocs(collection(db,
@@ -605,7 +617,7 @@ async function loadQuestions() {
       await Promise.all(topicIds.map(async tid => {
         const qSnap = await getDocs(collection(db,
           `content/${groupId}/subjects/${subjectId}/topics/${tid}/questions`));
-        qSnap.forEach(d => allQs.push({ id: d.id, topicId: tid, ...d.data() }));
+        qSnap.forEach(d => allQs.push({ id: d.id, topicId: tid, ...d.data(), loc: { p: groupId, s: subjectId, t: tid } }));
       }));
     }
 
@@ -622,6 +634,51 @@ async function loadQuestions() {
     showToast('Failed to load questions: ' + e.message, 'error');
     showScreen('no-questions');
   }
+}
+
+/* ── Review today ─────────────────────────────────────────
+   Loads the questions that are due for review in this pack (oldest
+   first), fetching only the topics they live in, and starts straight
+   away: no question-type picker. */
+let reviewList = [];
+async function loadReview() {
+  try {
+    const due = dueEntries(currentProfile, groupId).slice(0, REVIEW_SIZE);
+    if (!due.length) return showCaughtUp();
+    const topics = {};
+    due.forEach(e => { (topics[e.s + '/' + e.t] = topics[e.s + '/' + e.t] || { s: e.s, t: e.t, ids: new Set() }).ids.add(e.id); });
+    const found = {};
+    const subjectNames = {};
+    await Promise.all(Object.values(topics).map(async tp => {
+      const [qSnap, sSnap] = await Promise.all([
+        getDocs(collection(db, `content/${groupId}/subjects/${tp.s}/topics/${tp.t}/questions`)),
+        subjectNames[tp.s] ? null : getDoc(doc(db, `content/${groupId}/subjects/${tp.s}`)).catch(() => null),
+      ]);
+      if (sSnap?.exists?.()) subjectNames[tp.s] = sSnap.data().name;
+      qSnap.forEach(d => { if (tp.ids.has(d.id)) found[d.id] = { id: d.id, ...d.data(), loc: { p: groupId, s: tp.s, t: tp.t } }; });
+    }));
+    reviewList = due.map(e => found[e.id]).filter(q => q && TYPE_INFO[q.type]);
+    if (!reviewList.length) return showCaughtUp();
+    // File the session under the subject most of these questions come from
+    const count = {};
+    reviewList.forEach(q => { count[q.loc.s] = (count[q.loc.s] || 0) + 1; });
+    const topSubject = Object.keys(count).sort((a, b) => count[b] - count[a])[0];
+    reviewSubject = subjectNames[topSubject] || 'Review';
+    questionPool = reviewList;
+    beginQuestions();
+  } catch (e) {
+    showToast('Could not load your review: ' + e.message, 'error');
+    showCaughtUp();
+  }
+}
+
+function showCaughtUp() {
+  const next = nextDueDay(currentProfile, groupId);
+  document.getElementById('noq-title').textContent = 'All caught up!';
+  document.getElementById('noq-text').textContent = next
+    ? `Nothing to review right now. Your next review is ${whenText(next)}.`
+    : 'Answer some quiz questions and they\'ll come back here for review at just the right time.';
+  showScreen('no-questions');
 }
 
 /* ── Question type picker ────────────────────────────────── */
@@ -710,6 +767,7 @@ function rankQuestions(list, hist) {
 }
 
 function pickQuestions() {
+  if (reviewMode) return shuffle(reviewList.slice());
   const pool = questionPool.filter(q => selectedTypes.has(q.type));
   const hist = questionHistory();
   const byType = {};
@@ -1156,7 +1214,7 @@ async function showResults() {
   const resultTitle = pct >= 80 ? 'Excellent work!' : pct >= 60 ? 'Good effort!' : pct >= 40 ? 'Keep practising' : 'Don\'t give up!';
   document.getElementById('results-title').textContent = resultTitle;
   document.getElementById('results-sub').textContent =
-    `You scored ${score} out of ${total} on ${topicName || subjectName}`;
+    `You scored ${score} out of ${total} on ${reviewMode ? 'today\'s review' : (topicName || subjectName)}`;
   document.getElementById('results-icon').innerHTML = `<i data-icon="${pct >= 80 ? 'party-popper' : pct >= 60 ? 'thumbs-up' : pct >= 40 ? 'book-open' : 'dumbbell'}"></i>`;
   document.getElementById('results-icon').dataset.band = pct >= 80 ? 'great' : pct >= 60 ? 'good' : 'low';
 
@@ -1175,8 +1233,8 @@ async function showResults() {
     const minutesSpent = Math.round(secondsSpent / 60);
     const session = {
       date: Date.now(),
-      subject: subjectName,
-      topic: topicName || subjectName,
+      subject: reviewMode ? reviewSubject : subjectName,
+      topic: reviewMode ? 'Review today' : (topicName || subjectName),
       score, total, pct,
       minutesSpent,
       secondsSpent,
@@ -1186,6 +1244,7 @@ async function showResults() {
       subjectId: subjectId || null,
       topicId: topicId || null,
     };
+    if (reviewMode) session.review = true;   // (Firestore won't store 'undefined')
     try {
       // Save session
       await updateDoc(doc(db, 'users', currentUser.uid), {
@@ -1199,6 +1258,16 @@ async function showResults() {
           { sessions: arrayUnion(session) }
         ).catch(() => {});
       }
+      // Schedule each question for review (and any answered before this
+      // feature existed, from the student's history)
+      try {
+        const hist = questionHistory();
+        const seed = reviewMode ? [] : questionPool
+          .filter(q => hist.lastSeen[q.id] !== undefined)
+          .map(q => ({ id: q.id, ok: hist.lastOk[q.id], when: hist.lastSeen[q.id], loc: q.loc }));
+        await recordAnswers(currentUser.uid, currentProfile,
+          questions.map((q, i) => ({ id: q.id, ok: !!results[i], loc: q.loc })), seed);
+      } catch (e) { console.warn('Review schedule not saved:', e.message); }
       // Award XP
       const result = await awardXp(currentUser.uid, 'quiz', { pct });
       if (result) showXpEarned(result, minutesSpent);
@@ -1243,6 +1312,7 @@ function showXpEarned(result, minutes) {
 }
 
 window._restartQuiz = function() {
+  if (reviewMode) { loadReview(); return; }   // whatever is still due
   beginQuestions(); // fresh set of questions, same types
 };
 

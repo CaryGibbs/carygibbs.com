@@ -146,6 +146,22 @@
       margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-lg);
     }
     .xp-level-badge { font-size: 2rem; flex-shrink: 0; }
+    /* ── Review today ─────────────────────────────────────── */
+    .review-card {
+      display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-md) var(--space-lg);
+      margin-bottom: var(--space-lg); box-shadow: var(--shadow-card);
+    }
+    .review-card.due { border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border)); }
+    .review-icon { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      background: var(--color-primary-glow); color: var(--color-primary); }
+    .review-icon .icon { width: 22px; height: 22px; }
+    .review-text { flex: 1; min-width: 180px; }
+    .review-title { font-family: var(--font-heading); font-weight: 800; font-size: 1.05rem; color: var(--color-text); }
+    .review-sub { font-size: 0.86rem; color: var(--color-text-muted); }
+    .review-card .btn { flex-shrink: 0; }
+    @media (max-width: 600px) { .review-card .btn { width: 100%; } }
     .xp-level-info { flex: 1; min-width: 0; }
     .xp-level-name {
       font-family: var(--font-heading); font-size: 1rem; font-weight: 700;
@@ -291,6 +307,7 @@
       </div>
     </div>
   </div>
+  <div id="review-wrap"></div>
   <div id="hub-content">
     <div class="subjects-grid">
       <div class="empty-state">
@@ -319,6 +336,7 @@ import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } 
 import { getLevelInfo, currentStreak } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { findClass, joinClass, cleanCode } from './join-class.js';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -344,6 +362,7 @@ window._toggleTopics = (btn) => {
 };
 
 requireAuth(async (user, profile) => {
+  hubProfile = profile;
   // Allow student, parent, admin — parents/admins can preview hub
   const firstName = (profile.name || 'there').split(' ')[0];
   document.getElementById('student-name').textContent = firstName;
@@ -477,8 +496,39 @@ async function renderPackPicker(user, ids, current) {
   };
 }
 
+let hubProfile = null;   // the student whose hub this is (for Review today)
+
+/* ── Review today card ───────────────────────────────────── */
+function renderReviewCard(groupId) {
+  const wrap = document.getElementById('review-wrap');
+  if (!wrap) return;
+  if (!hubProfile || !isStudent(hubProfile)) { wrap.innerHTML = ''; return; }
+  const due = dueEntries(hubProfile, groupId).length;
+  const scheduled = scheduledCount(hubProfile, groupId);
+  const go = `quiz.html?review=1&groupId=${encodeURIComponent(groupId)}`;
+  if (due) {
+    const n = Math.min(due, REVIEW_SIZE);
+    wrap.innerHTML = `<div class="review-card due">
+      <div class="review-icon"><i data-icon="repeat"></i></div>
+      <div class="review-text"><div class="review-title">Review today · ${due} due</div>
+        <div class="review-sub">Questions you've met before, back at just the right time to make them stick${due > n ? `. ${n} at a time.` : '.'}</div></div>
+      <a class="btn btn-primary" href="${go}"><i data-icon="repeat"></i> Start review</a></div>`;
+  } else if (scheduled) {
+    wrap.innerHTML = `<div class="review-card">
+      <div class="review-icon"><i data-icon="circle-check"></i></div>
+      <div class="review-text"><div class="review-title">All caught up</div>
+        <div class="review-sub">Nothing to review right now. Next review ${whenText(nextDueDay(hubProfile, groupId))}.</div></div></div>`;
+  } else {
+    wrap.innerHTML = `<div class="review-card">
+      <div class="review-icon"><i data-icon="repeat"></i></div>
+      <div class="review-text"><div class="review-title">Review today</div>
+        <div class="review-sub">Do a quiz and its questions will come back here for review, just as you're about to forget them.</div></div></div>`;
+  }
+}
+
 async function loadSubjects(user, groupId) {
   const grid = document.getElementById('hub-content');
+  renderReviewCard(groupId);
 
   // Get group info
   const groupSnap = await getDoc(doc(db, 'content', groupId));
