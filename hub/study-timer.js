@@ -9,7 +9,7 @@
 
 import { db } from './firebase-config.js';
 import { isPreview, isStudent } from './auth.js';
-import { awardXp } from './gamification.js';
+import { awardXp, repairOffer, loadStreakSettings } from './gamification.js';
 import { doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const IDLE_MS  = 2 * 60 * 1000;   // no activity for this long = paused
@@ -25,6 +25,7 @@ function dayKey(d = new Date()) {
 export function startStudyTimer({ user, profile, subjectId, subjectName, onBadges }) {
   if (!user || !isStudent(profile) || isPreview() || !subjectId) return;
   if (state) return;
+  loadStreakSettings();
   state = { user, profile, subjectId, subjectName, onBadges, pending: 0, xpBank: 0, lastActive: Date.now(), lastTick: Date.now(), lastFlush: Date.now() };
 
   const active = () => { state.lastActive = Date.now(); };
@@ -62,6 +63,15 @@ export async function flush() {
   } catch (e) {
     state.pending += secs;   // try again next time
     return;
+  }
+  // Winning a streak back: check after every save, so it completes the
+  // moment the hour is reached (not just on the next 5-minute XP award)
+  if (!state.repairDone && repairOffer(state.profile)) {
+    try {
+      const r = await awardXp(user.uid, 'time', { minutes: 0 });
+      if (r?.repaired || !r) state.repairDone = true;
+      if (r?.newlyEarned?.length && state.onBadges) state.onBadges(r.newlyEarned);
+    } catch (e) { /* try again next save */ }
   }
   // Every full 5 minutes: XP, streak and badge check
   state.xpBank += secs;

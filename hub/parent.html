@@ -285,7 +285,7 @@
       <div class="progress-stat"><div class="progress-stat-val" id="stat-level">—</div><div class="progress-stat-label">Level</div></div>
       <div class="progress-stat"><div class="progress-stat-val" id="stat-quizzes">0</div><div class="progress-stat-label">Quizzes taken</div></div>
       <div class="progress-stat"><div class="progress-stat-val" id="stat-avg">—</div><div class="progress-stat-label">Avg score</div></div>
-      <div class="progress-stat"><div class="progress-stat-val" id="stat-streak">0</div><div class="progress-stat-label">Streak</div></div>
+      <div class="progress-stat"><div class="progress-stat-val" id="stat-streak">0</div><div class="progress-stat-label" id="stat-streak-label">Streak</div></div>
     </div>
     <div class="progress-tabs">
       <button class="progress-tab" data-jump="goals"><i data-icon="target"></i> Goals</button>
@@ -350,7 +350,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js';
-import { getLevelInfo, studyEntries, currentStreak } from './gamification.js';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
 import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
@@ -388,6 +388,8 @@ requireAuth((user, profile) => {
     window.location.href = 'index.html'; return;
   }
   parentUid = user.uid;
+  // Streak repair / shield rules set by the admin; redraw cards once known
+  loadStreakSettings().then(() => { if (Object.keys(childrenData || {}).length) renderChildren(); });
   mountShell(user, profile, { view: 'parent', active: 'children' });
   shellUser = user; shellProfile = profile;
   // Groups first, so child cards show group names rather than ids
@@ -426,7 +428,7 @@ async function refreshFromChildRecords() {
   await Promise.all(ids.map(async id => {
     const snap = await getDoc(doc(db, 'users', id)).catch(() => null);
     const p = snap?.data(); if (!p) return;
-    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'lastRevisionDate', 'xp', 'level',
+    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'bestStreak', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'xp', 'level',
                   'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength'];
     const fresh = {};
     keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
@@ -460,6 +462,7 @@ function renderChildren() {
     const quizCount = sessions.length;
     const avgScore  = quizCount ? Math.round(sessions.reduce((a,s) => a + (s.pct||0), 0) / quizCount) : null;
     const streak    = currentStreak(child);
+    const stInfo    = streakStatus(child);
     const secsOf = x => typeof x.secondsSpent === 'number' ? x.secondsSpent : (x.minutesSpent || 0) * 60;
     const now = new Date();
     const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -488,13 +491,15 @@ function renderChildren() {
         <div class="child-stats">
           <div class="child-stat"><div class="child-stat-val">${quizCount}</div><div class="child-stat-label">Quizzes</div></div>
           <div class="child-stat"><div class="child-stat-val">${avgScore !== null ? avgScore+'%' : '—'}</div><div class="child-stat-label">Avg score</div></div>
-          <div class="child-stat"><div class="child-stat-val">${streak}</div><div class="child-stat-label">Day streak</div></div>
+          <div class="child-stat"${stInfo.lapsed ? ` title="Streak ended. Best was ${stInfo.best} days in a row."` : ''}><div class="child-stat-val">${streak}</div><div class="child-stat-label">${stInfo.lapsed ? `Streak · best ${stInfo.best}` : 'Day streak'}</div></div>
         </div>
         <div class="child-week">
           <span><i data-icon="clock"></i> Today <strong>${fmtTime(todaySecs)}</strong></span>
           <span>This week <strong>${fmtTime(weekSecs)}</strong></span>
           <span>Last active <strong>${lastLabel}</strong></span>
           ${scheduledCount(child) ? `<span><i data-icon="repeat"></i> Review due <strong>${dueEntries(child).length}</strong></span>` : ''}
+          ${(() => { const r = repairOffer(child); if (!r) return child.shields ? `<span>🛡️ Streak shields <strong>${Math.min(child.shields, 2)}</strong></span>` : '';
+            return (r.done || r.progress.done) ? `<span>🦸 <strong>Streak won back today</strong></span>` : `<span>🔥 Winning back streak <strong>${r.progress.mins}/${REPAIR.MINUTES} min</strong></span>`; })()}
         </div>
       </div>
       <div class="child-card-actions">
@@ -765,6 +770,10 @@ window._openProgressModal = async function(uid) {
   document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
   const liveStreak = currentStreak(profile);
   document.getElementById('stat-streak').textContent  = liveStreak + (liveStreak === 1 ? ' day' : ' days');
+  const stp = streakStatus(profile);
+  document.getElementById('stat-streak-label').textContent = stp.lapsed
+    ? `Streak ended · best was ${stp.best} day${stp.best === 1 ? '' : 's'}`
+    : 'Streak';
   document.getElementById('progress-xp').innerHTML =
     `<strong>${current.name} · ${profile.xp || 0} XP</strong>${next ? `${xpIntoLevel} / ${xpNeeded} to ${next.name}` : 'Top level'}`;
 

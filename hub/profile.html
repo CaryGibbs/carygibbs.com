@@ -194,7 +194,7 @@
     <div class="stat-card"><div class="stat-val" id="stat-xp">0</div><div class="stat-label">Total XP</div></div>
     <div class="stat-card"><div class="stat-val" id="stat-quizzes">0</div><div class="stat-label">Quizzes</div></div>
     <div class="stat-card"><div class="stat-val" id="stat-avg">—</div><div class="stat-label">Avg score</div></div>
-    <div class="stat-card"><div class="stat-val" id="stat-streak">0 <i data-icon="flame"></i></div><div class="stat-label">Streak</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-streak">0 <i data-icon="flame"></i></div><div class="stat-label" id="stat-streak-label">Streak</div></div>
   </div>
 
   <!-- Goals, time, subjects, badges (shared with the hub) -->
@@ -236,7 +236,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js';
-import { getLevelInfo, LEVELS, BADGES, currentStreak } from './gamification.js';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js';
 import { LENGTHS, lengthOf } from './card-length.js';
@@ -325,6 +325,8 @@ requireAuth(async (user, profile) => {
   document.getElementById('stat-quizzes').textContent = quizCount;
   document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
   document.getElementById('stat-streak').innerHTML  = streak + ' <i data-icon="flame"></i>';
+  const st = streakStatus(profile);
+  if (st.lapsed) document.getElementById('stat-streak-label').textContent = `Streak · best ${st.best}, start again today`;
 
   // Level ladder
   const ladder = document.getElementById('level-ladder');

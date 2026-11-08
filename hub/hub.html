@@ -162,6 +162,12 @@
     .review-sub { font-size: 0.86rem; color: var(--color-text-muted); }
     .review-card .btn { flex-shrink: 0; }
     @media (max-width: 600px) { .review-card .btn { width: 100%; } }
+    /* ── Win your streak back ─────────────────────────────── */
+    .repair-card { border-color: color-mix(in srgb, var(--color-streak) 55%, var(--color-border)) !important; }
+    .repair-card .review-icon { background: color-mix(in srgb, var(--color-streak) 16%, transparent); color: var(--color-streak); font-size: 1.4rem; }
+    .repair-bar { height: 8px; border-radius: 99px; background: var(--color-surface-2); overflow: hidden; margin-top: 8px; }
+    .repair-bar span { display: block; height: 100%; background: var(--color-streak); border-radius: 99px; transition: width .6s ease; }
+    .repair-meta { display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted); margin-top: 4px; }
     .xp-level-info { flex: 1; min-width: 0; }
     .xp-level-name {
       font-family: var(--font-heading); font-size: 1rem; font-weight: 700;
@@ -298,7 +304,7 @@
       <div class="xp-stats">
         <div class="xp-stat">
           <div class="xp-stat-val" id="xp-streak-val">0 <i data-icon="flame"></i></div>
-          <div class="xp-stat-label">Streak</div>
+          <div class="xp-stat-label" id="xp-streak-label">Streak</div>
         </div>
         <div class="xp-stat">
           <div class="xp-stat-val" id="xp-total-val">0</div>
@@ -307,6 +313,7 @@
       </div>
     </div>
   </div>
+  <div id="streak-wrap"></div>
   <div id="review-wrap"></div>
   <div id="hub-content">
     <div class="subjects-grid">
@@ -333,7 +340,7 @@
 <script type="module">
 import { auth, db } from './firebase-config.js';
 import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js';
-import { getLevelInfo, currentStreak } from './gamification.js';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js';
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { findClass, joinClass, cleanCode } from './join-class.js';
 import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js';
@@ -362,7 +369,8 @@ window._toggleTopics = (btn) => {
 };
 
 requireAuth(async (user, profile) => {
-  hubProfile = profile;
+  hubProfile = profile; hubUser = user;
+  await loadStreakSettings();   // admin's streak repair / shield rules
   // Allow student, parent, admin — parents/admins can preview hub
   const firstName = (profile.name || 'there').split(' ')[0];
   document.getElementById('student-name').textContent = firstName;
@@ -497,6 +505,40 @@ async function renderPackPicker(user, ids, current) {
 }
 
 let hubProfile = null;   // the student whose hub this is (for Review today)
+let hubUser = null;
+
+/* ── Win your streak back ─────────────────────────────────── */
+function durationText(m) {
+  if (m === 60) return 'an hour';
+  if (m === 90) return 'an hour and a half';
+  if (m % 60 === 0) return `${m / 60} hours`;
+  return `${m} minutes`;
+}
+function renderRepairCard(profile) {
+  const wrap = document.getElementById('streak-wrap');
+  if (!wrap) return;
+  const r = isStudent(profile) ? repairOffer(profile) : null;
+  if (!r) { wrap.innerHTML = ''; return; }
+  // Hour reached but not yet confirmed (e.g. they stopped right on it): confirm now
+  if (r.started && !r.done && r.progress.done && !isPreview() && hubUser) {
+    awardXp(hubUser.uid, 'time', { minutes: 0 }).then(res => { if (res?.repaired) { profile.streak = res.streak; profile.streakRepair = { ...profile.streakRepair, done: true }; renderRepairCard(profile); renderGamification(profile, hubUser); } }).catch(() => {});
+  }
+  if (r.done) {
+    wrap.innerHTML = `<div class="review-card repair-card"><div class="review-icon">🦸</div>
+      <div class="review-text"><div class="review-title">Streak won back!</div>
+      <div class="review-sub">Your ${r.from + 1}-day streak is back on. Keep it going tomorrow.</div></div></div>`;
+    return;
+  }
+  const p = r.progress, pct = Math.round(p.mins / REPAIR.MINUTES * 100);
+  wrap.innerHTML = `<div class="review-card repair-card">
+    <div class="review-icon">🔥</div>
+    <div class="review-text">
+      <div class="review-title">Win back your ${r.from}-day streak</div>
+      <div class="review-sub">Revise for ${durationText(REPAIR.MINUTES)} today: study time counts minute for minute, and each quiz or review scoring ${REPAIR.QUIZ_PASS}%+ counts as ${REPAIR.QUIZ_MINUTES} minutes.</div>
+      <div class="repair-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${REPAIR.MINUTES}" aria-valuenow="${p.mins}"><span style="width:${pct}%"></span></div>
+      <div class="repair-meta"><span>${p.mins} / ${REPAIR.MINUTES} minutes</span><span>${p.studyMins} min study · ${p.quizzes} quiz${p.quizzes === 1 ? '' : 'zes'}</span></div>
+    </div></div>`;
+}
 
 /* ── Review today card ───────────────────────────────────── */
 function renderReviewCard(groupId) {
@@ -633,7 +675,16 @@ function renderGamification(profile, user) {
   document.getElementById('xp-level-badge').textContent = current.icon;
   document.getElementById('xp-level-name').textContent  = current.name;
   document.getElementById('xp-level-num').textContent   = 'Level ' + current.level;
-  document.getElementById('xp-streak-val').innerHTML  = currentStreak(profile) + ' <i data-icon="flame"></i>';
+  const st = streakStatus(profile);
+  const shields = Math.min(profile.shields || 0, 2);
+  document.getElementById('xp-streak-val').innerHTML  = st.current + ' <i data-icon="flame"></i>' + (shields ? ` <span title="${shields} streak shield${shields > 1 ? 's' : ''}: a missed day won't break your streak" style="font-size:0.8em">🛡️${shields > 1 ? '×' + shields : ''}</span>` : '');
+  renderRepairCard(profile);
+  if (st.lapsed) {
+    // Streak ended: show their best and nudge them to start again
+    const lbl = document.getElementById('xp-streak-label');
+    lbl.textContent = `Best ${st.best} · revise today!`;
+    lbl.title = `Your streak ended. Your best was ${st.best} day${st.best === 1 ? '' : 's'} in a row: revise today to start a new one.`;
+  }
   document.getElementById('xp-total-val').textContent   = xp + ' XP';
 
   setTimeout(() => {

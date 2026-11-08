@@ -739,6 +739,21 @@
         </div>
         <div class="ai-test" id="ai-test" hidden></div>
       </div>
+
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
+        <div class="ai-settings-head">
+          <div>
+            <h3>Streaks</h3>
+            <p>How students can protect a streak, or win one back after missing a day. Changes apply straight away for everyone.</p>
+          </div>
+        </div>
+        <div id="streak-fields"></div>
+        <div class="ai-settings-actions">
+          <button class="btn btn-primary" id="btn-save-streaks"><i data-icon="save"></i> Save</button>
+          <button class="btn btn-secondary" id="btn-reset-streaks"><i data-icon="rotate-ccw"></i> Back to defaults</button>
+          <span class="ai-status" id="streak-status"></span>
+        </div>
+      </div>
     </div>
 
   </div><!-- /content-area -->
@@ -985,6 +1000,7 @@ import { auth, db, storage } from './firebase-config.js';
 import { requireRole, handleSignOut, showToast, openViewAs, primaryRole } from './auth.js';
 import { mountShell } from './shell.js';
 import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf } from './ai.js';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1046,6 +1062,67 @@ function modelLabel(m, task) {
   const rec = TASKS[task].recommended === m.id;
   return `${m.name} (${rec ? 'recommended, ' : ''}${m.note})`;
 }
+/* ── Streak settings (repair challenge and shields) ────────── */
+const STREAK_FIELDS = [
+  { group: 'repair', key: 'ENABLED', label: 'Win back a lost streak', help: 'After a missed day, students can win their streak back with extra revision that day.',
+    options: [[true, 'On'], [false, 'Off']] },
+  { group: 'repair', key: 'MINUTES', label: 'Extra revision needed', help: 'How much revision wins a streak back. Study time counts minute for minute.',
+    options: [[30, '30 minutes'], [45, '45 minutes'], [60, '1 hour'], [90, '1½ hours'], [120, '2 hours']] },
+  { group: 'repair', key: 'QUIZ_MINUTES', label: 'Each passed quiz or review counts as', help: 'Lets quizzes count towards the time: e.g. 1 hour at 10 minutes each = 6 quizzes.',
+    options: [[5, '5 minutes'], [10, '10 minutes'], [15, '15 minutes'], [20, '20 minutes']] },
+  { group: 'repair', key: 'QUIZ_PASS', label: 'Pass mark for a quiz to count', help: 'Quizzes below this score don\'t count towards the challenge.',
+    options: [[50, '50%'], [60, '60%'], [70, '70%'], [80, '80%']] },
+  { group: 'repair', key: 'MAX_MISSED', label: 'Missed days that can be won back', help: 'After a longer gap the streak starts again from 1.',
+    options: [[1, '1 day'], [2, '2 days'], [3, '3 days']] },
+  { group: 'repair', key: 'COOLDOWN_DAYS', label: 'How often', help: 'The most often a student can win a streak back.',
+    options: [[7, 'Once a week'], [14, 'Once a fortnight'], [30, 'Once a month']] },
+  { group: 'repair', key: 'BONUS_XP', label: 'Bonus XP for winning it back',
+    options: [[0, 'None'], [10, '10 XP'], [20, '20 XP'], [50, '50 XP']] },
+  { group: 'shields', key: 'ENABLED', label: 'Streak shields', help: 'Earned by revising days in a row; a missed day uses one and the streak carries on.',
+    options: [[true, 'On'], [false, 'Off']] },
+  { group: 'shields', key: 'EVERY', label: 'Earn a shield every', options: [[5, '5 days in a row'], [7, '7 days in a row'], [10, '10 days in a row'], [14, '14 days in a row']] },
+  { group: 'shields', key: 'MAX', label: 'Most shields held at once', options: [[1, '1'], [2, '2'], [3, '3']] },
+];
+async function renderStreakSettings(force = true) {
+  const saved = await loadStreakSettings(force);
+  const cur = { repair: REPAIR, shields: SHIELDS };
+  document.getElementById('streak-fields').innerHTML = STREAK_FIELDS.map(f => {
+    const id = `st-${f.group}-${f.key}`;
+    const v = cur[f.group][f.key];
+    // keep a custom value that isn't in the list
+    const opts = f.options.some(([o]) => o === v) ? f.options : [...f.options, [v, String(v)]];
+    return `<div class="ai-field">
+      <label for="${id}">${f.label}</label>${f.help ? `<p>${f.help}</p>` : ''}
+      <select id="${id}" data-group="${f.group}" data-key="${f.key}">
+        ${opts.map(([o, l]) => `<option value="${o}"${o === v ? ' selected' : ''}>${l}</option>`).join('')}
+      </select></div>`;
+  }).join('');
+  const sum = REPAIR.ENABLED
+    ? `Now: ${REPAIR.MINUTES} minutes (or ${Math.ceil(REPAIR.MINUTES / REPAIR.QUIZ_MINUTES)} quizzes at ${REPAIR.QUIZ_PASS}%+) wins back a streak`
+    : 'Winning streaks back is off';
+  document.getElementById('streak-status').textContent = sum + (saved.updatedAt ? ` · saved ${new Date(saved.updatedAt).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}` : ' · using defaults');
+}
+document.getElementById('btn-save-streaks').onclick = async () => {
+  const data = { repair: {}, shields: {}, updatedAt: Date.now() };
+  document.querySelectorAll('#streak-fields select').forEach(sel => {
+    const raw = sel.value;
+    data[sel.dataset.group][sel.dataset.key] = raw === 'true' ? true : raw === 'false' ? false : Number(raw);
+  });
+  try {
+    await setDoc(doc(db, 'settings', 'streaks'), data);
+    await renderStreakSettings();
+    showToast('Streak settings saved', 'success');
+  } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
+};
+document.getElementById('btn-reset-streaks').onclick = async () => {
+  if (!confirm('Put the streak settings back to the defaults (1 hour, 10 minutes per quiz, shields every 7 days)?')) return;
+  try {
+    await setDoc(doc(db, 'settings', 'streaks'), { repair: { ...REPAIR_DEFAULTS }, shields: { ...SHIELD_DEFAULTS }, updatedAt: Date.now() });
+    await renderStreakSettings();
+    showToast('Streak settings reset', 'success');
+  } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
+};
+
 async function renderAiSettings() {
   const s = await loadAiSettings(true);
   document.getElementById('ai-model-fields').innerHTML = Object.entries(TASKS).map(([task, t]) => {
@@ -1096,7 +1173,7 @@ function showPanel(name) {
   currentPanel = name;
   updateBreadcrumb();
   if (name === 'users') loadUsers();
-  if (name === 'settings') renderAiSettings();
+  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 

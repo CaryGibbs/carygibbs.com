@@ -65,8 +65,73 @@ export function calendarDaysBetween(earlier, later = Date.now()) {
 // they next revise).
 export function currentStreak(profile) {
   if (!profile) return 0;
-  const stored = (profile.lastRevisionDate && calendarDaysBetween(profile.lastRevisionDate) <= 1) ? (profile.streak || 0) : 0;
+  // Shields keep a streak alive through 1 or 2 missed days
+  const cover = SHIELDS.ENABLED ? Math.min(profile.shields || 0, SHIELDS.MAX) : 0;
+  const stored = (profile.lastRevisionDate && calendarDaysBetween(profile.lastRevisionDate) <= 1 + cover) ? (profile.streak || 0) : 0;
   return Math.max(stored, streakFromHistory(profile));
+}
+
+/* ── Streak shields and streak repair ─────────────────────────
+   Shields: earned one per 7 days in a row (hold up to 2). A missed day
+   uses one automatically and the streak carries on.
+   Repair: if a streak of 2+ days ends after missing 1 or 2 days (and no
+   shield covers it), the student can win it back by revising for an
+   hour that day: study time counts minute for minute, and each quiz or
+   review scoring 60%+ counts as 10 minutes. Once a fortnight at most. */
+// Defaults; an admin can change them in Admin → Settings → Streaks
+// (saved at settings/streaks and loaded by loadStreakSettings()).
+export const REPAIR_DEFAULTS  = { ENABLED: true, MINUTES: 60, QUIZ_MINUTES: 10, QUIZ_PASS: 60, MAX_MISSED: 2, MIN_STREAK: 2, COOLDOWN_DAYS: 14, BONUS_XP: 20 };
+export const SHIELD_DEFAULTS  = { ENABLED: true, EVERY: 7, MAX: 2 };
+export const REPAIR  = { ...REPAIR_DEFAULTS };
+export const SHIELDS = { ...SHIELD_DEFAULTS };
+
+let streakSettingsPromise = null;
+export function loadStreakSettings(force = false) {
+  if (!streakSettingsPromise || force) {
+    streakSettingsPromise = getDoc(doc(db, 'settings', 'streaks'))
+      .then(s => {
+        const d = s.exists() ? s.data() : {};
+        Object.assign(REPAIR, REPAIR_DEFAULTS, d.repair || {});
+        Object.assign(SHIELDS, SHIELD_DEFAULTS, d.shields || {});
+        return d;
+      })
+      .catch(() => ({}));
+  }
+  return streakSettingsPromise;
+}
+
+function isoDay(d = new Date(Date.now())) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function isoToTime(day) { const [y, m, d] = String(day).split('-').map(Number); return new Date(y, m - 1, d).getTime(); }
+
+// Today's progress towards winning a streak back
+export function repairProgress(profile, day = isoDay()) {
+  const studyMins = Math.floor(Object.values(profile?.study?.[day] || {}).reduce((a, b) => a + (b || 0), 0) / 60);
+  const quizzes = (profile?.sessions || []).filter(s => s.date && isoDay(new Date(s.date)) === day && (s.pct || 0) >= REPAIR.QUIZ_PASS).length;
+  const total = studyMins + quizzes * REPAIR.QUIZ_MINUTES;
+  return { mins: Math.min(total, REPAIR.MINUTES), studyMins, quizzes, done: total >= REPAIR.MINUTES };
+}
+
+function repairAllowed(profile, missed) {
+  if (!REPAIR.ENABLED) return false;
+  if (missed < 1 || missed > REPAIR.MAX_MISSED) return false;
+  if ((profile.streak || 0) < REPAIR.MIN_STREAK) return false;
+  if (profile.lastRepairDay && calendarDaysBetween(isoToTime(profile.lastRepairDay)) < REPAIR.COOLDOWN_DAYS) return false;
+  return true;
+}
+
+// The repair on offer today, if any: { from, progress, started, done }
+export function repairOffer(profile) {
+  if (!profile) return null;
+  const today = isoDay();
+  const r = profile.streakRepair;
+  if (r && r.day === today) return { from: r.from, progress: repairProgress(profile), started: true, done: !!r.done };
+  if (!profile.lastRevisionDate) return null;
+  const missed = calendarDaysBetween(profile.lastRevisionDate) - 1;
+  if (SHIELDS.ENABLED && missed <= Math.min(profile.shields || 0, SHIELDS.MAX)) return null;   // a shield will cover it
+  if (!repairAllowed(profile, missed)) return null;
+  return { from: profile.streak, progress: repairProgress(profile), started: false, done: false };
 }
 
 // Count consecutive days of activity (quizzes, study time, last revision)
@@ -88,6 +153,33 @@ export function streakFromHistory(profile, { endingYesterday = false } = {}) {
   return count;
 }
 
+// Longest run of consecutive revision days ever (from history)
+export function longestStreak(profile) {
+  const days = new Set();
+  (profile.sessions || []).forEach(s => { if (s.date) days.add(localDayKey(s.date)); });
+  studyEntries(profile).forEach(e => days.add(localDayKey(e.date)));
+  if (profile.lastRevisionDate) days.add(localDayKey(profile.lastRevisionDate));
+  const sorted = [...days].map(k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m, d).getTime(); }).sort((a, b) => a - b);
+  let best = 0, run = 0, prev = null;
+  sorted.forEach(t => {
+    run = (prev !== null && calendarDaysBetween(prev, t) === 1) ? run + 1 : 1;
+    best = Math.max(best, run); prev = t;
+  });
+  return best;
+}
+
+// Best streak ever: saved value, last streak, or worked out from history
+export function bestStreak(profile) {
+  if (!profile) return 0;
+  return Math.max(profile.bestStreak || 0, profile.streak || 0, longestStreak(profile), currentStreak(profile));
+}
+
+// What to show: { current, best, lapsed } (lapsed = had a streak, now 0)
+export function streakStatus(profile) {
+  const current = currentStreak(profile), best = bestStreak(profile);
+  return { current, best, lapsed: current === 0 && best > 0 };
+}
+
 export function updateStreak(profile) {
   const now       = Date.now();
   const lastDate  = profile.lastRevisionDate || 0;
@@ -98,6 +190,11 @@ export function updateStreak(profile) {
   const before = streakFromHistory(profile, { endingYesterday: true });
   let streak = profile.streak || 0;
   let streakBonus = 0;
+  let shields = profile.shields || 0;
+  let shieldUsed = null;
+  let streakRepair = profile.streakRepair || null;
+  const missed = daysSince - 1;
+  const today = isoDay(new Date(now));
 
   if (daysSince === 0) {
     // Already revised today: no change (but correct an undercount)
@@ -106,12 +203,22 @@ export function updateStreak(profile) {
     // Consecutive day: extend the streak
     streak = Math.max(streak, before) + 1;
     streakBonus = XP.STREAK_BONUS;
+  } else if (SHIELDS.ENABLED && lastDate && missed >= 1 && missed <= shields) {
+    // Missed a day or two, but shields cover it: the streak carries on
+    shields -= missed;
+    shieldUsed = { day: today, count: missed };
+    streak = streak + 1;
+    streakBonus = XP.STREAK_BONUS;
   } else {
-    // First revision, or a day was missed: today is day 1
+    // First revision, or a day was missed: today is day 1, but they can
+    // win the old streak back today
+    if (lastDate && repairAllowed(profile, missed)) streakRepair = { from: profile.streak, day: today, done: false };
     streak = 1;
   }
+  // A shield for every 7 days in a row
+  if (SHIELDS.ENABLED && streak > (profile.streak || 0) && streak % SHIELDS.EVERY === 0) shields = Math.min(SHIELDS.MAX, shields + 1);
 
-  return { streak, lastRevisionDate: now, streakBonus };
+  return { streak, lastRevisionDate: now, streakBonus, shields, shieldUsed, streakRepair };
 }
 
 /* ── Badge definitions ───────────────────────────────────── */
@@ -131,6 +238,7 @@ export const TIERS = {
 export const BADGE_FAMILIES = [
   { id: 'days',     name: 'Showing up',       icon: '📅', blurb: 'Revise on lots of different days' },
   { id: 'streak',   name: 'Streaks',          icon: '🔥', blurb: 'Revise on days in a row' },
+  { id: 'comeback', name: 'Comebacks',        icon: '🦸', blurb: 'Win back a streak, or let a shield save it' },
   { id: 'time',     name: 'Time invested',    icon: '⏱️', blurb: 'Build up total revision time' },
   { id: 'week',     name: 'Big weeks',        icon: '💪', blurb: 'Put the hours in within one week' },
   { id: 'quizzes',  name: 'Quizzes',          icon: '🎯', blurb: 'Finish quizzes' },
@@ -167,6 +275,8 @@ export const BADGES = [
   B('streak_7',  'streak', 2, 'streak', 7,  'Week Warrior',     '⚡', '7-day revision streak'),
   B('streak_14', 'streak', 3, 'streak', 14, 'Fortnight Focus',  '🌋', '14-day revision streak'),
   B('streak_30', 'streak', 4, 'streak', 30, 'Unstoppable',      '🚀', '30-day revision streak'),
+  B('repair_1',  'comeback', 1, 'repairsDone', 1, 'Comeback Kid', '🦸', 'Won back a lost streak with an hour of revision'),
+  B('shield_1',  'comeback', 1, 'shieldsUsed', 1, 'Safety Net',   '🛡️', 'A streak shield kept your streak going'),
 
   // Total time (minutes)
   B('time_60',   'time', 1, 'totalMins', 60,   'First Hour',     '⏱️', '1 hour of quiz revision in total'),
@@ -355,7 +465,7 @@ export function computeMetrics(profile) {
   return {
     quizzes:        sessions.length,
     studyDays:      days.size,
-    streak:         profile.streak || 0,
+    streak:         bestStreak(profile),   // streak badges count your best run
     totalMins:      Math.floor(totalSecs / 60),
     bestWeekMins:   Math.floor(Math.max(0, ...Object.values(weeks)) / 60),
     improvedTopics: gains.filter(g => g > 0).length,
@@ -372,6 +482,8 @@ export function computeMetrics(profile) {
     topicsLearned:  (profile.topicsCompleted || []).length,
     cheatSheets:    (profile.cheatSheetsViewed || []).length,
     reviews:        sessions.filter(s => s.review).length,
+    repairsDone:    profile.repairsDone || 0,
+    shieldsUsed:    profile.shieldsUsed || 0,
     longTerm:       Object.values(profile.srs || {}).filter(e => e && e.b >= 3).length,
     level:          getLevelInfo(profile.xp || 0).current.level,
   };
@@ -411,7 +523,7 @@ export function checkBadges(profile, newSessionPct, source) {
 export async function awardXp(uid, source, options = {}) {
   // source: 'quiz' | 'mindmap' | 'time' | 'learn' | 'cheatsheet'
   // options: { pct, minutes }
-  const snap = await getDoc(doc(db, 'users', uid));
+  const [snap] = await Promise.all([getDoc(doc(db, 'users', uid)), loadStreakSettings()]);
   if (!snap.exists()) return null;
   const profile = snap.data();
 
@@ -429,8 +541,18 @@ export async function awardXp(uid, source, options = {}) {
     xpGained = XP.CHEATSHEET;
   }
 
-  const { streak, lastRevisionDate, streakBonus } = updateStreak(profile);
+  let { streak, lastRevisionDate, streakBonus, shields, shieldUsed, streakRepair } = updateStreak(profile);
   xpGained += streakBonus;
+
+  // Winning a lost streak back: an hour of revision today
+  let repaired = false, repairsDone = profile.repairsDone || 0, lastRepairDay = profile.lastRepairDay || null;
+  if (streakRepair && streakRepair.day === isoDay() && !streakRepair.done && repairProgress(profile).done) {
+    streak = Math.max(streak, streakRepair.from + 1);
+    streakRepair = { ...streakRepair, done: true };
+    repaired = true; repairsDone += 1; lastRepairDay = streakRepair.day;
+    xpGained += REPAIR.BONUS_XP;
+  }
+  const shieldsUsed = (profile.shieldsUsed || 0) + (shieldUsed ? shieldUsed.count : 0);
 
   const newXp   = (profile.xp || 0) + xpGained;
   const oldLevel = getLevelInfo(profile.xp || 0).current;
@@ -438,7 +560,7 @@ export async function awardXp(uid, source, options = {}) {
   const levelledUp = newLevel.level > oldLevel.level;
 
   // Check badges (pass updated xp for level checks)
-  const profileForBadges = { ...profile, xp: newXp, streak, sessions: profile.sessions || [] };
+  const profileForBadges = { ...profile, xp: newXp, streak, repairsDone, shieldsUsed, sessions: profile.sessions || [] };
   const { badges, newlyEarned } = checkBadges(
     profileForBadges,
     options.pct || 0,
@@ -454,16 +576,23 @@ export async function awardXp(uid, source, options = {}) {
     xp: newXp,
     level: newLevel.level,
     streak,
+    bestStreak: Math.max(bestStreak(profile), streak),
     lastRevisionDate,
     badges,
     mindmapsViewed,
+    shields,
+    shieldsUsed,
+    streakRepair: streakRepair || null,
+    repairsDone,
+    lastRepairDay,
   };
+  if (shieldUsed) updates.lastShieldUsed = shieldUsed;
 
   await updateDoc(doc(db, 'users', uid), updates);
   // Keep the parent's summary copy in step (used on the child cards)
   if (profile.parentUid) {
     updateDoc(doc(db, 'users', profile.parentUid, 'children', uid),
-      { streak, lastRevisionDate, xp: newXp, level: newLevel.level }).catch(() => {});
+      { streak, lastRevisionDate, xp: newXp, level: newLevel.level, shields, streakRepair: streakRepair || null }).catch(() => {});
   }
 
   return {
@@ -474,6 +603,8 @@ export async function awardXp(uid, source, options = {}) {
     oldLevel,
     levelledUp,
     streak,
+    repaired,
+    shieldUsed,
     newlyEarned,
     badges,
   };
