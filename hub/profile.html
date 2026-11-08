@@ -326,7 +326,8 @@ requireAuth(async (user, profile) => {
   document.getElementById('stat-avg').textContent     = avgScore !== null ? avgScore+'%' : '—';
   document.getElementById('stat-streak').innerHTML  = streak + ' <i data-icon="flame"></i>';
   const st = streakStatus(profile);
-  if (st.lapsed) document.getElementById('stat-streak-label').textContent = `Streak · best ${st.best}, start again today`;
+  document.getElementById('stat-streak-label').textContent = st.lapsed ? `Streak · best ${st.best}, start again today`
+    : (st.current >= 2 && st.current >= st.best ? 'Streak · 🏆 personal best!' : st.best ? `Streak · best ${st.best}` : 'Streak');
 
   // Level ladder
   const ladder = document.getElementById('level-ladder');

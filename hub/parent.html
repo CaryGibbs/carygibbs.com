@@ -491,7 +491,7 @@ function renderChildren() {
         <div class="child-stats">
           <div class="child-stat"><div class="child-stat-val">${quizCount}</div><div class="child-stat-label">Quizzes</div></div>
           <div class="child-stat"><div class="child-stat-val">${avgScore !== null ? avgScore+'%' : '—'}</div><div class="child-stat-label">Avg score</div></div>
-          <div class="child-stat"${stInfo.lapsed ? ` title="Streak ended. Best was ${stInfo.best} days in a row."` : ''}><div class="child-stat-val">${streak}</div><div class="child-stat-label">${stInfo.lapsed ? `Streak · best ${stInfo.best}` : 'Day streak'}</div></div>
+          <div class="child-stat"${stInfo.lapsed ? ` title="Streak ended. Best was ${stInfo.best} days in a row."` : ''}><div class="child-stat-val">${streak}</div><div class="child-stat-label">${stInfo.lapsed ? `Streak · best ${stInfo.best}` : (stInfo.current >= 2 && stInfo.current >= stInfo.best ? 'Streak · 🏆 best!' : `Streak · best ${stInfo.best}`)}</div></div>
         </div>
         <div class="child-week">
           <span><i data-icon="clock"></i> Today <strong>${fmtTime(todaySecs)}</strong></span>
@@ -773,7 +773,8 @@ window._openProgressModal = async function(uid) {
   const stp = streakStatus(profile);
   document.getElementById('stat-streak-label').textContent = stp.lapsed
     ? `Streak ended · best was ${stp.best} day${stp.best === 1 ? '' : 's'}`
-    : 'Streak';
+    : (stp.current >= 2 && stp.current >= stp.best ? 'Streak · 🏆 personal best!'
+    : stp.best ? `Streak · best ${stp.best} day${stp.best === 1 ? '' : 's'}` : 'Streak');
   document.getElementById('progress-xp').innerHTML =
     `<strong>${current.name} · ${profile.xp || 0} XP</strong>${next ? `${xpIntoLevel} / ${xpNeeded} to ${next.name}` : 'Top level'}`;
 

@@ -684,6 +684,10 @@ function renderGamification(profile, user) {
     const lbl = document.getElementById('xp-streak-label');
     lbl.textContent = `Best ${st.best} · revise today!`;
     lbl.title = `Your streak ended. Your best was ${st.best} day${st.best === 1 ? '' : 's'} in a row: revise today to start a new one.`;
+  } else if (st.current >= 2 && st.current >= st.best) {
+    document.getElementById('xp-streak-label').textContent = '🏆 Personal best!';
+  } else if (st.best > st.current) {
+    document.getElementById('xp-streak-label').textContent = `Streak · best ${st.best}`;
   }
   document.getElementById('xp-total-val').textContent   = xp + ' XP';
 
