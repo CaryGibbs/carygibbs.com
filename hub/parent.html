@@ -29,6 +29,21 @@
     .section-header h2 { font-size: 1.1rem; font-weight: 700; }
 
     /* ── Child cards ─────────────────────────────────────── */
+    .plan-exams { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .plan-exam-row { display: grid; grid-template-columns: 1fr 140px 140px auto; gap: 6px; align-items: end; }
+    .plan-exam-row label { font-size: 0.72rem; color: var(--color-text-muted); font-weight: 600; display: block; margin-bottom: 2px; }
+    .plan-exam-row input { padding: 8px 10px; font-size: 0.9rem; }
+    .plan-exam-row .btn { padding: 8px 10px; }
+    @media (max-width: 600px) { .plan-exam-row { grid-template-columns: 1fr 1fr; } .plan-exam-row > div:first-child { grid-column: 1 / -1; } }
+    .plan-week { background: var(--color-surface-2); border-radius: var(--radius-card); padding: 14px 16px; margin-bottom: var(--space-md); }
+    .plan-week-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-family: var(--font-ui); font-size: 0.85rem; margin-bottom: 10px; }
+    .plan-week-head strong { font-family: var(--font-heading); }
+    .plan-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .plan-day { text-align: center; font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted); }
+    .plan-day .bar { height: 46px; border-radius: 8px; background: var(--color-surface); position: relative; overflow: hidden; margin-bottom: 4px; border: 1px solid var(--color-border); }
+    .plan-day .bar i { position: absolute; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--color-primary) 55%, transparent); }
+    .plan-day.met .bar i { background: var(--color-success); }
+    .plan-day .mark { font-weight: 700; color: var(--color-text); }
     .family-heading { font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--color-text); margin: 4px 0 4px; }
     .children-count { font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
     .children-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg); }
@@ -272,6 +287,13 @@
       </select>
       <div class="form-hint">They can also change this themselves on the Cards screen.</div>
     </div>
+    <div class="form-group plan-edit">
+      <label for="manage-plan-mode">Study plan</label>
+      <select id="manage-plan-mode"></select>
+      <div class="form-hint" id="manage-plan-hint"></div>
+      <div class="plan-exams" id="manage-exams"></div>
+      <button type="button" class="btn btn-secondary" id="btn-add-exam" style="margin-top:8px;padding:7px 12px;font-size:0.82rem"><i data-icon="plus"></i> Add exam dates</button>
+    </div>
     <div class="form-group">
       <label>Revision packs</label>
       <div class="group-check-list" id="manage-group-list">
@@ -322,6 +344,7 @@
       <div class="progress-stat"><div class="progress-stat-val" id="stat-avg">—</div><div class="progress-stat-label">Avg score</div></div>
       <div class="progress-stat"><div class="progress-stat-val" id="stat-streak">0</div><div class="progress-stat-label" id="stat-streak-label">Streak</div></div>
     </div>
+    <div class="plan-week" id="progress-plan"></div>
     <div class="progress-tabs">
       <button class="progress-tab" data-jump="goals"><i data-icon="target"></i> Goals</button>
       <button class="progress-tab" data-jump="time"><i data-icon="clock"></i> Time</button>
@@ -390,6 +413,7 @@ import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes
 import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
 import { dueEntries, scheduledCount } from './srs.js';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -424,7 +448,7 @@ requireAuth((user, profile) => {
   }
   parentUid = user.uid;
   // Streak repair / shield rules set by the admin; redraw cards once known
-  loadStreakSettings().then(() => { if (Object.keys(childrenData || {}).length) renderChildren(); });
+  Promise.all([loadStreakSettings(), loadPlanSettings()]).then(() => { if (Object.keys(childrenData || {}).length) renderChildren(); });
   mountShell(user, profile, { view: 'parent', active: currentSection() === 'students' ? 'children' : 'home' });
   shellUser = user; shellProfile = profile;
   homeName = (profile.name || '').split(' ')[0] || '';
@@ -465,7 +489,7 @@ async function refreshFromChildRecords() {
   await Promise.all(ids.map(async id => {
     const snap = await getDoc(doc(db, 'users', id)).catch(() => null);
     const p = snap?.data(); if (!p) return;
-    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'bestStreak', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'xp', 'level',
+    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'xp', 'level',
                   'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength'];
     const fresh = {};
     keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
@@ -561,6 +585,12 @@ function renderHome() {
     if (!packs) items.push({ p: 0, emoji: '📦', text: `${esc(k.first)} has no revision pack yet`, sub: 'Choose one so they can start revising.', act: btn('Choose pack', `openManageModal('${k.uid}')`, true) });
     if (daysOff === null) items.push({ p: 1, emoji: '👋', text: `${esc(k.first)} hasn't started yet`, sub: 'A quick message can help them get going.', act: btn('Message', `openNotifyModal('${k.uid}')`) });
     else if (daysOff >= 2) items.push({ p: 1, emoji: '💤', text: `${esc(k.first)} hasn't revised since ${agoText(w.last)}`, sub: st.best ? `Best streak ${st.best} day${st.best === 1 ? '' : 's'}.` : '', act: btn('Message', `openNotifyModal('${k.uid}')`) });
+    const behind = behindPlan(k);
+    const ps = planSummary(k);
+    if (behind && ps.level !== 'relaxed') {
+      const g = goalStatus(k);
+      items.push({ p: ps.level === 'push' || ps.level === 'final' ? 0.5 : 2.5, emoji: ps.L.emoji, text: `${esc(k.first)} is behind ${ps.exam ? 'the exam plan' : 'plan'}${ps.when ? ` · ${esc(ps.when)}` : ''}`, sub: `${behind}. Today ${g.done ? 'goal hit ✓' : `${Math.min(g.mins, g.L.mins)}/${g.L.mins} min`}.`, act: btn('Message', `openNotifyModal('${k.uid}')`) });
+    }
     const r = repairOffer(k);
     if (r && !(r.done || r.progress.done)) items.push({ p: 2, emoji: '🔥', text: `${esc(k.first)} can win back a ${r.from}-day streak today`, sub: `${r.progress.mins} of ${REPAIR.MINUTES} minutes done.`, act: btn('Message', `openNotifyModal('${k.uid}')`) });
     if (due >= 10) items.push({ p: 3, emoji: '🔁', text: `${esc(k.first)} has ${due} reviews due`, sub: 'Reviews make what they learnt stick.', act: btn('View as', `viewAs('${k.uid}')`) });
@@ -600,7 +630,7 @@ function renderHome() {
     const c = themeColour(k.theme);
     const streakSub = st.lapsed ? `ended · best ${st.best}` : (st.current >= 2 && st.current >= st.best ? '🏆 best!' : st.best ? `best ${st.best}` : 'streak');
     return `<div class="wk-row">
-      <div class="wk-name"><span class="act-dot" style="background:${c}22;color:${c}">${esc((k.name || '?').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase())}</span><div>${esc(k.name || '')}<small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">Last active ${w.last ? agoText(w.last) : 'never'}</small></div></div>
+      <div class="wk-name"><span class="act-dot" style="background:${c}22;color:${c}">${esc((k.name || '?').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase())}</span><div>${esc(k.name || '')}<small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">${(() => { const ps = planSummary(k), g = goalStatus(k); return `${esc(ps.text)} · today ${g.done ? '✓ goal hit' : `${Math.min(g.mins, g.L.mins)}/${g.L.mins} min`}`; })()}</small><small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">Last active ${w.last ? agoText(w.last) : 'never'}</small></div></div>
       <div class="wk-stat"><b>${fmtTime(w.secs)}</b><span>this week</span></div>
       <div class="wk-stat"><b>${w.quizzes}${w.avg !== null ? ` <small style="font-size:0.75rem;color:var(--color-text-muted)">· ${w.avg}%</small>` : ''}</b><span>quizzes</span></div>
       <div class="wk-stat"><b>${st.current} 🔥</b><span>${streakSub}</span></div>
@@ -775,6 +805,59 @@ window._addChild = async function() {
   } finally { btn.classList.remove('loading'); }
 };
 
+/* ── Study plan week (in the Progress window) ─────────────── */
+function renderPlanWeek(profile) {
+  const box = document.getElementById('progress-plan');
+  if (!box) return;
+  const ps = planSummary(profile);
+  const days = planHistory(profile, 7);
+  const met = days.filter(d => d.done).length;
+  box.innerHTML = `<div class="plan-week-head"><span><strong>${esc(ps.text)}</strong></span><span>Target ${esc(targetText(ps.L))} · goal hit ${met} of the last 7 days</span></div>
+    <div class="plan-days">${days.map(d => {
+      const h = Math.round(Math.min(1, d.mins / Math.max(1, d.L.mins)) * 100);
+      const wd = new Date(d.day + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
+      return `<div class="plan-day${d.done ? ' met' : ''}" title="${wd}: ${d.mins} min, ${d.quizzes} quiz${d.quizzes === 1 ? '' : 'zes'} (target ${d.L.mins} min, ${d.L.label})">
+        <div class="bar"><i style="height:${h}%"></i></div><span class="mark">${d.done ? '✓' : d.mins ? d.mins + 'm' : '–'}</span><br>${d.today ? 'Today' : wd}</div>`;
+    }).join('')}</div>`;
+}
+
+/* ── Study plan editor (in Manage student) ────────────────── */
+let managePlan = { mode: 'auto', exams: [] };
+function readPlanEditor() {
+  managePlan.mode = document.getElementById('manage-plan-mode').value;
+  document.querySelectorAll('#manage-exams .plan-exam-row').forEach((row, i) => {
+    const e = managePlan.exams[i]; if (!e) return;
+    e.name = row.querySelector('[data-f="name"]').value;
+    e.start = row.querySelector('[data-f="start"]').value;
+    e.end = row.querySelector('[data-f="end"]').value || null;
+  });
+}
+function renderPlanEditor() {
+  const sel = document.getElementById('manage-plan-mode');
+  sel.innerHTML = MODES.map(m => `<option value="${m.id}"${m.id === managePlan.mode ? ' selected' : ''}>${m.label}</option>`).join('');
+  const hint = () => {
+    const mode = sel.value;
+    document.getElementById('manage-plan-hint').textContent = mode === 'auto'
+      ? `Steady most of the time, Exam push for the 2 weeks before an exam (${targetText(LEVELS.push)} a day), and Relaxed once exams are over.`
+      : `${LEVELS[mode].emoji} ${LEVELS[mode].label}: ${targetText(LEVELS[mode])} a day, ${LEVELS[mode].days} days a week.`;
+  };
+  sel.onchange = hint; hint();
+  const box = document.getElementById('manage-exams');
+  box.innerHTML = managePlan.exams.map((e, i) => `<div class="plan-exam-row">
+      <div><label>Exams</label><input data-f="name" value="${esc(e.name || '')}" placeholder="e.g. November progress exams"></div>
+      <div><label>First exam</label><input type="date" data-f="start" value="${esc(e.start || '')}"></div>
+      <div><label>Last exam (optional)</label><input type="date" data-f="end" value="${esc(e.end || '')}"></div>
+      <button type="button" class="btn btn-ghost" data-del-exam="${i}" aria-label="Remove these exams"><i data-icon="trash-2"></i></button>
+    </div>`).join('');
+  box.querySelectorAll('[data-del-exam]').forEach(b => b.onclick = () => { readPlanEditor(); managePlan.exams.splice(+b.dataset.delExam, 1); renderPlanEditor(); });
+  document.getElementById('btn-add-exam').onclick = () => {
+    readPlanEditor();
+    managePlan.exams.push({ id: 'e' + Date.now().toString(36), name: '', start: '', end: null });
+    renderPlanEditor();
+    box.querySelector('.plan-exam-row:last-child input')?.focus();
+  };
+}
+
 /* ── Manage child ────────────────────────────────────────── */
 window._openManageModal = function(uid) {
   managingChildId = uid;
@@ -785,6 +868,9 @@ window._openManageModal = function(uid) {
   manageTheme = child.theme || 'edge';
   renderThemeGrid('manage-theme-grid', manageTheme, t => { manageTheme = t; });
   document.getElementById('manage-card-length').value = child.cardLength || 'full';
+  managePlan = JSON.parse(JSON.stringify(child.plan || { mode: 'auto', exams: [] }));
+  managePlan.exams = managePlan.exams || [];
+  renderPlanEditor();
   document.getElementById('share-email').value = '';
   renderGuardians(uid);
   const currentGroupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
@@ -802,11 +888,15 @@ window._saveChild = async function() {
   btn.classList.add('loading');
   try {
     const cardLength = document.getElementById('manage-card-length').value;
+    readPlanEditor();
+    const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null })) };
     await updateDoc(doc(db, 'users', managingChildId), {
-      name, theme: manageTheme, groupIds, cardLength,
+      name, theme: manageTheme, groupIds, cardLength, plan,
       groupId: groupIds[0] || null
     });
     childrenData[managingChildId].cardLength = cardLength;
+    childrenData[managingChildId].plan = plan;
+    renderChildren();
     await updateDoc(doc(db, 'users', parentUid, 'children', managingChildId), {
       name, theme: manageTheme, groupIds
     });
@@ -950,6 +1040,9 @@ window._openProgressModal = async function(uid) {
     : stp.best ? `Streak · best ${stp.best} day${stp.best === 1 ? '' : 's'}` : 'Streak');
   document.getElementById('progress-xp').innerHTML =
     `<strong>${current.name} · ${profile.xp || 0} XP</strong>${next ? `${xpIntoLevel} / ${xpNeeded} to ${next.name}` : 'Top level'}`;
+
+  // Study plan: this week, target vs what they did
+  renderPlanWeek(profile);
 
   // Same goals, time, subject and badge views the child sees on their hub
   document.getElementById('progress-stats-root').innerHTML = statsSectionsHtml();

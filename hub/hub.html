@@ -163,6 +163,29 @@
     .review-card .btn { flex-shrink: 0; }
     @media (max-width: 600px) { .review-card .btn { width: 100%; } }
     /* ── Win your streak back ─────────────────────────────── */
+    /* ── Study plan ───────────────────────────────────────── */
+    .plan-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card);
+      padding: var(--space-md) var(--space-lg); margin-bottom: var(--space-lg); box-shadow: var(--shadow-card); }
+    .plan-card.push, .plan-card.final { border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border)); }
+    .plan-top { display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap; }
+    .plan-ring { --p: 0; width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+      background: conic-gradient(var(--color-primary) calc(var(--p) * 1%), var(--color-surface-2) 0); }
+    .plan-ring span { width: 50px; height: 50px; border-radius: 50%; background: var(--color-surface); display: grid; place-items: center;
+      font-family: var(--font-heading); font-weight: 800; font-size: 0.95rem; color: var(--color-text); }
+    .plan-ring.done { background: var(--color-success); }
+    .plan-head { flex: 1; min-width: 200px; }
+    .plan-level { font-family: var(--font-ui); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-primary); }
+    .plan-title { font-family: var(--font-heading); font-weight: 800; font-size: 1.1rem; color: var(--color-text); }
+    .plan-count { text-align: center; flex-shrink: 0; }
+    .plan-count b { display: block; font-family: var(--font-heading); font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--color-text); }
+    .plan-count span { font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted); }
+    .plan-parts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .plan-part { font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); }
+    .plan-part.ok { background: color-mix(in srgb, var(--color-success) 16%, transparent); color: var(--color-success); }
+    .plan-focus { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); font-size: 0.9rem; }
+    .plan-focus .txt { flex: 1; min-width: 200px; }
+    .plan-focus small { display: block; color: var(--color-text-muted); font-size: 0.8rem; }
+    .plan-focus .btn { padding: 7px 14px; font-size: 0.82rem; }
     .repair-card { border-color: color-mix(in srgb, var(--color-streak) 55%, var(--color-border)) !important; }
     .repair-card .review-icon { background: color-mix(in srgb, var(--color-streak) 16%, transparent); color: var(--color-streak); font-size: 1.4rem; }
     .repair-bar { height: 8px; border-radius: 99px; background: var(--color-surface-2); overflow: hidden; margin-top: 8px; }
@@ -313,6 +336,7 @@
       </div>
     </div>
   </div>
+  <div id="plan-wrap"></div>
   <div id="streak-wrap"></div>
   <div id="review-wrap"></div>
   <div id="hub-content">
@@ -344,6 +368,7 @@ import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { findClass, joinClass, cleanCode } from './join-class.js';
 import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween } from './plan.js';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -370,7 +395,7 @@ window._toggleTopics = (btn) => {
 
 requireAuth(async (user, profile) => {
   hubProfile = profile; hubUser = user;
-  await loadStreakSettings();   // admin's streak repair / shield rules
+  await Promise.all([loadStreakSettings(), loadPlanSettings()]);   // admin's streak and study plan rules
   // Allow student, parent, admin — parents/admins can preview hub
   const firstName = (profile.name || 'there').split(' ')[0];
   document.getElementById('student-name').textContent = firstName;
@@ -507,6 +532,65 @@ async function renderPackPicker(user, ids, current) {
 let hubProfile = null;   // the student whose hub this is (for Review today)
 let hubUser = null;
 
+/* ── Study plan: countdown, today's goal, what to focus on ───── */
+function focusSubject(profile, subjects, groupId) {
+  if (!subjects?.length) return null;
+  const today = isoDay();
+  const due = dueEntries(profile, groupId);
+  const scored = subjects.map(s => {
+    const ses = (profile.sessions || []).filter(x => !x.review && (x.subjectId === s.id || x.subject === s.name));
+    const recent = ses.slice(-6);
+    const avg = recent.length ? recent.reduce((a, x) => a + (x.pct || 0), 0) / recent.length : null;
+    const dueN = due.filter(e => e.s === s.id).length;
+    // days since this subject was last revised (quiz or study time)
+    const lastQuiz = Math.max(0, ...ses.map(x => x.date || 0));
+    const studyDays = Object.keys(profile.study || {}).filter(d => (profile.study[d] || {})[s.id] > 0).sort();
+    const lastStudy = studyDays.length ? new Date(studyDays[studyDays.length - 1] + 'T12:00:00').getTime() : 0;
+    const last = Math.max(lastQuiz, lastStudy);
+    const since = last ? daysBetween(isoDay(new Date(last)), today) : 30;
+    const score = (avg === null ? 40 : 100 - avg) + dueN * 3 + Math.min(since, 14) * 4;
+    let why = [];
+    if (avg !== null && avg < 65) why.push(`your average is ${Math.round(avg)}%`);
+    if (dueN) why.push(`${dueN} review${dueN === 1 ? '' : 's'} due`);
+    if (since >= 3) why.push(last ? `not revised for ${since} days` : 'not started yet');
+    if (!why.length) why.push(avg !== null ? `keep it ticking over (${Math.round(avg)}% average)` : 'keep every subject ticking over');
+    return { s, score, why };
+  }).sort((a, b) => b.score - a.score);
+  return scored[0];
+}
+
+function renderPlanCard(groupId, subjects) {
+  const wrap = document.getElementById('plan-wrap');
+  if (!wrap) return;
+  const profile = hubProfile;
+  if (!profile || !isStudent(profile)) { wrap.innerHTML = ''; return; }
+  const g = goalStatus(profile);
+  const sum = planSummary(profile);
+  const L = g.L;
+  const pct = Math.round(g.pct * 100);
+  const toExam = sum.exam ? daysBetween(isoDay(), sum.exam.start) : null;
+  const parts = [`<span class="plan-part${g.minsOk ? ' ok' : ''}">${g.minsOk ? '✓ ' : ''}${Math.min(g.mins, L.mins)} / ${L.mins} min</span>`];
+  if (L.quizzes) parts.push(`<span class="plan-part${g.quizOk ? ' ok' : ''}">${g.quizOk ? '✓ ' : ''}${Math.min(g.quizzes, L.quizzes)} / ${L.quizzes} quiz${L.quizzes === 1 ? '' : 'zes'}</span>`);
+  if (L.reviews) parts.push(`<span class="plan-part${g.revOk ? ' ok' : ''}">${g.revOk ? '✓ reviews done' : `${g.reviewsLeft} review${g.reviewsLeft === 1 ? '' : 's'} due`}</span>`);
+  const f = g.done ? null : focusSubject(profile, subjects, groupId);
+  const go = s => `{groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'}`;
+  wrap.innerHTML = `<div class="plan-card ${g.level}">
+    <div class="plan-top">
+      <div class="plan-ring${g.done ? ' done' : ''}" style="--p:${pct}"><span>${g.done ? '✓' : pct + '%'}</span></div>
+      <div class="plan-head">
+        <div class="plan-level">${L.emoji} ${L.label}${L.either ? ` · ${targetText(L)}` : ''}</div>
+        <div class="plan-title">${g.done ? 'Goal hit for today! 🎉' : "Today's goal"}</div>
+        ${g.done ? `<div class="review-sub">Nice work. Anything more today is a bonus.</div>` : ''}
+      </div>
+      ${toExam !== null && toExam >= 0 ? `<div class="plan-count"><b>${toExam === 0 ? 'Today' : toExam}</b><span>${toExam === 0 ? esc(sum.exam.name || 'Exams') : `day${toExam === 1 ? '' : 's'} to ${esc(sum.exam.name || 'exams')}`}</span></div>` : ''}
+    </div>
+    ${g.done ? '' : `<div class="plan-parts">${parts.join('')}</div>`}
+    ${f ? `<div class="plan-focus"><span style="font-size:1.3rem">🎯</span><div class="txt"><strong>Focus today: ${esc(f.s.name)}</strong>${f.why.length ? `<small>${f.why.join(', ')}</small>` : ''}</div>
+      <button class="btn btn-secondary" onclick="goMindmap(${go(f.s)})"><i data-icon="book-open"></i> Learn</button>
+      <button class="btn btn-primary" onclick="goQuiz(${go(f.s)})"><i data-icon="zap"></i> Quiz</button></div>` : ''}
+  </div>`;
+}
+
 /* ── Win your streak back ─────────────────────────────────── */
 function durationText(m) {
   if (m === 60) return 'an hour';
@@ -600,6 +684,7 @@ async function loadSubjects(user, groupId) {
     subjectTopics[s.id] = [];
     if (tSnap) tSnap.forEach(d => subjectTopics[s.id].push({ id: d.id, ...d.data() }));
   }));
+  renderPlanCard(groupId, subjects);
 
   grid.innerHTML = `
     <div class="section-header">

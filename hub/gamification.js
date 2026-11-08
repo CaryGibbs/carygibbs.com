@@ -4,6 +4,7 @@
 // ============================================================
 
 import { db } from './firebase-config.js';
+import { goalStatus, loadPlanSettings, isoDay as planDay, GOAL_XP } from './plan.js';
 import {
   doc, getDoc, updateDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -239,6 +240,7 @@ export const BADGE_FAMILIES = [
   { id: 'days',     name: 'Showing up',       icon: '📅', blurb: 'Revise on lots of different days' },
   { id: 'streak',   name: 'Streaks',          icon: '🔥', blurb: 'Revise on days in a row' },
   { id: 'comeback', name: 'Comebacks',        icon: '🦸', blurb: 'Win back a streak, or let a shield save it' },
+  { id: 'plan',     name: 'Study plan',       icon: '🎯', blurb: 'Hit your daily study goal' },
   { id: 'time',     name: 'Time invested',    icon: '⏱️', blurb: 'Build up total revision time' },
   { id: 'week',     name: 'Big weeks',        icon: '💪', blurb: 'Put the hours in within one week' },
   { id: 'quizzes',  name: 'Quizzes',          icon: '🎯', blurb: 'Finish quizzes' },
@@ -276,6 +278,10 @@ export const BADGES = [
   B('streak_14', 'streak', 3, 'streak', 14, 'Fortnight Focus',  '🌋', '14-day revision streak'),
   B('streak_30', 'streak', 4, 'streak', 30, 'Unstoppable',      '🚀', '30-day revision streak'),
   B('repair_1',  'comeback', 1, 'repairsDone', 1, 'Comeback Kid', '🦸', 'Won back a lost streak with an hour of revision'),
+  B('goal_1',    'plan', 1, 'goalsHit', 1,  'On Target',   '🎯', 'Hit your daily study goal'),
+  B('goal_10',   'plan', 2, 'goalsHit', 10, 'Goal Getter', '🥅', 'Hit your daily study goal 10 times'),
+  B('goal_30',   'plan', 3, 'goalsHit', 30, 'Clockwork',   '⏰', 'Hit your daily study goal 30 times'),
+  B('exam_week', 'plan', 4, 'examRun', 7,   'Exam Ready',  '🎓', 'Hit your goal every day for a week in an exam push'),
   B('shield_1',  'comeback', 1, 'shieldsUsed', 1, 'Safety Net',   '🛡️', 'A streak shield kept your streak going'),
 
   // Total time (minutes)
@@ -483,10 +489,24 @@ export function computeMetrics(profile) {
     cheatSheets:    (profile.cheatSheetsViewed || []).length,
     reviews:        sessions.filter(s => s.review).length,
     repairsDone:    profile.repairsDone || 0,
+    goalsHit:       Object.keys(profile.planGoals || {}).length,
+    examRun:        examRun(profile.planGoals || {}),
     shieldsUsed:    profile.shieldsUsed || 0,
     longTerm:       Object.values(profile.srs || {}).filter(e => e && e.b >= 3).length,
     level:          getLevelInfo(profile.xp || 0).current.level,
   };
+}
+
+// Longest run of consecutive days with the goal hit during an exam push
+function examRun(goals) {
+  const days = Object.entries(goals).filter(([, l]) => l === 'push' || l === 'final').map(([d]) => d).sort();
+  let best = 0, run = 0, prev = null;
+  days.forEach(d => {
+    const t = new Date(d + 'T12:00:00').getTime();
+    run = prev !== null && Math.round((t - prev) / 86400000) === 1 ? run + 1 : 1;
+    best = Math.max(best, run); prev = t;
+  });
+  return best;
 }
 
 /* Progress towards each badge, for display */
@@ -523,7 +543,7 @@ export function checkBadges(profile, newSessionPct, source) {
 export async function awardXp(uid, source, options = {}) {
   // source: 'quiz' | 'mindmap' | 'time' | 'learn' | 'cheatsheet'
   // options: { pct, minutes }
-  const [snap] = await Promise.all([getDoc(doc(db, 'users', uid)), loadStreakSettings()]);
+  const [snap] = await Promise.all([getDoc(doc(db, 'users', uid)), loadStreakSettings(), loadPlanSettings()]);
   if (!snap.exists()) return null;
   const profile = snap.data();
 
@@ -554,13 +574,22 @@ export async function awardXp(uid, source, options = {}) {
   }
   const shieldsUsed = (profile.shieldsUsed || 0) + (shieldUsed ? shieldUsed.count : 0);
 
+  // Study plan: hit today's goal for the first time → bonus XP
+  const today = planDay();
+  let goalHit = null;
+  const planGoals = { ...(profile.planGoals || {}) };
+  if (!planGoals[today]) {
+    const g = goalStatus(profile, today);
+    if (g.done) { goalHit = g.level; planGoals[today] = g.level; xpGained += GOAL_XP; }
+  }
+
   const newXp   = (profile.xp || 0) + xpGained;
   const oldLevel = getLevelInfo(profile.xp || 0).current;
   const newLevel = getLevelInfo(newXp).current;
   const levelledUp = newLevel.level > oldLevel.level;
 
   // Check badges (pass updated xp for level checks)
-  const profileForBadges = { ...profile, xp: newXp, streak, repairsDone, shieldsUsed, sessions: profile.sessions || [] };
+  const profileForBadges = { ...profile, xp: newXp, streak, repairsDone, shieldsUsed, planGoals, sessions: profile.sessions || [] };
   const { badges, newlyEarned } = checkBadges(
     profileForBadges,
     options.pct || 0,
@@ -587,6 +616,7 @@ export async function awardXp(uid, source, options = {}) {
     lastRepairDay,
   };
   if (shieldUsed) updates.lastShieldUsed = shieldUsed;
+  if (goalHit) updates[`planGoals.${today}`] = goalHit;
 
   await updateDoc(doc(db, 'users', uid), updates);
   // Keep the parent's summary copy in step (used on the child cards)
@@ -605,6 +635,7 @@ export async function awardXp(uid, source, options = {}) {
     streak,
     repaired,
     shieldUsed,
+    goalHit,
     newlyEarned,
     badges,
   };

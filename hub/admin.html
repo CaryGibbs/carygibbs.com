@@ -746,6 +746,21 @@
       <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
         <div class="ai-settings-head">
           <div>
+            <h3>Study plans</h3>
+            <p>Daily targets for each plan level. Parents choose a student's level (or Auto, which follows their exam dates) in Manage student.</p>
+          </div>
+        </div>
+        <div id="plan-fields"></div>
+        <div class="ai-settings-actions">
+          <button class="btn btn-primary" id="btn-save-plans"><i data-icon="save"></i> Save</button>
+          <button class="btn btn-secondary" id="btn-reset-plans"><i data-icon="rotate-ccw"></i> Back to defaults</button>
+          <span class="ai-status" id="plan-status"></span>
+        </div>
+      </div>
+
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
+        <div class="ai-settings-head">
+          <div>
             <h3>Streaks</h3>
             <p>How students can protect a streak, or win one back after missing a day. Changes apply straight away for everyone.</p>
           </div>
@@ -1005,6 +1020,7 @@ import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, a
 import { mountShell } from './shell.js';
 import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js';
 import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1160,6 +1176,39 @@ function modelLabel(m, task) {
   const rec = TASKS[task].recommended === m.id;
   return `${m.name} (${rec ? 'recommended, ' : ''}${m.note})`;
 }
+/* ── Study plan settings (daily targets per level) ─────────── */
+const PLAN_OPTS = {
+  mins:    [[10, '10 min'], [15, '15 min'], [20, '20 min'], [30, '30 min'], [45, '45 min'], [60, '1 hour'], [75, '1¼ hours'], [90, '1½ hours'], [120, '2 hours']],
+  quizzes: [[0, 'None'], [1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']],
+  days:    [[3, '3 days a week'], [4, '4 days a week'], [5, '5 days a week'], [6, '6 days a week'], [7, 'Every day']],
+};
+async function renderPlanSettings() {
+  const saved = await loadPlanSettings(true);
+  document.getElementById('plan-fields').innerHTML = Object.keys(PLAN_DEFAULTS).map(k => {
+    const L = PLAN_LEVELS[k];
+    const sel = (f) => {
+      const v = L[f]; const opts = PLAN_OPTS[f].some(([o]) => o === v) ? PLAN_OPTS[f] : [...PLAN_OPTS[f], [v, String(v)]];
+      return `<select data-level="${k}" data-f="${f}" aria-label="${L.label} ${f}">${opts.map(([o, l]) => `<option value="${o}"${o === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+    };
+    return `<div class="ai-field"><label>${L.emoji} ${L.label}</label><p>${L.blurb}${L.either ? ': the time OR the quizzes counts' : L.reviews ? ', plus clearing reviews that are due' : ''}.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${sel('mins')}${sel('quizzes')}${sel('days')}</div></div>`;
+  }).join('');
+  document.getElementById('plan-status').textContent = saved.updatedAt ? `Saved ${new Date(saved.updatedAt).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}` : 'Using defaults';
+}
+document.getElementById('btn-save-plans').onclick = async () => {
+  const data = { updatedAt: Date.now() };
+  document.querySelectorAll('#plan-fields select').forEach(sel => {
+    (data[sel.dataset.level] = data[sel.dataset.level] || {})[sel.dataset.f] = Number(sel.value);
+  });
+  try { await setDoc(doc(db, 'settings', 'plans'), data); await renderPlanSettings(); showToast('Study plan targets saved', 'success'); }
+  catch (e) { showToast('Could not save: ' + e.message, 'error'); }
+};
+document.getElementById('btn-reset-plans').onclick = async () => {
+  if (!confirm('Put the study plan targets back to the defaults?')) return;
+  try { await setDoc(doc(db, 'settings', 'plans'), { updatedAt: Date.now() }); await renderPlanSettings(); showToast('Study plan targets reset', 'success'); }
+  catch (e) { showToast('Could not save: ' + e.message, 'error'); }
+};
+
 /* ── Streak settings (repair challenge and shields) ────────── */
 const STREAK_FIELDS = [
   { group: 'repair', key: 'ENABLED', label: 'Win back a lost streak', help: 'After a missed day, students can win their streak back with extra revision that day.',
@@ -1272,7 +1321,7 @@ function showPanel(name) {
   updateBreadcrumb();
   if (name === 'users') loadUsers();
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
-  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); }
+  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 
