@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bonce — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261106e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261106e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261106e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261106e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261108a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261108a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261108a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261108a">
   <meta name="apple-mobile-web-app-title" content="Bonce">
   <meta name="application-name" content="Bonce">
-  <link rel="stylesheet" href="theme.css?v=20261106e">
-  <script src="icons.js?v=20261106e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261108a">
+  <script src="icons.js?v=20261108a"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -286,7 +286,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261106e">
+  <link rel="stylesheet" href="ui.css?v=20261108a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -485,12 +485,12 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js';
-  import { mountShell } from './shell.js';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js';
-  import { app as firebaseApp } from './firebase-config.js';
+  import { auth, db } from './firebase-config.js?v=20261108a';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261108a';
+  import { mountShell } from './shell.js?v=20261108a';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261108a';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261108a';
+  import { app as firebaseApp } from './firebase-config.js?v=20261108a';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";

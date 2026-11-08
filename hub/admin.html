@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bonce — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261106e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261106e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261106e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261106e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261108a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261108a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261108a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261108a">
   <meta name="apple-mobile-web-app-title" content="Bonce">
   <meta name="application-name" content="Bonce">
-  <link rel="stylesheet" href="theme.css?v=20261106e">
-  <script src="icons.js?v=20261106e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261108a">
+  <script src="icons.js?v=20261108a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -477,7 +477,7 @@
       padding: 0 6px;
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261106e">
+  <link rel="stylesheet" href="ui.css?v=20261108a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1014,13 +1014,13 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js';
-import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js';
-import { mountShell } from './shell.js';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js';
+import { auth, db, storage } from './firebase-config.js?v=20261108a';
+import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261108a';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261108a';
+import { mountShell } from './shell.js?v=20261108a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js?v=20261108a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261108a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261108a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.

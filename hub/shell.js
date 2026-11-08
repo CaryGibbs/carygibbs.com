@@ -8,9 +8,9 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js';
-import { themeColour } from './themes.js';
+import { db } from './firebase-config.js?v=20261108a';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261108a';
+import { themeColour } from './themes.js?v=20261108a';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');

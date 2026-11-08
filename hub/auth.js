@@ -2,7 +2,7 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js';
+import { auth, db } from './firebase-config.js?v=20261108a';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
