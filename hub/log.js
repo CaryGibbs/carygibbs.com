@@ -25,6 +25,8 @@ export const ACTIONS = {
   'account.signin_fail': { label: 'Sign-in failed',          cat: 'account' },
   'account.signout':     { label: 'Signed out',              cat: 'account' },
   'account.reset':       { label: 'Asked for a password reset', cat: 'account' },
+  'account.invite':      { label: 'Sent an invite',          cat: 'account' },
+  'account.invite_accept': { label: 'Accepted an invite',    cat: 'account' },
   'account.roles':       { label: 'Changed roles',           cat: 'account' },
   'admin.view_as':       { label: 'Viewed as a student',     cat: 'admin' },
   'admin.settings':      { label: 'Changed settings',        cat: 'admin' },

@@ -218,7 +218,10 @@
         <div class="panel-title">My students</div>
         <div class="panel-subtitle">Manage accounts, choose revision packs and track progress.</div>
       </div>
-      <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add student</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="openInvite()"><i data-icon="user-plus"></i> Invite a parent</button>
+        <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add student</button>
+      </div>
     </div>
     <h2 class="family-heading">My Family</h2>
     <div class="children-count" id="children-count">Loading…</div>
@@ -315,7 +318,7 @@
         <input type="email" id="share-email" placeholder="Another parent's email address">
         <button class="btn btn-secondary" id="btn-share" onclick="shareStudent()"><i data-icon="user-plus"></i> Share</button>
       </div>
-      <div class="form-hint" id="share-hint">They need their own Bonce parent account with that email.</div>
+      <div class="form-hint" id="share-hint">They need their own Bonce parent account with that email. Not on Bonce yet? <a href="#" onclick="openInvite(true);return false;" style="color:var(--color-primary);font-weight:600;">Invite them</a></div>
     </div>
     <div class="danger-zone">
       <p>Reset progress clears XP, level, badges, streak and quiz history. Their login, groups and theme are kept.</p>
@@ -399,6 +402,7 @@
   function saveChild()           { window._saveChild && window._saveChild(); }
   function confirmRemoveChild()  { window._confirmRemoveChild && window._confirmRemoveChild(); }
   function shareStudent()        { window._shareStudent && window._shareStudent(); }
+  function openInvite(fromManage) { window._openInvite && window._openInvite(fromManage); }
   function resetProgress()       { window._resetProgress && window._resetProgress(); }
   function openProgressModal(id) { window._openProgressModal && window._openProgressModal(id); }
   function viewAs(id)            { window._viewAs && window._viewAs(id); }
@@ -415,6 +419,7 @@ import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, R
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261108a';
 import { mountShell, refreshShellChildren } from './shell.js?v=20261108a';
 import { logEvent } from './log.js?v=20261108a';
+import { openInviteDialog } from './invite.js?v=20261108a';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261108a';
 import { dueEntries, scheduledCount } from './srs.js?v=20261108a';
 import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261108a';
@@ -464,6 +469,15 @@ requireAuth((user, profile) => {
 
 window._doSignOut = () => handleSignOut();
 window._viewAs = (uid) => openViewAs(uid);
+window._openInvite = (fromManage) => {
+  if (fromManage) document.getElementById('modal-manage').classList.remove('open');
+  openInviteDialog({
+    byUid: parentUid, byName: shellProfile?.name || '', roles: ['parent'],
+    students: Object.entries(childrenData).map(([id, c]) => ({ id, name: c.name })),
+    preselect: fromManage && managingChildId ? [managingChildId] : Object.keys(childrenData),
+    toast: showToast,
+  });
+};
 
 /* ── Load available groups ───────────────────────────────── */
 async function loadGroups() {

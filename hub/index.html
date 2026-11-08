@@ -46,6 +46,13 @@
     .signup-type-btn.selected { border-color:var(--color-primary); background:var(--color-primary-glow); color:var(--color-primary); }
     .error-msg { background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); border-radius:var(--radius-sm); color:var(--color-danger); padding:var(--space-sm) var(--space-md); font-size:0.875rem; margin-bottom:var(--space-md); display:none; }
     .error-msg.visible { display:block; }
+    .invite-box { background:color-mix(in srgb, var(--color-primary) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-primary) 30%, transparent); border-radius:var(--radius-sm); padding:12px 14px; font-size:0.9rem; line-height:1.45; margin-bottom:var(--space-md); }
+    .invite-box span { display:block; color:var(--color-text-muted); font-size:0.82rem; margin-top:3px; }
+    .invite-box.warn { background:rgba(255,170,60,0.1); border-color:rgba(255,170,60,0.4); }
+    .invite-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .invite-btns .btn { padding:8px 14px; font-size:0.85rem; }
+    .invite-alt { text-align:center; font-size:0.85rem; color:var(--color-text-muted); margin-top:var(--space-md); }
+    .invite-alt a { color:var(--color-primary); }
     .btn-submit.loading { opacity:0.7; pointer-events:none; }
     .btn-submit.loading::after { content:''; display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; margin-left:8px; vertical-align:middle; }
     .auth-footer { text-align:center; margin-top:var(--space-lg); font-size:0.8rem; color:var(--color-text-faint); font-family:var(--font-ui); animation:fadeIn 0.6s 0.3s ease both; }
@@ -72,6 +79,7 @@
       <button class="tab-btn" onclick="switchTab('signup')">Create account</button>
     </div>
     <div class="error-msg" id="error-msg"></div>
+    <div class="invite-box" id="invite-box" hidden></div>
 
     <!-- LOGIN -->
     <div class="form-panel active" id="panel-login">
@@ -127,6 +135,7 @@
         <p class="form-hint">Enter the code your teacher gave you, or leave blank.</p>
       </div>
       <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create account</button>
+      <p class="invite-alt" id="invite-alt" hidden>Already have a Bonce account? <a href="#" onclick="switchTab('login');return false;">Sign in to accept</a></p>
     </div>
   </div>
 
@@ -147,16 +156,74 @@
   import { auth, db } from './firebase-config.js?v=20261108a';
   import { redirectByRole } from './auth.js?v=20261108a';
   import { logEvent } from './log.js?v=20261108a';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261108a';
   import { findClass } from './join-class.js?v=20261108a';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    sendPasswordResetEmail, onAuthStateChanged, updateProfile
+    sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import {
     doc, setDoc, getDoc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let signupType = 'parent';
+
+  /* ── Invites and sign-up links ─────────────────────────────
+     index.html?invite=CODE   an invite from a parent or admin
+     index.html?signup=parent open straight on "Create account"
+     Either way a signed-in visitor isn't sent straight on, so the
+     page can be used (or they can sign out first). */
+  const params = new URLSearchParams(location.search);
+  const inviteCode = params.get('invite');
+  const signupParam = ['parent', 'student', 'teacher'].includes(params.get('signup')) ? params.get('signup') : null;
+  let invite = null;          // a valid invite, once read
+  let inviteReady = null;     // promise for the lookup
+  let flowBusy = false;       // a sign-in or sign-up is in progress here
+  const firstOf = n => String(n || '').split(' ')[0];
+  const escH = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  function inviteBox(html, kind = '') {
+    const box = document.getElementById('invite-box');
+    box.className = 'invite-box' + (kind ? ' ' + kind : '');
+    box.innerHTML = html; box.hidden = false;
+  }
+  function lockSignupToInvite() {
+    document.querySelector('#panel-signup .signup-type-row').style.display = 'none';
+    document.querySelector('#panel-signup > p').style.display = 'none';
+    signupType = invite.role === 'teacher' ? 'teacher' : 'parent';
+    window._selectType(signupType);
+    document.getElementById('signup-name').value = invite.name || '';
+    const em = document.getElementById('signup-email'); em.value = invite.email || ''; em.readOnly = !!invite.email;
+    document.getElementById('login-email').value = invite.email || '';
+    document.getElementById('invite-alt').hidden = false;
+  }
+  if (inviteCode) {
+    inviteReady = readInvite(inviteCode).then(r => {
+      if (r.ok) {
+        invite = r.invite;
+        const kids = (invite.studentNames || []).map(firstOf).filter(Boolean);
+        inviteBox(`<strong>${escH(firstOf(invite.byName) || 'Someone')}</strong> has invited you to join Bonce as ${invite.role === 'admin' ? 'an' : 'a'} <strong>${ROLE_LABEL[invite.role]}</strong>${kids.length ? `, to follow ${escH(kids.join(' and '))}'s revision` : ''}.<span>Create your account below, or sign in if you already have one.</span>`);
+        window._switchTab('signup');
+        lockSignupToInvite();
+      } else {
+        const why = { used: 'has already been used', expired: 'has expired', notfound: 'isn\'t valid', missing: 'isn\'t valid' }[r.reason] || 'isn\'t valid';
+        inviteBox(`This invite ${why}.<span>Ask ${escH(firstOf(r.invite?.byName) || 'the person who sent it')} for a new one.</span>`, 'warn');
+      }
+      return invite;
+    });
+  } else if (signupParam) {
+    setTimeout(() => { window._switchTab('signup'); window._selectType(signupParam); }, 0);
+  }
+  // Invite checks shared by sign-in and sign-up
+  async function useInvite(uid, email) {
+    if (!invite) return true;
+    if (!emailMatches(invite, email)) {
+      showError(`This invite is for ${invite.email}. Sign in or sign up with that email.`);
+      return false;
+    }
+    const snap = await getDoc(doc(db, 'users', uid));
+    await acceptInvite(invite, uid, snap.exists() ? snap.data() : {});
+    return true;
+  }
 
   window._switchTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach((b,i) => {
@@ -182,11 +249,15 @@
     if (!email || !password) { showError('Please enter your email and password.'); return; }
     setLoading('btn-login', true);
     try {
+      flowBusy = true;
+      if (inviteReady) await inviteReady;
       const cred = await signInWithEmailAndPassword(auth, email, password);
+      if (!(await useInvite(cred.user.uid, email))) { await signOut(auth); flowBusy = false; setLoading('btn-login', false); return; }
       await Promise.race([logEvent('account.signin', { as: { uid: cred.user.uid, name: cred.user.displayName || email, role: 'account' } }), new Promise(r => setTimeout(r, 1500))]);
       await redirectByRole(cred.user.uid);
     } catch(e) {
       if (/wrong-password|invalid-credential|user-not-found|too-many-requests/.test(e.code || '')) logEvent('account.signin_fail', { as: { uid: 'signed-out', name: email, role: 'account' }, detail: e.code === 'auth/too-many-requests' ? 'Too many attempts, locked for a while' : 'Wrong email or password' });
+      flowBusy = false;
       console.error('Login error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
       setLoading('btn-login', false);
     }
@@ -211,7 +282,9 @@
       if (!classInfo) { showError('Class code not found. Please check and try again.'); return; }
     }
 
+    if (invite && !emailMatches(invite, email)) { showError(`This invite is for ${invite.email}.`); return; }
     setLoading('btn-signup', true);
+    flowBusy = true;
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const uid  = cred.user.uid;
@@ -239,9 +312,11 @@
           await setDoc(doc(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students`, uid), { name, email, joinedAt: Date.now() });
         }
       }
+      if (invite) await useInvite(uid, email);
       await Promise.race([logEvent('account.signup', { as: { uid, name, role: signupType === 'parent' ? 'parent' : signupType }, detail: signupType === 'teacher' ? `Teacher at ${school}` : classInfo ? `Joined ${classInfo.className || 'a class'}` : `${signupType[0].toUpperCase() + signupType.slice(1)} account` }), new Promise(r => setTimeout(r, 1500))]);
       await redirectByRole(uid);
     } catch(e) {
+      flowBusy = false;
       console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
       setLoading('btn-signup', false);
     }
@@ -260,13 +335,29 @@
   // Already signed in (e.g. returning visit): go straight through.
   // Failures here are quiet; the sign-in form is still usable.
   onAuthStateChanged(auth, async (user) => {
-    if (!user) return;
+    if (!user || flowBusy) return;
+    if (inviteCode || signupParam) { await inviteReady; return signedInChoice(user); }
     try { await redirectByRole(user.uid); }
     catch (e) {
       console.warn('Auto sign-in redirect failed:', e.message);
       if (e.code === 'clasp/timeout') showError(friendlyError(e.code));
     }
   });
+
+  // Opened an invite or sign-up link while already signed in
+  function signedInChoice(user) {
+    const email = user.email || '';
+    const canAccept = invite && emailMatches(invite, email);
+    inviteBox(`You're signed in as <strong>${escH(email)}</strong>.<span>${canAccept ? 'Accept the invite with this account, or sign out to use another.' : invite ? `This invite is for ${escH(invite.email)}. Sign out, then sign in or sign up with that email.` : 'To create a new account, sign out first.'}</span>
+      <div class="invite-btns">${canAccept ? '<button class="btn btn-primary" id="iv-accept">Accept invite</button>' : ''}<button class="btn btn-secondary" id="iv-signout">Sign out</button><button class="btn btn-ghost" id="iv-go">Go to Bonce</button></div>`, invite ? '' : 'plain');
+    document.getElementById('iv-signout').onclick = async () => { await signOut(auth); document.getElementById('invite-box').hidden = !invite && !inviteCode; if (invite) inviteReady.then(() => location.reload()); };
+    document.getElementById('iv-go').onclick = () => redirectByRole(user.uid);
+    document.getElementById('iv-accept')?.addEventListener('click', async (ev) => {
+      ev.target.disabled = true; ev.target.textContent = 'Accepting…';
+      try { flowBusy = true; await useInvite(user.uid, email); await redirectByRole(user.uid); }
+      catch (e) { flowBusy = false; ev.target.disabled = false; ev.target.textContent = 'Accept invite'; showError('Could not accept the invite: ' + e.message); }
+    });
+  }
 
   // Safari restores this page from its back/forward cache with the button
   // still spinning: reset it whenever the page is shown again.

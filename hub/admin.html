@@ -738,6 +738,10 @@
           <div class="panel-title">Users & roles</div>
           <div class="panel-subtitle">Everyone with an account. Adults can hold several roles and switch between them.</div>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="btn-signup-link"><i data-icon="link"></i> Copy sign-up link</button>
+          <button class="btn btn-primary" id="btn-invite"><i data-icon="user-plus"></i> Invite someone</button>
+        </div>
       </div>
       <div id="users-list">
         <div class="empty-state">
@@ -1073,6 +1077,7 @@ import { auth, db, storage } from './firebase-config.js?v=20261108a';
 import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261108a';
 import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261108a';
 import { mountShell } from './shell.js?v=20261108a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261108a';
 import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261108a';
 import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js?v=20261108a';
 import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261108a';
@@ -1123,6 +1128,7 @@ requireRole('admin', (user, profile) => {
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
   const start = ['home', 'groups', 'users', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
+  adminProfileName = profile.name || '';
   mountShell(user, profile, { view: 'admin', active: start });
   loadGroups();
   showPanel(start);
@@ -2707,6 +2713,20 @@ function initLogPanel() {
   document.getElementById('log-more').onclick = () => loadLogs();
   document.getElementById('log-export').onclick = exportLogs;
 }
+
+/* ── Invites ── */
+let adminProfileName = '';
+document.getElementById('btn-invite').onclick = async () => {
+  if (!usersCache.length) await loadUsers();
+  const students = usersCache.filter(u => rolesOf(u).has('student') || (!u.roles?.length && (u.role || 'student') === 'student'))
+    .map(u => ({ id: u.id, name: u.name || u.email })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  openInviteDialog({ byUid: currentAdminUid, byName: adminProfileName, roles: ['parent', 'teacher', 'admin'], students, preselect: [], toast: showToast });
+};
+document.getElementById('btn-signup-link').onclick = async () => {
+  const link = signupLink('parent');
+  try { await navigator.clipboard.writeText(link); showToast('Parent sign-up link copied', 'success'); }
+  catch (e) { prompt('Copy this sign-up link:', link); }
+};
 
 /* ── USERS (basic list) ───────────────────────────────────── */
 let usersCache = [];
