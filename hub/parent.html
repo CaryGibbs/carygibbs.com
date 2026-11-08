@@ -292,7 +292,10 @@
       <select id="manage-plan-mode"></select>
       <div class="form-hint" id="manage-plan-hint"></div>
       <div class="plan-exams" id="manage-exams"></div>
-      <button type="button" class="btn btn-secondary" id="btn-add-exam" style="margin-top:8px;padding:7px 12px;font-size:0.82rem"><i data-icon="plus"></i> Add exam dates</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button type="button" class="btn btn-secondary" id="btn-add-exam" style="padding:7px 12px;font-size:0.82rem"><i data-icon="plus"></i> Add exam dates</button>
+        <button type="button" class="btn btn-secondary" id="btn-day-plan" style="padding:7px 12px;font-size:0.82rem"><i data-icon="calendar"></i> Day-by-day plan</button>
+      </div>
     </div>
     <div class="form-group">
       <label>Revision packs</label>
@@ -414,6 +417,7 @@ import { mountShell, refreshShellChildren } from './shell.js';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js';
 import { dueEntries, scheduledCount } from './srs.js';
 import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js';
+import { openPlanCalendar } from './plan-view.js';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -635,7 +639,7 @@ function renderHome() {
       <div class="wk-stat"><b>${w.quizzes}${w.avg !== null ? ` <small style="font-size:0.75rem;color:var(--color-text-muted)">· ${w.avg}%</small>` : ''}</b><span>quizzes</span></div>
       <div class="wk-stat"><b>${st.current} 🔥</b><span>${streakSub}</span></div>
       <div class="wk-stat"><b>${due}</b><span>reviews due</span></div>
-      <div class="wk-actions">${btn('Progress', `openProgressModal('${k.uid}')`)}${btn('View as', `viewAs('${k.uid}')`)}</div>
+      <div class="wk-actions">${btn('Plan', `openPlanFor('${k.uid}')`)}${btn('Progress', `openProgressModal('${k.uid}')`)}${btn('View as', `viewAs('${k.uid}')`)}</div>
     </div>`;
   }).join('');
 }
@@ -805,6 +809,14 @@ window._addChild = async function() {
   } finally { btn.classList.remove('loading'); }
 };
 
+/* ── Day-by-day plan (parents can change any day) ─────────── */
+window.openPlanFor = (uid) => {
+  const child = childrenData[uid];
+  if (!child) return;
+  openPlanCalendar(child, { uid, name: (child.name || '').split(' ')[0], editable: true,
+    onChange: p => { childrenData[uid].plan = p.plan; renderChildren(); } });
+};
+
 /* ── Study plan week (in the Progress window) ─────────────── */
 function renderPlanWeek(profile) {
   const box = document.getElementById('progress-plan');
@@ -812,7 +824,8 @@ function renderPlanWeek(profile) {
   const ps = planSummary(profile);
   const days = planHistory(profile, 7);
   const met = days.filter(d => d.done).length;
-  box.innerHTML = `<div class="plan-week-head"><span><strong>${esc(ps.text)}</strong></span><span>Target ${esc(targetText(ps.L))} · goal hit ${met} of the last 7 days</span></div>
+  box.innerHTML = `<div class="plan-week-head"><span><strong>${esc(ps.text)}</strong></span><span>Target ${esc(targetText(ps.L))} · goal hit ${met} of the last 7 days</span>
+      <button class="btn btn-secondary" style="padding:5px 11px;font-size:0.78rem" onclick="openPlanFor('${esc(profile.__uid || '')}')"><i data-icon="calendar"></i> Plan to exams</button></div>
     <div class="plan-days">${days.map(d => {
       const h = Math.round(Math.min(1, d.mins / Math.max(1, d.L.mins)) * 100);
       const wd = new Date(d.day + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short' });
@@ -871,6 +884,7 @@ window._openManageModal = function(uid) {
   managePlan = JSON.parse(JSON.stringify(child.plan || { mode: 'auto', exams: [] }));
   managePlan.exams = managePlan.exams || [];
   renderPlanEditor();
+  document.getElementById('btn-day-plan').onclick = () => openPlanFor(uid);
   document.getElementById('share-email').value = '';
   renderGuardians(uid);
   const currentGroupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
@@ -1042,6 +1056,7 @@ window._openProgressModal = async function(uid) {
     `<strong>${current.name} · ${profile.xp || 0} XP</strong>${next ? `${xpIntoLevel} / ${xpNeeded} to ${next.name}` : 'Top level'}`;
 
   // Study plan: this week, target vs what they did
+  profile.__uid = uid;
   renderPlanWeek(profile);
 
   // Same goals, time, subject and badge views the child sees on their hub

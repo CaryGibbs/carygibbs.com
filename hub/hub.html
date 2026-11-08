@@ -177,6 +177,7 @@
     .plan-level { font-family: var(--font-ui); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-primary); }
     .plan-title { font-family: var(--font-heading); font-weight: 800; font-size: 1.1rem; color: var(--color-text); }
     .plan-count { text-align: center; flex-shrink: 0; }
+    .plan-link { background: none; border: none; padding: 0; margin-top: 4px; cursor: pointer; color: var(--color-primary); font-family: var(--font-ui); font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 5px; }
     .plan-count b { display: block; font-family: var(--font-heading); font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--color-text); }
     .plan-count span { font-family: var(--font-ui); font-size: 0.72rem; color: var(--color-text-muted); }
     .plan-parts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -368,7 +369,8 @@ import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp
 import { statsSectionsHtml, renderStats } from './stats.js';
 import { findClass, joinClass, cleanCode } from './join-class.js';
 import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween } from './plan.js';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js';
+import { openPlanCalendar } from './plan-view.js';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -572,20 +574,28 @@ function renderPlanCard(groupId, subjects) {
   const parts = [`<span class="plan-part${g.minsOk ? ' ok' : ''}">${g.minsOk ? '✓ ' : ''}${Math.min(g.mins, L.mins)} / ${L.mins} min</span>`];
   if (L.quizzes) parts.push(`<span class="plan-part${g.quizOk ? ' ok' : ''}">${g.quizOk ? '✓ ' : ''}${Math.min(g.quizzes, L.quizzes)} / ${L.quizzes} quiz${L.quizzes === 1 ? '' : 'zes'}</span>`);
   if (L.reviews) parts.push(`<span class="plan-part${g.revOk ? ' ok' : ''}">${g.revOk ? '✓ reviews done' : `${g.reviewsLeft} review${g.reviewsLeft === 1 ? '' : 's'} due`}</span>`);
-  const f = g.done ? null : focusSubject(profile, subjects, groupId);
+  // Today's subject: from the plan (a parent may have chosen it), else the one that needs it most
+  let f = null;
+  if (!g.done && !g.rest) {
+    const today = planSchedule(profile, subjects, groupId, { back: 0 }).days[0];
+    if (today?.subject) f = { s: today.subject, why: subjectNeed(profile, today.subject, groupId).why, chosen: !!today.override?.subjectId };
+    else f = focusSubject(profile, subjects, groupId);
+  }
+  window._openMyPlan = () => openPlanCalendar(profile, { editable: false });
   const go = s => `{groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'}`;
   wrap.innerHTML = `<div class="plan-card ${g.level}">
     <div class="plan-top">
       <div class="plan-ring${g.done ? ' done' : ''}" style="--p:${pct}"><span>${g.done ? '✓' : pct + '%'}</span></div>
       <div class="plan-head">
         <div class="plan-level">${L.emoji} ${L.label}${L.either ? ` · ${targetText(L)}` : ''}</div>
-        <div class="plan-title">${g.done ? 'Goal hit for today! 🎉' : "Today's goal"}</div>
-        ${g.done ? `<div class="review-sub">Nice work. Anything more today is a bonus.</div>` : ''}
+        <div class="plan-title">${g.rest ? 'Rest day 😴' : g.done ? 'Goal hit for today! 🎉' : "Today's goal"}</div>
+        ${g.rest ? `<div class="review-sub">No goal today. Enjoy the break.</div>` : g.done ? `<div class="review-sub">Nice work. Anything more today is a bonus.</div>` : ''}
+        <button type="button" class="plan-link" onclick="_openMyPlan()"><i data-icon="calendar"></i> See my plan</button>
       </div>
-      ${toExam !== null && toExam >= 0 ? `<div class="plan-count"><b>${toExam === 0 ? 'Today' : toExam}</b><span>${toExam === 0 ? esc(sum.exam.name || 'Exams') : `day${toExam === 1 ? '' : 's'} to ${esc(sum.exam.name || 'exams')}`}</span></div>` : ''}
+      ${toExam !== null && toExam >= 0 ? `<div class="plan-count" role="button" tabindex="0" onclick="_openMyPlan()" style="cursor:pointer" title="See my plan to the exams"><b>${toExam === 0 ? 'Today' : toExam}</b><span>${toExam === 0 ? esc(sum.exam.name || 'Exams') : `day${toExam === 1 ? '' : 's'} to ${esc(sum.exam.name || 'exams')}`}</span></div>` : ''}
     </div>
-    ${g.done ? '' : `<div class="plan-parts">${parts.join('')}</div>`}
-    ${f ? `<div class="plan-focus"><span style="font-size:1.3rem">🎯</span><div class="txt"><strong>Focus today: ${esc(f.s.name)}</strong>${f.why.length ? `<small>${f.why.join(', ')}</small>` : ''}</div>
+    ${g.done || g.rest ? '' : `<div class="plan-parts">${parts.join('')}</div>`}
+    ${f ? `<div class="plan-focus"><span style="font-size:1.3rem">🎯</span><div class="txt"><strong>Focus today: ${esc(f.s.name)}</strong>${f.chosen ? ' <span style="font-size:0.75rem;color:var(--color-text-muted)">(chosen for you)</span>' : ''}${f.why.length ? `<small>${f.why.join(', ')}</small>` : ''}</div>
       <button class="btn btn-secondary" onclick="goMindmap(${go(f.s)})"><i data-icon="book-open"></i> Learn</button>
       <button class="btn btn-primary" onclick="goQuiz(${go(f.s)})"><i data-icon="zap"></i> Quiz</button></div>` : ''}
   </div>`;
