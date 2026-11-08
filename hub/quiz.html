@@ -525,6 +525,7 @@ import { auth, db } from './firebase-config.js?v=20261108a';
 import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261108a';
 import { askClaude, jsonOf } from './ai.js?v=20261108a';
 import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261108a';
+import { logEvent } from './log.js?v=20261108a';
 import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261108a';
 import {
   collection, getDocs, getDoc, query, orderBy,
@@ -1251,6 +1252,7 @@ async function showResults() {
         sessions: arrayUnion(session)
       });
       currentProfile.sessions = [...(currentProfile.sessions || []), session];
+      logEvent(reviewMode ? 'study.review' : 'study.quiz', { target: reviewMode ? 'Review today' : [subjectName, topicName].filter(Boolean).join(' › '), detail: `${score}/${total} (${pct}%) · ${Math.round(secondsSpent / 60)} min` });
       // Mirror to parent
       if (currentProfile.parentUid) {
         await updateDoc(

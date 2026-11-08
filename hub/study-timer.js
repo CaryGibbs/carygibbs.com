@@ -9,6 +9,7 @@
 
 import { db } from './firebase-config.js?v=20261108a';
 import { isPreview, isStudent } from './auth.js?v=20261108a';
+import { logEvent } from './log.js?v=20261108a';
 import { awardXp, repairOffer, loadStreakSettings } from './gamification.js?v=20261108a';
 import { doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -60,6 +61,8 @@ export async function flush() {
   try {
     await updateDoc(doc(db, 'users', user.uid), update);
     if (profile.parentUid) updateDoc(doc(db, 'users', profile.parentUid, 'children', user.uid), update).catch(() => {});
+    // One log entry per subject per visit, not every save
+    if (!state.logged) { state.logged = true; logEvent('study.learn', { target: subjectName || 'Subject', detail: 'Learn (key points, map or flashcards)' }); }
   } catch (e) {
     state.pending += secs;   // try again next time
     return;

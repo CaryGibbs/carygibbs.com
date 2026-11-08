@@ -4,6 +4,7 @@
 // ============================================================
 
 import { db } from './firebase-config.js?v=20261108a';
+import { logEvent } from './log.js?v=20261108a';
 import { goalStatus, loadPlanSettings, isoDay as planDay, GOAL_XP } from './plan.js?v=20261108a';
 import {
   doc, getDoc, updateDoc, arrayUnion
@@ -571,6 +572,7 @@ export async function awardXp(uid, source, options = {}) {
     streakRepair = { ...streakRepair, done: true };
     repaired = true; repairsDone += 1; lastRepairDay = streakRepair.day;
     xpGained += REPAIR.BONUS_XP;
+    logEvent('study.repair', { target: `${streak}-day streak`, detail: 'Won back with an hour of revision' });
   }
   const shieldsUsed = (profile.shieldsUsed || 0) + (shieldUsed ? shieldUsed.count : 0);
 

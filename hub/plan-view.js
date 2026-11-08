@@ -9,6 +9,7 @@
 
 import { db } from './firebase-config.js?v=20261108a';
 import { doc, updateDoc, deleteField, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logEvent } from './log.js?v=20261108a';
 import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261108a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -125,6 +126,8 @@ export async function openPlanCalendar(profile, opts = {}) {
     draw();
     try {
       await updateDoc(doc(db, 'users', opts.uid), { [`plan.overrides.${day}`]: Object.keys(ov).length ? ov : deleteField() });
+      const lv = { rest: 'Rest day', relaxed: 'Relaxed', steady: 'Steady', push: 'Exam push', final: 'Final days' };
+      logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: `${day}: ${key === 'level' ? (value ? lv[value] || value : 'level back to Auto') : value ? 'subject ' + (subjects.find(x => x.id === value)?.name || value) : 'subject back to Auto'}` });
       opts.onChange && opts.onChange(profile);
     } catch (e) { alert('Could not save that change. Please try again.'); }
   }
@@ -134,7 +137,7 @@ export async function openPlanCalendar(profile, opts = {}) {
     const keep = Object.fromEntries(Object.entries(profile.plan?.overrides || {}).filter(([d]) => d < key));
     profile.plan.overrides = keep;
     draw();
-    try { await updateDoc(doc(db, 'users', opts.uid), { 'plan.overrides': keep }); opts.onChange && opts.onChange(profile); }
+    try { await updateDoc(doc(db, 'users', opts.uid), { 'plan.overrides': keep }); logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: 'All future days back to Auto' }); opts.onChange && opts.onChange(profile); }
     catch (e) { alert('Could not save. Please try again.'); }
   }
   draw();

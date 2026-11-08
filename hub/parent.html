@@ -414,6 +414,7 @@ import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, ha
 import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261108a';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261108a';
 import { mountShell, refreshShellChildren } from './shell.js?v=20261108a';
+import { logEvent } from './log.js?v=20261108a';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261108a';
 import { dueEntries, scheduledCount } from './srs.js?v=20261108a';
 import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261108a';
@@ -797,6 +798,7 @@ window._addChild = async function() {
       groupIds, // array of group IDs
       groupId: groupIds[0] || null // keep single groupId for backwards compat
     });
+    logEvent('student.add', { target: name, targetId: childUid, detail: 'New student account' });
     // Write to parent's children subcollection
     await setDoc(doc(db, 'users', parentUid, 'children', childUid), {
       name, email, theme: selectedTheme, createdAt: Date.now(), groupIds,
@@ -904,10 +906,15 @@ window._saveChild = async function() {
     const cardLength = document.getElementById('manage-card-length').value;
     readPlanEditor();
     const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null })) };
+    const was = { ...(childrenData[managingChildId] || {}) };
     await updateDoc(doc(db, 'users', managingChildId), {
       name, theme: manageTheme, groupIds, cardLength, plan,
       groupId: groupIds[0] || null
     });
+    const planText = p => `${p?.mode || 'auto'}${(p?.exams || []).length ? ' · ' + p.exams.map(e => `${e.name} ${e.start}${e.end ? '–' + e.end : ''}`).join('; ') : ''}`;
+    if (planText(was.plan) !== planText(plan)) logEvent('plan.change', { target: name, targetId: managingChildId, detail: planText(plan) });
+    const changed = [was.name !== name && 'name', was.theme !== manageTheme && 'theme', JSON.stringify(was.groupIds || []) !== JSON.stringify(groupIds) && 'packs', (was.cardLength || 'full') !== cardLength && 'card length'].filter(Boolean);
+    if (changed.length) logEvent('student.edit', { target: name, targetId: managingChildId, detail: 'Changed ' + changed.join(', ') });
     childrenData[managingChildId].cardLength = cardLength;
     childrenData[managingChildId].plan = plan;
     renderChildren();
@@ -959,6 +966,7 @@ window._shareStudent = async function() {
       groupIds: child.groupIds || [], createdAt: Date.now(), sharedBy: parentUid
     }, { merge: true });
     child.guardianIds = [...new Set([...(child.guardianIds || []), other.id])];
+    logEvent('student.share', { target: child.name, targetId: managingChildId, detail: `Shared with ${other.name || email}` });
     document.getElementById('share-email').value = '';
     document.getElementById('manage-error').classList.remove('visible');
     showToast(`Shared with ${other.name || email}`, 'success');
@@ -979,12 +987,14 @@ window._confirmRemoveChild = async function() {
     await updateDoc(doc(db, 'users', managingChildId), changes).catch(() => {});
     if (child.parentUid === parentUid) await updateDoc(doc(db, 'users', managingChildId), { guardianIds: arrayRemove(others[0]) }).catch(() => {});
     await deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
+    logEvent('student.unlink', { target: child.name, targetId: managingChildId, detail: 'Removed from their list (shared)' });
     document.getElementById('modal-manage').classList.remove('open');
     showToast(`${child.name} removed from your list.`, 'info');
     return;
   }
   if (!confirm(`Remove ${child.name}? This will delete their account data.`)) return;
   deleteDoc(doc(db, 'users', managingChildId));
+  logEvent('student.delete', { target: child.name, targetId: managingChildId, detail: 'Account data deleted' });
   deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
   document.getElementById('modal-manage').classList.remove('open');
   showToast('Student account removed.', 'info');
@@ -1010,6 +1020,7 @@ window._resetProgress = async function() {
     await updateDoc(doc(db, 'users', parentUid, 'children', managingChildId), {
       sessions: [], streak: 0
     });
+    logEvent('student.reset', { target: child.name, targetId: managingChildId, detail: 'XP, badges, streak and quiz history cleared' });
     document.getElementById('modal-manage').classList.remove('open');
     showToast(`${first}'s progress has been reset.`, 'success');
   } catch(e) {
@@ -1129,6 +1140,7 @@ window._sendNotification = async function() {
     await updateDoc(doc(db, 'users', notifyingChildId), {
       notification: { message: msg, from: 'parent', sentAt: Date.now(), read: false }
     });
+    logEvent('student.message', { target: childrenData[notifyingChildId]?.name || '', targetId: notifyingChildId, detail: `${msg.length} characters` });
     document.getElementById('modal-notify').classList.remove('open');
     showToast('Message sent!', 'success');
   } catch(e) { showToast('Failed to send: ' + e.message, 'error'); }

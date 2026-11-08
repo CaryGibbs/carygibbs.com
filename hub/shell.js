@@ -83,7 +83,8 @@ export function mountShell(user, profile, { view, active } = {}) {
       ${adminLink('users', 'user', 'Users & roles')}
       ${onAdminPage() ? `<a class="nav-item nav-sub" href="#users"><span class="nav-icon"><i data-icon="eye"></i></span><span>View as a student</span></a>` : `<a class="nav-item nav-sub" href="admin.html#users"><span class="nav-icon"><i data-icon="eye"></i></span><span>View as a student</span></a>`}
       <div class="nav-section-label">Settings</div>
-      ${adminLink('settings', 'settings', 'Settings')}`,
+      ${adminLink('settings', 'settings', 'Settings')}
+      ${adminLink('logs', 'clipboard-list', 'Activity log')}`,
   };
   const navHtml = sections[view] || '';
 

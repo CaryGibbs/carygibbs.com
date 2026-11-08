@@ -371,6 +371,7 @@ import { findClass, joinClass, cleanCode } from './join-class.js?v=20261108a';
 import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261108a';
 import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261108a';
 import { openPlanCalendar } from './plan-view.js?v=20261108a';
+import { logEvent } from './log.js?v=20261108a';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -485,6 +486,7 @@ function wireJoinForm(user, profile) {
       if (!info) { msg('That code wasn\'t found. Check it with your teacher.', 'err'); return; }
       if (profile.classes?.[info.classId]) { msg(`You're already in ${info.className || 'this class'}.`, 'ok'); return; }
       await joinClass(user.uid, profile, info);
+      logEvent('class.join', { target: info.className || '', targetId: info.classId, detail: 'With a class code' });
       const firstNew = (info.packIds || []).find(id => !packIdsFor(profile).includes(id));
       if (firstNew) { try { localStorage.setItem('clasp_pack_' + user.uid, firstNew); } catch (err) {} }
       msg(`You've joined ${info.className || 'the class'}!${info.packIds?.length ? ' Loading your revision…' : ' Your teacher hasn\'t chosen a revision pack yet.'}`, 'ok');

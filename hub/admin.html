@@ -476,7 +476,41 @@
       font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700;
       padding: 0 6px;
     }
-  </style>
+  
+  /* ── Activity log ── */
+  .log-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .log-tab { font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; }
+  .log-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+  .log-tab small { opacity: 0.75; margin-left: 4px; }
+  .log-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+  .log-f { display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); }
+  .log-f input, .log-f select { padding: 7px 10px; font-size: 0.88rem; border-radius: 8px; width: auto; min-width: 140px; }
+  .log-f:first-child input { min-width: 220px; }
+  .log-table { width: 100%; border-collapse: collapse; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; font-size: 0.88rem; }
+  .log-table th { text-align: left; font-family: var(--font-ui); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); padding: 9px 12px; background: var(--color-surface-2); }
+  .log-table td { padding: 9px 12px; border-top: 1px solid var(--color-border); vertical-align: top; }
+  .log-table tr.log-day td { background: var(--color-surface-2); font-family: var(--font-ui); font-weight: 700; font-size: 0.8rem; padding: 6px 12px; }
+  .log-time { white-space: nowrap; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+  .log-who { white-space: nowrap; }
+  .log-who button { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--color-text); cursor: pointer; text-align: left; }
+  .log-who button:hover { text-decoration: underline; }
+  .log-role { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; color: #fff; vertical-align: 1px; }
+  .log-role.student { background: #e0643f; } .log-role.parent { background: #0d8a7c; } .log-role.teacher { background: #3f5bd0; } .log-role.admin { background: #8e2c6b; } .log-role.other { background: #78716c; }
+  .log-action { font-weight: 600; }
+  .log-action.warn { color: var(--color-danger); }
+  .log-detail { color: var(--color-text-muted); font-size: 0.82rem; }
+  .log-more { display: flex; gap: 14px; align-items: center; margin-top: 14px; font-size: 0.82rem; color: var(--color-text-muted); }
+  @media (max-width: 760px) {
+    .log-table thead { display: none; }
+    .log-table, .log-table tbody, .log-table tr, .log-table td { display: block; width: 100%; }
+    .log-table tr:not(.log-day) { border-top: 1px solid var(--color-border); padding: 8px 12px; }
+    .log-table td { border: 0; padding: 1px 0; }
+    .log-table tr.log-day td { padding: 6px 12px; }
+    .log-f, .log-f input, .log-f select, .log-f:first-child input { min-width: 0; width: 100%; }
+    .log-f { flex: 1 1 140px; }
+    .log-f:first-child { flex-basis: 100%; }
+  }
+</style>
   <link rel="stylesheet" href="ui.css?v=20261108a">
 </head>
 <body class="app-layout">
@@ -710,6 +744,27 @@
           <div class="spinner" style="margin:0 auto;"></div>
         </div>
       </div>
+    </div>
+
+    <!-- ── ACTIVITY LOG PANEL ─────────────────────────────── -->
+    <div class="panel" id="panel-logs">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Activity log</div>
+          <div class="panel-subtitle">Who did what, newest first. Entries can't be edited and are kept for 12 months.</div>
+        </div>
+        <button class="btn btn-secondary" id="log-export"><i data-icon="file-text"></i> Export CSV</button>
+      </div>
+      <div class="log-tabs" id="log-tabs" role="tablist"></div>
+      <div class="log-filters">
+        <label class="log-f"><span>Search</span><input type="search" id="log-search" placeholder="Name, student, class, pack…"></label>
+        <label class="log-f"><span>Type</span><select id="log-cat"></select></label>
+        <label class="log-f"><span>From</span><input type="date" id="log-from"></label>
+        <label class="log-f"><span>To</span><input type="date" id="log-to"></label>
+        <button class="btn btn-ghost btn-sm" id="log-clear">Clear filters</button>
+      </div>
+      <div id="log-list"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
+      <div class="log-more"><button class="btn btn-secondary" id="log-more" style="display:none;">Load older entries</button><span id="log-count"></span></div>
     </div>
 
     <!-- ── SETTINGS PANEL ─────────────────────────────────── -->
@@ -1018,6 +1073,7 @@ import { auth, db, storage } from './firebase-config.js?v=20261108a';
 import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261108a';
 import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261108a';
 import { mountShell } from './shell.js?v=20261108a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261108a';
 import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js?v=20261108a';
 import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261108a';
 import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261108a';
@@ -1034,7 +1090,7 @@ async function aiFetch(prompt, maxTokens) {
 }
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, serverTimestamp
+  query, orderBy, serverTimestamp, where, limit, startAfter
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import {
   ref as storageRef, uploadBytes, getDownloadURL
@@ -1065,7 +1121,7 @@ let currentAdminUid = null;
 requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
-  const start = ['home', 'groups', 'users', 'settings'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  const start = ['home', 'groups', 'users', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
   mountShell(user, profile, { view: 'admin', active: start });
   loadGroups();
@@ -1073,7 +1129,7 @@ requireRole('admin', (user, profile) => {
   // Address changes (e.g. the sidebar's "View as another student") switch panels too
   window.addEventListener('hashchange', () => {
     const p = location.hash.slice(1);
-    if (['home', 'groups', 'users', 'settings'].includes(p) && p !== currentPanel) showPanel(p);
+    if (['home', 'groups', 'users', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
   });
 });
 
@@ -1086,7 +1142,8 @@ async function renderAdminHome() {
   if (adminHomeBusy) return; adminHomeBusy = true;
   const box = document.getElementById('admin-home');
   const actions = `<button class="btn btn-secondary" onclick="location.hash='users'"><i data-icon="user"></i> Users &amp; roles</button>
-    <button class="btn btn-primary" onclick="location.hash='groups'"><i data-icon="folder"></i> Revision packs</button>`;
+    <button class="btn btn-primary" onclick="location.hash='groups'"><i data-icon="folder"></i> Revision packs</button>
+    <button class="btn btn-secondary" onclick="location.hash='logs'"><i data-icon="clipboard-list"></i> Activity log</button>`;
   try {
     const [uSnap, pSnap] = await Promise.all([getDocs(collection(db, 'users')), getDocs(collection(db, 'content'))]);
     const users = []; uSnap.forEach(d => users.push({ id: d.id, ...d.data() }));
@@ -1200,12 +1257,12 @@ document.getElementById('btn-save-plans').onclick = async () => {
   document.querySelectorAll('#plan-fields select').forEach(sel => {
     (data[sel.dataset.level] = data[sel.dataset.level] || {})[sel.dataset.f] = Number(sel.value);
   });
-  try { await setDoc(doc(db, 'settings', 'plans'), data); await renderPlanSettings(); showToast('Study plan targets saved', 'success'); }
+  try { await setDoc(doc(db, 'settings', 'plans'), data); logEvent('admin.settings', { target: 'Study plan targets', detail: 'Saved new targets' }); await renderPlanSettings(); showToast('Study plan targets saved', 'success'); }
   catch (e) { showToast('Could not save: ' + e.message, 'error'); }
 };
 document.getElementById('btn-reset-plans').onclick = async () => {
   if (!confirm('Put the study plan targets back to the defaults?')) return;
-  try { await setDoc(doc(db, 'settings', 'plans'), { updatedAt: Date.now() }); await renderPlanSettings(); showToast('Study plan targets reset', 'success'); }
+  try { await setDoc(doc(db, 'settings', 'plans'), { updatedAt: Date.now() }); logEvent('admin.settings', { target: 'Study plan targets', detail: 'Reset to defaults' }); await renderPlanSettings(); showToast('Study plan targets reset', 'success'); }
   catch (e) { showToast('Could not save: ' + e.message, 'error'); }
 };
 
@@ -1257,6 +1314,7 @@ document.getElementById('btn-save-streaks').onclick = async () => {
   });
   try {
     await setDoc(doc(db, 'settings', 'streaks'), data);
+    logEvent('admin.settings', { target: 'Streaks', detail: `Repair ${data.repair?.enabled === false ? 'off' : 'on'}, shields ${data.shields?.enabled === false ? 'off' : 'on'}` });
     await renderStreakSettings();
     showToast('Streak settings saved', 'success');
   } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
@@ -1265,6 +1323,7 @@ document.getElementById('btn-reset-streaks').onclick = async () => {
   if (!confirm('Put the streak settings back to the defaults (1 hour, 10 minutes per quiz, shields every 7 days)?')) return;
   try {
     await setDoc(doc(db, 'settings', 'streaks'), { repair: { ...REPAIR_DEFAULTS }, shields: { ...SHIELD_DEFAULTS }, updatedAt: Date.now() });
+    logEvent('admin.settings', { target: 'Streaks', detail: 'Reset to defaults' });
     await renderStreakSettings();
     showToast('Streak settings reset', 'success');
   } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
@@ -1289,6 +1348,7 @@ document.getElementById('btn-save-ai').onclick = async () => {
   document.querySelectorAll('#ai-model-fields select').forEach(sel => { data[sel.dataset.task] = sel.value; });
   try {
     await setDoc(doc(db, 'settings', 'ai'), data);
+    logEvent('admin.settings', { target: 'AI models', detail: Object.entries(data).filter(([k]) => k !== 'updatedAt').map(([k, v]) => `${k}: ${v}`).join(', ') });
     await renderAiSettings();
     showToast('AI models saved', 'success');
   } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
@@ -1321,6 +1381,7 @@ function showPanel(name) {
   updateBreadcrumb();
   if (name === 'users') loadUsers();
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
+  if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
   if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
@@ -1331,6 +1392,7 @@ function updateBreadcrumb() {
   // Users and Settings: "Section › Page", like the parent pages
   if (currentPanel === 'home')     { bc.innerHTML = `<span>Admin</span>${sep}<span class="breadcrumb-current">Home</span>`; return; }
   if (currentPanel === 'users')    { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
+  if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
   // Content: Content › Groups › group › subject › topic (last one is the current page)
   const crumbs = [`<span style="cursor:pointer;" data-bc="groups">Revision packs</span>`];
@@ -1505,8 +1567,10 @@ async function saveGroup() {
   try {
     if (editingItem) {
       await updateDoc(doc(db, 'content', editingItem.id), { name, description: desc });
+      logEvent('content.pack', { target: name, targetId: editingItem.id, detail: 'Edited' });
     } else {
-      await addDoc(collection(db, 'content'), { name, description: desc, createdAt: serverTimestamp() });
+      const ref = await addDoc(collection(db, 'content'), { name, description: desc, createdAt: serverTimestamp() });
+      logEvent('content.pack', { target: name, targetId: ref?.id, detail: 'Created' });
     }
     closeModal('modal-group');
     await loadGroups();
@@ -1581,9 +1645,11 @@ async function saveSubject() {
   try {
     if (editingItem) {
       await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji });
+      logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Edited' });
     } else {
       const snap = await getDocs(collection(db, subjectsPath()));
       await addDoc(collection(db, subjectsPath()), { name, emoji, order: snap.size, createdAt: serverTimestamp() });
+      logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Created' });
     }
     closeModal('modal-subject');
     await loadSubjects();
@@ -1676,8 +1742,10 @@ async function saveTopic() {
   try {
     if (editingItem) {
       await updateDoc(doc(db, topicsPath(), editingItem.id), { name, keyPoints });
+      logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: `Edited · ${keyPoints.length} key point groups` });
     } else {
       await addDoc(collection(db, topicsPath()), { name, keyPoints, createdAt: serverTimestamp() });
+      logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: 'Created' });
     }
     closeModal('modal-topic');
     await loadTopics();
@@ -1945,6 +2013,7 @@ async function generateEverything() {
   try {
     // Save key points
     await updateDoc(doc(db, topicsPath(), selectedTopic.id), { keyPoints: kps });
+    logEvent('content.keypoints', { target: `${selectedSubject?.name || ''} › ${selectedTopic.name}`, detail: 'Saved key points (generate everything)' });
     statusEl.textContent = 'Step 2/3: Generating questions (this may take 10–20s)…';
 
     // Generate questions
@@ -1966,6 +2035,7 @@ async function generateEverything() {
     // Save questions
     const colRef = collection(db, questionsPath());
     await Promise.all(questions.map(q => addDoc(colRef, { ...q, createdAt: serverTimestamp(), source: 'ai' })));
+    logEvent('content.questions', { target: `${selectedSubject?.name || ''} › ${selectedTopic.name}`, detail: `${questions.length} AI questions added` });
 
     statusEl.className = 'kp-gen-status';
     statusEl.textContent = `Done! ${kps.length} key points + ${questions.length} questions saved.${tfBalanceText(questions)}`;
@@ -2032,6 +2102,7 @@ async function saveKpPanel() {
   const keyPoints = readKpList('kp-list-panel');
   try {
     await updateDoc(doc(db, topicsPath(), selectedTopic.id), { keyPoints });
+    logEvent('content.keypoints', { target: `${selectedSubject?.name || ''} › ${selectedTopic.name}`, detail: `Saved ${keyPoints.reduce((a, g) => a + (g.points?.length || 0), 0)} key points` });
     // Hide unsaved banner, show flash, reveal generate questions section
     const unsaved = document.getElementById('kp-unsaved-banner');
     const flash   = document.getElementById('kp-saved-flash');
@@ -2256,6 +2327,7 @@ async function saveAllGenerated() {
   try {
     const colRef = collection(db, questionsPath());
     const promises = generatedQs.map(q => addDoc(colRef, { ...q, createdAt: serverTimestamp(), source: 'ai' }));
+    logEvent('content.questions', { target: `${selectedSubject?.name || ''} › ${selectedTopic?.name || ''}`, detail: `${generatedQs.length} AI questions added` });
     await Promise.all(promises);
     showToast(`${generatedQs.length} questions saved!`, 'success');
     clearGenerated();
@@ -2411,9 +2483,11 @@ async function saveManualQuestion() {
   try {
     if (editingItem && editingItem.type === 'question') {
       await updateDoc(doc(db, questionsPath(), editingItem.id), { ...qData, updatedAt: serverTimestamp() });
+      logEvent('content.questions', { target: `${selectedSubject?.name || ''} › ${selectedTopic?.name || ''}`, detail: 'Edited a question' });
       showToast('Question updated', 'success');
     } else {
       await addDoc(collection(db, questionsPath()), { ...qData, createdAt: serverTimestamp(), source: 'manual' });
+      logEvent('content.questions', { target: `${selectedSubject?.name || ''} › ${selectedTopic?.name || ''}`, detail: 'Added a question' });
       showToast('Question saved', 'success');
     }
     closeModal('modal-question');
@@ -2490,6 +2564,7 @@ function confirmDelete(type, id, name) {
       if (type === 'subject')  await deleteDoc(doc(db, subjectsPath(), id));
       if (type === 'topic')    await deleteDoc(doc(db, topicsPath(), id));
       if (type === 'question') { await deleteDoc(doc(db, questionsPath(), id)); loadExistingQuestions(); }
+      logEvent('content.delete', { target: name, targetId: id, detail: `Deleted ${type === 'group' ? 'revision pack' : type}` });
       closeModal('modal-confirm');
       showToast(`${type.charAt(0).toUpperCase()+type.slice(1)} deleted`, 'success');
       if (type === 'group')   loadGroups();
@@ -2521,6 +2596,116 @@ async function confirmDeleteAllQuestions() {
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
   };
   openModal('modal-confirm');
+}
+
+/* ── ACTIVITY LOG ──────────────────────────────────────────
+   Reads the `logs` collection newest first, 200 at a time.
+   Tabs and filters work on what's loaded; "Load older" fetches more.
+   The date range is applied in the query, so older days load fast. */
+const LOG_PAGE = 200;
+const LOG_ROLES = [['all', 'All'], ['student', 'Student'], ['parent', 'Parent'], ['teacher', 'Teacher'], ['admin', 'Admin']];
+const logState = { rows: [], cursor: null, done: false, busy: false, tab: 'all', users: null };
+function logRoleOf(e) {
+  if (['student', 'parent', 'teacher', 'admin'].includes(e.role)) return e.role;
+  const u = logState.users?.[e.uid];
+  return u ? primaryRole(Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role || 'student']) : 'other';
+}
+function logTarget(e) {
+  return e.target || (e.targetId && logState.users?.[e.targetId]?.name) || '';
+}
+function logFiltered(ignoreTab = false) {
+  const q = document.getElementById('log-search').value.trim().toLowerCase();
+  const cat = document.getElementById('log-cat').value;
+  return logState.rows.filter(e =>
+    (ignoreTab || logState.tab === 'all' || logRoleOf(e) === logState.tab) &&
+    (!cat || e.cat === cat) &&
+    (!q || [e.name, logTarget(e), e.detail, LOG_ACTIONS[e.action]?.label].join(' ').toLowerCase().includes(q)));
+}
+function logTimeText(ts) { return new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+function logDayText(ts) {
+  const d = new Date(ts), t = new Date(); t.setHours(0, 0, 0, 0);
+  const diff = Math.round((t - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / DAY);
+  return diff === 0 ? 'Today' : diff === 1 ? 'Yesterday' : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: d.getFullYear() === t.getFullYear() ? undefined : 'numeric' });
+}
+function renderLogs() {
+  const base = logFiltered(true);
+  document.getElementById('log-tabs').innerHTML = LOG_ROLES.map(([k, l]) => {
+    const n = k === 'all' ? base.length : base.filter(e => logRoleOf(e) === k).length;
+    return `<button class="log-tab${logState.tab === k ? ' active' : ''}" role="tab" aria-selected="${logState.tab === k}" data-tab="${k}">${l}<small>${n}</small></button>`;
+  }).join('');
+  const rows = logFiltered();
+  const box = document.getElementById('log-list');
+  if (!rows.length) {
+    box.innerHTML = `<div class="empty-state"><h3>${logState.rows.length ? 'Nothing matches these filters' : 'No activity logged yet'}</h3><p>${logState.rows.length ? 'Try another tab or clear the filters.' : 'Sign-ins, changes and revision will appear here as they happen.'}</p></div>`;
+  } else {
+    let lastDay = '';
+    box.innerHTML = `<table class="log-table"><thead><tr><th>Time</th><th>Who</th><th>What</th><th>Affected</th><th>Details</th></tr></thead><tbody>${rows.map(e => {
+      const day = logDayText(e.ts), role = logRoleOf(e);
+      const head = day !== lastDay ? `<tr class="log-day"><td colspan="5">${esc(day)}</td></tr>` : '';
+      lastDay = day;
+      return `${head}<tr>
+        <td class="log-time" title="${esc(new Date(e.ts).toLocaleString('en-GB'))}">${logTimeText(e.ts)}</td>
+        <td class="log-who"><button data-who="${esc(e.name || '')}" title="Show only ${esc(e.name || '')}">${esc(e.name || 'Unknown')}</button><span class="log-role ${role}">${role === 'other' ? '—' : role[0].toUpperCase() + role.slice(1)}</span></td>
+        <td class="log-action${e.action === 'account.signin_fail' || /delete/.test(e.action) ? ' warn' : ''}">${esc(LOG_ACTIONS[e.action]?.label || e.action)}</td>
+        <td>${esc(logTarget(e))}</td>
+        <td class="log-detail">${esc(e.detail || '')}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+  }
+  document.getElementById('log-more').style.display = logState.done ? 'none' : '';
+  document.getElementById('log-count').textContent = `${logState.rows.length} entr${logState.rows.length === 1 ? 'y' : 'ies'} loaded${logState.done ? ' (that\'s everything in this range)' : ''}`;
+}
+async function loadLogs(reset = false) {
+  if (logState.busy) return;
+  logState.busy = true;
+  if (reset) { logState.rows = []; logState.cursor = null; logState.done = false; document.getElementById('log-list').innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`; }
+  try {
+    if (!logState.users) {
+      const us = await getDocs(collection(db, 'users')).catch(() => null);
+      logState.users = {}; us?.forEach(d => { logState.users[d.id] = d.data(); });
+    }
+    const from = document.getElementById('log-from').value, to = document.getElementById('log-to').value;
+    const parts = [];
+    if (from) parts.push(where('ts', '>=', new Date(from + 'T00:00:00').getTime()));
+    if (to) parts.push(where('ts', '<', new Date(to + 'T00:00:00').getTime() + DAY));
+    parts.push(orderBy('ts', 'desc'));
+    if (logState.cursor) parts.push(startAfter(logState.cursor));
+    parts.push(limit(LOG_PAGE));
+    const snap = await getDocs(query(collection(db, 'logs'), ...parts));
+    snap.forEach(d => logState.rows.push({ id: d.id, ...d.data() }));
+    logState.cursor = snap.docs[snap.docs.length - 1] || logState.cursor;
+    logState.done = snap.size < LOG_PAGE;
+    renderLogs();
+  } catch (e) {
+    document.getElementById('log-list').innerHTML = `<div class="empty-state"><h3>Couldn't load the log</h3><p>${esc(e.message)}</p></div>`;
+  } finally { logState.busy = false; }
+}
+function exportLogs() {
+  const rows = logFiltered();
+  if (!rows.length) { showToast('Nothing to export', 'info'); return; }
+  const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [['Date', 'Time', 'Name', 'Role', 'Action', 'Affected', 'Details', 'User ID'].map(cell).join(',')];
+  rows.forEach(e => { const d = new Date(e.ts); lines.push([d.toLocaleDateString('en-GB'), logTimeText(e.ts), e.name, logRoleOf(e), LOG_ACTIONS[e.action]?.label || e.action, logTarget(e), e.detail, e.uid].map(cell).join(',')); });
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bonce-activity-${new Date().toISOString().slice(0, 10)}${logState.tab !== 'all' ? '-' + logState.tab : ''}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  logEvent('admin.settings', { target: 'Activity log', detail: `Exported ${rows.length} entries` });
+}
+function initLogPanel() {
+  if (initLogPanel.done) return; initLogPanel.done = true;
+  document.getElementById('log-cat').innerHTML = `<option value="">Everything</option>${Object.entries(LOG_CATS).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}`;
+  document.getElementById('log-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { logState.tab = b.dataset.tab; renderLogs(); } });
+  document.getElementById('log-list').addEventListener('click', e => { const b = e.target.closest('[data-who]'); if (b) { document.getElementById('log-search').value = b.dataset.who; renderLogs(); } });
+  let t; document.getElementById('log-search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(renderLogs, 150); });
+  document.getElementById('log-cat').onchange = renderLogs;
+  document.getElementById('log-from').onchange = () => loadLogs(true);
+  document.getElementById('log-to').onchange = () => loadLogs(true);
+  document.getElementById('log-clear').onclick = () => { ['log-search', 'log-from', 'log-to'].forEach(id => document.getElementById(id).value = ''); document.getElementById('log-cat').value = ''; logState.tab = 'all'; loadLogs(true); };
+  document.getElementById('log-more').onclick = () => loadLogs();
+  document.getElementById('log-export').onclick = exportLogs;
 }
 
 /* ── USERS (basic list) ───────────────────────────────────── */
@@ -2574,6 +2759,8 @@ async function saveRoles(uid) {
   if (!roles.length) { showToast('Choose at least one role', 'error'); return; }
   try {
     await updateDoc(doc(db, 'users', uid), { roles, role: primaryRole(roles) });
+    const before = rolesOf(usersCache.find(x => x.id === uid) || {});
+    logEvent('account.roles', { target: (usersCache.find(x => x.id === uid) || {}).name || '', targetId: uid, detail: `${[...before].filter(r => r !== 'student' || roles.includes('student')).join(', ') || 'none'} → ${roles.join(', ')}` });
     showToast('Roles updated', 'success');
     loadUsers();
   } catch (e) { showToast('Could not save roles: ' + e.message, 'error'); }

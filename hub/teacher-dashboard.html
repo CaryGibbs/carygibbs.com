@@ -488,6 +488,7 @@
   import { auth, db } from './firebase-config.js?v=20261108a';
   import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261108a';
   import { mountShell } from './shell.js?v=20261108a';
+  import { logEvent } from './log.js?v=20261108a';
   import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261108a';
   import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261108a';
   import { app as firebaseApp } from './firebase-config.js?v=20261108a';
@@ -735,6 +736,7 @@
         createdAt: Date.now()
       });
       await setDoc(doc(db, 'classCodes', joinCode), { classId, teacherUid, className: name, packIds: [] });
+      logEvent('class.create', { target: name, targetId: classId, detail: `${subject || 'No subject'} · code ${joinCode}` });
       closeModal('modal-create-class');
       showToast(`Class "${name}" created. Next, choose its revision packs.`, 'success');
       setTimeout(() => window._openPacks(classId), 400);
@@ -792,6 +794,7 @@
     try {
       await deleteDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid));
       await updateDoc(doc(db, 'users', uid), { [`classes.${activeClassId}`]: deleteField(), [`classPacks.${activeClassId}`]: deleteField() }).catch(() => {});
+      logEvent('class.remove', { target: s?.name || '', targetId: uid, detail: `From ${classesData[activeClassId]?.name || 'a class'}` });
       showToast('Removed from class.', 'info');
       loadStudentList(activeClassId); countStudents();
     } catch (e) { showToast('Could not remove. Please try again.', 'error'); }
@@ -845,6 +848,7 @@
         classPacks: { [activeClassId]: classPacksNow }
       });
       await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email, joinedAt: Date.now() });
+      logEvent('class.add', { target: name, targetId: uid, detail: `New account, added to ${classesData[activeClassId]?.name || 'a class'}` });
       await secondaryAuth.signOut();
       await deleteApp(secondaryApp);
       document.getElementById('student-name').value = '';
@@ -879,6 +883,7 @@
     if (!isStudent(student)) { showModalError('add-student-error', 'That account isn\'t a student account.'); return; }
     await updateDoc(doc(db, 'users', student.id), { [`classes.${activeClassId}`]: true, [`classPacks.${activeClassId}`]: packIds });
     await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', student.id), { name: student.name || name, email: student.email || email, joinedAt: Date.now() });
+    logEvent('class.add', { target: student.name || name, targetId: student.id, detail: `Existing account, added to ${classesData[activeClassId]?.name || 'a class'}` });
     document.getElementById('student-name').value = '';
     document.getElementById('student-email').value = '';
     loadStudentList(activeClassId); countStudents();
@@ -910,6 +915,7 @@
     try {
       await updateDoc(doc(db, 'users', teacherUid, 'classes', classId), { packIds });
       cls.packIds = packIds; renderClasses();
+      logEvent('class.packs', { target: cls.name, targetId: classId, detail: `${packIds.length} pack${packIds.length === 1 ? '' : 's'}` });
       if (cls.joinCode) await updateDoc(doc(db, 'classCodes', cls.joinCode), { packIds }).catch(() => {});
       // Give every student in the class the packs (read by their hub)
       const snap = await getDocs(collection(db, 'users', teacherUid, 'classes', classId, 'students'));
@@ -1087,6 +1093,7 @@
     btn.classList.add('loading');
     try {
       await updateDoc(doc(db, 'users', teacherUid, 'classes', activeClassId), { name, subject });
+      logEvent('class.edit', { target: name, targetId: activeClassId, detail: subject || '' });
       closeModal('modal-edit-class');
       showToast('Class updated.', 'success');
     } catch(e) {
@@ -1115,6 +1122,7 @@
       await Promise.all(tidy);
       await deleteDoc(doc(db, 'users', teacherUid, 'classes', activeClassId));
       await deleteDoc(doc(db, 'classCodes', cls.joinCode));
+      logEvent('class.delete', { target: cls.name, targetId: classId, detail: `${tidy.length / 2} student${tidy.length === 2 ? '' : 's'} unlinked` });
       closeModal('modal-edit-class');
       showToast('Class deleted.', 'info');
     } catch(e) {

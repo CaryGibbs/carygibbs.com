@@ -5,6 +5,7 @@
 import { auth, db } from './firebase-config.js?v=20261108a';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261108a';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -109,12 +110,14 @@ export function requireAuth(callback) {
     try {
       let profile = await getUserProfile(user.uid);
       if (!profile) { await signOut(auth); window.location.href = 'index.html'; return; }
+      setLogActor(user.uid, profile, pageRole());
 
       const targetId = viewAsId();
       if (targetId && targetId !== user.uid) {
         const student = await getUserProfile(targetId);
         if (student && await canView(user, profile, targetId, student)) {
           _preview = { viewer: user, viewerProfile: profile, student: { id: targetId, ...student } };
+          setLogActor(user.uid, profile, hasRole(profile, 'admin') ? 'admin' : hasRole(profile, 'teacher') && !hasRole(profile, 'parent') ? 'teacher' : 'parent');
           showPreviewBanner(student);
           profile = student;
           user = { uid: 'preview-readonly', previewOf: targetId, isPreview: true };
@@ -171,6 +174,7 @@ export function requireRole(role, callback) {
 
 export async function handleSignOut() {
   if (_preview) { exitPreview(); return; } // in a preview window, "Sign out" just leaves the preview
+  await Promise.race([logEvent('account.signout'), new Promise(r => setTimeout(r, 1500))]);
   await signOut(auth);
   window.location.href = 'index.html';
 }
@@ -214,7 +218,8 @@ function showConnectionProblem() {
 }
 
 // Open a student's view in a new window (used by admin and parent dashboards)
-export function openViewAs(studentUid) {
+export function openViewAs(studentUid, studentName = '') {
+  logEvent('admin.view_as', { target: studentName, targetId: studentUid });
   const w = window.open(`hub.html?viewAs=${encodeURIComponent(studentUid)}`, `clasp-view-${studentUid}`);
   if (!w) window.location.href = `hub.html?viewAs=${encodeURIComponent(studentUid)}`; // pop-up blocked
 }
