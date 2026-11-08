@@ -370,7 +370,7 @@ export const BADGES = [
   B('memory_100', 'memory', 2, 'longTerm', 100, 'The Vault',     '🏦', '100 questions remembered for 2 weeks or more'),
   B('memory_250', 'memory', 3, 'longTerm', 250, 'Encyclopedia',  '📚', '250 questions remembered for 2 weeks or more'),
 
-  // Learning: time spent studying (subject map, learn panel, cheat sheets)
+  // Learning: time spent studying (Learn screen: map, learn panel, cards, cheat sheets)
   B('study_30',  'study', 1, 'studyMins', 30,  'Bookworm',        '📖', '30 minutes of studying'),
   B('study_120', 'study', 2, 'studyMins', 120, 'Deep Diver',      '🤿', '2 hours of studying'),
   B('study_300', 'study', 3, 'studyMins', 300, 'Study Champion',  '🥇', '5 hours of studying'),
@@ -401,7 +401,7 @@ function weekStartKey(ts) {
   return monday.getTime();
 }
 
-/* Study time (subject map, learn panel, cheat sheets) is stored per day
+/* Study time (Learn screen: map, learn panel, cards, cheat sheets) is stored per day
    and subject:  study = { 'YYYY-MM-DD': { subjectId: seconds } },
    studySubjects = { subjectId: 'Subject name' }.  This turns it into a list. */
 export function studyEntries(profile) {

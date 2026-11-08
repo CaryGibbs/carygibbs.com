@@ -617,13 +617,13 @@ async function loadSubjects(user, groupId) {
       <div class="topic-row">
         <span class="topic-row-name">${esc(t.name)}</span>
         <div class="topic-row-actions">
+          <button class="topic-btn topic-btn-map"
+            onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
+            <i data-icon="book-open"></i> Learn
+          </button>
           <button class="topic-btn topic-btn-quiz"
             onclick="goQuiz({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
             <i data-icon="zap"></i> Quiz
-          </button>
-          <button class="topic-btn topic-btn-map"
-            onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}'})">
-            <i data-icon="network"></i> Map
           </button>
           <button class="topic-btn topic-btn-map"
             onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}',view:'cheatsheet'})">
@@ -644,13 +644,13 @@ async function loadSubjects(user, groupId) {
         </div>
       </div>
       <div class="subject-actions">
-        <button class="btn btn-primary"
-          onclick="goQuiz({groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'})">
-          <i data-icon="zap"></i> Quiz subject
-        </button>
-        <button class="btn btn-secondary"
+        <button class="btn btn-secondary" title="Spider map, outline, flashcards and cheat sheets"
           onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'})">
-          <i data-icon="network"></i> Subject map
+          <i data-icon="book-open"></i> Learn
+        </button>
+        <button class="btn btn-primary" title="Quiz on the whole subject"
+          onclick="goQuiz({groupId:'${groupId}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'})">
+          <i data-icon="zap"></i> Quiz
         </button>
       </div>
       ${topicCount > 0 ? `

@@ -1,6 +1,6 @@
 // ============================================================
 // CLASP: study time tracker
-// Counts *active* time on learning pages (subject map, learn panel,
+// Counts *active* time on learning pages (the Learn screen: map, learn panel,
 // cheat sheets). The clock pauses when the page is hidden or nobody
 // has touched it for 2 minutes, so leaving it open doesn't count.
 // Saved per day and subject on the student's record (and the parent's

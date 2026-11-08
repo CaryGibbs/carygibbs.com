@@ -1,7 +1,7 @@
 // ============================================================
 // CLASP: shared sidebar for the adult pages (parent, admin, teacher)
 // One navigation, same sections and labels everywhere:
-//   Students · My students, then "View as <student>" shortcuts
+//   My Family · My students, then "View as <student>" shortcuts (parent view)
 //   Content  · Groups & questions, Users          (admin only)
 //   Settings                                       (admin only)
 //   Account  · name, role, Sign out
@@ -58,8 +58,11 @@ export function mountShell(user, profile, { view, active } = {}) {
 
   const sections = {
     parent: `
-      <div class="nav-section-label">Students</div>
-      <a class="nav-item${active === 'children' ? ' active' : ''}" href="parent.html">
+      <div class="nav-section-label">My Family</div>
+      <a class="nav-item${active === 'home' ? ' active' : ''}" href="parent.html#home" data-ph="home">
+        <span class="nav-icon"><i data-icon="house"></i></span><span>Home</span>
+      </a>
+      <a class="nav-item${active === 'children' ? ' active' : ''}" href="parent.html#students" data-ph="students">
         <span class="nav-icon"><i data-icon="users"></i></span><span>My students</span>
       </a>
       <div id="shell-children"></div>`,
@@ -102,7 +105,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     </div>`;
 
   // Highlight the right admin item
-  if (active && !['children', 'classes'].includes(active)) sidebar.querySelector(`[data-nav="${active}"], [href="admin.html#${active}"]`)?.classList.add('active');
+  if (active && !['children', 'classes', 'home'].includes(active)) sidebar.querySelector(`[data-nav="${active}"], [href="admin.html#${active}"]`)?.classList.add('active');
 
   // A chip in the page header repeats the view, so it's visible on phones too
   const topbar = document.querySelector('.app-layout .topbar');

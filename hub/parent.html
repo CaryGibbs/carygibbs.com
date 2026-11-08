@@ -29,6 +29,44 @@
     .section-header h2 { font-size: 1.1rem; font-weight: 700; }
 
     /* ── Child cards ─────────────────────────────────────── */
+    /* ── Home ─────────────────────────────────────────────── */
+    .home-hello { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-md); flex-wrap: wrap; margin-bottom: var(--space-lg); }
+    .home-date { font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .home-greeting { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin: 2px 0 2px; }
+    .home-sub { color: var(--color-text-muted); }
+    .home-quick { display: flex; gap: 8px; flex-wrap: wrap; }
+    .home-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: var(--space-lg); }
+    .home-tile { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 14px 16px; box-shadow: var(--shadow-card); }
+    .home-tile b { display: block; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--color-text); }
+    .home-tile span { font-family: var(--font-ui); font-size: 0.78rem; color: var(--color-text-muted); }
+    .home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-lg); }
+    .home-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-lg); box-shadow: var(--shadow-card); margin-bottom: var(--space-lg); }
+    .home-grid .home-card { margin-bottom: 0; }
+    .home-card h3 { font-family: var(--font-heading); font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .home-card h3 .icon { color: var(--color-primary); }
+    .att-item, .act-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--color-border); font-size: 0.9rem; }
+    .att-item:first-child, .act-item:first-child { border-top: none; padding-top: 0; }
+    .att-emoji { font-size: 1.15rem; width: 26px; text-align: center; flex-shrink: 0; }
+    .att-text { flex: 1; min-width: 0; }
+    .att-text small, .act-item small { display: block; color: var(--color-text-muted); font-size: 0.78rem; }
+    .att-item .btn { padding: 6px 12px; font-size: 0.78rem; flex-shrink: 0; }
+    .home-empty { color: var(--color-text-muted); font-size: 0.9rem; }
+    .act-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0; }
+    .act-item .act-text { flex: 1; min-width: 0; }
+    .act-score { font-family: var(--font-heading); font-weight: 800; }
+    .wk-row { display: grid; grid-template-columns: minmax(130px, 1.4fr) repeat(4, minmax(70px, 1fr)) auto; gap: 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--color-border); }
+    .wk-row:first-child { border-top: none; padding-top: 0; }
+    .wk-name { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .wk-stat b { display: block; font-family: var(--font-heading); font-size: 1.05rem; }
+    .wk-stat span { font-size: 0.72rem; color: var(--color-text-muted); font-family: var(--font-ui); }
+    .wk-actions { display: flex; gap: 6px; }
+    .wk-actions .btn { padding: 6px 10px; font-size: 0.78rem; }
+    @media (max-width: 720px) {
+      .wk-row { grid-template-columns: repeat(2, 1fr); }
+      .wk-name, .wk-actions { grid-column: 1 / -1; }
+      .home-greeting { font-size: 1.5rem; }
+    }
+    .family-heading { font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--color-text); margin: 4px 0 4px; }
     .children-count { font-family: var(--font-ui); font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
     .children-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-lg); }
     .child-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-card); transition: transform var(--transition-base), box-shadow var(--transition-base); }
@@ -161,10 +199,42 @@
 <aside id="app-sidebar"></aside>
 <main class="main">
   <header class="topbar">
-    <div class="breadcrumb"><span>Students</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">My students</span></div>
+    <div class="breadcrumb"><span>My Family</span><span class="breadcrumb-sep">›</span><span class="breadcrumb-current" id="crumb-current">Home</span></div>
     <div class="topbar-actions"></div>
   </header>
   <div class="content-area page-fade">
+  <!-- ── HOME ──────────────────────────────────────────── -->
+  <section id="parent-home">
+    <div class="home-hello">
+      <div>
+        <div class="home-date" id="home-date"></div>
+        <h1 class="home-greeting" id="home-greeting">Welcome back</h1>
+        <p class="home-sub" id="home-sub">Here's how revision is going.</p>
+      </div>
+      <div class="home-quick">
+        <button class="btn btn-secondary" onclick="location.hash='students'"><i data-icon="users"></i> My students</button>
+        <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add student</button>
+      </div>
+    </div>
+    <div class="home-tiles" id="home-tiles"></div>
+    <div class="home-grid">
+      <div class="home-card">
+        <h3><i data-icon="circle-alert"></i> Needs your attention</h3>
+        <div id="home-attention"></div>
+      </div>
+      <div class="home-card">
+        <h3><i data-icon="clock"></i> Recent activity</h3>
+        <div id="home-activity"></div>
+      </div>
+    </div>
+    <div class="home-card">
+      <h3><i data-icon="users"></i> This week</h3>
+      <div id="home-students"></div>
+    </div>
+  </section>
+
+  <!-- ── MY STUDENTS ───────────────────────────────────── -->
+  <section id="parent-students" hidden>
     <div class="panel-header">
       <div>
         <div class="panel-title">My students</div>
@@ -172,8 +242,10 @@
       </div>
       <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add student</button>
     </div>
+    <h2 class="family-heading">My Family</h2>
     <div class="children-count" id="children-count">Loading…</div>
     <div class="children-grid" id="children-grid"></div>
+  </section>
   </div>
 </main>
 
@@ -390,8 +462,10 @@ requireAuth((user, profile) => {
   parentUid = user.uid;
   // Streak repair / shield rules set by the admin; redraw cards once known
   loadStreakSettings().then(() => { if (Object.keys(childrenData || {}).length) renderChildren(); });
-  mountShell(user, profile, { view: 'parent', active: 'children' });
+  mountShell(user, profile, { view: 'parent', active: currentSection() === 'students' ? 'children' : 'home' });
   shellUser = user; shellProfile = profile;
+  homeName = (profile.name || '').split(' ')[0] || '';
+  showSection();
   // Groups first, so child cards show group names rather than ids
   loadGroups().finally(loadChildren);
 });
@@ -438,7 +512,143 @@ async function refreshFromChildRecords() {
   renderChildren();
 }
 
+/* ── Home / My students sections (#home, #students) ─────────── */
+let homeName = '';
+function currentSection() { return location.hash.replace('#', '') === 'students' ? 'students' : 'home'; }
+function showSection() {
+  const sec = currentSection();
+  document.getElementById('parent-home').hidden = sec !== 'home';
+  document.getElementById('parent-students').hidden = sec !== 'students';
+  document.getElementById('crumb-current').textContent = sec === 'home' ? 'Home' : 'My students';
+  document.querySelectorAll('[data-ph]').forEach(a => a.classList.toggle('active', a.dataset.ph === sec));
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', showSection);
+
+const DAY = 86400000;
+function startOfDay(t = Date.now()) { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+function agoText(t) {
+  const days = Math.round((startOfDay() - startOfDay(t)) / DAY);
+  if (days <= 0) {
+    const mins = Math.round((Date.now() - t) / 60000);
+    return mins < 60 ? `${Math.max(1, mins)} min ago` : `${Math.round(mins / 60)}h ago`;
+  }
+  if (days === 1) return 'yesterday';
+  if (days < 7) return new Date(t).toLocaleDateString('en-GB', { weekday: 'long' });
+  return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+function weekFigures(child) {
+  const from = startOfDay() - 6 * DAY;
+  const secsOf = x => typeof x.secondsSpent === 'number' ? x.secondsSpent : (x.minutesSpent || 0) * 60;
+  const sessions = (child.sessions || []).filter(s => (s.date || 0) >= from);
+  const study = studyEntries(child).filter(e => e.date >= from);
+  const lastSess = Math.max(0, ...(child.sessions || []).map(s => s.date || 0));
+  const lastStudy = Math.max(0, ...studyEntries(child).map(e => e.date));
+  const last = Math.max(lastSess, lastStudy, child.lastRevisionDate ? new Date(child.lastRevisionDate).getTime() : 0);
+  return {
+    secs: sessions.reduce((a, s) => a + secsOf(s), 0) + study.reduce((a, e) => a + e.secs, 0),
+    quizzes: sessions.length,
+    avg: sessions.length ? Math.round(sessions.reduce((a, s) => a + (s.pct || 0), 0) / sessions.length) : null,
+    last,
+  };
+}
+
+function renderHome() {
+  const now = new Date();
+  const h = now.getHours();
+  document.getElementById('home-date').textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('home-greeting').textContent = `${h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'}${homeName ? ', ' + homeName : ''}`;
+  const kids = Object.entries(childrenData).map(([uid, c]) => ({ uid, ...c, first: (c.name || 'Student').split(' ')[0] }))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const tiles = document.getElementById('home-tiles');
+  const att = document.getElementById('home-attention');
+  const act = document.getElementById('home-activity');
+  const wk = document.getElementById('home-students');
+  if (!kids.length) {
+    document.getElementById('home-sub').textContent = 'Add a student to get started.';
+    tiles.innerHTML = '';
+    att.innerHTML = `<div class="home-empty">No students yet. <a href="#" onclick="openAddModal();return false;">Add your first student</a> and their progress will show here.</div>`;
+    act.innerHTML = '<div class="home-empty">Nothing yet.</div>';
+    wk.innerHTML = '';
+    return;
+  }
+
+  // ── At a glance ──
+  const figs = kids.map(k => ({ k, w: weekFigures(k), st: streakStatus(k), due: scheduledCount(k) ? dueEntries(k).length : 0 }));
+  const totalSecs = figs.reduce((a, f) => a + f.w.secs, 0);
+  const totalQuiz = figs.reduce((a, f) => a + f.w.quizzes, 0);
+  const totalDue  = figs.reduce((a, f) => a + f.due, 0);
+  const activeToday = figs.filter(f => f.w.last >= startOfDay()).length;
+  document.getElementById('home-sub').textContent = activeToday
+    ? `${activeToday} of ${kids.length} revised today. Here's how the week is going.`
+    : `No revision yet today. Here's how the week is going.`;
+  const bestNow = figs.slice().sort((a, b) => b.st.current - a.st.current)[0];
+  tiles.innerHTML = `
+    <div class="home-tile"><b>${fmtTime(totalSecs)}</b><span>revision this week</span></div>
+    <div class="home-tile"><b>${totalQuiz}</b><span>quiz${totalQuiz === 1 ? '' : 'zes'} this week</span></div>
+    <div class="home-tile"><b>${totalDue}</b><span>reviews due today</span></div>
+    <div class="home-tile"><b>${bestNow.st.current} 🔥</b><span>top streak now${bestNow.st.current ? ` (${esc(bestNow.k.first)})` : ''}</span></div>`;
+
+  // ── Needs your attention ──
+  const items = [];
+  const btn = (label, onclick, primary) => `<button class="btn ${primary ? 'btn-primary' : 'btn-secondary'}" onclick="${onclick}">${label}</button>`;
+  figs.forEach(({ k, w, st, due }) => {
+    const daysOff = w.last ? Math.round((startOfDay() - startOfDay(w.last)) / DAY) : null;
+    const packs = (k.groupIds || []).length + Object.values(k.classPacks || {}).reduce((a, l) => a + (l || []).length, 0);
+    if (!packs) items.push({ p: 0, emoji: '📦', text: `${esc(k.first)} has no revision pack yet`, sub: 'Choose one so they can start revising.', act: btn('Choose pack', `openManageModal('${k.uid}')`, true) });
+    if (daysOff === null) items.push({ p: 1, emoji: '👋', text: `${esc(k.first)} hasn't started yet`, sub: 'A quick message can help them get going.', act: btn('Message', `openNotifyModal('${k.uid}')`) });
+    else if (daysOff >= 2) items.push({ p: 1, emoji: '💤', text: `${esc(k.first)} hasn't revised since ${agoText(w.last)}`, sub: st.best ? `Best streak ${st.best} day${st.best === 1 ? '' : 's'}.` : '', act: btn('Message', `openNotifyModal('${k.uid}')`) });
+    const r = repairOffer(k);
+    if (r && !(r.done || r.progress.done)) items.push({ p: 2, emoji: '🔥', text: `${esc(k.first)} can win back a ${r.from}-day streak today`, sub: `${r.progress.mins} of ${REPAIR.MINUTES} minutes done.`, act: btn('Message', `openNotifyModal('${k.uid}')`) });
+    if (due >= 10) items.push({ p: 3, emoji: '🔁', text: `${esc(k.first)} has ${due} reviews due`, sub: 'Reviews make what they learnt stick.', act: btn('View as', `viewAs('${k.uid}')`) });
+    // Weakest subject over the last 30 days
+    const bySub = {};
+    (k.sessions || []).filter(s => !s.review && (s.date || 0) >= Date.now() - 30 * DAY).forEach(s => {
+      (bySub[s.subject || 'Other'] = bySub[s.subject || 'Other'] || []).push(s.pct || 0);
+    });
+    const weak = Object.entries(bySub).filter(([, l]) => l.length >= 2).map(([n, l]) => [n, Math.round(l.reduce((a, b) => a + b, 0) / l.length)]).sort((a, b) => a[1] - b[1])[0];
+    if (weak && weak[1] < 50) items.push({ p: 4, emoji: '📉', text: `${esc(k.first)} is finding ${esc(weak[0])} tricky`, sub: `Average ${weak[1]}% over the last month.`, act: btn('Progress', `openProgressModal('${k.uid}')`) });
+    if (st.current >= 3 && st.current >= st.best) items.push({ p: 5, emoji: '🏆', text: `${esc(k.first)} is on a ${st.current}-day personal best`, sub: 'Worth a well done!', act: btn('Message', `openNotifyModal('${k.uid}')`) });
+  });
+  items.sort((a, b) => a.p - b.p);
+  att.innerHTML = items.length
+    ? items.slice(0, 6).map(i => `<div class="att-item"><span class="att-emoji">${i.emoji}</span><div class="att-text">${i.text}${i.sub ? `<small>${i.sub}</small>` : ''}</div>${i.act}</div>`).join('')
+    : '<div class="home-empty">✅ All good: nothing needs you right now.</div>';
+
+  // ── Recent activity (last 7 days) ──
+  const events = [];
+  const from = Date.now() - 7 * DAY;
+  kids.forEach(k => {
+    const c = themeColour(k.theme);
+    const dot = `<span class="act-dot" style="background:${c}22;color:${c}">${esc(k.first[0] || '?')}</span>`;
+    (k.sessions || []).filter(s => (s.date || 0) >= from).forEach(s => events.push({ t: s.date, html:
+      `${dot}<div class="act-text">${esc(k.first)} ${s.review ? 'did a review' : `did a quiz on <strong>${esc(s.topic || s.subject || '')}</strong>`}<small>${agoText(s.date)}${s.subject && !s.review ? ' · ' + esc(s.subject) : ''}</small></div><span class="act-score">${s.pct ?? ''}%</span>` }));
+    // study time per day and subject (5 minutes or more)
+    studyEntries(k).filter(e => e.date >= from && e.secs >= 300).forEach(e => events.push({ t: e.date, html:
+      `${dot}<div class="act-text">${esc(k.first)} studied <strong>${esc(e.subject)}</strong><small>${agoText(e.date)}</small></div><span class="act-score">${fmtTime(e.secs)}</span>` }));
+  });
+  events.sort((a, b) => b.t - a.t);
+  act.innerHTML = events.length
+    ? events.slice(0, 8).map(e => `<div class="act-item">${e.html}</div>`).join('')
+    : '<div class="home-empty">No revision in the last 7 days.</div>';
+
+  // ── This week, per student ──
+  wk.innerHTML = figs.map(({ k, w, st, due }) => {
+    const c = themeColour(k.theme);
+    const streakSub = st.lapsed ? `ended · best ${st.best}` : (st.current >= 2 && st.current >= st.best ? '🏆 best!' : st.best ? `best ${st.best}` : 'streak');
+    return `<div class="wk-row">
+      <div class="wk-name"><span class="act-dot" style="background:${c}22;color:${c}">${esc((k.name || '?').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase())}</span><div>${esc(k.name || '')}<small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">Last active ${w.last ? agoText(w.last) : 'never'}</small></div></div>
+      <div class="wk-stat"><b>${fmtTime(w.secs)}</b><span>this week</span></div>
+      <div class="wk-stat"><b>${w.quizzes}${w.avg !== null ? ` <small style="font-size:0.75rem;color:var(--color-text-muted)">· ${w.avg}%</small>` : ''}</b><span>quizzes</span></div>
+      <div class="wk-stat"><b>${st.current} 🔥</b><span>${streakSub}</span></div>
+      <div class="wk-stat"><b>${due}</b><span>reviews due</span></div>
+      <div class="wk-actions">${btn('Progress', `openProgressModal('${k.uid}')`)}${btn('View as', `viewAs('${k.uid}')`)}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderChildren() {
+  renderHome();
   const grid  = document.getElementById('children-grid');
   const count = Object.keys(childrenData).length;
   document.getElementById('children-count').textContent =
@@ -466,7 +676,7 @@ function renderChildren() {
     const secsOf = x => typeof x.secondsSpent === 'number' ? x.secondsSpent : (x.minutesSpent || 0) * 60;
     const now = new Date();
     const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    // Quiz time plus study time (subject map, learn panel, cheat sheets)
+    // Quiz time plus study time (Learn screen: map, learn panel, cards, cheat sheets)
     const study = studyEntries(child);
     const todaySecs = sessions.filter(x => (x.date || 0) >= startToday).reduce((a, x) => a + secsOf(x), 0)
                     + study.filter(e => e.date >= startToday).reduce((a, e) => a + e.secs, 0);

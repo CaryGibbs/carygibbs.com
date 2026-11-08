@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bonce — Mindmap</title>
+  <title>Bonce — Learn</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261106e">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261106e">
   <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261106e">
@@ -277,6 +277,24 @@
       font-family: var(--font-ui); font-size: 0.9rem; color: var(--color-text-muted);
       min-width: 70px; text-align: center;
     }
+    .fc-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .fc-mark { display: flex; gap: 12px; justify-content: center; margin: calc(var(--space-xl) * -0.5) 0 var(--space-lg); min-height: 46px; }
+    .fc-mark-btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 22px; border-radius: 999px; font-family: var(--font-ui);
+      font-weight: 700; font-size: 0.92rem; cursor: pointer; border: 2px solid; background: var(--color-surface); transition: transform .1s ease; }
+    .fc-mark-btn:active { transform: scale(0.97); }
+    .fc-mark-btn.wrong { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 45%, transparent); }
+    .fc-mark-btn.right { color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 45%, transparent); }
+    .fc-mark-btn.picked.wrong { background: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface)); }
+    .fc-mark-btn.picked.right { background: color-mix(in srgb, var(--color-success) 14%, var(--color-surface)); }
+    .fc-mark.waiting .fc-mark-btn { visibility: hidden; }
+    .fc-counter b.ok { color: var(--color-success); } .fc-counter b.no { color: var(--color-danger); }
+    .fc-summary { width: 100%; max-width: 560px; text-align: center; background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-card); padding: var(--space-xl) var(--space-lg); box-shadow: var(--shadow-card); margin-bottom: var(--space-lg); }
+    .fc-summary h3 { font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 6px; }
+    .fc-summary p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
+    .fc-summary .fc-sum-stats { display: flex; justify-content: center; gap: var(--space-lg); margin-bottom: var(--space-lg); font-family: var(--font-ui); }
+    .fc-summary .fc-sum-stats b { display: block; font-family: var(--font-heading); font-size: 1.8rem; }
+    .fc-summary .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
     .fc-topic-label {
       font-family: var(--font-ui); font-size: 0.82rem; color: var(--color-text-muted);
       margin-top: var(--space-md); text-align: center;
@@ -296,7 +314,7 @@
 
 <nav class="topnav">
   <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
-  <div class="nav-title" id="nav-title">Mindmap</div>
+  <div class="nav-title" id="nav-title">Learn</div>
   <div class="view-toggle">
     <button class="view-btn active" data-view="spider" onclick="switchView('spider')"><i data-icon="network"></i> Spider</button>
     <button class="view-btn" data-view="outline" onclick="switchView('outline')"><i data-icon="list"></i> Outline</button>
@@ -339,10 +357,14 @@
 <div class="view-panel" id="view-flashcards">
   <div class="fc-toolbar">
     <div class="flashcard-meta" id="fc-meta"></div>
-    <div class="fc-length" role="group" aria-label="Answer length" id="fc-length"></div>
+    <div class="fc-controls">
+      <div class="fc-length" role="group" aria-label="Answer length" id="fc-length"></div>
+      <div class="fc-length" role="group" aria-label="Cards per round" id="fc-size"></div>
+    </div>
     <div class="fc-length-note" id="fc-length-note"></div>
   </div>
-  <div class="flashcard-wrap">
+  <div class="fc-summary" id="fc-summary" hidden></div>
+  <div class="flashcard-wrap" id="fc-card-wrap">
     <div class="flashcard" id="flashcard" onclick="flipCard()">
       <div class="flashcard-face flashcard-front">
         <div class="flashcard-label">Question / Term</div>
@@ -356,10 +378,14 @@
       </div>
     </div>
   </div>
-  <div class="flashcard-nav">
-    <button class="fc-nav-btn" id="fc-prev" onclick="prevCard()" disabled>‹</button>
+  <div class="fc-mark" id="fc-mark">
+    <button type="button" class="fc-mark-btn wrong" id="fc-wrong"><i data-icon="x"></i> Not yet</button>
+    <button type="button" class="fc-mark-btn right" id="fc-right"><i data-icon="check"></i> Got it</button>
+  </div>
+  <div class="flashcard-nav" id="fc-nav">
+    <button class="fc-nav-btn" id="fc-prev" onclick="prevCard()" disabled aria-label="Previous card">‹</button>
     <div class="fc-counter" id="fc-counter">1 / 1</div>
-    <button class="fc-nav-btn" id="fc-next" onclick="nextCard()">›</button>
+    <button class="fc-nav-btn" id="fc-next" onclick="nextCard()" aria-label="Next card">›</button>
   </div>
   <div class="fc-topic-label" id="fc-topic-label"></div>
 </div>
@@ -693,7 +719,7 @@ window._switchView = function(v) {
   currentView = v;
   document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
   showView(v);
-  if (v === 'flashcards') { fcIdx = 0; fcFlipped = false; cardMode = lengthOf(_currentProfile); renderLengthPicker(); buildFlashcards(); renderFlashcard(); prepareShortAnswers(); }
+  if (v === 'flashcards') { fcIdx = 0; fcFlipped = false; cardMode = lengthOf(_currentProfile); renderLengthPicker(); buildFlashcards(); startFlashcards(); prepareShortAnswers(); }
   if (v === 'spider') buildSpider();
   if (v === 'cheatsheet') showCheatSheets();
 };
@@ -1466,31 +1492,127 @@ async function prepareShortAnswers() {
   if (results.some(r => r.value)) renderFlashcard(true);
 }
 
+/* Rounds: a round is 10 cards (or all of them). Each card is marked
+   "Got it" or "Not yet"; at the end, redo the ones not yet known until
+   they're all right, then move on to the next 10. */
+let fcRound = [];        // cards in this round
+let fcMarks = [];        // true / false / undefined per card in the round
+let fcPool = [];         // cards not yet dealt this sitting
+let fcSize = 'ten';      // 'ten' | 'all'
+let fcRoundNo = 0;       // 1st go or a redo
+const FC_SIZE_KEY = 'bonce_cardRound';
+
+function renderSizePicker() {
+  const box = document.getElementById('fc-size');
+  if (!box) return;
+  box.innerHTML = [['ten', '10 at a time'], ['all', 'All']].map(([id, l]) =>
+    `<button type="button" class="${id === fcSize ? 'on' : ''}" data-size="${id}" aria-pressed="${id === fcSize}">${l}</button>`).join('');
+  box.querySelectorAll('[data-size]').forEach(b => b.onclick = () => {
+    fcSize = b.dataset.size;
+    try { localStorage.setItem(FC_SIZE_KEY, fcSize); } catch (e) {}
+    if (_currentProfile) _currentProfile.cardRound = fcSize;
+    if (_currentUser && isStudent(_currentProfile) && !isPreview()) updateDoc(doc(db, 'users', _currentUser.uid), { cardRound: fcSize }).catch(() => {});
+    renderSizePicker();
+    startFlashcards();
+  });
+}
+
+// A fresh sitting: shuffle everything, deal the first round
+function startFlashcards() {
+  let saved = _currentProfile?.cardRound;
+  if (!saved) { try { saved = localStorage.getItem(FC_SIZE_KEY); } catch (e) {} }
+  if (saved === 'all' || saved === 'ten') fcSize = saved;
+  renderSizePicker();
+  fcPool = shuffle(flattenFlashcards().slice());
+  dealRound();
+}
+function dealRound() {
+  const n = fcSize === 'ten' ? 10 : fcPool.length;
+  fcRound = fcPool.splice(0, n);
+  fcMarks = []; fcIdx = 0; fcRoundNo = 1;
+  showCards();
+}
+function redoWrong() {
+  fcRound = fcRound.filter((_, i) => fcMarks[i] !== true);
+  fcRound = shuffle(fcRound);
+  fcMarks = []; fcIdx = 0; fcRoundNo++;
+  showCards();
+}
+function showCards() {
+  document.getElementById('fc-summary').hidden = true;
+  ['fc-card-wrap', 'fc-mark', 'fc-nav', 'fc-topic-label'].forEach(id => { document.getElementById(id).style.display = ''; });
+  renderFlashcard();
+}
+
 function renderFlashcard(keepFlip = false) {
-  const cards = flattenFlashcards();
-  if (!cards.length) {
+  const all = flattenFlashcards();
+  if (!all.length) {
     document.getElementById('fc-front').textContent = 'No cards available';
     document.getElementById('fc-back').textContent = 'Add key points to this topic first';
     document.getElementById('fc-counter').textContent = '0 / 0';
+    document.getElementById('fc-mark').style.display = 'none';
     return;
   }
-
-  document.getElementById('fc-meta').textContent = `${cards.length} cards`;
+  if (!fcRound.length) return;
+  const cards = fcRound;
+  const right = fcMarks.filter(m => m === true).length, wrong = fcMarks.filter(m => m === false).length;
+  document.getElementById('fc-meta').textContent = fcRoundNo > 1
+    ? `Redo: ${cards.length} card${cards.length === 1 ? '' : 's'} you didn't know yet`
+    : `${all.length} cards${fcSize === 'ten' ? ` · ${fcPool.length} still to come after these` : ''}`;
   const card = cards[fcIdx];
   document.getElementById('fc-hint').style.display = 'block';
   document.getElementById('fc-front').textContent = card.front;
   document.getElementById('fc-back').textContent = displayAnswer(card.tref, card.back, cardMode);
   document.getElementById('fc-type').textContent = card.type || '';
   document.getElementById('fc-topic-label').textContent = card.topic || '';
-  document.getElementById('fc-counter').textContent = `${fcIdx + 1} / ${cards.length}`;
+  document.getElementById('fc-counter').innerHTML = `${fcIdx + 1} / ${cards.length}` + (right || wrong ? ` · <b class="ok">✓ ${right}</b> <b class="no">✗ ${wrong}</b>` : '');
   document.getElementById('fc-prev').disabled = fcIdx === 0;
   document.getElementById('fc-next').disabled = fcIdx === cards.length - 1;
+  // Marking buttons: shown once the answer has been seen, highlighting any earlier choice
+  const mark = document.getElementById('fc-mark');
+  document.getElementById('fc-right').classList.toggle('picked', fcMarks[fcIdx] === true);
+  document.getElementById('fc-wrong').classList.toggle('picked', fcMarks[fcIdx] === false);
 
   // Reset flip (unless just changing the answer length)
   if (!keepFlip) {
     document.getElementById('flashcard').classList.remove('flipped');
     fcFlipped = false;
   }
+  mark.classList.toggle('waiting', !fcFlipped && fcMarks[fcIdx] === undefined);
+}
+
+function markCard(ok) {
+  if (!fcRound.length) return;
+  fcMarks[fcIdx] = ok;
+  // next card not yet marked (after this one, then from the start)
+  const order = [...fcRound.keys()].slice(fcIdx + 1).concat([...fcRound.keys()].slice(0, fcIdx + 1));
+  const next = order.find(i => fcMarks[i] === undefined);
+  if (next === undefined) { showRoundSummary(); return; }
+  fcIdx = next; fcFlipped = false;
+  document.getElementById('flashcard').classList.remove('flipped');
+  renderFlashcard();
+}
+
+function showRoundSummary() {
+  const right = fcMarks.filter(m => m === true).length;
+  const wrong = fcRound.length - right;
+  ['fc-card-wrap', 'fc-mark', 'fc-nav', 'fc-topic-label'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+  const box = document.getElementById('fc-summary');
+  const more = fcPool.length;
+  const nextLabel = more ? `Next ${Math.min(10, more)} cards` : 'Start again';
+  box.innerHTML = wrong
+    ? `<h3>${right ? 'Good going!' : 'Keep at it!'}</h3>
+       <p>Go over the ones you didn't know yet: they stick better the second time.</p>
+       <div class="fc-sum-stats"><span><b style="color:var(--color-success)">${right}</b>got it</span><span><b style="color:var(--color-danger)">${wrong}</b>to redo</span></div>
+       <div class="actions"><button class="btn btn-primary" id="fc-redo"><i data-icon="repeat"></i> Redo the ${wrong} I didn't know</button>
+       <button class="btn btn-secondary" id="fc-next-round">${more ? 'Skip to next cards' : 'Start again'}</button></div>`
+    : `<h3>${fcRoundNo > 1 ? 'All sorted! 🎉' : 'All right first time! 🎉'}</h3>
+       <p>${more ? `${more} more card${more === 1 ? '' : 's'} to go in this ${subjects.length ? 'topic' : 'set'}.` : 'You\'ve been through every card.'}</p>
+       <div class="actions"><button class="btn btn-primary" id="fc-next-round"><i data-icon="${more ? 'arrow-right' : 'refresh-cw'}"></i> ${nextLabel}</button></div>`;
+  box.hidden = false;
+  document.getElementById('fc-meta').textContent = fcRoundNo > 1 ? `Redo round ${fcRoundNo - 1} done` : 'Round done';
+  document.getElementById('fc-redo')?.addEventListener('click', redoWrong);
+  document.getElementById('fc-next-round').addEventListener('click', () => { if (fcPool.length) dealRound(); else startFlashcards(); });
 }
 
 function flattenFlashcards() {
@@ -1502,9 +1624,15 @@ function flattenFlashcards() {
   return cards.filter(c => c && c.front);
 }
 
-window._flipCard  = () => { fcFlipped = !fcFlipped; document.getElementById('flashcard').classList.toggle('flipped', fcFlipped); };
+window._flipCard  = () => {
+  fcFlipped = !fcFlipped;
+  document.getElementById('flashcard').classList.toggle('flipped', fcFlipped);
+  if (fcFlipped) document.getElementById('fc-mark').classList.remove('waiting');
+};
 window._prevCard  = () => { if (fcIdx > 0) { fcIdx--; fcFlipped = false; document.getElementById('flashcard').classList.remove('flipped'); renderFlashcard(); } };
-window._nextCard  = () => { const cards = flattenFlashcards(); if (fcIdx < cards.length - 1) { fcIdx++; fcFlipped = false; document.getElementById('flashcard').classList.remove('flipped'); renderFlashcard(); } };
+window._nextCard  = () => { if (fcIdx < fcRound.length - 1) { fcIdx++; fcFlipped = false; document.getElementById('flashcard').classList.remove('flipped'); renderFlashcard(); } };
+document.getElementById('fc-right').addEventListener('click', () => markCard(true));
+document.getElementById('fc-wrong').addEventListener('click', () => markCard(false));
 
 /* ── Utils ───────────────────────────────────────────────── */
 function shuffle(arr) {
