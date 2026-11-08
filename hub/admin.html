@@ -999,7 +999,7 @@
 import { auth, db, storage } from './firebase-config.js';
 import { requireRole, handleSignOut, showToast, openViewAs, primaryRole } from './auth.js';
 import { mountShell } from './shell.js';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf } from './ai.js';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js';
 import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
@@ -1630,9 +1630,9 @@ ${contentText.substring(0, 6000)}`;
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
     const cleaned = raw.replace(/^```[a-z]*\n?/i,'').replace(/```$/,'').trim();
-    let parsed;
-    try { parsed = JSON.parse(cleaned); }
-    catch { const m = cleaned.match(/\[\s\S]*\]/); parsed = m ? JSON.parse(m[0]) : []; }
+    if (data.error) throw new Error(data.error.message);
+    const parsed = parseJsonLoose(cleaned);
+    if (!Array.isArray(parsed) || !parsed.length) throw new Error('No key points returned. Please try again.');
     renderKpList(listId, parsed);
     const kpCount = parsed[0]?.points ? parsed.reduce((a,g)=>a+(g.points||[]).length,0) : parsed.length;
     const grpCount2 = parsed[0]?.points ? parsed.length : 1;
@@ -1649,24 +1649,21 @@ async function researchKeyPoints(topic, statusId, listId) {
   statusEl.textContent = 'Researching…';
   const prompt = `You are an expert GCSE teacher. Write comprehensive key points for the following GCSE topic, organised into named sub-topic groups. Include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student needs for their exam.
 
-IMPORTANT: You MUST return between 3 and 8 groups. Every group MUST have a clear descriptive name (e.g. "Grid References", "Scale & Distance", "Contour Lines"). Do NOT use an empty string as a group name.
+IMPORTANT: You MUST return between 3 and 10 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name (e.g. "Grid References", "Scale & Distance", "Contour Lines"). Do NOT use an empty string as a group name. Keep each explanation under 30 words.
+If the topic below lists several sub-topics or bullet points, use them as the groups.
 
 Topic: ${topic}
 
 Return ONLY a JSON array of groups, no markdown, no backticks, no preamble:
 [{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits"},{"term":"Easting","explanation":"The horizontal value, read first"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map and real-world distance"}]}]`;
   try {
-    const resp = await aiFetch(prompt, 8000);
+    const resp = await aiFetch(prompt, 16000);
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
     const cleaned = raw.replace(/^```[a-z]*\n?/i,'').replace(/```$/,'').trim();
-    let parsed;
-    try { parsed = JSON.parse(cleaned); }
-    catch(pe) {
-      const m = cleaned.match(/\[[\s\S]*\]/);
-      parsed = m ? JSON.parse(m[0]) : [];
-    }
-    if (!Array.isArray(parsed) || !parsed.length) throw new Error('No key points returned — try again');
+    if (data.error) throw new Error(data.error.message);
+    const parsed = parseJsonLoose(cleaned);
+    if (!Array.isArray(parsed) || !parsed.length) throw new Error('No key points returned. Please try again.');
     renderKpList(listId, parsed);
     const kpCount2 = parsed[0]?.points ? parsed.reduce((a,g)=>a+(g.points||[]).length,0) : parsed.length;
     const grpCount = parsed[0]?.points ? parsed.length : 1;
@@ -1808,9 +1805,9 @@ async function generateEverything() {
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
     const cleaned = raw.replace(/^\`\`\`[a-z]*\n?/i,'').replace(/\`\`\`$/,'').trim();
-    let questions;
-    try { questions = JSON.parse(cleaned); }
-    catch { const m = cleaned.match(/\[[\s\S]*\]/); questions = m ? JSON.parse(m[0]) : []; }
+    if (data.error) throw new Error(data.error.message);
+    let questions = parseJsonLoose(cleaned);
+    if (!Array.isArray(questions)) questions = [];
 
     if (!questions.length) throw new Error('No questions returned');
     normaliseTf(questions);
@@ -2024,15 +2021,7 @@ ${content}`;
     const raw = data.content.map(c => c.text || '').join('');
     // Strip any accidental markdown fences
     const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/```$/,'').trim();
-    let parsed;
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch(pe) {
-      // Try to extract JSON array from anywhere in the string
-      const match = cleaned.match(/\[[\s\S]*\]/);
-      if (match) parsed = JSON.parse(match[0]);
-      else throw new Error('Could not parse AI response as JSON');
-    }
+    const parsed = parseJsonLoose(cleaned);
 
     if (!Array.isArray(parsed)) throw new Error('AI returned unexpected format');
 

@@ -68,11 +68,38 @@ export function textOf(data) {
 
 // Parse a JSON object or array from a response, tolerating code fences
 export function jsonOf(data) {
-  const cleaned = textOf(data).replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
-  try { return JSON.parse(cleaned); }
-  catch {
-    const m = cleaned.match(/[\[{][\s\S]*[\]}]/);
-    if (m) return JSON.parse(m[0]);
-    throw new Error('Unexpected AI response');
+  return parseJsonLoose(textOf(data));
+}
+
+// Parse JSON from AI text. Copes with code fences, text around the JSON,
+// and replies that were cut off part-way (long answers can hit the length
+// limit): it keeps everything up to the last complete item and closes the
+// brackets, so a long list still loads, just a little shorter.
+export function parseJsonLoose(text) {
+  const cleaned = String(text || '').replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(cleaned); } catch (e) { /* try harder below */ }
+  const start = cleaned.search(/[\[{]/);
+  if (start < 0) throw new Error('The AI reply had no data in it. Please try again.');
+  const s = cleaned.slice(start);
+  // Walk the text, noting each point where an object or list closes
+  const stack = [], cuts = [];
+  let inStr = false, esc = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === '[' || ch === '{') stack.push(ch);
+    else if (ch === ']' || ch === '}') {
+      stack.pop();
+      cuts.push({ i, open: stack.slice() });
+      if (!stack.length) { try { return JSON.parse(s.slice(0, i + 1)); } catch (e) { /* keep going */ } }
+    }
   }
+  // Cut off part-way: close at the latest point that parses
+  for (let k = cuts.length - 1; k >= 0; k--) {
+    const { i, open } = cuts[k];
+    const closers = open.slice().reverse().map(c => (c === '[' ? ']' : '}')).join('');
+    try { return JSON.parse(s.slice(0, i + 1) + closers); } catch (e) { /* earlier cut */ }
+  }
+  throw new Error('The AI reply was incomplete. Please try again, or split the topic into smaller parts.');
 }
