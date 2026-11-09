@@ -6,7 +6,7 @@
 // app has always used, so nothing breaks.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109o';
+import { db, auth } from './firebase-config.js?v=20261109p';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -43,19 +43,32 @@ export async function modelFor(task) {
 }
 
 // Send a prompt; returns the raw API response (with .content and .model)
+// The Worker checks who is asking (their sign-in) and what the task is,
+// and decides there whether it's allowed (e.g. generation needs Plus).
+async function authHeaders(task) {
+  const h = { 'Content-Type': 'application/json' };
+  if (task) h['X-Task'] = task;
+  try { const t = await auth.currentUser?.getIdToken(); if (t) h.Authorization = `Bearer ${t}`; } catch (e) {}
+  return h;
+}
+
 export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallback = false } = {}) {
   const chosen = model || await modelFor(task);
+  const headers = await authHeaders(task);
   const send = m => fetch(PROXY_URL, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers,
     body: JSON.stringify({ model: m, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
   }).then(async r => {
     const data = await r.json().catch(() => ({}));
-    if (!r.ok || data.error || !data.content) throw new Error(data.error?.message || `AI request failed (${r.status})`);
+    if (!r.ok || data.error || !data.content) {
+      const e = new Error(data.error?.message || `AI request failed (${r.status})`); e.status = r.status; throw e;
+    }
     return data;
   });
   try { return await send(chosen); }
   catch (e) {
-    if (chosen === FALLBACK_MODEL || noFallback) throw e;
+    // Not allowed, not signed in or too big: another model won't help
+    if (chosen === FALLBACK_MODEL || noFallback || [401, 403, 413].includes(e.status)) throw e;
     console.warn(`Model ${chosen} failed (${e.message}); retrying with ${FALLBACK_MODEL}`);
     return send(FALLBACK_MODEL);
   }
@@ -66,7 +79,7 @@ export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallb
 // support link checking yet, so callers can fall back to "unchecked".
 export async function checkLinks(urls) {
   const r = await fetch(PROXY_URL, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: await authHeaders(),
     body: JSON.stringify({ action: 'checkLinks', urls })
   });
   const data = await r.json().catch(() => ({}));

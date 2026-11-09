@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109o">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109o">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109o">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109o">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109p">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109p">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109p">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109p">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109o">
-  <script src="icons.js?v=20261109o"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109p">
+  <script src="icons.js?v=20261109p"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -59,7 +59,7 @@
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109o">
+  <link rel="stylesheet" href="ui.css?v=20261109p">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -153,12 +153,12 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261109o';
-  import { redirectByRole } from './auth.js?v=20261109o';
-  import { logEvent } from './log.js?v=20261109o';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261109o';
-  import { findClass } from './join-class.js?v=20261109o';
-  import { saveEmailIndex } from './email-index.js?v=20261109o';
+  import { auth, db } from './firebase-config.js?v=20261109p';
+  import { redirectByRole } from './auth.js?v=20261109p';
+  import { logEvent } from './log.js?v=20261109p';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261109p';
+  import { findClass } from './join-class.js?v=20261109p';
+  import { saveEmailIndex } from './email-index.js?v=20261109p';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
