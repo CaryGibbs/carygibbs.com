@@ -61,6 +61,19 @@ export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallb
   }
 }
 
+// Ask the Worker to check that links load (browsers can't, because of CORS).
+// Returns { url: { ok, status, finalUrl } }. Throws if the Worker doesn't
+// support link checking yet, so callers can fall back to "unchecked".
+export async function checkLinks(urls) {
+  const r = await fetch(PROXY_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'checkLinks', urls })
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.results) throw new Error(data.error?.message || `Link check failed (${r.status})`);
+  return data.results;
+}
+
 // Text of a response
 export function textOf(data) {
   return (data.content || []).map(c => c.text || '').join('');

@@ -879,9 +879,29 @@
         <input type="text" id="subject-name-input" placeholder="e.g. Geography" maxlength="60">
       </div>
     </div>
+    <div class="form-row" style="margin-top:var(--space-md);">
+      <div class="form-group">
+        <label>Exam board</label>
+        <select id="subject-board-input">
+          <option value="">Not set</option><option>AQA</option><option>Pearson Edexcel</option><option>OCR</option>
+          <option>WJEC Eduqas</option><option>WJEC</option><option>CCEA</option><option>SQA</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Level</label>
+        <select id="subject-level-input">
+          <option value="">Not set</option><option>GCSE</option><option>A level</option><option>AS level</option>
+          <option>National 5</option><option>Higher</option><option>KS3</option><option>Other</option>
+        </select>
+      </div>
+    </div>
     <div class="form-group" style="margin-top:var(--space-md);">
       <label>Official resources <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-faint)">(optional, one per line: Label | link)</span></label>
       <textarea id="subject-res-input" rows="4" style="width:100%;font-size:0.88rem;" placeholder="Specification | https://www.aqa.org.uk/...&#10;Past papers and mark schemes | https://www.aqa.org.uk/...&#10;BBC Bitesize | https://www.bbc.co.uk/bitesize/..."></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+        <button type="button" class="btn btn-secondary" data-action="suggest-links" id="btn-suggest-links" style="padding:6px 12px;font-size:0.82rem;"><i data-icon="sparkles"></i> Suggest links</button>
+      </div>
+      <div id="link-suggestions" hidden style="margin-top:8px;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:10px 12px;font-size:0.86rem;"></div>
       <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">Shown to students on this subject as links. Link only; don't copy exam board content into questions.</p>
     </div>
     <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
@@ -1084,7 +1104,7 @@ import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, a
 import { mountShell } from './shell.js?v=20261109b';
 import { openInviteDialog, signupLink } from './invite.js?v=20261109b';
 import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109b';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose } from './ai.js?v=20261109b';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109b';
 import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109b';
 import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109b';
 
@@ -1443,6 +1463,8 @@ document.addEventListener('click', e => {
   else if (action === 'del-group')          confirmDelete('group', t.dataset.id, t.dataset.name);
 
   else if (action === 'new-subject')        openSubjectModal();
+  else if (action === 'suggest-links')      suggestLinks();
+  else if (action === 'add-suggested')      addSuggestedLinks();
   else if (action === 'save-subject')       saveSubject();
   else if (action === 'edit-subject')       openSubjectModal(t.dataset.id);
   else if (action === 'del-subject')        confirmDelete('subject', t.dataset.id, t.dataset.name);
@@ -1639,11 +1661,16 @@ async function openSubjectModal(id) {
   document.getElementById('subject-name-input').value = '';
   document.getElementById('subject-emoji-input').value = '';
   document.getElementById('subject-res-input').value = '';
+  document.getElementById('subject-board-input').value = '';
+  document.getElementById('subject-level-input').value = '';
+  const sug = document.getElementById('link-suggestions'); sug.hidden = true; sug.innerHTML = '';
   if (id) {
     const snap = await getDoc(doc(db, subjectsPath(), id));
     if (snap.exists()) {
       document.getElementById('subject-name-input').value = snap.data().name || '';
       document.getElementById('subject-emoji-input').value = snap.data().emoji || '';
+      document.getElementById('subject-board-input').value = snap.data().examBoard || '';
+      document.getElementById('subject-level-input').value = snap.data().level || '';
       document.getElementById('subject-res-input').value = (snap.data().resources || []).map(r => `${r.label} | ${r.url}`).join('\n');
     }
   }
@@ -1666,13 +1693,15 @@ async function saveSubject() {
     const label = (bar >= 0 ? t.slice(0, bar).trim() : '') || u.hostname.replace(/^www\./, '');
     resources.push({ label: label.slice(0, 80), url: u.href });
   }
+  const examBoard = document.getElementById('subject-board-input').value;
+  const level = document.getElementById('subject-level-input').value;
   try {
     if (editingItem) {
-      await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji, resources });
+      await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji, resources, examBoard, level });
       logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Edited' });
     } else {
       const snap = await getDocs(collection(db, subjectsPath()));
-      await addDoc(collection(db, subjectsPath()), { name, emoji, resources, order: snap.size, createdAt: serverTimestamp() });
+      await addDoc(collection(db, subjectsPath()), { name, emoji, resources, examBoard, level, order: snap.size, createdAt: serverTimestamp() });
       logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Created' });
     }
     closeModal('modal-subject');
@@ -1680,6 +1709,75 @@ async function saveSubject() {
     showToast(editingItem ? 'Subject updated' : 'Subject created', 'success');
     editingItem = null;
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+/* ── Suggested official links for a subject ─────────────────
+   AI proposes pages (spec, past papers, Bitesize, Oak); the Worker then
+   checks each one loads, and only working links are offered. */
+let linkSuggestions = [];
+async function suggestLinks() {
+  const name  = document.getElementById('subject-name-input').value.trim();
+  const board = document.getElementById('subject-board-input').value;
+  const level = document.getElementById('subject-level-input').value;
+  const box = document.getElementById('link-suggestions');
+  const btn = document.getElementById('btn-suggest-links');
+  if (!name) { showToast('Add the subject name first', 'error'); return; }
+  if (!board) { showToast('Choose the exam board first, so the links match', 'error'); return; }
+  btn.classList.add('loading'); btn.disabled = true;
+  box.hidden = false; box.innerHTML = 'Finding links…';
+  try {
+    const prompt = `Suggest official web pages for a UK student revising this subject.
+Subject: ${name}
+Exam board: ${board}
+Level: ${level || 'not stated (assume GCSE)'}
+
+Return up to 6 pages, most useful first:
+- the exam board's specification page for this exact qualification
+- the exam board's past papers / assessment resources page for it
+- the BBC Bitesize page for this subject and board
+- Oak National Academy's page for this subject, if relevant to the level
+Only include URLs you are confident exist on the official sites (aqa.org.uk, qualifications.pearson.com, ocr.org.uk, eduqas.co.uk, wjec.co.uk, ccea.org.uk, sqa.org.uk, bbc.co.uk, thenational.academy). Never invent deep links; if unsure of an exact page, use that board's or site's nearest page you are sure of.
+Reply with JSON only: [{"label": "short label for students, e.g. AQA specification", "url": "https://..."}]`;
+    const data = await askClaude('generation', prompt, 800);
+    let list = parseJsonLoose(textOf(data));
+    if (!Array.isArray(list)) list = [];
+    const have = new Set(document.getElementById('subject-res-input').value.split('\n').map(l => l.split('|').pop().trim()));
+    list = list.filter(r => /^https:\/\//.test(r?.url || '') && r.label && !have.has(r.url)).slice(0, 6);
+    if (!list.length) { box.innerHTML = 'No suggestions this time. Try again, or add links by hand.'; return; }
+
+    box.innerHTML = 'Checking the links work…';
+    let checked = null;
+    try { checked = await checkLinks(list.map(r => r.url)); } catch (e) { console.warn('Link check unavailable:', e.message); }
+    if (checked) {
+      list = list.map(r => ({ ...r, url: checked[r.url]?.finalUrl || r.url, ok: !!checked[r.url]?.ok }));
+      const dropped = list.filter(r => !r.ok).length;
+      list = list.filter(r => r.ok);
+      if (!list.length) { box.innerHTML = 'None of the suggested links worked. Try again, or add links by hand.'; return; }
+      linkSuggestions = list;
+      box.innerHTML = renderSuggestions(list, dropped ? `${dropped} broken link${dropped > 1 ? 's' : ''} left out.` : 'All links checked and working.');
+    } else {
+      linkSuggestions = list;
+      box.innerHTML = renderSuggestions(list, '⚠ Links could not be checked automatically. Open each one to confirm before adding.');
+    }
+  } catch (e) {
+    box.innerHTML = 'Could not get suggestions: ' + esc(e.message);
+  } finally { btn.classList.remove('loading'); btn.disabled = false; }
+}
+function renderSuggestions(list, note) {
+  return `<div style="color:var(--color-text-muted);margin-bottom:6px;">${esc(note)}</div>` +
+    list.map((r, i) => `<label style="display:flex;gap:8px;align-items:flex-start;margin:6px 0;cursor:pointer;">
+      <input type="checkbox" class="sug-link" data-i="${i}" checked style="margin-top:3px;">
+      <span><strong>${esc(r.label)}</strong><br><a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--color-primary);word-break:break-all;">${esc(r.url)}</a></span></label>`).join('') +
+    `<div style="display:flex;justify-content:flex-end;margin-top:8px;"><button type="button" class="btn btn-primary" data-action="add-suggested" style="padding:6px 12px;font-size:0.82rem;">Add selected</button></div>`;
+}
+function addSuggestedLinks() {
+  const ta = document.getElementById('subject-res-input');
+  const picked = [...document.querySelectorAll('.sug-link:checked')].map(c => linkSuggestions[+c.dataset.i]).filter(Boolean);
+  if (!picked.length) { showToast('Nothing selected', 'error'); return; }
+  const lines = picked.map(r => `${r.label.replace(/\|/g, '-')} | ${r.url}`);
+  ta.value = [ta.value.trim(), ...lines].filter(Boolean).join('\n');
+  const box = document.getElementById('link-suggestions'); box.hidden = true; box.innerHTML = '';
+  showToast(`Added ${picked.length} link${picked.length > 1 ? 's' : ''}. Save the subject to keep them.`, 'success');
 }
 
 /* ── TOPICS ──────────────────────────────────────────────── */
