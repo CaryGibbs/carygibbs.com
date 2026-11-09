@@ -9,8 +9,8 @@
 // student shares them. Until they're ready, a simple cut-down is shown.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109n';
-import { askClaude, jsonOf } from './ai.js?v=20261109n';
+import { db } from './firebase-config.js?v=20261109o';
+import { askClaude, jsonOf } from './ai.js?v=20261109o';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const LENGTHS = [
@@ -57,6 +57,65 @@ export function displayAnswer(topic, text, mode) {
   const e = topic?.shortAnswers?.[textKey(text)];
   if (e) return mode === 'short' ? (e.s || fallback(text, mode)) : (e.k || e.s || fallback(text, mode));
   return fallback(text, mode);
+}
+
+/* ── Clear questions for key-point cards ─────────────────────
+   A key point like "Date" → "12 January 2010" makes a poor card: the front
+   doesn't say what's being asked. The AI writes one clear, stand-alone
+   question per key point (e.g. "When did the Haiti earthquake happen?"),
+   once per topic, saved alongside the short answers (keys start with "q").
+   Until it's ready, the card shows the point with its section. */
+export function questionKey(card) { return 'q' + textKey(`${card.group || ''}|${card.term || card.front}|${card.back}`).slice(1); }
+export function cardQuestion(topic, card) {
+  if (!card?.kp) return card?.front || '';
+  return topic?.shortAnswers?.[questionKey(card)]?.q || null;
+}
+const qInFlight = new Map();
+export function ensureCardQuestions(loc, topic, cards, { subjectName = '', canSave = true } = {}) {
+  const missing = [], seen = new Set();
+  cards.forEach(c => {
+    if (!c.kp || !c.back) return;
+    const k = questionKey(c);
+    if (seen.has(k) || topic.shortAnswers?.[k]?.q) return;
+    seen.add(k); missing.push({ id: k, section: c.group || '', point: c.term || c.front, answer: c.back });
+  });
+  if (!missing.length) return Promise.resolve(false);
+  const key = `${loc.p}/${loc.s}/${topic.id}`;
+  if (qInFlight.has(key)) return qInFlight.get(key);
+  const job = (async () => {
+    let added = false;
+    for (let i = 0; i < missing.length; i += 30) {
+      const batch = missing.slice(i, i + 30);
+      const prompt = `You are writing flashcards for a GCSE student${subjectName ? ` revising ${subjectName}` : ''}, topic "${topic.name || ''}".
+Each item is a key point from their notes: the section it sits in, the point's short label, and the answer that goes on the back of the card.
+For each item, write the question for the FRONT of the card:
+- A clear, complete question that makes sense on its own, without seeing the section or label. Name the specific thing being asked about (the case study, place, event, process or term), e.g. "When did the Haiti earthquake happen?", not "Date?".
+- Its correct answer must be the given answer.
+- Don't give away the answer in the question.
+- 20 words or fewer, British English, plain language for 13 to 16 year olds.
+Return ONLY JSON in this form: {"items":[{"id":"...","q":"..."}]}
+
+Items:
+${JSON.stringify(batch)}`;
+      const data = jsonOf(await askClaude('learning', prompt, 3000));
+      const items = Array.isArray(data) ? data : (data.items || []);
+      const update = {};
+      topic.shortAnswers = topic.shortAnswers || {};
+      items.forEach(it => {
+        if (!it || !batch.some(b => b.id === it.id) || !it.q) return;
+        const e = { q: String(it.q).trim() };
+        topic.shortAnswers[it.id] = e;
+        update[`shortAnswers.${it.id}`] = e;
+        added = true;
+      });
+      if (canSave && Object.keys(update).length) {
+        await updateDoc(doc(db, `content/${loc.p}/subjects/${loc.s}/topics/${topic.id}`), update).catch(err => console.warn('Card questions not saved:', err.message));
+      }
+    }
+    return added;
+  })().finally(() => qInFlight.delete(key));
+  qInFlight.set(key, job);
+  return job;
 }
 
 // Make sure a topic has short versions for these cards. Returns true if
