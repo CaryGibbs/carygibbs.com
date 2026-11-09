@@ -8,6 +8,6 @@ const BRAND = {
   tagline: "Knowledge that sticks.",
   logoUrl: "/hub/assets/images/brand/logo.svg",
   faviconUrl: "/hub/assets/images/brand/favicon.svg",
-  supportEmail: "hello@clasp.app",
+  supportEmail: "cary@carygibbs.com",
   primaryColour: "#ff7a59",
 };
