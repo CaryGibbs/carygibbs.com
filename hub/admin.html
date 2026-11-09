@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109j">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109j">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109j">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109j">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109k">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109k">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109k">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109k">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109j">
-  <script src="icons.js?v=20261109j"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109k">
+  <script src="icons.js?v=20261109k"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -499,6 +499,33 @@
   .official-copy-row strong { font-family: var(--font-ui); font-size: 0.9rem; }
   .official-copy-row small { display: block; color: var(--color-text-muted); font-size: 0.78rem; }
 
+  /* ── All students ── */
+  .as-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin: 14px 0; }
+  .as-filters .log-f:first-child { flex: 1 1 260px; }
+  .as-filters .log-f:first-child input { width: 100%; }
+  .as-table td { vertical-align: top; }
+  .as-name strong { display: block; }
+  .as-name small, .as-sub { display: block; color: var(--color-text-muted); font-size: 0.78rem; }
+  .as-quiet { color: var(--color-danger); }
+  .as-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .as-packs { max-width: 220px; }
+  .as-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: var(--space-lg); }
+  .as-stat { background: var(--color-surface-2); border-radius: var(--radius-button); padding: 10px 12px; }
+  .as-stat b { display: block; font-family: var(--font-heading); font-size: 1.15rem; }
+  .as-stat span { font-size: 0.75rem; color: var(--color-text-muted); }
+  .as-meta { font-size: 0.85rem; color: var(--color-text-muted); margin: -4px 0 var(--space-md); line-height: 1.5; }
+  .as-recent { display: flex; flex-direction: column; gap: 6px; }
+  .as-recent div { display: flex; justify-content: space-between; gap: 12px; font-size: 0.86rem; padding: 6px 0; border-bottom: 1px solid var(--color-border); }
+  @media (max-width: 760px) {
+    .as-table thead { display: none; }
+    .as-table, .as-table tbody, .as-table tr, .as-table td { display: block; width: 100%; }
+    .as-table tr { border-bottom: 1px solid var(--color-border); padding: 8px 0; }
+    .as-table td { border: 0; padding: 2px 4px; }
+    .as-table td[data-l]::before { content: attr(data-l) ': '; color: var(--color-text-muted); font-size: 0.78rem; }
+    .as-table .actions { text-align: left; padding-top: 6px; }
+    .as-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
   /* ── Activity log ── */
   .log-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
   .log-tab { font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; }
@@ -533,7 +560,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109j">
+  <link rel="stylesheet" href="ui.css?v=20261109k">
+  <link rel="stylesheet" href="stats.css?v=20261109k">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -776,6 +804,33 @@
           <div class="spinner" style="margin:0 auto;"></div>
         </div>
       </div>
+    </div>
+
+    <!-- ── ALL STUDENTS PANEL ─────────────────────────────── -->
+    <div class="panel" id="panel-students">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">All students</div>
+          <div class="panel-subtitle">Every student's progress, whoever their parent or teacher is. Opening a student's progress or their view is recorded in the activity log.</div>
+        </div>
+      </div>
+      <div id="as-tiles"></div>
+      <div class="as-filters">
+        <label class="log-f">Search<input type="search" id="as-search" placeholder="Name, email, parent, teacher or pack"></label>
+        <label class="log-f">Show<select id="as-show">
+          <option value="all">All students</option>
+          <option value="active">Active in the last 7 days</option>
+          <option value="quiet">Not active for 7+ days</option>
+          <option value="nopack">No revision pack</option>
+        </select></label>
+        <label class="log-f">Sort by<select id="as-sort">
+          <option value="recent">Last active</option>
+          <option value="name">Name</option>
+          <option value="week">Time this week</option>
+          <option value="due">Reviews due</option>
+        </select></label>
+      </div>
+      <div id="as-list"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
     </div>
 
     <!-- ── ACTIVITY LOG PANEL ─────────────────────────────── -->
@@ -1116,6 +1171,17 @@
 <!-- Edit question modal (reuses question modal structure) -->
 
 <!-- Confirm delete modal -->
+<!-- Student progress (All students) -->
+<div class="modal-overlay" id="modal-student">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-header">
+      <div class="modal-title" id="as-modal-title">Progress</div>
+      <button class="modal-close" data-close="modal-student" aria-label="Close"><i data-icon="x"></i></button>
+    </div>
+    <div id="as-modal-body"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-confirm">
   <div class="confirm-dialog">
     <div class="confirm-title" id="confirm-title">Delete?</div>
@@ -1139,16 +1205,18 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109j';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109j';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109j';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109j';
-import { mountShell } from './shell.js?v=20261109j';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109j';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109j';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109j';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109j';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109j';
+import { auth, db, storage } from './firebase-config.js?v=20261109k';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109k';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109k';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109k';
+import { mountShell } from './shell.js?v=20261109k';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109k';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109k';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109k';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109k';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109k';
+import { dueEntries } from './srs.js?v=20261109k';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109k';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1164,7 +1232,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109j';
+import { saveEmailIndex } from './email-index.js?v=20261109k';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1232,7 +1300,7 @@ else requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
   iAmAdmin = true;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
-  const start = ['home', 'groups', 'users', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  const start = ['home', 'groups', 'users', 'students', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
   adminProfileName = profile.name || '';
   mountShell(user, profile, { view: 'admin', active: start });
@@ -1241,7 +1309,7 @@ else requireRole('admin', (user, profile) => {
   // Address changes (e.g. the sidebar's "View as another student") switch panels too
   window.addEventListener('hashchange', () => {
     const p = location.hash.slice(1);
-    if (['home', 'groups', 'users', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
+    if (['home', 'groups', 'users', 'students', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
   });
 });
 
@@ -1520,6 +1588,7 @@ function showPanel(name) {
   currentPanel = name;
   updateBreadcrumb();
   if (name === 'users') loadUsers();
+  if (name === 'students') { document.getElementById('preview-actions').style.display = 'none'; loadAllStudents(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
   if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); }
@@ -1531,7 +1600,8 @@ function updateBreadcrumb() {
   const sep = '<span class="breadcrumb-sep">›</span>';
   // Users and Settings: "Section › Page", like the parent pages
   if (currentPanel === 'home')     { bc.innerHTML = `<span>Admin</span>${sep}<span class="breadcrumb-current">Home</span>`; return; }
-  if (currentPanel === 'users')    { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
+  if (currentPanel === 'users')    { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
+  if (currentPanel === 'students') { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">All students</span>`; return; }
   if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
   // Content: Content › Groups › group › subject › topic (last one is the current page)
@@ -1557,7 +1627,8 @@ document.addEventListener('click', e => {
   const qtab   = t.dataset.qtab;
 
   if (nav)    { showPanel(nav); return; }
-  if (action === 'view-as') { openViewAs(t.dataset.uid); return; }
+  if (action === 'view-as') { openViewAs(t.dataset.uid, t.dataset.name || usersCache?.find?.(u => u.id === t.dataset.uid)?.name || ''); return; }
+  if (action === 'student-progress') { openStudentProgress(t.dataset.uid); return; }
   if (action === 'edit-roles') { openRolesEditor(t.dataset.uid); return; }
   if (action === 'save-roles') { saveRoles(t.dataset.uid); return; }
   if (action === 'cancel-roles') { document.querySelectorAll('.roles-editor-row').forEach(r => r.remove()); return; }
@@ -2829,6 +2900,148 @@ function handleImagePreview(input) {
   reader.readAsDataURL(file);
 }
 
+/* ── ALL STUDENTS ────────────────────────────────────────────
+   Every student account with this week's figures, who looks after
+   them and their packs. Admins can already read every user and pack.
+   Opening progress logs admin.view_student; View as logs admin.view_as. */
+const AS_DAY = 86400000;
+let asState = { students: [], names: {}, packs: {}, wired: false };
+const asStartOfDay = (t = Date.now()) => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+function asWeek(u) {
+  const from = asStartOfDay() - 6 * AS_DAY;
+  const secsOf = x => typeof x.secondsSpent === 'number' ? x.secondsSpent : (x.minutesSpent || 0) * 60;
+  const sessions = u.sessions || [], study = studyEntries(u);
+  const wkS = sessions.filter(x => (x.date || 0) >= from), wkT = study.filter(e => e.date >= from);
+  const last = Math.max(0, ...sessions.map(x => x.date || 0), ...study.map(e => e.date || 0),
+    u.lastRevisionDate ? new Date(u.lastRevisionDate).getTime() || 0 : 0);
+  return {
+    secs: wkS.reduce((a, x) => a + secsOf(x), 0) + wkT.reduce((a, e) => a + (e.secs || 0), 0),
+    quizzes: wkS.length,
+    avg: wkS.length ? Math.round(wkS.reduce((a, x) => a + (x.pct || 0), 0) / wkS.length) : null,
+    last,
+  };
+}
+function asAgo(t) {
+  if (!t) return 'Never';
+  const days = Math.round((asStartOfDay() - asStartOfDay(t)) / AS_DAY);
+  if (days <= 0) { const m = Math.round((Date.now() - t) / 60000); return m < 60 ? `${Math.max(1, m)} min ago` : `${Math.round(m / 60)}h ago`; }
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+function asPackIds(u) {
+  const ids = [...(u.groupIds || (u.groupId ? [u.groupId] : []))];
+  Object.values(u.classPacks || {}).forEach(l => (l || []).forEach(id => ids.push(id)));
+  return [...new Set(ids.filter(Boolean))];
+}
+
+async function loadAllStudents() {
+  const box = document.getElementById('as-list');
+  box.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  try {
+    const [uSnap, pSnap] = await Promise.all([getDocs(collection(db, 'users')), getDocs(collection(db, 'content'))]);
+    const names = {}, users = [];
+    uSnap.forEach(d => { const u = { id: d.id, ...d.data() }; users.push(u); names[d.id] = u.name || u.email || 'Someone'; });
+    const packs = {};
+    pSnap.forEach(d => { packs[d.id] = d.data().name || 'Untitled pack'; });
+    const students = users.filter(u => rolesOf(u).has('student')).map(u => {
+      const adults = [...new Set([u.parentUid, ...(u.guardianIds || [])].filter(Boolean))];
+      const teachers = [...new Set([u.teacherUid, ...(u.teacherIds || [])].filter(Boolean))];
+      const packIds = asPackIds(u);
+      return { ...u, wk: asWeek(u), due: dueEntries(u).length, streak: currentStreak(u),
+        adults, teachers, packIds, packNames: packIds.map(id => packs[id] || 'Missing pack') };
+    });
+    asState = { ...asState, students, names, packs };
+    if (!asState.wired) {
+      asState.wired = true;
+      ['as-search', 'as-show', 'as-sort'].forEach(id => document.getElementById(id).addEventListener('input', renderAllStudents));
+    }
+    renderAllStudents();
+  } catch (e) {
+    box.innerHTML = `<div class="empty-state"><h3>Couldn't load students</h3><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderAllStudents() {
+  const { students, names } = asState;
+  const weekAgo = Date.now() - 7 * AS_DAY;
+  const active = students.filter(u => u.wk.last >= weekAgo);
+  document.getElementById('as-tiles').innerHTML = tilesHtml([
+    { value: students.length, label: 'students' },
+    { value: active.length, label: 'active in the last 7 days' },
+    { value: fmtTime(students.reduce((a, u) => a + u.wk.secs, 0)), label: 'revision this week' },
+    { value: students.reduce((a, u) => a + u.wk.quizzes, 0), label: 'quizzes this week' },
+  ]);
+  const q = document.getElementById('as-search').value.trim().toLowerCase();
+  const show = document.getElementById('as-show').value, sort = document.getElementById('as-sort').value;
+  const nameOf = id => names[id] || 'Someone';
+  let list = students.filter(u => {
+    if (show === 'active' && u.wk.last < weekAgo) return false;
+    if (show === 'quiet' && u.wk.last >= weekAgo) return false;
+    if (show === 'nopack' && u.packIds.length) return false;
+    if (!q) return true;
+    return [u.name, u.email, ...u.adults.map(nameOf), ...u.teachers.map(nameOf), ...u.packNames].join(' ').toLowerCase().includes(q);
+  });
+  const nm = u => (u.name || u.email || '').toLowerCase();
+  list.sort(sort === 'name' ? (a, b) => nm(a).localeCompare(nm(b), 'en-GB')
+    : sort === 'week' ? (a, b) => b.wk.secs - a.wk.secs
+    : sort === 'due' ? (a, b) => b.due - a.due
+    : (a, b) => b.wk.last - a.wk.last);
+  const box = document.getElementById('as-list');
+  if (!list.length) { box.innerHTML = `<div class="empty-state"><h3>No students match</h3></div>`; return; }
+  box.innerHTML = `<table class="users-table as-table">
+    <thead><tr><th>Student</th><th>Looked after by</th><th>Packs</th><th>This week</th><th>Streak</th><th>Reviews due</th><th>Last active</th><th></th></tr></thead>
+    <tbody>${list.map(u => {
+      const who = [...u.adults.map(id => `${esc(nameOf(id))} <span class="as-sub" style="display:inline">(parent)</span>`),
+                   ...u.teachers.map(id => `${esc(nameOf(id))} <span class="as-sub" style="display:inline">(teacher)</span>`)];
+      return `<tr>
+        <td class="as-name"><strong>${esc(u.name || '—')}</strong><small>${esc(u.email || '')}</small></td>
+        <td data-l="Looked after by">${who.length ? who.join('<br>') : '<span class="as-sub">Independent</span>'}</td>
+        <td data-l="Packs" class="as-packs">${u.packNames.length ? u.packNames.map(esc).join('<br>') : '<span class="as-quiet">None</span>'}</td>
+        <td data-l="This week" class="as-num">${fmtTime(u.wk.secs)}<span class="as-sub">${u.wk.quizzes} quiz${u.wk.quizzes === 1 ? '' : 'zes'}${u.wk.avg !== null ? ` · ${u.wk.avg}%` : ''}</span></td>
+        <td data-l="Streak" class="as-num">${u.streak ? `${u.streak} 🔥` : '0'}</td>
+        <td data-l="Reviews due" class="as-num">${u.due}</td>
+        <td data-l="Last active" class="as-num${u.wk.last < weekAgo ? ' as-quiet' : ''}">${asAgo(u.wk.last)}</td>
+        <td class="actions">
+          <button class="btn btn-secondary btn-sm" data-action="student-progress" data-uid="${esc(u.id)}"><i data-icon="chart-column"></i> Progress</button>
+          <button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}" data-name="${esc(u.name || '')}"><i data-icon="eye"></i> View as</button>
+        </td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function openStudentProgress(uid) {
+  const u = asState.students.find(x => x.id === uid);
+  if (!u) return;
+  logEvent('admin.view_student', { target: u.name || u.email || '', targetId: uid, detail: 'Opened progress from All students' });
+  const nameOf = id => asState.names[id] || 'Someone';
+  const sessions = (u.sessions || []).slice().reverse();
+  const allAvg = sessions.length ? Math.round(sessions.reduce((a, x) => a + (x.pct || 0), 0) / sessions.length) : null;
+  const lvl = getLevelInfo(u.xp || 0).current;
+  document.getElementById('as-modal-title').textContent = `${u.name || 'Student'}'s progress`;
+  document.getElementById('as-modal-body').innerHTML = `
+    <div class="as-meta">${esc(u.email || '')}<br>
+      ${u.adults.length ? `Parents: ${u.adults.map(id => esc(nameOf(id))).join(', ')}<br>` : ''}
+      ${u.teachers.length ? `Teachers: ${u.teachers.map(id => esc(nameOf(id))).join(', ')}<br>` : ''}
+      Packs: ${u.packNames.length ? u.packNames.map(esc).join(', ') : 'none'}</div>
+    <div class="as-stats">
+      <div class="as-stat"><b>${lvl.icon || ''} ${lvl.level}</b><span>Level · ${u.xp || 0} XP</span></div>
+      <div class="as-stat"><b>${sessions.length}</b><span>Quizzes taken</span></div>
+      <div class="as-stat"><b>${allAvg !== null ? allAvg + '%' : '—'}</b><span>Average score</span></div>
+      <div class="as-stat"><b>${u.streak} 🔥</b><span>Current streak</span></div>
+    </div>
+    ${statsSectionsHtml()}
+    <section class="st-section">
+      <div class="st-title"><i data-icon="clipboard-list"></i> Recent quizzes</div>
+      <div class="as-recent">${sessions.slice(0, 15).map(x => `<div><span>${esc(x.topic || x.subject || 'Quiz')}${x.subject && x.topic && x.subject !== x.topic ? ` <span class="as-sub" style="display:inline">· ${esc(x.subject)}</span>` : ''}</span><span class="as-num">${x.pct ?? '—'}% · ${asAgo(x.date)}</span></div>`).join('') || '<span class="as-sub">No quizzes yet.</span>'}</div>
+    </section>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button class="btn btn-secondary" data-close="modal-student">Close</button>
+      <button class="btn btn-primary" data-action="view-as" data-uid="${esc(u.id)}" data-name="${esc(u.name || '')}"><i data-icon="eye"></i> View as ${esc((u.name || '').split(' ')[0] || 'student')}</button>
+    </div>`;
+  renderStats(u, { goalLimit: 4 });
+  openModal('modal-student');
+}
+
 /* ── COPY, MOVE TO MY PACKS, MAKE OFFICIAL ──────────────────
    Make a copy: the whole pack (subjects, topics with key points and
    cheat sheets, questions, notes) into a new pack. In My packs the copy
@@ -3246,6 +3459,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109j"></script>
+<script src="site.js?v=20261109k"></script>
 </body>
 </html>

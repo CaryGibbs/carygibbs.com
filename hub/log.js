@@ -13,7 +13,7 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261109j';
+import { db, auth } from './firebase-config.js?v=20261109k';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
@@ -29,6 +29,7 @@ export const ACTIONS = {
   'account.invite_accept': { label: 'Accepted an invite',    cat: 'account' },
   'account.roles':       { label: 'Changed roles',           cat: 'account' },
   'admin.view_as':       { label: 'Viewed as a student',     cat: 'admin' },
+  'admin.view_student':  { label: "Opened a student's progress", cat: 'admin' },
   'admin.settings':      { label: 'Changed settings',        cat: 'admin' },
   'content.pack':        { label: 'Revision pack',           cat: 'content' },
   'content.subject':     { label: 'Subject',                 cat: 'content' },
