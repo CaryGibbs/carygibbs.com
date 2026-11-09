@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Learn</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109n">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109n">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109n">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109n">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109m">
-  <script src="icons.js?v=20261109m"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109n">
+  <script src="icons.js?v=20261109n"></script>
   <style>
     body { height: 100vh; height: 100dvh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
 
@@ -306,8 +306,8 @@
     }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
   </style>
-  <link rel="stylesheet" href="learn.css?v=20261109m">
-  <link rel="stylesheet" href="ui.css?v=20261109m">
+  <link rel="stylesheet" href="learn.css?v=20261109n">
+  <link rel="stylesheet" href="ui.css?v=20261109n">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -404,12 +404,12 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261109m';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261109m';
-import { awardXp } from './gamification.js?v=20261109m';
-import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261109m';
-import { startStudyTimer } from './study-timer.js?v=20261109m';
-import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers } from './card-length.js?v=20261109m';
+import { auth, db } from './firebase-config.js?v=20261109n';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261109n';
+import { awardXp } from './gamification.js?v=20261109n';
+import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261109n';
+import { startStudyTimer } from './study-timer.js?v=20261109n';
+import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers } from './card-length.js?v=20261109n';
 import {
   collection, getDocs, doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -746,13 +746,13 @@ document.addEventListener('click', e => {
   const kp = e.target.closest('.keypoint-item.learnable');
   if (!kp) return;
   const t = allTopics().find(x => x.id === kp.dataset.topic);
-  if (t) openPoint(t, kp.dataset.term);
+  if (t) openPoint(t, kp.dataset.term, kp.dataset.group ?? null);
 });
 // Keep the "learnt" ticks up to date
 document.addEventListener('learn:changed', () => updateLearnMarks());
 function updateLearnMarks() {
   document.querySelectorAll('.keypoint-item.learnable').forEach(el => {
-    const done = isLearned(el.dataset.topic, el.dataset.term);
+    const done = isLearned(allTopics().find(x => x.id === el.dataset.topic) || el.dataset.topic, el.dataset.term, el.dataset.group ?? null);
     const term = el.querySelector('.keypoint-term');
     let tick = el.querySelector('.kp-done');
     if (done && !tick) term.insertAdjacentHTML('beforeend', '<span class="kp-done" title="Learnt"><i data-icon="circle-check"></i></span>');
@@ -854,7 +854,8 @@ function buildSpider() {
           spiderNodes.push({
             x: cx + Math.cos(ring.angles[i]) * ring.R,
             y: cy + Math.sin(ring.angles[i]) * ring.R,
-            label: lf.term, detail: lf.detail, type: 'leaf', r: 0, scaleFactor: 1
+            label: lf.term, detail: lf.detail, type: 'leaf', r: 0, scaleFactor: 1,
+            group: grp.term || '', topicId: t.id   // which section this point is in
           });
           spiderEdges.push({ from: grpIdx, to: spiderNodes.length - 1 });
         });
@@ -1190,9 +1191,9 @@ function handleSpiderClick(clientX, clientY, canvas) {
   if (hit && hit.detail) {
     selectedLeaf = hit;
     // Open the full learn panel when we know which topic the point belongs to
-    const owner = topicForTerm(hit.label);
+    const owner = (hit.topicId && allTopics().find(x => x.id === hit.topicId)) || topicForTerm(hit.label);
     if (owner) {
-      openPoint(owner, hit.label);
+      openPoint(owner, hit.label, hit.group ?? null);
       document.getElementById('spider-hint').style.opacity = '0';
       drawSpider(canvas.getContext('2d'), canvas);
       return;
@@ -1408,7 +1409,7 @@ function buildOutline() {
             <div style="margin-bottom:var(--space-sm);">
               <div style="font-family:var(--font-ui);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-primary);padding:6px 0 4px;border-bottom:1px solid var(--color-border);margin-bottom:4px;"><i data-icon="folder-open"></i> ${esc(g.group)}</div>
               ${(g.points||[]).map(kp => `
-                <div class="keypoint-item learnable" data-topic="${t.id}" data-term="${esc(kp.term)}">
+                <div class="keypoint-item learnable" data-topic="${t.id}" data-group="${esc(g.group || '')}" data-term="${esc(kp.term)}">
                   <div class="keypoint-term">${esc(kp.term)}</div>
                   <div class="keypoint-explanation">${esc(kp.explanation)}</div>
                 </div>`).join('')}

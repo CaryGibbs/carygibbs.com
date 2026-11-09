@@ -6,10 +6,10 @@
 // with the topic so it loads instantly for everyone afterwards.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109m';
-import { isPreview, previewInfo, showToast, hasRole, isStudent } from './auth.js?v=20261109m';
-import { awardXp, BADGES } from './gamification.js?v=20261109m';
-import { askClaude, jsonOf } from './ai.js?v=20261109m';
+import { db } from './firebase-config.js?v=20261109n';
+import { isPreview, previewInfo, showToast, hasRole, isStudent } from './auth.js?v=20261109n';
+import { awardXp, BADGES } from './gamification.js?v=20261109n';
+import { askClaude, jsonOf } from './ai.js?v=20261109n';
 import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 
@@ -26,6 +26,15 @@ export function noteId(term) {
   const slug = String(term || 'point').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'point';
   let h = 0; for (const c of String(term)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   return `${slug}-${h.toString(36).slice(0, 5)}`;
+}
+
+/* A point's id within its topic. Usually from its term alone (so existing
+   notes and "learnt" ticks keep working); when the same term appears in two
+   sections (e.g. "Movement" under both Destructive and Conservative plate
+   boundaries) the section is included, so each gets its own note. */
+export function pointKey(topic, p) {
+  const same = flatPoints(topic).filter(x => x.term === p.term);
+  return same.length > 1 ? noteId(`${p.group || ''}::${p.term}`) : noteId(p.term);
 }
 
 /* Key points as one flat list: [{ term, explanation, group }] */
@@ -74,16 +83,24 @@ export function initLearn(options) {
   }
 }
 
-export function isLearned(topicId, term) { return !!learned[topicId]?.has(noteId(term)); }
+// topic: the topic object (or just its id, for points whose term is unique)
+export function isLearned(topic, term, group = null) {
+  const id = typeof topic === 'object' && topic
+    ? pointKey(topic, flatPoints(topic).find(p => p.term === term && (group === null || p.group === group)) || { term, group })
+    : noteId(term);
+  return !!learned[typeof topic === 'object' ? topic?.id : topic]?.has(id);
+}
 export function learnedCount(topic) {
   const ids = learned[topic.id]; if (!ids) return 0;
-  return flatPoints(topic).filter(p => ids.has(noteId(p.term))).length;
+  return flatPoints(topic).filter(p => ids.has(pointKey(topic, p))).length;
 }
 
 /* ── Learn panel ─────────────────────────────────────────── */
-export function openPoint(topic, term) {
+// group: the section the point was tapped in, when known (terms can repeat across sections)
+export function openPoint(topic, term, group = null) {
   const list = flatPoints(topic);
-  let index = list.findIndex(p => p.term === term);
+  let index = group !== null ? list.findIndex(p => p.term === term && p.group === group) : -1;
+  if (index < 0) index = list.findIndex(p => p.term === term);
   if (index < 0) index = 0;
   current = { topic, list, index };
   document.body.classList.add('learn-open');
@@ -108,7 +125,7 @@ function step(d) {
 async function showCurrent() {
   const { topic, list, index } = current;
   const p = list[index];
-  const id = noteId(p.term);
+  const id = pointKey(topic, p);
   document.getElementById('learn-crumb').innerHTML =
     `${esc(topic.name)}${p.group ? ` <span>›</span> ${esc(p.group)}` : ''} <span class="learn-count">${index + 1} of ${list.length}</span>`;
   document.getElementById('learn-prev').disabled = index === 0;
@@ -169,12 +186,12 @@ async function getNote(topic, p, id, force = false) {
     const snap = await getDoc(ref).catch(() => null);
     if (snap?.exists()) return snap.data();
   }
-  const siblings = flatPoints(topic).filter(x => x.term !== p.term).slice(0, 30).map(x => `- ${x.term}: ${x.explanation}`).join('\n');
+  const siblings = flatPoints(topic).filter(x => x !== p && !(x.term === p.term && x.group === p.group)).slice(0, 30).map(x => `- ${x.term}: ${x.explanation}`).join('\n');
   const prompt = `You are a friendly, accurate GCSE tutor in the UK helping a student aged 13 to 16 learn one point from their revision notes.
 
 Subject: ${ctx.subjectName}
 Topic: ${topic.name}${p.group ? `\nSection: ${p.group}` : ''}
-Point to explain: ${p.term}
+Point to explain: ${p.term}${p.group ? ` (in the section "${p.group}" only)` : ''}
 What their notes say: ${p.explanation}
 
 Other points in this topic (for context only):
@@ -201,7 +218,7 @@ function updateMarkButton(topicId, id) {
 async function toggleLearned() {
   if (!current) return;
   const { topic, list, index } = current;
-  const id = noteId(list[index].term);
+  const id = pointKey(topic, list[index]);
   const set = learned[topic.id] = learned[topic.id] || new Set();
   const on = !set.has(id);
   on ? set.add(id) : set.delete(id);
@@ -210,7 +227,7 @@ async function toggleLearned() {
   if (on && index < list.length - 1) setTimeout(() => step(1), 350);   // keep the flow going
   if (isPreview() || !isStudent(ctx?.profile)) return;
   // Has the whole topic now been learnt?
-  const allDone = list.every(p => set.has(noteId(p.term)));
+  const allDone = list.every(p => set.has(pointKey(topic, p)));
   try {
     await updateDoc(doc(db, 'users', ctx.user.uid), {
       [`learned.${topic.id}`]: on ? arrayUnion(id) : arrayRemove(id),

@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109n">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109n">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109n">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109n">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109m">
-  <script src="icons.js?v=20261109m"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109n">
+  <script src="icons.js?v=20261109n"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -576,8 +576,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109m">
-  <link rel="stylesheet" href="stats.css?v=20261109m">
+  <link rel="stylesheet" href="ui.css?v=20261109n">
+  <link rel="stylesheet" href="stats.css?v=20261109n">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1258,18 +1258,18 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109m';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109m';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109m';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109m';
-import { mountShell } from './shell.js?v=20261109m';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109m';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109m';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109m';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109m';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109m';
-import { dueEntries } from './srs.js?v=20261109m';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109m';
+import { auth, db, storage } from './firebase-config.js?v=20261109n';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109n';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109n';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109n';
+import { mountShell } from './shell.js?v=20261109n';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109n';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109n';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109n';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109n';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109n';
+import { dueEntries } from './srs.js?v=20261109n';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109n';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1285,7 +1285,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109m';
+import { saveEmailIndex } from './email-index.js?v=20261109n';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -3827,6 +3827,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109m"></script>
+<script src="site.js?v=20261109n"></script>
 </body>
 </html>
