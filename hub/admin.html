@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109i">
-  <script src="icons.js?v=20261109i"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109j">
+  <script src="icons.js?v=20261109j"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -487,6 +487,17 @@
   .plus-note i { color: var(--color-primary); flex-shrink: 0; margin-top: 2px; }
   .pack-badge { display: inline-block; margin-top: 8px; font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); }
   #panel-groups .panel-subtitle a { color: var(--color-primary); font-weight: 600; }
+  .pack-card-foot { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--color-border); }
+  .pack-link-btn { background: none; border: 1px solid var(--color-border); border-radius: 999px; padding: 4px 10px; font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; display: inline-flex; gap: 5px; align-items: center; }
+  .pack-link-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .pack-link-btn:disabled { opacity: 0.6; cursor: default; }
+  .official-copy { margin-top: var(--space-xl); }
+  .official-copy-head { font-family: var(--font-ui); font-weight: 700; font-size: 1rem; }
+  .official-copy-sub { font-size: 0.85rem; color: var(--color-text-muted); margin: 4px 0 var(--space-md); }
+  .official-copy-list { display: flex; flex-direction: column; gap: 8px; }
+  .official-copy-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-button); }
+  .official-copy-row strong { font-family: var(--font-ui); font-size: 0.9rem; }
+  .official-copy-row small { display: block; color: var(--color-text-muted); font-size: 0.78rem; }
 
   /* ── Activity log ── */
   .log-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -522,7 +533,7 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109i">
+  <link rel="stylesheet" href="ui.css?v=20261109j">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -567,6 +578,12 @@
         <div class="empty-state" style="grid-column:1/-1;">
           <div class="spinner" style="margin:0 auto var(--space-md);"></div>
         </div>
+      </div>
+      <!-- My packs only: start from a copy of an official pack -->
+      <div id="official-copy" class="official-copy" hidden>
+        <div class="official-copy-head">Start from a Lobe Limpet pack</div>
+        <p class="official-copy-sub">Make your own copy of a ready-made pack, then change it however you like. The original isn't affected.</p>
+        <div id="official-copy-list" class="official-copy-list"></div>
       </div>
     </div>
 
@@ -1122,15 +1139,16 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109i';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109i';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109i';
-import { mountShell } from './shell.js?v=20261109i';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109i';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109i';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109i';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109i';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109i';
+import { auth, db, storage } from './firebase-config.js?v=20261109j';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109j';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109j';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109j';
+import { mountShell } from './shell.js?v=20261109j';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109j';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109j';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109j';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109j';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109j';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1144,9 +1162,9 @@ async function aiFetch(prompt, maxTokens) {
 }
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion
+  query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109i';
+import { saveEmailIndex } from './email-index.js?v=20261109j';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1178,12 +1196,14 @@ let currentQType    = 'mcq';
    AI generation needs Plus (hasPlus: admins always count as Plus). */
 const MINE = (() => { const m = new URLSearchParams(location.search).get('mine'); return ['parent', 'teacher'].includes(m) ? m : null; })();
 let canAI = true;
+let iAmAdmin = false;   // an admin in My packs can also make a pack official
 const PLUS_MSG = 'AI generation is part of Lobe Limpet Plus. You can still add key points and questions by hand.';
 function aiAllowed() { if (!canAI) showToast(PLUS_MSG, 'info'); return canAI; }
 
 function startMine(user, profile) {
   currentAdminUid = user.uid;
   canAI = hasPlus(profile);
+  iAmAdmin = hasRole(profile, 'admin');
   document.title = 'Lobe Limpet — My packs';
   document.body.classList.add('mine-mode');
   if (!canAI) document.body.classList.add('no-ai');
@@ -1210,6 +1230,7 @@ if (MINE) requireAuth((user, profile) => {
 });
 else requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
+  iAmAdmin = true;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
   const start = ['home', 'groups', 'users', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
@@ -1549,6 +1570,9 @@ document.addEventListener('click', e => {
   else if (action === 'save-group')         saveGroup();
   else if (action === 'edit-group')         openGroupModal(t.dataset.id);
   else if (action === 'del-group')          confirmDelete('group', t.dataset.id, t.dataset.name);
+  else if (action === 'copy-pack')          copyPackClicked(t);
+  else if (action === 'make-private')       confirmMakePrivate(t.dataset.id, t.dataset.name);
+  else if (action === 'make-official')      confirmMakeOfficial(t.dataset.id, t.dataset.name);
 
   else if (action === 'new-subject')        openSubjectModal();
   else if (action === 'suggest-links')      suggestLinks();
@@ -1660,6 +1684,7 @@ async function loadGroups() {
       <p>Make a pack, add subjects and topics, then write questions. Your students see it once you assign it.</p></div>`);
   list.forEach(p => grid.appendChild(groupCard(p.id, p.data)));
   grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">＋ New pack</div>`);
+  if (MINE) renderOfficialToCopy();
 }
 
 function groupCard(id, data) {
@@ -1673,9 +1698,14 @@ function groupCard(id, data) {
     <div class="item-card-emoji"><i data-icon="folder"></i></div>
     <div class="item-card-name">${esc(data.name)}</div>
     <div class="item-card-meta">${esc(data.description || 'No description')}</div>
-    ${MINE ? `<span class="pack-badge"><i data-icon="lock"></i> Private</span>` : ''}`;
+    ${MINE ? `<span class="pack-badge"><i data-icon="lock"></i> Private</span>` : ''}
+    <div class="pack-card-foot">
+      <button class="pack-link-btn" data-action="copy-pack" data-id="${id}" data-name="${esc(data.name)}" title="Make a copy of this pack"><i data-icon="copy"></i> Make a copy</button>
+      ${!MINE ? `<button class="pack-link-btn" data-action="make-private" data-id="${id}" data-name="${esc(data.name)}" title="Move into your own My packs, visible only to you and the students you give it to"><i data-icon="lock"></i> Move to My packs</button>` : ''}
+      ${MINE && iAmAdmin ? `<button class="pack-link-btn" data-action="make-official" data-id="${id}" data-name="${esc(data.name)}" title="Make this an official Lobe Limpet pack, available to every parent and teacher"><i data-icon="globe"></i> Make official</button>` : ''}
+    </div>`;
   div.addEventListener('click', e => {
-    if (e.target.closest('[data-action="edit-group"],[data-action="del-group"]')) return;
+    if (e.target.closest('[data-action]')) return;
     openGroup(id, data);
   });
   return div;
@@ -2799,6 +2829,127 @@ function handleImagePreview(input) {
   reader.readAsDataURL(file);
 }
 
+/* ── COPY, MOVE TO MY PACKS, MAKE OFFICIAL ──────────────────
+   Make a copy: the whole pack (subjects, topics with key points and
+   cheat sheets, questions, notes) into a new pack. In My packs the copy
+   is private and mine; in Admin it's a new official pack.
+   Move to My packs (admin): an official pack becomes the admin's own
+   private pack, seen only by them and the students who have it.
+   Make official (admin, in My packs): the reverse. */
+async function renderOfficialToCopy() {
+  const box = document.getElementById('official-copy');
+  const packs = (await listPacks(currentAdminUid).catch(() => [])).filter(p => !p.mine && p.official);
+  box.hidden = !packs.length;
+  document.getElementById('official-copy-list').innerHTML = packs.map(p => `
+    <div class="official-copy-row">
+      <span><strong>${esc(p.name)}</strong>${p.description ? `<small>${esc(p.description)}</small>` : ''}</span>
+      <button class="pack-link-btn" data-action="copy-pack" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy</button>
+    </div>`).join('');
+}
+
+async function copyPack(srcId) {
+  const src = await getDoc(doc(db, 'content', srcId));
+  if (!src.exists()) throw new Error('That pack no longer exists');
+  const { ownerUid, visibility, createdAt, copiedFrom, ...rest } = src.data();
+  const owner = MINE ? { ownerUid: currentAdminUid, visibility: 'private' } : { visibility: 'official' };
+  const name = `Copy of ${rest.name || 'pack'}`;
+  // The pack itself first: the security rules check it before anything inside can be written
+  const ref = await addDoc(collection(db, 'content'), { ...rest, name, ...owner, copiedFrom: srcId, createdAt: serverTimestamp() });
+  const from = `content/${srcId}`, to = `content/${ref.id}`;
+  const writes = [];
+  const subjects = await getDocs(collection(db, `${from}/subjects`));
+  for (const s of subjects.docs) {
+    writes.push([`${to}/subjects/${s.id}`, s.data()]);
+    const topics = await getDocs(collection(db, `${from}/subjects/${s.id}/topics`));
+    await Promise.all(topics.docs.map(async t => {
+      writes.push([`${to}/subjects/${s.id}/topics/${t.id}`, t.data()]);
+      for (const sub of ['questions', 'notes']) {
+        const items = await getDocs(collection(db, `${from}/subjects/${s.id}/topics/${t.id}/${sub}`)).catch(() => null);
+        items?.forEach(q => writes.push([`${to}/subjects/${s.id}/topics/${t.id}/${sub}/${q.id}`, q.data()]));
+      }
+    }));
+  }
+  // Parents (subjects, topics) are listed before their children, so write in order
+  for (let i = 0; i < writes.length; i += 400) {
+    const batch = writeBatch(db);
+    writes.slice(i, i + 400).forEach(([path, data]) => batch.set(doc(db, path), data));
+    await batch.commit();
+  }
+  logEvent('content.pack', { target: name, targetId: ref.id, detail: `Copied from ${rest.name || srcId}` });
+  return { id: ref.id, name, items: writes.length };
+}
+
+async function copyPackClicked(btn) {
+  const label = btn.innerHTML;
+  btn.disabled = true; btn.textContent = 'Copying…';
+  try {
+    const r = await copyPack(btn.dataset.id);
+    showToast(`Copied: "${r.name}" (${r.items} items). Rename it with the pencil.`, 'success');
+    await loadGroups();
+  } catch (e) {
+    showToast('Copy failed: ' + e.message, 'error');
+    btn.disabled = false; btn.innerHTML = label;
+  }
+}
+
+// Students who have this pack (admins can read every user)
+async function studentsWithPack(packId) {
+  const snap = await getDocs(collection(db, 'users'));
+  const out = [];
+  snap.forEach(d => { const u = d.data(); if (flatPackIds(u).includes(packId)) out.push({ id: d.id, ...u }); });
+  return out;
+}
+// Make sure each holder's packIds list includes the pack (the rules read it)
+async function refreshPackIds(students) {
+  await Promise.all(students.map(u => {
+    const ids = flatPackIds(u);
+    return samePackIds(u.packIds || [], ids) ? null : updateDoc(doc(db, 'users', u.id), { packIds: ids }).catch(() => {});
+  }));
+}
+
+async function confirmMakePrivate(id, name) {
+  setConfirmButton('Move to My packs', false);
+  document.getElementById('confirm-title').textContent = 'Move to My packs?';
+  document.getElementById('confirm-msg').textContent = 'Checking who uses this pack…';
+  confirmCallback = null;
+  openModal('modal-confirm');
+  let holders = [];
+  try { holders = await studentsWithPack(id); } catch (e) { console.warn(e); }
+  const mine = u => u.parentUid === currentAdminUid || (u.guardianIds || []).includes(currentAdminUid);
+  const others = holders.filter(u => !mine(u));
+  document.getElementById('confirm-msg').textContent =
+    `"${name}" will become your own private pack, in My packs (Parent view). Only you and the students who have it will see it; other parents and teachers won't be able to choose it.`
+    + (holders.length ? ` ${holders.length} student${holders.length > 1 ? 's' : ''} keep${holders.length > 1 ? '' : 's'} it.` : '')
+    + (others.length ? ` Note: ${others.map(u => u.name || u.email || 'a student').join(', ')} ${others.length > 1 ? 'are' : 'is'} not one of your students. They keep access, but you'll need to manage the pack for them.` : '');
+  confirmCallback = async () => {
+    try {
+      await refreshPackIds(holders);
+      await updateDoc(doc(db, 'content', id), { ownerUid: currentAdminUid, visibility: 'private' });
+      logEvent('content.pack', { target: name, targetId: id, detail: 'Moved to My packs (private)' });
+      closeModal('modal-confirm');
+      showToast(`"${name}" moved to My packs`, 'success');
+      loadGroups();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  };
+}
+
+function confirmMakeOfficial(id, name) {
+  setConfirmButton('Make official', false);
+  document.getElementById('confirm-title').textContent = 'Make official?';
+  document.getElementById('confirm-msg').textContent =
+    `"${name}" will move out of My packs and become an official Lobe Limpet pack. Every parent and teacher will be able to choose it, and you'll edit it in Admin → Revision packs.`;
+  confirmCallback = async () => {
+    try {
+      await updateDoc(doc(db, 'content', id), { ownerUid: deleteField(), visibility: 'official' });
+      logEvent('content.pack', { target: name, targetId: id, detail: 'Made official' });
+      closeModal('modal-confirm');
+      showToast(`"${name}" is now official`, 'success');
+      loadGroups();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  };
+  openModal('modal-confirm');
+}
+
 /* ── DELETE ──────────────────────────────────────────────── */
 // A pack's subjects, topics, questions and notes go first: once the pack
 // itself is gone, nobody but an admin can reach what's left under it.
@@ -2818,7 +2969,14 @@ async function deletePackTree(packId) {
   await deleteDoc(doc(db, 'content', packId));
 }
 
+function setConfirmButton(label = 'Delete', danger = true) {
+  const b = document.getElementById('btn-confirm-ok');
+  b.textContent = label;
+  b.style.background = danger ? 'var(--color-danger)' : 'var(--color-primary)';
+  b.style.color = danger ? '#fff' : 'var(--color-on-primary, #fff)';
+}
 function confirmDelete(type, id, name) {
+  setConfirmButton('Delete', true);
   document.getElementById('confirm-title').textContent = `Delete ${type === 'group' ? 'revision pack' : type}?`;
   document.getElementById('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone.`;
   confirmCallback = async () => {
@@ -2844,6 +3002,7 @@ document.getElementById('btn-confirm-ok').addEventListener('click', () => {
 
 async function confirmDeleteAllQuestions() {
   if (!selectedTopic) return;
+  setConfirmButton('Delete', true);
   document.getElementById('confirm-title').textContent = 'Delete all questions?';
   document.getElementById('confirm-msg').textContent =
     `This will permanently delete all questions for "${selectedTopic.name}". This cannot be undone.`;
@@ -3087,6 +3246,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109i"></script>
+<script src="site.js?v=20261109j"></script>
 </body>
 </html>

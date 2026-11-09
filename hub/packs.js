@@ -10,7 +10,7 @@
 // (groupIds from a parent + every list in classPacks from teachers).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109i';
+import { db } from './firebase-config.js?v=20261109j';
 import {
   collection, getDocs, getDoc, doc, query, where, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";

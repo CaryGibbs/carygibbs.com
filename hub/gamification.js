@@ -3,9 +3,9 @@
 // XP, levels, badges, streaks
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109i';
-import { logEvent } from './log.js?v=20261109i';
-import { goalStatus, loadPlanSettings, isoDay as planDay, GOAL_XP } from './plan.js?v=20261109i';
+import { db } from './firebase-config.js?v=20261109j';
+import { logEvent } from './log.js?v=20261109j';
+import { goalStatus, loadPlanSettings, isoDay as planDay, GOAL_XP } from './plan.js?v=20261109j';
 import {
   doc, getDoc, updateDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
