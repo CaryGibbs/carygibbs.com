@@ -317,8 +317,17 @@
       await redirectByRole(uid);
     } catch(e) {
       flowBusy = false;
-      console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
       setLoading('btn-signup', false);
+      if (e.code === 'auth/email-already-in-use') {
+        // They already have an account: take them to Sign in with the email filled in
+        window._switchTab('login');
+        document.getElementById('login-email').value = email;
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-password').focus();
+        showError(invite ? 'You already have a Bonce account with this email. Enter your password to sign in and accept the invite.' : 'You already have a Bonce account with this email. Enter your password to sign in.');
+        return;
+      }
+      console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
     }
   };
 
