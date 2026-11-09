@@ -35,7 +35,7 @@
   var foot = document.getElementById('site-footer');
   if (foot) {
     foot.outerHTML = '<footer class="site-foot"><div class="wrap"><div class="foot-grid">' +
-      '<div>' + BRAND + '<p class="foot-blurb">Quizzes, subject maps and smart review for GCSE revision.</p></div>' +
+      '<div>' + BRAND + '<p class="foot-blurb">Quizzes, subject maps and smart review for revision.</p></div>' +
       '<div><h4>Lobe Limpet</h4><ul><li><a href="./">Home</a></li><li><a href="about.html">About</a></li><li><a href="login.html">Sign in</a></li><li><a href="login.html?signup=student">Create an account</a></li></ul></div>' +
       '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li></ul></div>' +
       '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy</a></li><li><a href="terms.html">Terms</a></li></ul></div>' +
