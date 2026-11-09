@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109e">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109d">
-  <script src="icons.js?v=20261109d"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109e">
+  <script src="icons.js?v=20261109e"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -286,7 +286,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109d">
+  <link rel="stylesheet" href="ui.css?v=20261109e">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -485,16 +485,30 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261109d';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261109d';
-  import { mountShell } from './shell.js?v=20261109d';
-  import { logEvent } from './log.js?v=20261109d';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261109d';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109d';
-  import { app as firebaseApp } from './firebase-config.js?v=20261109d';
+  import { auth, db } from './firebase-config.js?v=20261109e';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261109e';
+  import { mountShell } from './shell.js?v=20261109e';
+  import { logEvent } from './log.js?v=20261109e';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261109e';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109e';
+  import { app as firebaseApp } from './firebase-config.js?v=20261109e';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { saveEmailIndex } from './email-index.js?v=20261109e';
+
+  // Is this student still in another of my classes? (If not, I stop being
+  // one of their teachers, so I no longer see their progress.)
+  async function stillInMyOtherClass(uid, exceptClassId) {
+    const others = Object.keys(classesData).filter(id => id !== exceptClassId);
+    const hits = await Promise.all(others.map(id => getDoc(doc(db, 'users', teacherUid, 'classes', id, 'students', uid)).then(d => d.exists()).catch(() => false)));
+    return hits.some(Boolean);
+  }
+  async function unlinkFromClass(uid, classId) {
+    const update = { [`classes.${classId}`]: deleteField(), [`classPacks.${classId}`]: deleteField() };
+    if (!(await stillInMyOtherClass(uid, classId))) update.teacherIds = arrayRemove(teacherUid);
+    return updateDoc(doc(db, 'users', uid), update).catch(() => {});
+  }
 
   let teacherUid = null;
   let teacherProfile = null;
@@ -793,7 +807,7 @@
     if (!confirm(`Remove ${s?.name || 'this student'} from ${classesData[activeClassId]?.name}? Their account and progress are kept.`)) return;
     try {
       await deleteDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid));
-      await updateDoc(doc(db, 'users', uid), { [`classes.${activeClassId}`]: deleteField(), [`classPacks.${activeClassId}`]: deleteField() }).catch(() => {});
+      await unlinkFromClass(uid, activeClassId);
       logEvent('class.remove', { target: s?.name || '', targetId: uid, detail: `From ${classesData[activeClassId]?.name || 'a class'}` });
       showToast('Removed from class.', 'info');
       loadStudentList(activeClassId); countStudents();
@@ -842,12 +856,13 @@
       await updateProfile(cred.user, { displayName: name });
       await setDoc(doc(db, 'users', uid), {
         name, email, role: 'student',
-        teacherUid, theme: studentTheme,
+        teacherUid, teacherIds: [teacherUid], theme: studentTheme,
         createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
         classes: { [activeClassId]: true },
         classPacks: { [activeClassId]: classPacksNow }
       });
       await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email, joinedAt: Date.now() });
+      await saveEmailIndex(uid, email, name, ['student']);
       logEvent('class.add', { target: name, targetId: uid, detail: `New account, added to ${classesData[activeClassId]?.name || 'a class'}` });
       await secondaryAuth.signOut();
       await deleteApp(secondaryApp);
@@ -860,36 +875,22 @@
       showToast(`${name} added to class!`, 'success');
     } catch(e) {
       if (e.code === 'auth/email-already-in-use') {
-        showModalError('add-student-error', 'That email already has a Lobe Limpet account. Clear the password box to add the existing student to this class.');
+        linkExisting(name, email);
       } else showModalError('add-student-error', friendlyError(e.code));
     } finally {
       btn.classList.remove('loading');
     }
   };
 
-  async function findUserByEmail(email) {
-    const forms = [...new Set([email, email.toLowerCase()])];
-    const snap = await getDocs(query(collection(db, 'users'), where('email', 'in', forms)));
-    let found = null;
-    snap.forEach(d => { if (!found) found = { id: d.id, ...d.data() }; });
-    return found;
-  }
+
 
   async function linkExisting(name, email, packIds) {
-    let student;
-    try { student = await findUserByEmail(email); }
-    catch (e) { showModalError('add-student-error', 'Could not look up that email. Please try again.'); return; }
-    if (!student) { showModalError('add-student-error', 'No Lobe Limpet account uses that email. Set a password to create one.'); return; }
-    if (!isStudent(student)) { showModalError('add-student-error', 'That account isn\'t a student account.'); return; }
-    await updateDoc(doc(db, 'users', student.id), { [`classes.${activeClassId}`]: true, [`classPacks.${activeClassId}`]: packIds });
-    await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', student.id), { name: student.name || name, email: student.email || email, joinedAt: Date.now() });
-    logEvent('class.add', { target: student.name || name, targetId: student.id, detail: `Existing account, added to ${classesData[activeClassId]?.name || 'a class'}` });
-    document.getElementById('student-name').value = '';
-    document.getElementById('student-email').value = '';
-    loadStudentList(activeClassId); countStudents();
-    switchStudentsTab('list');
-    showToast(`${student.name || name} added to class!`, 'success');
+    // For privacy, a teacher can't pull an existing account into a class:
+    // the student joins with the class code, so they choose who sees their progress.
+    const code = classesData[activeClassId]?.joinCode;
+    showModalError('add-student-error', `That student already has an account. Ask them to tap "Join a class" in Lobe Limpet and enter the code ${code || 'for this class'}.`);
   }
+
 
   // ── Revision packs for a class ────────────────────────────
   window._openPacks = function(classId) {
@@ -1116,7 +1117,7 @@
       const snap = await getDocs(collection(db, 'users', teacherUid, 'classes', classId, 'students')).catch(() => null);
       const tidy = [];
       snap?.forEach(d => {
-        tidy.push(updateDoc(doc(db, 'users', d.id), { [`classes.${classId}`]: deleteField(), [`classPacks.${classId}`]: deleteField() }).catch(() => {}));
+        tidy.push(unlinkFromClass(d.id, classId));
         tidy.push(deleteDoc(d.ref).catch(() => {}));
       });
       await Promise.all(tidy);
@@ -1159,6 +1160,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261109d"></script>
+<script src="site.js?v=20261109e"></script>
 </body>
 </html>

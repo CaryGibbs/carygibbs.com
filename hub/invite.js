@@ -10,9 +10,10 @@
 // Admins can invite as Parent, Teacher or Admin; parents as Parent.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109d';
+import { db } from './firebase-config.js?v=20261109e';
+import { saveEmailIndex } from './email-index.js?v=20261109e';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261109d';
+import { logEvent } from './log.js?v=20261109e';
 
 export const INVITE_DAYS = 14;
 export const ROLE_LABEL = { parent: 'Parent', teacher: 'Teacher', admin: 'Admin' };
@@ -74,20 +75,22 @@ export async function acceptInvite(invite, uid, profile = {}, email = '') {
     await setDoc(doc(db, 'users', uid), {
       name: invite.name || '', email: (email || invite.email || '').toLowerCase(),
       roles: list, role: primary, theme: 'parent', createdAt: Date.now(), children: {},
+      inviteCode: invite.code,   // the security rules check the invite allows these roles
     }, { merge: true });
   } else {
-    await updateDoc(doc(db, 'users', uid), { roles: list, role: primary });
+    await updateDoc(doc(db, 'users', uid), { roles: list, role: primary, inviteCode: invite.code });
   }
   for (const sid of invite.studentIds || []) {
     const s = await getDoc(doc(db, 'users', sid)).catch(() => null);
     const st = s?.exists() ? s.data() : {};
-    await updateDoc(doc(db, 'users', sid), { guardianIds: arrayUnion(uid) }).catch(() => {});
+    await updateDoc(doc(db, 'users', sid), { guardianIds: arrayUnion(uid), lastInvite: invite.code }).catch(() => {});
     await setDoc(doc(db, 'users', uid, 'children', sid), {
       name: st.name || '', email: st.email || '', theme: st.theme || 'edge',
       groupIds: st.groupIds || [], createdAt: Date.now(), sharedBy: invite.by || '',
     }, { merge: true }).catch(() => {});
   }
   await updateDoc(doc(db, 'invites', invite.code), { usedBy: uid, usedAt: Date.now() }).catch(() => {});
+  await saveEmailIndex(uid, email || invite.email || profile.email, profile.name || invite.name || '', list);
   logEvent('account.invite_accept', { as: { uid, name: profile.name || invite.name || invite.email, role: invite.role }, target: invite.byName || '', detail: `As ${ROLE_LABEL[invite.role]}${(invite.studentNames || []).length ? ' · ' + invite.studentNames.join(', ') : ''}` });
 }
 

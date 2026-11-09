@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109e">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109d">
-  <script src="icons.js?v=20261109d"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109e">
+  <script src="icons.js?v=20261109e"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -511,7 +511,7 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109d">
+  <link rel="stylesheet" href="ui.css?v=20261109e">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -831,6 +831,19 @@
           <span class="ai-status" id="streak-status"></span>
         </div>
       </div>
+
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
+        <div class="ai-settings-head">
+          <div>
+            <h3>Security set-up</h3>
+            <p>Run this once before switching on the new security rules, and again if accounts were added while the old rules were in place. It records which teachers can see which students, and builds the exact-email look-up used to share students. Safe to run more than once.</p>
+          </div>
+        </div>
+        <div class="ai-settings-actions">
+          <button class="btn btn-primary" id="btn-prepare-security"><i data-icon="shield"></i> Prepare accounts</button>
+          <span class="ai-status" id="security-status"></span>
+        </div>
+      </div>
     </div>
 
   </div><!-- /content-area -->
@@ -1098,15 +1111,15 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109d';
-import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109d';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109d';
-import { mountShell } from './shell.js?v=20261109d';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109d';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109d';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109d';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109d';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109d';
+import { auth, db, storage } from './firebase-config.js?v=20261109e';
+import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109e';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109e';
+import { mountShell } from './shell.js?v=20261109e';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109e';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109e';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109e';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109e';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109e';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1120,8 +1133,9 @@ async function aiFetch(prompt, maxTokens) {
 }
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, serverTimestamp, where, limit, startAfter
+  query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { saveEmailIndex } from './email-index.js?v=20261109e';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1350,6 +1364,34 @@ document.getElementById('btn-save-streaks').onclick = async () => {
     showToast('Streak settings saved', 'success');
   } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
 };
+// ── Security set-up: email look-up + teacher links for existing accounts ──
+document.getElementById('btn-prepare-security').onclick = async () => {
+  const btn = document.getElementById('btn-prepare-security');
+  const status = document.getElementById('security-status');
+  btn.disabled = true; btn.classList.add('loading');
+  let indexed = 0, linked = 0, failed = 0;
+  try {
+    const users = await getDocs(collection(db, 'users'));
+    const all = []; users.forEach(d => all.push({ id: d.id, ...d.data() }));
+    for (const u of all) {
+      status.textContent = `Accounts ${indexed + 1} of ${all.length}…`;
+      if (u.email) { await saveEmailIndex(u.id, u.email, u.name || '', [...rolesOf(u)]); indexed++; }
+      const classes = await getDocs(collection(db, 'users', u.id, 'classes')).catch(() => null);
+      if (!classes || classes.empty) continue;
+      for (const c of classes.docs) {
+        const studs = await getDocs(collection(db, 'users', u.id, 'classes', c.id, 'students')).catch(() => null);
+        for (const st of (studs?.docs || [])) {
+          try { await updateDoc(doc(db, 'users', st.id), { teacherIds: arrayUnion(u.id) }); linked++; }
+          catch (e) { failed++; console.warn('Teacher link failed for', st.id, e.message); }
+        }
+      }
+    }
+    status.textContent = `Done: ${indexed} accounts indexed, ${linked} teacher–student links${failed ? `, ${failed} failed (see console)` : ''}.`;
+    logEvent('admin.settings', { target: 'Security set-up', detail: `${indexed} indexed, ${linked} links` });
+  } catch (e) { status.textContent = 'Stopped: ' + e.message; }
+  btn.disabled = false; btn.classList.remove('loading');
+};
+
 document.getElementById('btn-reset-streaks').onclick = async () => {
   if (!confirm('Put the streak settings back to the defaults (1 hour, 10 minutes per quiz, shields every 7 days)?')) return;
   try {
@@ -2937,6 +2979,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109d"></script>
+<script src="site.js?v=20261109e"></script>
 </body>
 </html>

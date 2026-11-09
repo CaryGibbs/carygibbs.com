@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109e">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109d">
-  <script src="icons.js?v=20261109d"></script>
-  <link rel="stylesheet" href="stats.css?v=20261109d">
+  <link rel="stylesheet" href="theme.css?v=20261109e">
+  <script src="icons.js?v=20261109e"></script>
+  <link rel="stylesheet" href="stats.css?v=20261109e">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -170,7 +170,7 @@
       .progress-xp { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109d">
+  <link rel="stylesheet" href="ui.css?v=20261109e">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -413,17 +413,18 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261109d';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261109d';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261109d';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109d';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261109d';
-import { logEvent } from './log.js?v=20261109d';
-import { openInviteDialog } from './invite.js?v=20261109d';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109d';
-import { dueEntries, scheduledCount } from './srs.js?v=20261109d';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261109d';
-import { openPlanCalendar } from './plan-view.js?v=20261109d';
+import { auth, db } from './firebase-config.js?v=20261109e';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261109e';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261109e';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261109e';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109e';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261109e';
+import { logEvent } from './log.js?v=20261109e';
+import { openInviteDialog } from './invite.js?v=20261109e';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109e';
+import { dueEntries, scheduledCount } from './srs.js?v=20261109e';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261109e';
+import { openPlanCalendar } from './plan-view.js?v=20261109e';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -812,6 +813,7 @@ window._addChild = async function() {
       groupIds, // array of group IDs
       groupId: groupIds[0] || null // keep single groupId for backwards compat
     });
+    await saveEmailIndex(childUid, email, name, ['student']);
     logEvent('student.add', { target: name, targetId: childUid, detail: 'New student account' });
     // Write to parent's children subcollection
     await setDoc(doc(db, 'users', parentUid, 'children', childUid), {
@@ -966,12 +968,11 @@ window._shareStudent = async function() {
   if (!email) { showErr('manage-error', 'Enter the other parent\'s email address.'); return; }
   const btn = document.getElementById('btn-share'); btn.disabled = true;
   try {
-    // Emails may have been saved with capitals, so look for both spellings
-    const found = await getDocs(query(collection(db, 'users'), where('email', 'in', [...new Set([typed, email])])));
-    let other = null; found.forEach(d => { other = other || { id: d.id, ...d.data() }; });
+    // Exact-email look-up (the security rules don't allow searching all users)
+    const other = await findByEmail(email);
     if (!other) { showErr('manage-error', 'No Lobe Limpet account uses that email. Ask them to create a parent account first.'); return; }
     if (other.id === parentUid) { showErr('manage-error', 'That\'s your own account.'); return; }
-    const theirRoles = Array.isArray(other.roles) && other.roles.length ? other.roles : [other.role];
+    const theirRoles = other.roles || [];
     if (!theirRoles.some(r => r === 'parent' || r === 'admin')) { showErr('manage-error', 'That account isn\'t a parent account. They need to sign up as a parent.'); return; }
     // Link the student to them, and add the student to their list
     await updateDoc(doc(db, 'users', managingChildId), { guardianIds: arrayUnion(other.id) });
@@ -1194,6 +1195,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109d"></script>
+<script src="site.js?v=20261109e"></script>
 </body>
 </html>

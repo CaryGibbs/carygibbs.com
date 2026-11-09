@@ -5,8 +5,8 @@
 // revision packs, and adds them to the teacher's class list.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109d';
-import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { db } from './firebase-config.js?v=20261109e';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export function cleanCode(code) {
   return String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -30,6 +30,7 @@ export async function joinClass(uid, profile, info) {
   await updateDoc(doc(db, 'users', uid), {
     [`classes.${info.classId}`]: true,
     [`classPacks.${info.classId}`]: info.packIds || [],
+    teacherIds: arrayUnion(info.teacherUid),   // lets the teacher see this student's progress
   });
   await setDoc(doc(db, 'users', info.teacherUid, 'classes', info.classId, 'students', uid),
     { name: profile.name || '', email: profile.email || '', joinedAt: Date.now() });

@@ -1,13 +1,216 @@
 rules_version = '2';
 // ============================================================
-// CLASP — Firestore Security Rules
-// Phase 2: Open rules for development
-// Phase 3+: Replace with proper auth-based rules
+// LOBE LIMPET: Firestore security rules
+//
+// Who can see what:
+//   Owner (one account, fixed by its user ID below): everything.
+//   Admins: everything, except only the owner can make or remove admins.
+//   Parents: their own students (parentUid / guardianIds on the student).
+//   Teachers: students in their classes (teacherIds on the student).
+//   Students: their own record.
+//   Revision content and settings: any signed-in user can read;
+//   admins write (students may save AI cheat sheets / notes / short answers).
+//
+// ROLLBACK: if anything stops working, paste the previous rules back
+// in the Firebase console (Firestore Database > Rules) and Publish.
 // ============================================================
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+
+    // ── The owner ─────────────────────────────────────────
+    function ownerUid() { return 'PASTE_OWNER_UID_HERE'; }
+
+    // ── Helpers ───────────────────────────────────────────
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function myEmail() { return request.auth.token.get('email', '').lower(); }
+    function isOwner() { return signedIn() && me() == ownerUid(); }
+    function userDoc(id) { return get(/databases/$(database)/documents/users/$(id)).data; }
+    function hasRole(d, r) { return r in d.get('roles', []) || d.get('role', '') == r; }
+    function isAdmin() {
+      return isOwner() || (signedIn()
+        && exists(/databases/$(database)/documents/users/$(me()))
+        && hasRole(userDoc(me()), 'admin'));
+    }
+    function isAdult(d) { return hasRole(d, 'parent') || hasRole(d, 'teacher') || hasRole(d, 'admin'); }
+    function guardianOf(d) { return d.get('parentUid', '') == me() || me() in d.get('guardianIds', []); }
+    function teacherOf(d) { return me() in d.get('teacherIds', []); }
+    function changedKeys() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // A valid, unused, unexpired invite for my email (for admin roles, or
+    // to become a guardian of the students it lists)
+    function inviteFor(code) {
+      let inv = get(/databases/$(database)/documents/invites/$(code)).data;
+      return inv.get('usedBy', null) == null
+        && inv.get('expiresAt', 0) > request.time.toMillis()
+        && (inv.get('email', '') == '' || inv.get('email', '') == myEmail());
+    }
+    function adminInvite(code) {
+      return code != '' && exists(/databases/$(database)/documents/invites/$(code))
+        && inviteFor(code)
+        && get(/databases/$(database)/documents/invites/$(code)).data.get('role', '') == 'admin'
+        && get(/databases/$(database)/documents/invites/$(code)).data.get('email', '') == myEmail();
+    }
+
+    // ── Users ─────────────────────────────────────────────
+    match /users/{uid} {
+      function newData() { return request.resource.data; }
+      function gainsAdmin() { return hasRole(newData(), 'admin') && !hasRole(resource.data, 'admin'); }
+      function adminChanges() { return hasRole(newData(), 'admin') != hasRole(resource.data, 'admin'); }
+      // "plan" holds the study plan; only the value 'plus' (paid) is protected
+      function gainsPlus() { return newData().get('plan', null) == 'plus' && resource.data.get('plan', null) != 'plus'; }
+
+      // Signing yourself up: no admin (unless invited), no paid plan, no parent links
+      function selfCreateOK() {
+        return (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
+          && newData().get('plan', null) != 'plus'
+          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid']);
+      }
+      // A parent or teacher creating a student account
+      function studentCreateOK() {
+        return newData().get('role', '') == 'student'
+          && newData().get('roles', ['student']) == ['student']
+          && newData().get('plan', null) != 'plus'
+          && ((newData().get('parentUid', '') == me() && hasRole(userDoc(me()), 'parent'))
+              || (newData().get('teacherUid', '') == me() && newData().get('teacherIds', []) == [me()]
+                  && hasRole(userDoc(me()), 'teacher')));
+      }
+      // Editing yourself: can't change plan or who your parents are; can only
+      // add admin with a valid admin invite
+      function selfUpdateOK() {
+        return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid'])
+          && !gainsPlus()
+          && (!gainsAdmin() || adminInvite(newData().get('inviteCode', '')));
+      }
+      // A parent editing their student: anything except roles, paid plan and teacher links
+      function guardianUpdateOK() {
+        return !changedKeys().hasAny(['roles', 'role', 'teacherIds', 'teacherUid']) && !gainsPlus();
+      }
+      // Accepting an invite that shares this student: add only yourself as a guardian
+      function inviteGuardianOK() {
+        let code = newData().get('lastInvite', '');
+        let inv = get(/databases/$(database)/documents/invites/$(code)).data;
+        return code != ''
+          && changedKeys().hasOnly(['guardianIds', 'lastInvite'])
+          && newData().get('guardianIds', []).toSet() == resource.data.get('guardianIds', []).toSet().union([me()].toSet())
+          && inviteFor(code)
+          && uid in inv.get('studentIds', [])
+          && (inv.get('by', '') == resource.data.get('parentUid', '')
+              || inv.get('by', '') in resource.data.get('guardianIds', [])
+              || hasRole(userDoc(inv.get('by', '')), 'admin'));
+      }
+
+      allow get: if signedIn() && (
+        me() == uid || isAdmin() || guardianOf(resource.data) || teacherOf(resource.data) || isAdult(resource.data));
+      allow list: if isAdmin();
+
+      allow create: if signedIn() && (
+        (me() == uid && selfCreateOK())
+        || (me() != uid && studentCreateOK())
+        || (isAdmin() && (!hasRole(newData(), 'admin') || isOwner())));
+
+      allow update: if signedIn() && (
+        isOwner()
+        || (isAdmin() && uid != ownerUid() && !adminChanges())
+        || (me() == uid && selfUpdateOK())
+        || (guardianOf(resource.data) && guardianUpdateOK())
+        || (teacherOf(resource.data) && changedKeys().hasOnly(['classes', 'classPacks', 'teacherIds']))
+        || inviteGuardianOK());
+
+      allow delete: if signedIn() && (
+        isOwner()
+        || (isAdmin() && uid != ownerUid())
+        || (resource.data.get('parentUid', '') == me() && resource.data.get('guardianIds', []).removeAll([me()]).size() == 0));
+
+      // A parent's list of their students
+      match /children/{sid} {
+        function guardianOfId(id) { return exists(/databases/$(database)/documents/users/$(id)) && guardianOf(userDoc(id)); }
+        allow read: if signedIn() && (me() == uid || isAdmin());
+        allow create, update: if signedIn() && (me() == uid || me() == sid || isAdmin() || guardianOfId(sid));
+        allow delete: if signedIn() && (me() == uid || isAdmin());
+      }
+
+      // A teacher's classes. Looked up by join code before sign-up, so a
+      // single class can be read by anyone who knows its ID.
+      match /classes/{cid} {
+        allow get: if true;
+        allow list: if signedIn() && (me() == uid || isAdmin());
+        allow write: if signedIn() && (me() == uid || isAdmin());
+
+        match /students/{sid} {
+          allow read: if signedIn() && (me() == uid || me() == sid || isAdmin());
+          allow create, update: if signedIn() && (me() == uid || isAdmin()
+            || (me() == sid && exists(/databases/$(database)/documents/users/$(uid)/classes/$(cid))));
+          allow delete: if signedIn() && (me() == uid || me() == sid || isAdmin());
+        }
+      }
+    }
+
+    // ── Exact-email look-up (no browsing) ─────────────────
+    match /emailIndex/{email} {
+      function manages(id) {
+        return exists(/databases/$(database)/documents/users/$(id))
+          && (guardianOf(userDoc(id)) || teacherOf(userDoc(id)));
+      }
+      allow get: if signedIn();
+      allow list: if isAdmin();
+      allow create, update: if signedIn()
+        && (resource == null || resource.data.uid == request.resource.data.uid || isAdmin())
+        && (isAdmin()
+            || (request.resource.data.uid == me() && email == myEmail())
+            || (request.resource.data.uid != me() && manages(request.resource.data.uid)));
+      allow delete: if isAdmin();
+    }
+
+    // ── Class join codes ──────────────────────────────────
+    match /classCodes/{code} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if signedIn() && request.resource.data.teacherUid == me();
+      allow update, delete: if signedIn() && (resource.data.teacherUid == me() || isAdmin());
+    }
+
+    // ── Invites ───────────────────────────────────────────
+    match /invites/{code} {
+      allow get: if true;                     // opened from the invite link, before sign-in
+      allow list: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.by == me()
+        && request.resource.data.get('usedBy', null) == null
+        && (request.resource.data.role != 'admin' || isOwner());
+      allow update: if signedIn() && (
+        isAdmin() || resource.data.by == me()
+        || (changedKeys().hasOnly(['usedBy', 'usedAt'])
+            && request.resource.data.usedBy == me()
+            && resource.data.get('usedBy', null) == null
+            && (resource.data.get('email', '') == '' || resource.data.email == myEmail())));
+      allow delete: if signedIn() && (isAdmin() || resource.data.by == me());
+    }
+
+    // ── Revision content ──────────────────────────────────
+    match /content/{rest=**} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    // Students can save AI-made cheat sheets, short answers and point notes
+    // (shared with everyone using the pack, so they're only made once)
+    match /content/{p}/subjects/{s}/topics/{t} {
+      allow update: if signedIn() && changedKeys().hasOnly(['cheatSheet', 'shortAnswers']);
+      match /notes/{n} {
+        allow create: if signedIn();
+      }
+    }
+
+    // ── App settings ──────────────────────────────────────
+    match /settings/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Activity log ──────────────────────────────────────
+    match /logs/{id} {
+      allow create: if signedIn() && request.resource.data.uid == me();
+      allow read, delete: if isAdmin();
     }
   }
 }
