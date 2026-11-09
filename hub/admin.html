@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109k">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109k">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109k">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109k">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109l">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109l">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109l">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109l">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109k">
-  <script src="icons.js?v=20261109k"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109l">
+  <script src="icons.js?v=20261109l"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -499,6 +499,22 @@
   .official-copy-row strong { font-family: var(--font-ui); font-size: 0.9rem; }
   .official-copy-row small { display: block; color: var(--color-text-muted); font-size: 0.78rem; }
 
+  /* ── Library ── */
+  .lib-status { display: block; margin-top: 8px; font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); }
+  .lib-status.ok { color: var(--color-success, #0d8a7c); }
+  .lib-status.wait { color: var(--color-warning, #b7791f); }
+  .lib-status.bad { color: var(--color-danger); }
+  .lib-search { width: 100%; padding: 9px 12px; border-radius: var(--radius-button); margin-bottom: 10px; font-size: 0.9rem; }
+  .lib-modal-body { font-size: 0.9rem; line-height: 1.5; color: var(--color-text); }
+  .lib-modal-body ul { margin: 8px 0 0 18px; color: var(--color-text-muted); font-size: 0.86rem; }
+  .lib-section { margin-bottom: var(--space-xl); }
+  .lib-section h3 { font-family: var(--font-ui); font-size: 1rem; margin-bottom: 10px; display: flex; gap: 8px; align-items: center; }
+  .lib-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; padding: 12px 14px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-button); margin-bottom: 8px; }
+  .lib-row strong { font-family: var(--font-ui); }
+  .lib-row small { display: block; color: var(--color-text-muted); font-size: 0.78rem; line-height: 1.45; }
+  .lib-row .lib-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .lib-report { font-size: 0.82rem; padding: 8px 12px; border-left: 3px solid var(--color-danger); background: var(--color-surface-2); margin-top: 6px; border-radius: 4px; }
+
   /* ── All students ── */
   .as-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin: 14px 0; }
   .as-filters .log-f:first-child { flex: 1 1 260px; }
@@ -560,8 +576,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109k">
-  <link rel="stylesheet" href="stats.css?v=20261109k">
+  <link rel="stylesheet" href="ui.css?v=20261109l">
+  <link rel="stylesheet" href="stats.css?v=20261109l">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -612,6 +628,13 @@
         <div class="official-copy-head">Start from a Lobe Limpet pack</div>
         <p class="official-copy-sub">Make your own copy of a ready-made pack, then change it however you like. The original isn't affected.</p>
         <div id="official-copy-list" class="official-copy-list"></div>
+      </div>
+      <!-- My packs only: the shared library -->
+      <div id="library-browse" class="official-copy" hidden>
+        <div class="official-copy-head"><i data-icon="library"></i> The library</div>
+        <p class="official-copy-sub">Packs shared by other parents and teachers, checked by Lobe Limpet before they appear. Make a copy to use one with your students; your copy is yours to change.</p>
+        <input type="search" id="library-search" class="lib-search" placeholder="Search by name, subject, exam board or level">
+        <div id="library-list" class="official-copy-list"></div>
       </div>
     </div>
 
@@ -804,6 +827,17 @@
           <div class="spinner" style="margin:0 auto;"></div>
         </div>
       </div>
+    </div>
+
+    <!-- ── LIBRARY PANEL (admin moderation) ─────────────────── -->
+    <div class="panel" id="panel-library">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Library</div>
+          <div class="panel-subtitle">Packs parents and teachers have offered to share. Nothing appears in the library until you approve it. Approving publishes a frozen copy; the author's later edits need another review.</div>
+        </div>
+      </div>
+      <div id="lib-admin"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
     </div>
 
     <!-- ── ALL STUDENTS PANEL ─────────────────────────────── -->
@@ -1171,6 +1205,25 @@
 <!-- Edit question modal (reuses question modal structure) -->
 
 <!-- Confirm delete modal -->
+<!-- Library: share a pack / reject or remove with a reason -->
+<div class="modal-overlay" id="modal-library">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="lib-modal-title">Share to the library</div>
+      <button class="modal-close" data-close="modal-library" aria-label="Close"><i data-icon="x"></i></button>
+    </div>
+    <div id="lib-modal-body" class="lib-modal-body"></div>
+    <div class="form-group" id="lib-modal-note-wrap" style="margin-top:var(--space-md);">
+      <label id="lib-modal-note-label">Reason</label>
+      <textarea id="lib-modal-note" rows="3" style="width:100%;"></textarea>
+    </div>
+    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
+      <button class="btn btn-secondary" data-close="modal-library">Cancel</button>
+      <button class="btn btn-primary" id="lib-modal-ok">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- Student progress (All students) -->
 <div class="modal-overlay" id="modal-student">
   <div class="modal" style="max-width:760px;">
@@ -1205,18 +1258,18 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109k';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109k';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109k';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109k';
-import { mountShell } from './shell.js?v=20261109k';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109k';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109k';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109k';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109k';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109k';
-import { dueEntries } from './srs.js?v=20261109k';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109k';
+import { auth, db, storage } from './firebase-config.js?v=20261109l';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109l';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109l';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109l';
+import { mountShell } from './shell.js?v=20261109l';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109l';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109l';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109l';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109l';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109l';
+import { dueEntries } from './srs.js?v=20261109l';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109l';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1232,7 +1285,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109k';
+import { saveEmailIndex } from './email-index.js?v=20261109l';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1272,6 +1325,8 @@ function startMine(user, profile) {
   currentAdminUid = user.uid;
   canAI = hasPlus(profile);
   iAmAdmin = hasRole(profile, 'admin');
+  const parts = (profile.name || '').trim().split(/\s+/);
+  libraryName = `${parts[0] || 'A'}${parts.length > 1 ? ' ' + parts[parts.length - 1][0] + '.' : ''} (${MINE})`;
   document.title = 'Lobe Limpet — My packs';
   document.body.classList.add('mine-mode');
   if (!canAI) document.body.classList.add('no-ai');
@@ -1300,7 +1355,7 @@ else requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
   iAmAdmin = true;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
-  const start = ['home', 'groups', 'users', 'students', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  const start = ['home', 'groups', 'library', 'users', 'students', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
   adminProfileName = profile.name || '';
   mountShell(user, profile, { view: 'admin', active: start });
@@ -1309,7 +1364,7 @@ else requireRole('admin', (user, profile) => {
   // Address changes (e.g. the sidebar's "View as another student") switch panels too
   window.addEventListener('hashchange', () => {
     const p = location.hash.slice(1);
-    if (['home', 'groups', 'users', 'students', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
+    if (['home', 'groups', 'library', 'users', 'students', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
   });
 });
 
@@ -1327,7 +1382,10 @@ async function renderAdminHome() {
   try {
     const [uSnap, pSnap] = await Promise.all([getDocs(collection(db, 'users')), getDocs(collection(db, 'content'))]);
     const users = []; uSnap.forEach(d => users.push({ id: d.id, ...d.data() }));
-    const packList = []; pSnap.forEach(d => packList.push({ id: d.id, ...d.data() }));
+    const allPacks = []; pSnap.forEach(d => allPacks.push({ id: d.id, ...d.data() }));
+    // Content checks cover the official packs; people's own packs are theirs to look after
+    const packList = allPacks.filter(p => !p.ownerUid || p.visibility === 'official');
+    const libraryWaiting = allPacks.filter(p => p.libraryStatus === 'pending');
     const has = (u, r) => rolesOf(u).has(r);
     const students = users.filter(u => has(u, 'student'));
 
@@ -1360,6 +1418,7 @@ async function renderAdminHome() {
       if (noQ.length) items.push({ p: 1, emoji: '❓', text: `${noQ.length} topic${noQ.length === 1 ? '' : 's'} in ${esc(p.name)} ${noQ.length === 1 ? 'has' : 'have'} no questions`, sub: listOf(noQ), action: smallBtn('Open pack', `location.hash='groups'`) });
       if (noK.length) items.push({ p: 2, emoji: '🗺️', text: `${noK.length} topic${noK.length === 1 ? '' : 's'} in ${esc(p.name)} ${noK.length === 1 ? 'has' : 'have'} no key points`, sub: `${listOf(noK)} · nothing to learn or map yet`, action: smallBtn('Open pack', `location.hash='groups'`) });
     });
+    if (libraryWaiting.length) items.push({ p: -1, emoji: '📚', text: `${libraryWaiting.length} pack${libraryWaiting.length === 1 ? '' : 's'} waiting for library review`, sub: libraryWaiting.slice(0, 3).map(p => esc(p.name || '')).join(', '), action: smallBtn('Review', `location.hash='library'`, true) });
     const packless = students.filter(u => !(u.groupIds || []).length && !Object.values(u.classPacks || {}).some(l => (l || []).length));
     if (packless.length) items.push({ p: 3, emoji: '🎒', text: `${packless.length} student${packless.length === 1 ? ' has' : 's have'} no revision pack`, sub: packless.slice(0, 4).map(u => esc(u.name || u.email || '')).join(', ') + (packless.length > 4 ? '…' : ''), action: smallBtn('Users', `location.hash='users'`) });
     const noRole = users.filter(u => !rolesOf(u).size);
@@ -1589,6 +1648,7 @@ function showPanel(name) {
   updateBreadcrumb();
   if (name === 'users') loadUsers();
   if (name === 'students') { document.getElementById('preview-actions').style.display = 'none'; loadAllStudents(); }
+  if (name === 'library')  { document.getElementById('preview-actions').style.display = 'none'; loadLibraryAdmin(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
   if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); }
@@ -1601,6 +1661,7 @@ function updateBreadcrumb() {
   // Users and Settings: "Section › Page", like the parent pages
   if (currentPanel === 'home')     { bc.innerHTML = `<span>Admin</span>${sep}<span class="breadcrumb-current">Home</span>`; return; }
   if (currentPanel === 'users')    { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
+  if (currentPanel === 'library')  { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Library</span>`; return; }
   if (currentPanel === 'students') { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">All students</span>`; return; }
   if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
@@ -1644,6 +1705,15 @@ document.addEventListener('click', e => {
   else if (action === 'copy-pack')          copyPackClicked(t);
   else if (action === 'make-private')       confirmMakePrivate(t.dataset.id, t.dataset.name);
   else if (action === 'make-official')      confirmMakeOfficial(t.dataset.id, t.dataset.name);
+  else if (action === 'lib-share')          openShareToLibrary(t.dataset.id);
+  else if (action === 'lib-withdraw')       withdrawFromLibrary(t.dataset.id);
+  else if (action === 'lib-unpublish')      authorRemoveFromLibrary(t.dataset.id);
+  else if (action === 'lib-report')         openReportLibraryPack(t.dataset.id, t.dataset.name);
+  else if (action === 'lib-review')         { openGroup(t.dataset.id); }
+  else if (action === 'lib-approve')        approveLibraryPack(t.dataset.id, t);
+  else if (action === 'lib-reject')         openRejectLibraryPack(t.dataset.id);
+  else if (action === 'lib-remove')         openRemoveLibraryPack(t.dataset.id);
+  else if (action === 'lib-dismiss-report') dismissLibraryReport(t.dataset.id);
 
   else if (action === 'new-subject')        openSubjectModal();
   else if (action === 'suggest-links')      suggestLinks();
@@ -1727,7 +1797,8 @@ async function loadGroups() {
     if (MINE) {
       // Only my own packs (sorted here, so no extra Firestore index is needed)
       const snap = await getDocs(query(collection(db, 'content'), where('ownerUid', '==', currentAdminUid)));
-      snap.forEach(d => list.push({ id: d.id, data: d.data() }));
+      // (the published library copies of my packs are listed in the library, not here)
+      snap.forEach(d => { if (d.data().visibility !== 'library') list.push({ id: d.id, data: d.data() }); });
       const t = x => x?.toMillis?.() || 0;
       list.sort((a, b) => t(a.data.createdAt) - t(b.data.createdAt));
     } else {
@@ -1755,7 +1826,7 @@ async function loadGroups() {
       <p>Make a pack, add subjects and topics, then write questions. Your students see it once you assign it.</p></div>`);
   list.forEach(p => grid.appendChild(groupCard(p.id, p.data)));
   grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">＋ New pack</div>`);
-  if (MINE) renderOfficialToCopy();
+  if (MINE) { renderOfficialToCopy(); loadLibraryBrowse(); }
 }
 
 function groupCard(id, data) {
@@ -1770,9 +1841,11 @@ function groupCard(id, data) {
     <div class="item-card-name">${esc(data.name)}</div>
     <div class="item-card-meta">${esc(data.description || 'No description')}</div>
     ${MINE ? `<span class="pack-badge"><i data-icon="lock"></i> Private</span>` : ''}
+    ${MINE ? libraryStatusHtml(data) : ''}
     <div class="pack-card-foot">
       <button class="pack-link-btn" data-action="copy-pack" data-id="${id}" data-name="${esc(data.name)}" title="Make a copy of this pack"><i data-icon="copy"></i> Make a copy</button>
       ${!MINE ? `<button class="pack-link-btn" data-action="make-private" data-id="${id}" data-name="${esc(data.name)}" title="Move into your own My packs, visible only to you and the students you give it to"><i data-icon="lock"></i> Move to My packs</button>` : ''}
+      ${MINE ? libraryButtonHtml(id, data) : ''}
       ${MINE && iAmAdmin ? `<button class="pack-link-btn" data-action="make-official" data-id="${id}" data-name="${esc(data.name)}" title="Make this an official Lobe Limpet pack, available to every parent and teacher"><i data-icon="globe"></i> Make official</button>` : ''}
     </div>`;
   div.addEventListener('click', e => {
@@ -2900,6 +2973,285 @@ function handleImagePreview(input) {
   reader.readAsDataURL(file);
 }
 
+/* ── LIBRARY ─────────────────────────────────────────────────
+   Sharing (My packs): the owner offers a pack (libraryStatus 'pending').
+   Moderation (Admin → Library): approving publishes a frozen copy of the
+   pack (visibility 'library', owned by the author, sourcePackId set) and
+   records its id on the original (libraryPackId). The author's later edits
+   don't reach the library until they share again and it's approved again;
+   the new copy then replaces the old one. Rejecting or removing leaves a
+   note the author sees. Other parents and teachers can't assign library
+   packs: they make a copy into their own My packs.
+   Anyone can report a library pack (libraryReports); admins see reports. */
+let libraryName = '';     // how the author is shown, e.g. "Cary G. (parent)"
+function libStatusOf(d) {
+  if (d.libraryStatus === 'pending') return d.libraryPackId ? 'update' : 'pending';
+  if (d.libraryPackId) return 'live';
+  if (d.libraryStatus === 'rejected' || d.libraryStatus === 'removed') return d.libraryStatus;
+  return 'none';
+}
+function libraryStatusHtml(d) {
+  const st = libStatusOf(d);
+  if (st === 'pending') return `<span class="lib-status wait"><i data-icon="clock"></i> Waiting for library review</span>`;
+  if (st === 'update')  return `<span class="lib-status wait"><i data-icon="clock"></i> In the library · update waiting for review</span>`;
+  if (st === 'live')    return `<span class="lib-status ok"><i data-icon="library"></i> In the library</span>${d.libraryNote ? `<span class="lib-status bad">${esc(d.libraryNote)}</span>` : ''}`;
+  if (st === 'rejected') return `<span class="lib-status bad">Not added to the library${d.libraryNote ? `: ${esc(d.libraryNote)}` : ''}</span>`;
+  if (st === 'removed') return `<span class="lib-status bad">Removed from the library${d.libraryNote ? `: ${esc(d.libraryNote)}` : ''}</span>`;
+  return '';
+}
+function libraryButtonHtml(id, d) {
+  const st = libStatusOf(d);
+  if (st === 'pending' || st === 'update') return `<button class="pack-link-btn" data-action="lib-withdraw" data-id="${id}"><i data-icon="x"></i> Withdraw</button>`;
+  if (st === 'live') return `<button class="pack-link-btn" data-action="lib-share" data-id="${id}" title="Send your latest version for review"><i data-icon="library"></i> Update library copy</button>
+    <button class="pack-link-btn" data-action="lib-unpublish" data-id="${id}"><i data-icon="trash-2"></i> Remove from library</button>`;
+  return `<button class="pack-link-btn" data-action="lib-share" data-id="${id}"><i data-icon="library"></i> Share to library</button>`;
+}
+
+// Reusable small dialog: title, body html, optional note, OK label → onOk(note)
+let libModalOk = null;
+function openLibModal({ title, body, note = null, noteLabel = 'Reason', okLabel = 'OK', danger = false, onOk }) {
+  document.getElementById('lib-modal-title').textContent = title;
+  document.getElementById('lib-modal-body').innerHTML = body;
+  const wrap = document.getElementById('lib-modal-note-wrap');
+  wrap.style.display = note === null ? 'none' : '';
+  document.getElementById('lib-modal-note-label').textContent = noteLabel;
+  document.getElementById('lib-modal-note').value = note || '';
+  const ok = document.getElementById('lib-modal-ok');
+  ok.textContent = okLabel;
+  ok.className = danger ? 'btn btn-danger' : 'btn btn-primary';
+  ok.disabled = false;
+  libModalOk = onOk;
+  openModal('modal-library');
+}
+document.getElementById('lib-modal-ok').addEventListener('click', async () => {
+  if (!libModalOk) return;
+  const ok = document.getElementById('lib-modal-ok');
+  ok.disabled = true;
+  try { await libModalOk(document.getElementById('lib-modal-note').value.trim()); }
+  finally { ok.disabled = false; }
+});
+
+// ── Author side (My packs) ──
+async function openShareToLibrary(id) {
+  const snap = await getDoc(doc(db, 'content', id));
+  const d = snap.data() || {};
+  const again = !!d.libraryPackId;
+  openLibModal({
+    title: again ? 'Update the library copy?' : 'Share to the library?',
+    body: `<p>${again ? 'Your latest version of' : 'A copy of'} <strong>${esc(d.name)}</strong> will be checked by Lobe Limpet${again ? ', then replace the copy in the library' : ' before it appears in the library'}. Other parents and teachers can then make their own copy of it. Your students and your pack aren't affected.</p>
+      <p style="margin-top:8px;">Before you share, check that it:</p>
+      <ul><li>contains no names or details of your students or anyone else</li>
+      <li>is accurate and suitable for young people</li>
+      <li>is your own work, with nothing copied from textbooks or exam papers</li></ul>
+      <p style="margin-top:8px;">It will show you as <strong>${esc(libraryName)}</strong>.</p>`,
+    note: '', noteLabel: 'A note for the reviewer (optional)',
+    okLabel: again ? 'Send for review' : 'Share for review',
+    onOk: async note => {
+      try {
+        const upd = { libraryStatus: 'pending', libraryAuthor: libraryName, librarySubmittedAt: Date.now(), librarySubmitNote: note || deleteField() };
+        await updateDoc(doc(db, 'content', id), upd);
+        logEvent('content.pack', { target: d.name, targetId: id, detail: again ? 'Sent a library update for review' : 'Shared to the library for review' });
+        closeModal('modal-library');
+        showToast('Sent for review. You\'ll see the result on the pack.', 'success');
+        loadGroups();
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    },
+  });
+}
+async function withdrawFromLibrary(id) {
+  try {
+    await updateDoc(doc(db, 'content', id), { libraryStatus: deleteField() });
+    showToast('Withdrawn', 'success');
+    loadGroups();
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+async function authorRemoveFromLibrary(id) {
+  const d = (await getDoc(doc(db, 'content', id))).data() || {};
+  openLibModal({
+    title: 'Remove from the library?',
+    body: `<p>The library copy of <strong>${esc(d.name)}</strong> will be deleted. Copies other people have already made are theirs and stay as they are. Your own pack isn't affected.</p>`,
+    okLabel: 'Remove', danger: true,
+    onOk: async () => {
+      try {
+        if (d.libraryPackId) await deletePackTree(d.libraryPackId).catch(e => console.warn(e));
+        await updateDoc(doc(db, 'content', id), { libraryPackId: deleteField(), libraryStatus: deleteField() });
+        logEvent('content.pack', { target: d.name, targetId: id, detail: 'Removed from the library by its author' });
+        closeModal('modal-library');
+        showToast('Removed from the library', 'success');
+        loadGroups();
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    },
+  });
+}
+
+// ── Browse (My packs) ──
+let libraryPacks = [];
+async function loadLibraryBrowse() {
+  const box = document.getElementById('library-browse');
+  try {
+    const snap = await getDocs(query(collection(db, 'content'), where('visibility', '==', 'library')));
+    libraryPacks = [];
+    snap.forEach(d => libraryPacks.push({ id: d.id, ...d.data() }));
+    libraryPacks.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'en-GB'));
+  } catch (e) { libraryPacks = []; console.warn('Library not available', e.message); }
+  box.hidden = false;
+  const search = document.getElementById('library-search');
+  if (!search.dataset.wired) { search.dataset.wired = '1'; search.addEventListener('input', renderLibraryBrowse); }
+  renderLibraryBrowse();
+}
+function libInfoText(p) {
+  const i = p.libraryInfo || {};
+  return [...(i.levels || []), ...(i.boards || []), (i.subjects || []).join(', '),
+    i.topics ? `${i.topics} topic${i.topics === 1 ? '' : 's'}` : '', i.questions ? `${i.questions} questions` : ''].filter(Boolean).join(' · ');
+}
+function renderLibraryBrowse() {
+  const q = document.getElementById('library-search').value.trim().toLowerCase();
+  const list = libraryPacks.filter(p => !q || [p.name, p.description, p.authorName, libInfoText(p)].join(' ').toLowerCase().includes(q));
+  document.getElementById('library-list').innerHTML = list.length ? list.map(p => `
+    <div class="official-copy-row">
+      <span><strong>${esc(p.name)}</strong>
+        <small>${esc(libInfoText(p))}</small>
+        <small>${p.description ? esc(p.description) + ' · ' : ''}Shared by ${esc(p.authorName || 'a Lobe Limpet user')}${p.ownerUid === currentAdminUid ? ' (you)' : ''}</small></span>
+      <span class="lib-actions" style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="pack-link-btn" data-action="copy-pack" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy</button>
+        ${p.ownerUid !== currentAdminUid ? `<button class="pack-link-btn" data-action="lib-report" data-id="${esc(p.id)}" data-name="${esc(p.name)}" title="Tell Lobe Limpet about a mistake or a problem"><i data-icon="flag"></i> Report</button>` : ''}
+      </span>
+    </div>`).join('')
+    : `<div class="official-copy-sub">${libraryPacks.length ? 'No library packs match.' : 'Nothing in the library yet. Share one of your packs to be the first.'}</div>`;
+}
+function openReportLibraryPack(id, name) {
+  openLibModal({
+    title: 'Report a problem',
+    body: `<p>What's wrong with <strong>${esc(name)}</strong>? For example a wrong answer, something unsuitable, or copied material. Lobe Limpet will look at it.</p>`,
+    note: '', noteLabel: 'What you found', okLabel: 'Send report',
+    onOk: async note => {
+      if (!note) { showToast('Please say what the problem is', 'error'); return; }
+      try {
+        await addDoc(collection(db, 'libraryReports'), { packId: id, packName: name, by: currentAdminUid, byName: libraryName, note: note.slice(0, 1000), at: Date.now() });
+        closeModal('modal-library');
+        showToast('Thanks, your report has been sent.', 'success');
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    },
+  });
+}
+
+// ── Moderation (Admin → Library) ──
+async function loadLibraryAdmin() {
+  const box = document.getElementById('lib-admin');
+  box.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  try {
+    const [pending, live, reportsSnap] = await Promise.all([
+      getDocs(query(collection(db, 'content'), where('libraryStatus', '==', 'pending'))),
+      getDocs(query(collection(db, 'content'), where('visibility', '==', 'library'))),
+      getDocs(collection(db, 'libraryReports')).catch(() => null),
+    ]);
+    const reports = []; reportsSnap?.forEach(d => reports.push({ id: d.id, ...d.data() }));
+    const liveList = []; live.forEach(d => liveList.push({ id: d.id, ...d.data() }));
+    const copies = {};
+    await Promise.all(liveList.map(async p => {
+      const c = await getDocs(query(collection(db, 'content'), where('copiedFrom', '==', p.id))).catch(() => null);
+      copies[p.id] = c ? c.size : 0;
+    }));
+    const when = t => t ? new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    const pendingRows = pending.docs.map(d => { const p = d.data(); return `
+      <div class="lib-row">
+        <span><strong>${esc(p.name)}</strong>${p.libraryPackId ? ' <span class="pack-badge" style="margin:0">Update</span>' : ''}
+          <small>By ${esc(p.libraryAuthor || 'unknown')} · sent ${when(p.librarySubmittedAt)}${p.description ? ` · ${esc(p.description)}` : ''}</small>
+          ${p.librarySubmitNote ? `<small>Note: ${esc(p.librarySubmitNote)}</small>` : ''}</span>
+        <span class="lib-actions">
+          <button class="btn btn-secondary btn-sm" data-action="lib-review" data-id="${d.id}"><i data-icon="eye"></i> Review content</button>
+          <button class="btn btn-secondary btn-sm" data-action="lib-reject" data-id="${d.id}">Turn down</button>
+          <button class="btn btn-primary btn-sm" data-action="lib-approve" data-id="${d.id}"><i data-icon="circle-check"></i> Approve</button>
+        </span>
+      </div>`; }).join('');
+    const reportRows = reports.sort((a, b) => b.at - a.at).map(r => `
+      <div class="lib-report"><strong>${esc(r.packName || '')}</strong> · ${esc(r.byName || 'someone')} · ${when(r.at)}<br>${esc(r.note || '')}
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+          ${liveList.some(p => p.id === r.packId) ? `<button class="btn btn-secondary btn-sm" data-action="lib-review" data-id="${esc(r.packId)}">Open pack</button>
+          <button class="btn btn-secondary btn-sm" data-action="lib-remove" data-id="${esc(r.packId)}">Remove from library</button>` : '<span class="as-sub">No longer in the library.</span>'}
+          <button class="btn btn-ghost btn-sm" data-action="lib-dismiss-report" data-id="${esc(r.id)}">Dismiss</button>
+        </div></div>`).join('');
+    const liveRows = liveList.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'en-GB')).map(p => `
+      <div class="lib-row">
+        <span><strong>${esc(p.name)}</strong>
+          <small>${esc(libInfoText(p))}</small>
+          <small>By ${esc(p.authorName || 'unknown')} · approved ${when(p.approvedAt)} · ${copies[p.id] || 0} cop${copies[p.id] === 1 ? 'y' : 'ies'} made</small></span>
+        <span class="lib-actions">
+          <button class="btn btn-secondary btn-sm" data-action="lib-review" data-id="${p.id}"><i data-icon="eye"></i> Open</button>
+          <button class="btn btn-secondary btn-sm" data-action="lib-remove" data-id="${p.id}">Remove</button>
+        </span>
+      </div>`).join('');
+    box.innerHTML = `
+      <div class="lib-section"><h3><i data-icon="clock"></i> Waiting for review (${pending.size})</h3>${pendingRows || '<div class="as-sub">Nothing waiting.</div>'}</div>
+      ${reports.length ? `<div class="lib-section"><h3><i data-icon="flag"></i> Reports (${reports.length})</h3>${reportRows}</div>` : ''}
+      <div class="lib-section"><h3><i data-icon="library"></i> In the library (${liveList.length})</h3>${liveRows || '<div class="as-sub">Nothing yet.</div>'}</div>`;
+  } catch (e) {
+    box.innerHTML = `<div class="empty-state"><h3>Couldn't load the library</h3><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+async function approveLibraryPack(id, btn) {
+  btn.disabled = true; btn.textContent = 'Publishing…';
+  try {
+    const d = (await getDoc(doc(db, 'content', id))).data() || {};
+    if (!d.ownerUid) throw new Error('This pack has no owner');
+    const old = d.libraryPackId;
+    const r = await copyPack(id, { library: { authorUid: d.ownerUid, authorName: d.libraryAuthor || '' } });
+    await updateDoc(doc(db, 'content', r.id), { libraryInfo: r.info });
+    await updateDoc(doc(db, 'content', id), { libraryStatus: 'approved', libraryPackId: r.id, libraryApprovedAt: Date.now(), libraryNote: deleteField() });
+    if (old && old !== r.id) await deletePackTree(old).catch(e => console.warn('Old library copy not removed', e));
+    logEvent('content.pack', { target: d.name, targetId: r.id, detail: old ? 'Library update approved' : 'Approved for the library' });
+    showToast(`"${d.name}" is in the library`, 'success');
+    loadLibraryAdmin();
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Approve';
+  }
+}
+async function openRejectLibraryPack(id) {
+  const d = (await getDoc(doc(db, 'content', id))).data() || {};
+  openLibModal({
+    title: 'Turn down this pack?',
+    body: `<p><strong>${esc(d.name)}</strong> won't be added${d.libraryPackId ? ' (the copy already in the library stays as it is)' : ''}. ${esc(d.libraryAuthor || 'The author')} will see your reason on the pack, so keep it kind and specific.</p>`,
+    note: '', noteLabel: 'Reason shown to the author', okLabel: 'Turn down', danger: true,
+    onOk: async note => {
+      if (!note) { showToast('Please give a reason', 'error'); return; }
+      try {
+        await updateDoc(doc(db, 'content', id), d.libraryPackId
+          ? { libraryStatus: 'approved', libraryNote: `Update not accepted: ${note.slice(0, 280)}` }
+          : { libraryStatus: 'rejected', libraryNote: note.slice(0, 300) });
+        logEvent('content.pack', { target: d.name, targetId: id, detail: `Library: turned down (${note.slice(0, 80)})` });
+        closeModal('modal-library');
+        showToast('Turned down', 'success');
+        loadLibraryAdmin();
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    },
+  });
+}
+async function openRemoveLibraryPack(libId) {
+  const p = (await getDoc(doc(db, 'content', libId))).data() || {};
+  openLibModal({
+    title: 'Remove from the library?',
+    body: `<p><strong>${esc(p.name)}</strong> will be taken out of the library. Copies people have already made stay with them. ${esc(p.authorName || 'The author')} will see your reason on their pack.</p>`,
+    note: '', noteLabel: 'Reason shown to the author', okLabel: 'Remove', danger: true,
+    onOk: async note => {
+      if (!note) { showToast('Please give a reason', 'error'); return; }
+      try {
+        await deletePackTree(libId);
+        if (p.sourcePackId) await updateDoc(doc(db, 'content', p.sourcePackId), { libraryStatus: 'removed', libraryNote: note.slice(0, 300), libraryPackId: deleteField() }).catch(() => {});
+        logEvent('content.delete', { target: p.name, targetId: libId, detail: `Removed from the library (${note.slice(0, 80)})` });
+        closeModal('modal-library');
+        showToast('Removed from the library', 'success');
+        loadLibraryAdmin();
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    },
+  });
+}
+async function dismissLibraryReport(id) {
+  try { await deleteDoc(doc(db, 'libraryReports', id)); loadLibraryAdmin(); }
+  catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+
 /* ── ALL STUDENTS ────────────────────────────────────────────
    Every student account with this week's figures, who looks after
    them and their packs. Admins can already read every user and pack.
@@ -3060,14 +3412,21 @@ async function renderOfficialToCopy() {
     </div>`).join('');
 }
 
-async function copyPack(srcId) {
+// Fields that describe a pack's place (owner, library state), never copied
+const PLACE_FIELDS = ['ownerUid', 'visibility', 'createdAt', 'copiedFrom', 'libraryStatus', 'libraryNote', 'libraryPackId',
+  'libraryAuthor', 'librarySubmittedAt', 'libraryApprovedAt', 'libraryInfo', 'sourcePackId', 'authorName', 'approvedAt'];
+// library: { authorUid, authorName } makes the copy a published library pack (admins only)
+async function copyPack(srcId, { library = null } = {}) {
   const src = await getDoc(doc(db, 'content', srcId));
   if (!src.exists()) throw new Error('That pack no longer exists');
-  const { ownerUid, visibility, createdAt, copiedFrom, ...rest } = src.data();
-  const owner = MINE ? { ownerUid: currentAdminUid, visibility: 'private' } : { visibility: 'official' };
-  const name = `Copy of ${rest.name || 'pack'}`;
+  const rest = { ...src.data() };
+  PLACE_FIELDS.forEach(k => delete rest[k]);
+  const owner = library ? { ownerUid: library.authorUid, visibility: 'library', sourcePackId: srcId, authorName: library.authorName || '', approvedAt: Date.now() }
+    : MINE ? { ownerUid: currentAdminUid, visibility: 'private', copiedFrom: srcId }
+    : { visibility: 'official', copiedFrom: srcId };
+  const name = library ? (rest.name || 'Untitled pack') : `Copy of ${rest.name || 'pack'}`;
   // The pack itself first: the security rules check it before anything inside can be written
-  const ref = await addDoc(collection(db, 'content'), { ...rest, name, ...owner, copiedFrom: srcId, createdAt: serverTimestamp() });
+  const ref = await addDoc(collection(db, 'content'), { ...rest, name, ...owner, createdAt: serverTimestamp() });
   const from = `content/${srcId}`, to = `content/${ref.id}`;
   const writes = [];
   const subjects = await getDocs(collection(db, `${from}/subjects`));
@@ -3088,8 +3447,17 @@ async function copyPack(srcId) {
     writes.slice(i, i + 400).forEach(([path, data]) => batch.set(doc(db, path), data));
     await batch.commit();
   }
-  logEvent('content.pack', { target: name, targetId: ref.id, detail: `Copied from ${rest.name || srcId}` });
-  return { id: ref.id, name, items: writes.length };
+  if (!library) logEvent('content.pack', { target: name, targetId: ref.id, detail: `Copied from ${rest.name || srcId}` });
+  // A short summary for library listings
+  const subjectData = subjects.docs.map(d => d.data());
+  const info = {
+    subjects: subjectData.map(d => d.name).filter(Boolean),
+    levels: [...new Set(subjectData.map(d => d.level).filter(Boolean))],
+    boards: [...new Set(subjectData.map(d => d.examBoard).filter(Boolean))],
+    topics: writes.filter(([p]) => /\/topics\/[^/]+$/.test(p)).length,
+    questions: writes.filter(([p]) => /\/questions\/[^/]+$/.test(p)).length,
+  };
+  return { id: ref.id, name, items: writes.length, info };
 }
 
 async function copyPackClicked(btn) {
@@ -3459,6 +3827,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109k"></script>
+<script src="site.js?v=20261109l"></script>
 </body>
 </html>

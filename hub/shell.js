@@ -8,9 +8,9 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109k';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261109k';
-import { themeColour } from './themes.js?v=20261109k';
+import { db } from './firebase-config.js?v=20261109l';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261109l';
+import { themeColour } from './themes.js?v=20261109l';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -84,6 +84,7 @@ export function mountShell(user, profile, { view, active } = {}) {
       ${adminLink('home', 'house', 'Home')}
       <div class="nav-section-label">Content</div>
       ${adminLink('groups', 'folder', 'Revision packs')}
+      ${adminLink('library', 'library', 'Library')}
       ${onAdminPage() ? `<a class="nav-item nav-sub" href="#questions" data-nav="questions" id="nav-questions-btn" style="display:none;"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Current topic</span></a>` : ''}
       <div class="nav-section-label">People</div>
       ${adminLink('users', 'user', 'Users & roles')}

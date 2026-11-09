@@ -13,7 +13,14 @@ rules_version = '2';
 //     Own packs (ownerUid, visibility 'private'): made by parents and teachers;
 //     only the owner, admins and students given the pack (packIds on the
 //     student) can read; only the owner and admins write.
-//     Students may save AI cheat sheets / notes / short answers on packs they can read.
+//     Library packs (visibility 'library'): frozen copies an admin approved
+//     from someone's own pack; any signed-in user can read them (to copy);
+//     only admins create or change them; the author may delete them.
+//     Owners can offer a pack for the library (libraryStatus 'pending') but
+//     can't approve it themselves.
+//     Students may save AI cheat sheets / notes / short answers on official
+//     and own packs they can read (not library packs).
+//   Library reports: any signed-in user can report; admins read and clear.
 //   Settings: any signed-in user can read; admins write.
 //
 // ROLLBACK: if anything stops working, paste the previous rules back
@@ -201,35 +208,54 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(me()))
         && p in userDoc(me()).get('packIds', []);
     }
-    function canReadPack(d, p) { return signedIn() && (officialPack(d) || ownsPack(d) || isAdmin() || givenPack(p)); }
+    function libraryPack(d) { return d.get('visibility', '') == 'library'; }
+    function canReadPack(d, p) { return signedIn() && (officialPack(d) || libraryPack(d) || ownsPack(d) || isAdmin() || givenPack(p)); }
+    // An owner editing their own (non-library) pack: can't change who owns it or
+    // where it lives, can only ask for library review (or withdraw), and can
+    // only clear the link to its library copy
+    function ownerEditOK() {
+      return ownsPack(resource.data) && !libraryPack(resource.data)
+        && !changedKeys().hasAny(['ownerUid', 'visibility', 'libraryNote', 'libraryApprovedAt', 'sourcePackId'])
+        && (!changedKeys().hasAny(['libraryStatus']) || request.resource.data.get('libraryStatus', '') in ['pending', ''])
+        && (!changedKeys().hasAny(['libraryPackId']) || !('libraryPackId' in request.resource.data));
+    }
 
     match /content/{p} {
       allow get: if canReadPack(resource.data, p);
       // Lists must ask for official packs or the caller's own (admins: all)
       allow list: if signedIn() && (isAdmin()
         || resource.data.visibility == 'official'
+        || resource.data.visibility == 'library'
         || resource.data.ownerUid == me());
       // Parents and teachers make private packs of their own
       allow create: if isAdmin() || (signedIn()
         && (hasRole(userDoc(me()), 'parent') || hasRole(userDoc(me()), 'teacher'))
         && request.resource.data.ownerUid == me()
         && request.resource.data.visibility == 'private');
-      allow update: if isAdmin() || (ownsPack(resource.data) && !changedKeys().hasAny(['ownerUid', 'visibility']));
+      allow update: if isAdmin() || ownerEditOK();
       allow delete: if isAdmin() || ownsPack(resource.data);
 
       // Subjects, topics, questions and notes inside the pack
       match /{rest=**} {
         allow read: if canReadPack(packDoc(p), p);
-        allow write: if isAdmin() || ownsPack(packDoc(p));
+        allow write: if isAdmin()
+          || (ownsPack(packDoc(p)) && (!libraryPack(packDoc(p)) || request.method == 'delete'));
       }
     }
     // Students can save AI-made cheat sheets, short answers and point notes
     // (shared with everyone using the pack, so they're only made once)
     match /content/{p}/subjects/{s}/topics/{t} {
-      allow update: if canReadPack(packDoc(p), p) && changedKeys().hasOnly(['cheatSheet', 'shortAnswers']);
+      allow update: if canReadPack(packDoc(p), p) && !libraryPack(packDoc(p)) && changedKeys().hasOnly(['cheatSheet', 'shortAnswers']);
       match /notes/{n} {
-        allow create: if canReadPack(packDoc(p), p);
+        allow create: if canReadPack(packDoc(p), p) && !libraryPack(packDoc(p));
       }
+    }
+
+    // ── Library reports ───────────────────────────────────
+    match /libraryReports/{id} {
+      allow create: if signedIn() && request.resource.data.by == me()
+        && request.resource.data.note is string && request.resource.data.note.size() <= 1000;
+      allow read, delete: if isAdmin();
     }
 
     // ── App settings ──────────────────────────────────────

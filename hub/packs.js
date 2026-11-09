@@ -4,18 +4,20 @@
 //   ownerUid    who made it (missing on packs made by an admin)
 //   visibility  'official' (admin packs, everyone can use them)
 //               'private'  (only the owner and the students it's assigned to)
-//               'library'  (shared, later; treated as private for now)
+//               'library'  (a frozen copy approved for the shared library; anyone
+//                           signed in can read it and make their own copy)
 // Students carry a flat list of every pack they've been given,
 // users/{uid}.packIds, so the security rules can check access
 // (groupIds from a parent + every list in classPacks from teachers).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109k';
+import { db } from './firebase-config.js?v=20261109l';
 import {
   collection, getDocs, getDoc, doc, query, where, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-export const isOwnPack = (p, uid) => !!p && !!p.ownerUid && p.ownerUid === uid;
+// (a published library copy of my pack isn't one of "my packs": it's in the library)
+export const isOwnPack = (p, uid) => !!p && !!p.ownerUid && p.ownerUid === uid && p.visibility !== 'library';
 // Admin packs made before ownership existed have neither field
 export const isOfficialPack = p => !!p && (p.visibility === 'official' || !p.ownerUid);
 
