@@ -18,7 +18,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── The owner ─────────────────────────────────────────
-    function ownerUid() { return 'PASTE_OWNER_UID_HERE'; }
+    function ownerUid() { return '0hFoAiW9YFhqk2BovndPnoT1Ul22'; }
 
     // ── Helpers ───────────────────────────────────────────
     function signedIn() { return request.auth != null; }

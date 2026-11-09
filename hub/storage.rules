@@ -6,7 +6,7 @@ rules_version = '2';
 // ============================================================
 service firebase.storage {
   match /b/{bucket}/o {
-    function ownerUid() { return 'PASTE_OWNER_UID_HERE'; }
+    function ownerUid() { return '0hFoAiW9YFhqk2BovndPnoT1Ul22'; }
     function isAdmin() {
       let d = firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
       return request.auth.uid == ownerUid() || 'admin' in d.get('roles', []) || d.get('role', '') == 'admin';
