@@ -8,13 +8,17 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109h';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261109h';
-import { themeColour } from './themes.js?v=20261109h';
+import { db } from './firebase-config.js?v=20261109i';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261109i';
+import { themeColour } from './themes.js?v=20261109i';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const onAdminPage = () => /admin\.html$/.test(location.pathname);
+const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
+// "My packs": the pack builder, opened for a parent or teacher
+const myPacksLink = (view, active) => `<a class="nav-item${active === 'packs' ? ' active' : ''}" href="admin.html?mine=${view}">
+        <span class="nav-icon"><i data-icon="folder"></i></span><span>My packs</span>
+      </a>`;
 
 // Each adult page belongs to one "view". The view is shown clearly
 // (coloured label in the sidebar, a chip in the page header, the tab
@@ -26,7 +30,7 @@ export const VIEWS = {
 };
 
 // view:   'parent' | 'admin' | 'teacher'  (which workspace this page is)
-// active: 'children' | 'groups' | 'questions' | 'users' | 'settings' | 'classes'
+// active: 'children' | 'groups' | 'questions' | 'users' | 'settings' | 'classes' | 'packs'
 // The sidebar shows the sections for the current view only; people with
 // several roles switch view at the top.
 export function mountShell(user, profile, { view, active } = {}) {
@@ -65,6 +69,7 @@ export function mountShell(user, profile, { view, active } = {}) {
       <a class="nav-item${active === 'children' ? ' active' : ''}" href="parent.html#students" data-ph="students">
         <span class="nav-icon"><i data-icon="users"></i></span><span>My students</span>
       </a>
+      ${myPacksLink('parent', active)}
       <div id="shell-children"></div>`,
     teacher: `
       <div class="nav-section-label">Teaching</div>
@@ -73,7 +78,8 @@ export function mountShell(user, profile, { view, active } = {}) {
       </a>
       <a class="nav-item${active === 'classes' ? ' active' : ''}" href="teacher-dashboard.html#classes" data-ph="classes">
         <span class="nav-icon"><i data-icon="school"></i></span><span>My classes</span>
-      </a>`,
+      </a>
+      ${myPacksLink('teacher', active)}`,
     admin: `
       ${adminLink('home', 'house', 'Home')}
       <div class="nav-section-label">Content</div>
@@ -110,7 +116,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     </div>`;
 
   // Highlight the right admin item
-  if (active && !['children', 'classes', 'home'].includes(active)) sidebar.querySelector(`[data-nav="${active}"], [href="admin.html#${active}"]`)?.classList.add('active');
+  if (active && !['children', 'classes', 'home', 'packs'].includes(active)) sidebar.querySelector(`[data-nav="${active}"], [href="admin.html#${active}"]`)?.classList.add('active');
 
   // A chip in the page header repeats the view, so it's visible on phones too
   const topbar = document.querySelector('.app-layout .topbar');

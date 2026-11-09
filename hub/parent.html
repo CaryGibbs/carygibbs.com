@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109h">
-  <script src="icons.js?v=20261109h"></script>
-  <link rel="stylesheet" href="stats.css?v=20261109h">
+  <link rel="stylesheet" href="theme.css?v=20261109i">
+  <script src="icons.js?v=20261109i"></script>
+  <link rel="stylesheet" href="stats.css?v=20261109i">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -127,6 +127,8 @@
     .group-check-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer; flex-shrink: 0; }
     .group-check-label { font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600; color: var(--color-text); flex: 1; }
     .group-check-desc { font-size: 0.78rem; color: var(--color-text-muted); }
+    .group-check-head { font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); margin-top: 4px; }
+    .group-check-make { font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; color: var(--color-primary); text-decoration: none; display: inline-flex; gap: 6px; align-items: center; margin-top: 2px; }
 
     /* ── Progress modal ──────────────────────────────────── */
     .progress-modal { max-width: 860px; }
@@ -170,7 +172,7 @@
       .progress-xp { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109h">
+  <link rel="stylesheet" href="ui.css?v=20261109i">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -413,18 +415,19 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261109h';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261109h';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261109h';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261109h';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109h';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261109h';
-import { logEvent } from './log.js?v=20261109h';
-import { openInviteDialog } from './invite.js?v=20261109h';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109h';
-import { dueEntries, scheduledCount } from './srs.js?v=20261109h';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261109h';
-import { openPlanCalendar } from './plan-view.js?v=20261109h';
+import { auth, db } from './firebase-config.js?v=20261109i';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261109i';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261109i';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261109i';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109i';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261109i';
+import { logEvent } from './log.js?v=20261109i';
+import { openInviteDialog } from './invite.js?v=20261109i';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109i';
+import { dueEntries, scheduledCount } from './srs.js?v=20261109i';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261109i';
+import { openPlanCalendar } from './plan-view.js?v=20261109i';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261109i';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -450,7 +453,9 @@ let manageTheme   = 'edge';
 let managingChildId = null;
 let notifyingChildId = null;
 let childrenData  = {};
-let allGroups     = []; // [{ id, name }]
+let allGroups     = []; // [{ id, name, mine }]: official packs and my own
+let otherPackNames = {}; // packs a student has that I can't assign (e.g. another parent's own pack)
+const packName = id => allGroups.find(g => g.id === id)?.name || otherPackNames[id] || 'Another pack';
 
 /* ── Auth ────────────────────────────────────────────────── */
 requireAuth((user, profile) => {
@@ -482,9 +487,17 @@ window._openInvite = (fromManage) => {
 
 /* ── Load available groups ───────────────────────────────── */
 async function loadGroups() {
-  const snap = await getDocs(collection(db, 'content')).catch(() => null);
-  allGroups = [];
-  if (snap) snap.forEach(d => allGroups.push({ id: d.id, name: d.data().name || d.id }));
+  allGroups = await listPacks(parentUid).catch(() => []);
+}
+// Names for packs on my students that aren't in my list
+async function loadOtherPackNames() {
+  const ids = new Set();
+  Object.values(childrenData).forEach(c => flatPackIds(c).forEach(id => ids.add(id)));
+  const missing = [...ids].filter(id => !allGroups.some(g => g.id === id) && !(id in otherPackNames));
+  if (!missing.length) return;
+  missing.forEach(id => { otherPackNames[id] = otherPackNames[id] || null; });
+  Object.assign(otherPackNames, await packNames(missing));
+  renderChildren();
 }
 
 /* ── Load children ───────────────────────────────────────── */
@@ -517,6 +530,7 @@ async function refreshFromChildRecords() {
     Object.assign(childrenData[id] || {}, fresh);
   }));
   renderChildren();
+  loadOtherPackNames();
 }
 
 /* ── Home / My students sections (#home, #students) ─────────── */
@@ -677,7 +691,7 @@ function renderChildren() {
     const initials = (child.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const avatarBg = themeColour(child.theme);
     const groupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
-    const groupNames = groupIds.map(gid => allGroups.find(g => g.id === gid)?.name || gid);
+    const groupNames = groupIds.map(packName);
     const groupsHtml = groupNames.length
       ? groupNames.map(n => `<span class="group-chip">${esc(n)}</span>`).join('')
       : `<span class="no-group-chip">No packs assigned</span>`;
@@ -738,17 +752,25 @@ function renderChildren() {
 /* ── Group checkbox helper ───────────────────────────────── */
 function renderGroupChecks(containerId, selectedIds = []) {
   const wrap = document.getElementById(containerId);
+  const makeOwn = `<a class="group-check-make" href="admin.html?mine=parent"><i data-icon="plus"></i> Make your own pack</a>`;
   if (!allGroups.length) {
-    wrap.innerHTML = `<div style="color:var(--color-text-muted);font-size:0.85rem;">No revision packs yet. Create one in the admin panel first.</div>`;
+    wrap.innerHTML = `<div style="color:var(--color-text-muted);font-size:0.85rem;">No revision packs yet.</div>${makeOwn}`;
     return;
   }
-  wrap.innerHTML = allGroups.map(g => {
+  const item = g => {
     const checked = selectedIds.includes(g.id);
     return `<label class="group-check-item${checked?' checked':''}" onclick="toggleGroupCheck(this)">
       <input type="checkbox" value="${esc(g.id)}"${checked?' checked':''}>
       <div class="group-check-label">${esc(g.name)}</div>
     </label>`;
-  }).join('');
+  };
+  // Packs this student has that I can't see (another parent's or a teacher's own)
+  // are kept when saving; say so, so it isn't a surprise
+  const hidden = selectedIds.filter(id => !allGroups.some(g => g.id === id)).length;
+  wrap.innerHTML = packSections(allGroups).map(sec =>
+      `<div class="group-check-head">${esc(sec.title)}</div>${sec.packs.map(item).join('')}`).join('')
+    + (hidden ? `<div class="group-check-desc">Also has ${hidden} pack${hidden > 1 ? 's' : ''} chosen by someone else, which stay${hidden > 1 ? '' : 's'} as ${hidden > 1 ? 'they are' : 'it is'}.</div>` : '')
+    + makeOwn;
 }
 
 window._toggleGroupCheck = function(label) {
@@ -811,6 +833,7 @@ window._addChild = async function() {
       theme: selectedTheme, createdAt: Date.now(),
       xp: 0, level: 1, streak: 0, sessions: [], classes: {},
       groupIds, // array of group IDs
+      packIds: groupIds, // every pack the student has (lets the security rules check access)
       groupId: groupIds[0] || null // keep single groupId for backwards compat
     });
     await saveEmailIndex(childUid, email, name, ['student']);
@@ -915,7 +938,10 @@ window._selectManageTheme = t => { manageTheme = t; };
 window._saveChild = async function() {
   const name = document.getElementById('manage-name').value.trim();
   if (!name) { showErr('manage-error', 'Please enter a name.'); return; }
-  const groupIds = getCheckedGroupIds('manage-group-list');
+  const was0 = childrenData[managingChildId] || {};
+  const hiddenIds = (was0.groupIds || (was0.groupId ? [was0.groupId] : [])).filter(id => !allGroups.some(g => g.id === id));
+  const groupIds = [...new Set([...getCheckedGroupIds('manage-group-list'), ...hiddenIds])];
+  const packIds = flatPackIds({ groupIds, classPacks: was0.classPacks || {} });
   const btn = document.getElementById('btn-save-child');
   btn.classList.add('loading');
   try {
@@ -924,7 +950,7 @@ window._saveChild = async function() {
     const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null })) };
     const was = { ...(childrenData[managingChildId] || {}) };
     await updateDoc(doc(db, 'users', managingChildId), {
-      name, theme: manageTheme, groupIds, cardLength, plan,
+      name, theme: manageTheme, groupIds, packIds, cardLength, plan,
       groupId: groupIds[0] || null
     });
     const planText = p => `${p?.mode || 'auto'}${(p?.exams || []).length ? ' · ' + p.exams.map(e => `${e.name} ${e.start}${e.end ? '–' + e.end : ''}`).join('; ') : ''}`;
@@ -1055,7 +1081,7 @@ window._openProgressModal = async function(uid) {
   document.getElementById('progress-avatar').style.cssText = `background:${avatarBg}22;color:${avatarBg};width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;flex-shrink:0;`;
 
   const groupIds = child.groupIds || (child.groupId ? [child.groupId] : []);
-  const groupNames = groupIds.map(gid => allGroups.find(g=>g.id===gid)?.name || gid);
+  const groupNames = groupIds.map(packName);
   document.getElementById('progress-groups').textContent = groupNames.length ? groupNames.join(', ') : 'No packs assigned';
 
   // Load the child's full record (sessions, XP, badges, streak)
@@ -1195,6 +1221,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109h"></script>
+<script src="site.js?v=20261109i"></script>
 </body>
 </html>

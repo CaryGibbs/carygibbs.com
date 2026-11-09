@@ -13,7 +13,7 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261109h';
+import { db, auth } from './firebase-config.js?v=20261109i';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
@@ -71,7 +71,10 @@ export function setLogActor(uid, profile, role) {
 }
 export function pageRole() {
   const p = location.pathname;
-  if (/admin\.html$/.test(p)) return 'admin';
+  if (/admin\.html$/.test(p)) {
+    const mine = new URLSearchParams(location.search).get('mine');   // "My packs" for a parent or teacher
+    return ['parent', 'teacher'].includes(mine) ? mine : 'admin';
+  }
   if (/teacher/.test(p)) return 'teacher';
   if (/parent\.html$/.test(p)) return 'parent';
   return 'student';

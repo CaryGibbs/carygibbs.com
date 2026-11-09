@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109h">
-  <script src="icons.js?v=20261109h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109i">
+  <script src="icons.js?v=20261109i"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -171,6 +171,8 @@
     .pack-option:hover { border-color: var(--color-primary); }
     .pack-option input { margin-top:3px; accent-color: var(--color-primary); width:16px; height:16px; }
     .pack-option small { display:block; color: var(--color-text-muted); font-size:0.78rem; margin-top:2px; }
+    .pack-section-head { font-family: var(--font-ui); font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color: var(--color-text-muted); margin: 10px 0 6px; }
+    .pack-make { display:inline-flex; gap:6px; align-items:center; margin-top:10px; font-family: var(--font-ui); font-size:0.85rem; font-weight:600; color: var(--color-primary); text-decoration:none; }
     .modal-note { font-family: var(--font-ui); font-size:0.85rem; color: var(--color-text-muted); margin-bottom: var(--space-md); }
     .student-row-actions { margin-left:auto; display:flex; gap:6px; }
     .student-row-actions .btn { padding:6px 10px; font-size:0.78rem; }
@@ -286,7 +288,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109h">
+  <link rel="stylesheet" href="ui.css?v=20261109i">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -485,17 +487,18 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261109h';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261109h';
-  import { mountShell } from './shell.js?v=20261109h';
-  import { logEvent } from './log.js?v=20261109h';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261109h';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109h';
-  import { app as firebaseApp } from './firebase-config.js?v=20261109h';
+  import { auth, db } from './firebase-config.js?v=20261109i';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261109i';
+  import { mountShell } from './shell.js?v=20261109i';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261109i';
+  import { logEvent } from './log.js?v=20261109i';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261109i';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109i';
+  import { app as firebaseApp } from './firebase-config.js?v=20261109i';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex } from './email-index.js?v=20261109h';
+  import { saveEmailIndex } from './email-index.js?v=20261109i';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -507,7 +510,7 @@
   async function unlinkFromClass(uid, classId) {
     const update = { [`classes.${classId}`]: deleteField(), [`classPacks.${classId}`]: deleteField() };
     if (!(await stillInMyOtherClass(uid, classId))) update.teacherIds = arrayRemove(teacherUid);
-    return updateDoc(doc(db, 'users', uid), update).catch(() => {});
+    return updateStudentPacks(uid, update).catch(() => {});
   }
 
   let teacherUid = null;
@@ -548,10 +551,11 @@
     loadPacks().then(loadClasses);
   });
 
+  // Official packs plus the teacher's own (made in My packs)
   async function loadPacks() {
-    const snap = await getDocs(collection(db, 'content')).catch(() => null);
+    const list = await listPacks(teacherUid).catch(() => []);
     packs = {};
-    snap?.forEach(d => { packs[d.id] = d.data(); });
+    list.forEach(p => { packs[p.id] = p; });
   }
 
   async function countStudents() {
@@ -859,7 +863,8 @@
         teacherUid, teacherIds: [teacherUid], theme: studentTheme,
         createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
         classes: { [activeClassId]: true },
-        classPacks: { [activeClassId]: classPacksNow }
+        classPacks: { [activeClassId]: classPacksNow },
+        packIds: classPacksNow
       });
       await setDoc(doc(db, 'users', teacherUid, 'classes', activeClassId, 'students', uid), { name, email, joinedAt: Date.now() });
       await saveEmailIndex(uid, email, name, ['student']);
@@ -899,12 +904,16 @@
     const chosen = new Set(cls.packIds || []);
     document.getElementById('packs-modal-title').textContent = `Revision packs · ${cls.name || ''}`;
     document.getElementById('packs-error').classList.remove('visible');
-    const entries = Object.entries(packs).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
-    document.getElementById('packs-list').innerHTML = entries.length ? entries.map(([id, p]) => `
+    const option = p => `
       <label class="pack-option">
-        <input type="checkbox" value="${esc(id)}" ${chosen.has(id) ? 'checked' : ''}>
+        <input type="checkbox" value="${esc(p.id)}" ${chosen.has(p.id) ? 'checked' : ''}>
         <span><strong>${esc(p.name)}</strong>${p.description ? `<small>${esc(p.description)}</small>` : ''}</span>
-      </label>`).join('') : '<div class="empty-students">No revision packs exist yet.</div>';
+      </label>`;
+    const sections = packSections(Object.values(packs));
+    document.getElementById('packs-list').innerHTML = (sections.length
+      ? sections.map(sec => `<div class="pack-section-head">${esc(sec.title)}</div>${sec.packs.map(option).join('')}`).join('')
+      : '<div class="empty-students">No revision packs exist yet.</div>')
+      + `<a class="pack-make" href="admin.html?mine=teacher"><i data-icon="plus"></i> Make your own pack</a>`;
     openModal('modal-packs');
   };
 
@@ -921,7 +930,7 @@
       // Give every student in the class the packs (read by their hub)
       const snap = await getDocs(collection(db, 'users', teacherUid, 'classes', classId, 'students'));
       const ids = []; snap.forEach(d => ids.push(d.id));
-      const results = await Promise.allSettled(ids.map(uid => updateDoc(doc(db, 'users', uid), { [`classPacks.${classId}`]: packIds })));
+      const results = await Promise.allSettled(ids.map(uid => updateStudentPacks(uid, { [`classPacks.${classId}`]: packIds })));
       const failed = results.filter(r => r.status === 'rejected').length;
       closeModal('modal-packs');
       showToast(failed ? `Saved, but ${failed} student${failed > 1 ? 's' : ''} couldn't be updated.` : `Packs saved for ${ids.length} student${ids.length === 1 ? '' : 's'}.`, failed ? 'error' : 'success');
@@ -1160,6 +1169,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261109h"></script>
+<script src="site.js?v=20261109i"></script>
 </body>
 </html>

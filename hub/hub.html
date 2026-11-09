@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109h">
-  <script src="icons.js?v=20261109h"></script>
-  <link rel="stylesheet" href="stats.css?v=20261109h">
+  <link rel="stylesheet" href="theme.css?v=20261109i">
+  <script src="icons.js?v=20261109i"></script>
+  <link rel="stylesheet" href="stats.css?v=20261109i">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -281,7 +281,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109h">
+  <link rel="stylesheet" href="ui.css?v=20261109i">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -363,15 +363,16 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261109h';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261109h';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261109h';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261109h';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261109h';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261109h';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261109h';
-import { openPlanCalendar } from './plan-view.js?v=20261109h';
-import { logEvent } from './log.js?v=20261109h';
+import { auth, db } from './firebase-config.js?v=20261109i';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261109i';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261109i';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261109i';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261109i';
+import { listPacks, samePackIds } from './packs.js?v=20261109i';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261109i';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261109i';
+import { openPlanCalendar } from './plan-view.js?v=20261109i';
+import { logEvent } from './log.js?v=20261109i';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -412,9 +413,7 @@ requireAuth(async (user, profile) => {
     adminBar.innerHTML = `<span style="color:var(--color-primary);font-weight:600;"><i data-icon="eye"></i> Preview mode, viewing as a student</span><a href="admin.html" style="color:var(--color-primary);font-weight:700;">← Back to admin</a>`;
     document.getElementById('hub-content').before(adminBar);
     // Load first group for preview
-    const groupsSnap = await getDocs(collection(db, 'content'));
-    let firstGroupId = null;
-    groupsSnap.forEach(d => { if (!firstGroupId) firstGroupId = d.id; });
+    const firstGroupId = (await listPacks(user.uid).catch(() => []))[0]?.id || null;
     if (firstGroupId) await loadSubjects(user, firstGroupId);
     else document.getElementById('hub-content').innerHTML = `<div class="no-group-banner"><h3>No revision packs yet</h3><p>Create one in the admin panel first.</p></div>`;
     return;
@@ -424,6 +423,14 @@ requireAuth(async (user, profile) => {
   // a class). If several, they pick one; the choice is remembered.
   const groupIds = packIdsFor(profile);
   const groupId = chosenPack(user, profile, groupIds);
+
+  // Keep the flat list of my packs up to date: the security rules use it
+  // to let me read packs a parent or teacher made themselves
+  if (!isPreview() && user.uid !== 'preview-readonly') {
+    if (!samePackIds(profile.packIds || [], groupIds)) {
+      await updateDoc(doc(db, 'users', user.uid), { packIds: groupIds }).catch(e => console.warn('Could not update pack list', e.message));
+    }
+  }
 
   if (!groupId) {
     document.getElementById('welcome-sub').textContent = 'Your revision content will appear here once a revision pack is chosen for you.';
@@ -839,6 +846,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261109h"></script>
+<script src="site.js?v=20261109i"></script>
 </body>
 </html>

@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109h">
-  <script src="icons.js?v=20261109h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109i">
+  <script src="icons.js?v=20261109i"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -477,6 +477,17 @@
       padding: 0 6px;
     }
   
+  /* ── My packs mode (parents and teachers) ── */
+  body.no-ai [data-qtab="generate"], body.no-ai #qtab-generate,
+  body.no-ai [data-action="suggest-links"], body.no-ai [data-action="generate-everything"],
+  body.no-ai div:has(> [data-kptab]), body.no-ai #kptab-paste, body.no-ai #kptab-research,
+  body.no-ai div:has(> [data-kptab-modal]), body.no-ai #kptab-modal-paste, body.no-ai #kptab-modal-research,
+  body.no-ai #kp-gen-questions-section { display: none !important; }
+  .plus-note { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 var(--space-md); padding: 10px 14px; border-radius: var(--radius-button); background: var(--color-primary-glow); color: var(--color-text); font-size: 0.86rem; line-height: 1.45; }
+  .plus-note i { color: var(--color-primary); flex-shrink: 0; margin-top: 2px; }
+  .pack-badge { display: inline-block; margin-top: 8px; font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); }
+  #panel-groups .panel-subtitle a { color: var(--color-primary); font-weight: 600; }
+
   /* ── Activity log ── */
   .log-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
   .log-tab { font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; }
@@ -511,7 +522,7 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109h">
+  <link rel="stylesheet" href="ui.css?v=20261109i">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1111,15 +1122,15 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109h';
-import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109h';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109h';
-import { mountShell } from './shell.js?v=20261109h';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109h';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109h';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109h';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109h';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109h';
+import { auth, db, storage } from './firebase-config.js?v=20261109i';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109i';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109i';
+import { mountShell } from './shell.js?v=20261109i';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109i';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109i';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109i';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109i';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109i';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1135,7 +1146,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109h';
+import { saveEmailIndex } from './email-index.js?v=20261109i';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1160,9 +1171,44 @@ let generatedQs     = [];   // pending AI questions
 let confirmCallback = null;
 let currentQType    = 'mcq';
 
+/* ── "My packs" mode ─────────────────────────────────────────
+   admin.html?mine=parent or ?mine=teacher opens the same pack builder
+   for a parent or teacher. They see and edit only packs they own
+   (ownerUid), which start private. Writing questions by hand is free;
+   AI generation needs Plus (hasPlus: admins always count as Plus). */
+const MINE = (() => { const m = new URLSearchParams(location.search).get('mine'); return ['parent', 'teacher'].includes(m) ? m : null; })();
+let canAI = true;
+const PLUS_MSG = 'AI generation is part of Lobe Limpet Plus. You can still add key points and questions by hand.';
+function aiAllowed() { if (!canAI) showToast(PLUS_MSG, 'info'); return canAI; }
+
+function startMine(user, profile) {
+  currentAdminUid = user.uid;
+  canAI = hasPlus(profile);
+  document.title = 'Lobe Limpet — My packs';
+  document.body.classList.add('mine-mode');
+  if (!canAI) document.body.classList.add('no-ai');
+  const back = MINE === 'teacher' ? 'teacher-dashboard.html#classes' : 'parent.html#students';
+  const backLabel = MINE === 'teacher' ? 'My classes' : 'My students';
+  document.querySelector('#panel-groups .panel-title').textContent = 'My packs';
+  document.querySelector('#panel-groups .panel-subtitle').innerHTML =
+    `Build revision for your own ${MINE === 'teacher' ? 'classes' : 'students'}. Packs are private: only you and the students you give them to can see them. Assign them in <a href="${back}">${backLabel}</a>.`;
+  if (!canAI) {
+    document.querySelector('#panel-questions .tab-bar').insertAdjacentHTML('afterend',
+      `<div class="plus-note"><i data-icon="sparkles"></i><span>${PLUS_MSG}</span></div>`);
+  }
+  mountShell(user, profile, { view: MINE, active: 'packs' });
+  loadGroups();
+  showPanel('groups');
+  if (!canAI) switchQTab('existing');
+}
+
 /* ── Auth guard ──────────────────────────────────────────── */
 let currentAdminUid = null;
-requireRole('admin', (user, profile) => {
+if (MINE) requireAuth((user, profile) => {
+  if (!hasRole(profile, MINE)) { window.location.href = 'login.html'; return; }
+  startMine(user, profile);
+});
+else requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
   const start = ['home', 'groups', 'users', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
@@ -1468,13 +1514,13 @@ function updateBreadcrumb() {
   if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
   // Content: Content › Groups › group › subject › topic (last one is the current page)
-  const crumbs = [`<span style="cursor:pointer;" data-bc="groups">Revision packs</span>`];
+  const crumbs = [`<span style="cursor:pointer;" data-bc="groups">${MINE ? 'My packs' : 'Revision packs'}</span>`];
   if (selectedGroup)   crumbs.push(`<span style="cursor:pointer;" data-bc="group">${esc(selectedGroup.name)}</span>`);
   if (selectedSubject) crumbs.push(`<span style="cursor:pointer;" data-bc="subject">${esc(selectedSubject.emoji)} ${esc(selectedSubject.name)}</span>`);
   if (selectedTopic)   crumbs.push(`<span>${esc(selectedTopic.name)}</span>`);
   const last = crumbs.length - 1;
   crumbs[last] = crumbs[last].replace('<span', '<span class="breadcrumb-current"');
-  bc.innerHTML = `<span>Content</span>${sep}` + crumbs.join(sep);
+  bc.innerHTML = MINE ? crumbs.join(sep) : `<span>Content</span>${sep}` + crumbs.join(sep);
 }
 
 /* ── Delegation ──────────────────────────────────────────── */
@@ -1581,11 +1627,38 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 async function loadGroups() {
   const grid = document.getElementById('groups-grid');
   grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
-  const snap = await getDocs(query(collection(db, 'content'), orderBy('createdAt', 'asc')));
+  const list = [];
+  try {
+    if (MINE) {
+      // Only my own packs (sorted here, so no extra Firestore index is needed)
+      const snap = await getDocs(query(collection(db, 'content'), where('ownerUid', '==', currentAdminUid)));
+      snap.forEach(d => list.push({ id: d.id, data: d.data() }));
+      const t = x => x?.toMillis?.() || 0;
+      list.sort((a, b) => t(a.data.createdAt) - t(b.data.createdAt));
+    } else {
+      // Admin: the official packs. Parents' and teachers' own packs aren't listed here.
+      // (read unordered and sorted here, so a pack with no createdAt still shows)
+      const snap = await getDocs(collection(db, 'content'));
+      snap.forEach(d => { if (!d.data().ownerUid) list.push({ id: d.id, data: d.data() }); });
+      const t = x => x?.toMillis?.() || 0;
+      list.sort((a, b) => t(a.data.createdAt) - t(b.data.createdAt));
+      // Packs made before ownership existed: mark them official, so everyone
+      // can still list them once the new security rules are published
+      list.filter(p => !p.data.visibility).forEach(p => {
+        p.data.visibility = 'official';
+        updateDoc(doc(db, 'content', p.id), { visibility: 'official' }).catch(e => console.warn('Could not mark pack official', p.id, e.message));
+      });
+    }
+  } catch (e) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><h3>Couldn't load packs</h3><p>${esc(e.message)}</p></div>`;
+    return;
+  }
   grid.innerHTML = '';
-  snap.forEach(d => {
-    grid.appendChild(groupCard(d.id, d.data()));
-  });
+  if (MINE && !list.length) grid.insertAdjacentHTML('beforeend', `<div class="empty-state" style="grid-column:1/-1;">
+      <div class="empty-state-icon"><i data-icon="folder"></i></div>
+      <h3>No packs yet</h3>
+      <p>Make a pack, add subjects and topics, then write questions. Your students see it once you assign it.</p></div>`);
+  list.forEach(p => grid.appendChild(groupCard(p.id, p.data)));
   grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">＋ New pack</div>`);
 }
 
@@ -1599,7 +1672,8 @@ function groupCard(id, data) {
     </div>
     <div class="item-card-emoji"><i data-icon="folder"></i></div>
     <div class="item-card-name">${esc(data.name)}</div>
-    <div class="item-card-meta">${data.description || 'No description'}</div>`;
+    <div class="item-card-meta">${esc(data.description || 'No description')}</div>
+    ${MINE ? `<span class="pack-badge"><i data-icon="lock"></i> Private</span>` : ''}`;
   div.addEventListener('click', e => {
     if (e.target.closest('[data-action="edit-group"],[data-action="del-group"]')) return;
     openGroup(id, data);
@@ -1644,7 +1718,8 @@ async function saveGroup() {
       await updateDoc(doc(db, 'content', editingItem.id), { name, description: desc });
       logEvent('content.pack', { target: name, targetId: editingItem.id, detail: 'Edited' });
     } else {
-      const ref = await addDoc(collection(db, 'content'), { name, description: desc, createdAt: serverTimestamp() });
+      const owner = MINE ? { ownerUid: currentAdminUid, visibility: 'private' } : { visibility: 'official' };
+      const ref = await addDoc(collection(db, 'content'), { name, description: desc, ...owner, createdAt: serverTimestamp() });
       logEvent('content.pack', { target: name, targetId: ref?.id, detail: 'Created' });
     }
     closeModal('modal-group');
@@ -1758,6 +1833,7 @@ async function saveSubject() {
    checks each one loads, and only working links are offered. */
 let linkSuggestions = [];
 async function suggestLinks() {
+  if (!aiAllowed()) return;
   const name  = document.getElementById('subject-name-input').value.trim();
   const board = document.getElementById('subject-board-input').value;
   const level = document.getElementById('subject-level-input').value;
@@ -1874,7 +1950,7 @@ function openTopic(id, data) {
   loadExistingQuestions();
   updateBreadcrumb();
   // show questions nav item
-  document.getElementById('nav-questions-btn').style.display = 'flex';
+  const navQ = document.getElementById('nav-questions-btn'); if (navQ) navQ.style.display = 'flex';
   // show preview links
   updatePreviewLinks();
   // prime gen kp preview
@@ -1993,6 +2069,7 @@ function readKpList(listId) {
 }
 
 async function generateKeyPoints(contentText, statusId, listId) {
+  if (!aiAllowed()) return;
   if (!contentText) { showToast('Paste some content first', 'error'); return; }
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Generating…';
@@ -2026,6 +2103,7 @@ ${contentText.substring(0, 6000)}`;
 
 /* ── KEY POINTS modal/panel wiring ──────────────────────── */
 async function researchKeyPoints(topic, statusId, listId) {
+  if (!aiAllowed()) return;
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Researching…';
   const prompt = `You are an expert GCSE teacher. Write comprehensive key points for the following GCSE topic, organised into named sub-topic groups. Include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student needs for their exam.
@@ -2117,6 +2195,7 @@ function getKpSourceType() {
 }
 
 async function alsoGenerateQuestions() {
+  if (!aiAllowed()) return;
   // Pre-fill the AI generate textarea with source content and switch to that tab
   const sourceText = getKpSourceText();
   const sourceType = getKpSourceType();
@@ -2145,6 +2224,7 @@ async function alsoGenerateQuestions() {
 }
 
 async function generateEverything() {
+  if (!aiAllowed()) return;
   if (!selectedTopic) { showToast('No topic selected', 'error'); return; }
   const sourceText = getKpSourceText();
   const sourceType = getKpSourceType();
@@ -2338,6 +2418,7 @@ async function loadExistingQuestions() {
 
 /* ── AI GENERATION ───────────────────────────────────────── */
 async function runGenerate() {
+  if (!aiAllowed()) return;
   // Determine source
   // Check which source div is visible (more reliable than button class)
   const kpDiv = document.getElementById('gen-source-keypoints');
@@ -2719,12 +2800,30 @@ function handleImagePreview(input) {
 }
 
 /* ── DELETE ──────────────────────────────────────────────── */
+// A pack's subjects, topics, questions and notes go first: once the pack
+// itself is gone, nobody but an admin can reach what's left under it.
+async function deletePackTree(packId) {
+  const kids = async path => { const s = await getDocs(collection(db, path)).catch(() => null); const ids = []; s?.forEach(d => ids.push(d.id)); return ids; };
+  for (const sid of await kids(`content/${packId}/subjects`)) {
+    const sPath = `content/${packId}/subjects/${sid}`;
+    for (const tid of await kids(`${sPath}/topics`)) {
+      const tPath = `${sPath}/topics/${tid}`;
+      for (const sub of ['questions', 'notes']) {
+        await Promise.all((await kids(`${tPath}/${sub}`)).map(id => deleteDoc(doc(db, `${tPath}/${sub}`, id))));
+      }
+      await deleteDoc(doc(db, tPath));
+    }
+    await deleteDoc(doc(db, sPath));
+  }
+  await deleteDoc(doc(db, 'content', packId));
+}
+
 function confirmDelete(type, id, name) {
   document.getElementById('confirm-title').textContent = `Delete ${type === 'group' ? 'revision pack' : type}?`;
   document.getElementById('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone.`;
   confirmCallback = async () => {
     try {
-      if (type === 'group')    await deleteDoc(doc(db, 'content', id));
+      if (type === 'group')    await deletePackTree(id);
       if (type === 'subject')  await deleteDoc(doc(db, subjectsPath(), id));
       if (type === 'topic')    await deleteDoc(doc(db, topicsPath(), id));
       if (type === 'question') { await deleteDoc(doc(db, questionsPath(), id)); loadExistingQuestions(); }
@@ -2963,7 +3062,7 @@ function updatePreviewLinks() {
   if (!selectedGroup || !selectedSubject) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'flex';
 
-  const base = location.href.replace('admin.html', '');
+  const base = new URL('.', location.href).href;
   const params = new URLSearchParams({
     groupId:     selectedGroup.id,
     subjectId:   selectedSubject.id,
@@ -2988,6 +3087,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109h"></script>
+<script src="site.js?v=20261109i"></script>
 </body>
 </html>
