@@ -1,5 +1,5 @@
 // ============================================================
-// BONCE: "Plan to exams" calendar
+// LOBE LIMPET: "Plan to exams" calendar
 // A day-by-day view from a few days ago to the end of the next exams:
 // each day's level and target, a suggested subject, exam days, and
 // ticks or crosses as days pass. Students see it read-only; parents
@@ -7,10 +7,10 @@
 // Parent changes are saved as plan.overrides.<day> on the student.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261108a';
+import { db } from './firebase-config.js?v=20261109a';
 import { doc, updateDoc, deleteField, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261108a';
-import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261108a';
+import { logEvent } from './log.js?v=20261109a';
+import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261109a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

@@ -30,15 +30,19 @@
 .nav-logo-icon, .logo-icon, .sidebar-logo-icon {
   width: 30px !important; height: 30px !important;
   border-radius: 8px !important;
-  background: #ff8a65 !important;              /* Bonce brand: coral tile, ink-black b */
-  color: #1c1917 !important;
+  background: #d4f1ea !important;              /* Lobe Limpet: sea-foam tile, limpet mark */
+  color: #123a4a !important;
   display: inline-flex !important; align-items: center; justify-content: center;
   font-size: 16px !important;
   box-shadow: inset 0 -2px 0 rgba(0,0,0,0.12);
 }
 .nav-logo-icon .icon, .logo-icon .icon, .sidebar-logo-icon .icon { width: 17px; height: 17px; }
 .nav-logo-icon .brand-b, .logo-icon .brand-b, .sidebar-logo-icon .brand-b { width: 21px; height: 21px; }
-.logo-text span { color: #ff8a65 !important; }   /* the orange "o" in bonce */
+.brand-mark { width: 24px; height: 20px; display: block; }
+.logo-wrap .logo-icon { width: 56px !important; height: 56px !important; border-radius: 16px !important; }
+.logo-icon .brand-mark { width: 38px; height: 32px; }
+.brand-word { font-family: 'Fredoka', var(--font-heading), system-ui, sans-serif !important; font-weight: 600 !important; letter-spacing: -0.01em; white-space: nowrap; }
+.brand-accent { color: #ff7a59 !important; }   /* "limpet" in shell coral */
 .nav-back {
   font-weight: 600 !important; font-size: 0.88rem !important;
   padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-button);

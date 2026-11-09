@@ -1,11 +1,11 @@
 // ============================================================
-// BONCE: student theme list, used by theme pickers.
+// LOBE LIMPET: student theme list, used by theme pickers.
 // Colours here are only for the preview swatches; the real
 // values live in theme.css.
 // ============================================================
 
 export const THEMES = [
-  { id: 'edge',     name: 'Ember',       desc: 'Warm dark with Bonce coral',      bg: '#15120f', surface: '#1f1b17', primary: '#ff8a65', text: '#f6efe8', dark: true  },
+  { id: 'edge',     name: 'Ember',       desc: 'Warm dark with limpet coral',      bg: '#15120f', surface: '#1f1b17', primary: '#ff8a65', text: '#f6efe8', dark: true  },
   { id: 'midnight', name: 'Deep Sea',    desc: 'Dark teal with coral',             bg: '#0a1c22', surface: '#10282f', primary: '#ff9b73', text: '#e8f4f4', dark: true  },
   { id: 'cosmic',   name: 'Cosmic',      desc: 'Deep plum night, coral and lilac', bg: '#170f20', surface: '#21162d', primary: '#ff8a65', text: '#f4ecfb', dark: true  },
   { id: 'light',    name: 'Daylight',    desc: 'Clean white, teal and coral',      bg: '#faf7f4', surface: '#ffffff', primary: '#0f5560', text: '#1c1917', dark: false },

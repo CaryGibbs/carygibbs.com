@@ -6,7 +6,7 @@
 // app has always used, so nothing breaks.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261108a';
+import { db } from './firebase-config.js?v=20261109a';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';

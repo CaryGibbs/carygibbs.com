@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bonce — Revision that sticks in your bonce.</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261108a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261108a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261108a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261108a">
-  <meta name="apple-mobile-web-app-title" content="Bonce">
-  <meta name="application-name" content="Bonce">
-  <link rel="stylesheet" href="theme.css?v=20261108a">
-  <script src="icons.js?v=20261108a"></script>
+  <title>Lobe Limpet — Knowledge that sticks.</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109a">
+  <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
+  <meta name="application-name" content="Lobe Limpet">
+  <link rel="stylesheet" href="theme.css?v=20261109a">
+  <script src="icons.js?v=20261109a"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -59,7 +59,7 @@
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261108a">
+  <link rel="stylesheet" href="ui.css?v=20261109a">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -67,10 +67,10 @@
 <div class="container page-fade">
   <div class="logo-wrap">
     <div class="logo-mark">
-      <div class="logo-icon"><svg class="icon brand-b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 2.8v18.4"/><circle cx="12" cy="15.5" r="5.7"/><path d="M9.4 15.5q1.3-2.2 2.6 0t2.6 0" stroke-width="1.9"/></svg></div>
-      <div class="logo-text">b<span>o</span>nce</div>
+      <div class="logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></div>
+      <div class="logo-text brand-word">lobe <span class="brand-accent">limpet</span></div>
     </div>
-    <p class="tagline">Revision that sticks in your bonce.</p>
+    <p class="tagline">Knowledge that sticks.</p>
   </div>
 
   <div class="auth-card card">
@@ -135,7 +135,7 @@
         <p class="form-hint">Enter the code your teacher gave you, or leave blank.</p>
       </div>
       <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create account</button>
-      <p class="invite-alt" id="invite-alt" hidden>Already have a Bonce account? <a href="#" onclick="switchTab('login');return false;">Sign in to accept</a></p>
+      <p class="invite-alt" id="invite-alt" hidden>Already have a Lobe Limpet account? <a href="#" onclick="switchTab('login');return false;">Sign in to accept</a></p>
     </div>
   </div>
 
@@ -153,11 +153,11 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261108a';
-  import { redirectByRole } from './auth.js?v=20261108a';
-  import { logEvent } from './log.js?v=20261108a';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261108a';
-  import { findClass } from './join-class.js?v=20261108a';
+  import { auth, db } from './firebase-config.js?v=20261109a';
+  import { redirectByRole } from './auth.js?v=20261109a';
+  import { logEvent } from './log.js?v=20261109a';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261109a';
+  import { findClass } from './join-class.js?v=20261109a';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
@@ -201,7 +201,7 @@
       if (r.ok) {
         invite = r.invite;
         const kids = (invite.studentNames || []).map(firstOf).filter(Boolean);
-        inviteBox(`<strong>${escH(firstOf(invite.byName) || 'Someone')}</strong> has invited you to join Bonce as ${invite.role === 'admin' ? 'an' : 'a'} <strong>${ROLE_LABEL[invite.role]}</strong>${kids.length ? `, to follow ${escH(kids.join(' and '))}'s revision` : ''}.<span>Create your account below, or sign in if you already have one.</span>`);
+        inviteBox(`<strong>${escH(firstOf(invite.byName) || 'Someone')}</strong> has invited you to join Lobe Limpet as ${invite.role === 'admin' ? 'an' : 'a'} <strong>${ROLE_LABEL[invite.role]}</strong>${kids.length ? `, to follow ${escH(kids.join(' and '))}'s revision` : ''}.<span>Create your account below, or sign in if you already have one.</span>`);
         window._switchTab('signup');
         lockSignupToInvite();
       } else {
@@ -324,7 +324,7 @@
         document.getElementById('login-email').value = email;
         document.getElementById('login-password').value = '';
         document.getElementById('login-password').focus();
-        showError(invite ? 'You already have a Bonce account with this email. Enter your password to sign in and accept the invite.' : 'You already have a Bonce account with this email. Enter your password to sign in.');
+        showError(invite ? 'You already have a Lobe Limpet account with this email. Enter your password to sign in and accept the invite.' : 'You already have a Lobe Limpet account with this email. Enter your password to sign in.');
         return;
       }
       console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
@@ -358,7 +358,7 @@
     const email = user.email || '';
     const canAccept = invite && emailMatches(invite, email);
     inviteBox(`You're signed in as <strong>${escH(email)}</strong>.<span>${canAccept ? 'Accept the invite with this account, or sign out to use another.' : invite ? `This invite is for ${escH(invite.email)}. Sign out, then sign in or sign up with that email.` : 'To create a new account, sign out first.'}</span>
-      <div class="invite-btns">${canAccept ? '<button class="btn btn-primary" id="iv-accept">Accept invite</button>' : ''}<button class="btn btn-secondary" id="iv-signout">Sign out</button><button class="btn btn-ghost" id="iv-go">Go to Bonce</button></div>`, invite ? '' : 'plain');
+      <div class="invite-btns">${canAccept ? '<button class="btn btn-primary" id="iv-accept">Accept invite</button>' : ''}<button class="btn btn-secondary" id="iv-signout">Sign out</button><button class="btn btn-ghost" id="iv-go">Go to Lobe Limpet</button></div>`, invite ? '' : 'plain');
     document.getElementById('iv-signout').onclick = async () => { await signOut(auth); document.getElementById('invite-box').hidden = !invite && !inviteCode; if (invite) inviteReady.then(() => location.reload()); };
     document.getElementById('iv-go').onclick = () => redirectByRole(user.uid);
     document.getElementById('iv-accept')?.addEventListener('click', async (ev) => {

@@ -1,12 +1,12 @@
 {
-  "name": "Bonce",
-  "short_name": "Bonce",
-  "description": "Revision that sticks in your bonce.",
+  "name": "Lobe Limpet",
+  "short_name": "Lobe Limpet",
+  "description": "Knowledge that sticks.",
   "start_url": "/hub/index.html",
   "scope": "/hub/",
   "display": "standalone",
-  "background_color": "#15120f",
-  "theme_color": "#15120f",
+  "background_color": "#d4f1ea",
+  "theme_color": "#123a4a",
   "icons": [
     { "src": "assets/images/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "assets/images/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

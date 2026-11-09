@@ -1,5 +1,5 @@
 // ============================================================
-// BONCE: invitations
+// LOBE LIMPET: invitations
 // A parent (or an admin) invites someone by email. The invite is saved
 // as invites/{code} and shared as a link: index.html?invite=CODE.
 //   { email, name, role, studentIds, studentNames, by, byName,
@@ -10,9 +10,9 @@
 // Admins can invite as Parent, Teacher or Admin; parents as Parent.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261108a';
+import { db } from './firebase-config.js?v=20261109a';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261108a';
+import { logEvent } from './log.js?v=20261109a';
 
 export const INVITE_DAYS = 14;
 export const ROLE_LABEL = { parent: 'Parent', teacher: 'Teacher', admin: 'Admin' };
@@ -124,7 +124,7 @@ export function openInviteDialog(opts) {
   const form = () => {
     ov.innerHTML = `<div class="iv-modal" role="dialog" aria-modal="true" aria-label="Invite someone">
       <div class="iv-head"><h2>${roles.length > 1 ? 'Invite someone' : 'Invite a parent'}</h2><button class="iv-close" aria-label="Close">✕</button></div>
-      <div class="iv-sub">They get a link to join Bonce${opts.students?.length ? ' and see the students you choose' : ''}. It works once and lasts ${INVITE_DAYS} days.</div>
+      <div class="iv-sub">They get a link to join Lobe Limpet${opts.students?.length ? ' and see the students you choose' : ''}. It works once and lasts ${INVITE_DAYS} days.</div>
       ${roles.length > 1 ? `<div class="form-group"><label class="iv-l">Join as</label><div class="iv-roles">${roles.map(r => `<button type="button" data-ivrole="${r}" class="${r === role ? 'on' : ''}">${ROLE_LABEL[r]}</button>`).join('')}</div>
         <div class="iv-hint" id="iv-role-hint"></div></div>` : ''}
       <div class="form-group"><label class="iv-l" for="iv-name">Their name</label><input type="text" id="iv-name" placeholder="e.g. Catherine Gibbs" autocomplete="off"></div>
@@ -166,8 +166,8 @@ export function openInviteDialog(opts) {
   function done(name, email, link, students) {
     const first = name.split(' ')[0];
     const from = (opts.byName || '').split(' ')[0];
-    const subject = `${from ? from + ' has' : 'You\'ve been'} invited you to Bonce`;
-    const body = `Hi ${first},\n\n${from || 'I'} ${from ? 'has' : 'have'} invited you to join Bonce${role !== 'parent' ? ' as ' + (role === 'admin' ? 'an admin' : 'a teacher') : ''}${students.length ? `, so you can follow ${students.map(s => (s.name || '').split(' ')[0]).join(' and ')}'s revision` : ''}.\n\nOpen this link to create your account (or sign in if you already have one):\n${link}\n\nUse this email address: ${email}\nThe link works once and lasts ${INVITE_DAYS} days.`;
+    const subject = `${from ? from + ' has' : 'You\'ve been'} invited you to Lobe Limpet`;
+    const body = `Hi ${first},\n\n${from || 'I'} ${from ? 'has' : 'have'} invited you to join Lobe Limpet${role !== 'parent' ? ' as ' + (role === 'admin' ? 'an admin' : 'a teacher') : ''}${students.length ? `, so you can follow ${students.map(s => (s.name || '').split(' ')[0]).join(' and ')}'s revision` : ''}.\n\nOpen this link to create your account (or sign in if you already have one):\n${link}\n\nUse this email address: ${email}\nThe link works once and lasts ${INVITE_DAYS} days.`;
     ov.innerHTML = `<div class="iv-modal iv-done" role="dialog" aria-modal="true" aria-label="Invite ready">
       <div class="iv-head" style="justify-content:flex-end;margin:0;"><button class="iv-close" aria-label="Close">✕</button></div>
       <div class="iv-big">✉️</div>

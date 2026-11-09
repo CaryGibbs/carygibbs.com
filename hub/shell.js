@@ -8,9 +8,9 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261108a';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261108a';
-import { themeColour } from './themes.js?v=20261108a';
+import { db } from './firebase-config.js?v=20261109a';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261109a';
+import { themeColour } from './themes.js?v=20261109a';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -41,7 +41,7 @@ export function mountShell(user, profile, { view, active } = {}) {
   // Colour the whole page chrome with the view's colour
   document.body.dataset.view = view;
   document.body.style.setProperty('--view-colour', V.colour);
-  if (!/·/.test(document.title)) document.title = `${document.title.replace(/^(Clasp|Bonce)\s*[—-]\s*/, 'Bonce — ')} · ${V.label}`;
+  if (!/·/.test(document.title)) document.title = `${document.title.replace(/^(Clasp|Bonce|Lobe Limpet)\s*[—-]\s*/, 'Lobe Limpet — ')} · ${V.label}`;
 
   // On the admin page, admin links switch panels in place (data-nav);
   // elsewhere they open the admin page at that panel.
@@ -93,8 +93,8 @@ export function mountShell(user, profile, { view, active } = {}) {
   sidebar.innerHTML = `
     <div class="sidebar-logo">
       <a href="${V.home}" class="sidebar-brand">
-        <span class="sidebar-logo-icon"><svg class="icon brand-b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 2.8v18.4"/><circle cx="12" cy="15.5" r="5.7"/><path d="M9.4 15.5q1.3-2.2 2.6 0t2.6 0" stroke-width="1.9"/></svg></span>
-        <span>bonce</span>
+        <span class="sidebar-logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></span>
+        <span class="brand-word">lobe <span class="brand-accent">limpet</span></span>
       </a>
       <button class="sidebar-close" aria-label="Close menu"><i data-icon="x"></i></button>
     </div>
@@ -124,7 +124,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     document.body.insertAdjacentHTML('afterbegin', `
       <div class="shell-mobilebar" id="shell-mobilebar">
         <button class="shell-menu-btn" aria-label="Open menu"><i data-icon="menu"></i></button>
-        <span class="sidebar-logo-icon"><svg class="icon brand-b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 2.8v18.4"/><circle cx="12" cy="15.5" r="5.7"/><path d="M9.4 15.5q1.3-2.2 2.6 0t2.6 0" stroke-width="1.9"/></svg></span><span class="shell-mobile-title">bonce</span><span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>
+        <span class="sidebar-logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></span><span class="shell-mobile-title"><span class="brand-word">lobe <span class="brand-accent">limpet</span></span></span><span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>
       </div>
       <div class="shell-scrim" id="shell-scrim"></div>`);
   }

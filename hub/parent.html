@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bonce — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261108a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261108a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261108a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261108a">
-  <meta name="apple-mobile-web-app-title" content="Bonce">
-  <meta name="application-name" content="Bonce">
-  <link rel="stylesheet" href="theme.css?v=20261108a">
-  <script src="icons.js?v=20261108a"></script>
-  <link rel="stylesheet" href="stats.css?v=20261108a">
+  <title>Lobe Limpet — Parent Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109a">
+  <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
+  <meta name="application-name" content="Lobe Limpet">
+  <link rel="stylesheet" href="theme.css?v=20261109a">
+  <script src="icons.js?v=20261109a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261109a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -170,7 +170,7 @@
       .progress-xp { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261108a">
+  <link rel="stylesheet" href="ui.css?v=20261109a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -318,7 +318,7 @@
         <input type="email" id="share-email" placeholder="Another parent's email address">
         <button class="btn btn-secondary" id="btn-share" onclick="shareStudent()"><i data-icon="user-plus"></i> Share</button>
       </div>
-      <div class="form-hint" id="share-hint">They need their own Bonce parent account with that email. Not on Bonce yet? <a href="#" onclick="openInvite(true);return false;" style="color:var(--color-primary);font-weight:600;">Invite them</a></div>
+      <div class="form-hint" id="share-hint">They need their own Lobe Limpet parent account with that email. Not on Lobe Limpet yet? <a href="#" onclick="openInvite(true);return false;" style="color:var(--color-primary);font-weight:600;">Invite them</a></div>
     </div>
     <div class="danger-zone">
       <p>Reset progress clears XP, level, badges, streak and quiz history. Their login, groups and theme are kept.</p>
@@ -413,17 +413,17 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261108a';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261108a';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261108a';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261108a';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261108a';
-import { logEvent } from './log.js?v=20261108a';
-import { openInviteDialog } from './invite.js?v=20261108a';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261108a';
-import { dueEntries, scheduledCount } from './srs.js?v=20261108a';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261108a';
-import { openPlanCalendar } from './plan-view.js?v=20261108a';
+import { auth, db } from './firebase-config.js?v=20261109a';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261109a';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261109a';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109a';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261109a';
+import { logEvent } from './log.js?v=20261109a';
+import { openInviteDialog } from './invite.js?v=20261109a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109a';
+import { dueEntries, scheduledCount } from './srs.js?v=20261109a';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261109a';
+import { openPlanCalendar } from './plan-view.js?v=20261109a';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -969,7 +969,7 @@ window._shareStudent = async function() {
     // Emails may have been saved with capitals, so look for both spellings
     const found = await getDocs(query(collection(db, 'users'), where('email', 'in', [...new Set([typed, email])])));
     let other = null; found.forEach(d => { other = other || { id: d.id, ...d.data() }; });
-    if (!other) { showErr('manage-error', 'No Bonce account uses that email. Ask them to create a parent account first.'); return; }
+    if (!other) { showErr('manage-error', 'No Lobe Limpet account uses that email. Ask them to create a parent account first.'); return; }
     if (other.id === parentUid) { showErr('manage-error', 'That\'s your own account.'); return; }
     const theirRoles = Array.isArray(other.roles) && other.roles.length ? other.roles : [other.role];
     if (!theirRoles.some(r => r === 'parent' || r === 'admin')) { showErr('manage-error', 'That account isn\'t a parent account. They need to sign up as a parent.'); return; }

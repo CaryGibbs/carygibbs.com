@@ -1,5 +1,5 @@
 // ============================================================
-// BONCE: "Review today" (spaced repetition)
+// LOBE LIMPET: "Review today" (spaced repetition)
 // Every question a student answers gets a box number and a due day.
 //   Right  -> up a box, comes back later (3, 7, 14, 30, 60 days)
 //   Wrong  -> back to box 0, comes back tomorrow
@@ -8,7 +8,7 @@
 // The hub shows what's due; quiz.html?review=1 runs a review quiz.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261108a';
+import { db } from './firebase-config.js?v=20261109a';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const INTERVALS = [1, 3, 7, 14, 30, 60];   // days, by box

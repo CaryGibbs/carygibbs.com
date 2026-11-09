@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bonce — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261108a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261108a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261108a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261108a">
-  <meta name="apple-mobile-web-app-title" content="Bonce">
-  <meta name="application-name" content="Bonce">
-  <link rel="stylesheet" href="theme.css?v=20261108a">
-  <script src="icons.js?v=20261108a"></script>
-  <link rel="stylesheet" href="stats.css?v=20261108a">
+  <title>Lobe Limpet — Hub</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109a">
+  <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
+  <meta name="application-name" content="Lobe Limpet">
+  <link rel="stylesheet" href="theme.css?v=20261109a">
+  <script src="icons.js?v=20261109a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261109a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -281,14 +281,14 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261108a">
+  <link rel="stylesheet" href="ui.css?v=20261109a">
 </head>
 <body>
 <div id="toast-container"></div>
 
 <nav class="topnav">
   <a href="hub.html" class="nav-logo">
-    <div class="nav-logo-icon"><svg class="icon brand-b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 2.8v18.4"/><circle cx="12" cy="15.5" r="5.7"/><path d="M9.4 15.5q1.3-2.2 2.6 0t2.6 0" stroke-width="1.9"/></svg></div>bonce
+    <div class="nav-logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></div><span class="brand-word">lobe <span class="brand-accent">limpet</span></span>
   </a>
   <div class="nav-right">
     <span class="nav-user">Hey, <strong id="nav-name">...</strong></span>
@@ -363,15 +363,15 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261108a';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261108a';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261108a';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261108a';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261108a';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261108a';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261108a';
-import { openPlanCalendar } from './plan-view.js?v=20261108a';
-import { logEvent } from './log.js?v=20261108a';
+import { auth, db } from './firebase-config.js?v=20261109a';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261109a';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261109a';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261109a';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261109a';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261109a';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261109a';
+import { openPlanCalendar } from './plan-view.js?v=20261109a';
+import { logEvent } from './log.js?v=20261109a';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -827,7 +827,7 @@ window.showToast = function(msg, type='info') {
 </script>
 <script>
 /* If the page's code fails to load (usually an old copy in the browser's cache), offer a reload instead of spinning forever. */
-(function(){var shown=false;function offer(){if(shown||window.__bonceReady)return;shown=true;var d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;background:#1c1917;color:#fff;padding:14px 18px;border-radius:14px;font:600 15px/1.4 system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.3);display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px)';d.innerHTML='<span>Bonce didn\'t load properly.</span><button style="background:#ff8a65;color:#1c1917;border:0;border-radius:10px;padding:8px 14px;font:700 15px system-ui,sans-serif;cursor:pointer">Reload</button>';d.querySelector('button').onclick=function(){var u=new URL(location.href);u.searchParams.set('r',Date.now());location.replace(u.href);};document.body.appendChild(d);}
+(function(){var shown=false;function offer(){if(shown||window.__bonceReady)return;shown=true;var d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;background:#1c1917;color:#fff;padding:14px 18px;border-radius:14px;font:600 15px/1.4 system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.3);display:flex;gap:12px;align-items:center;max-width:calc(100% - 32px)';d.innerHTML='<span>Lobe Limpet didn\'t load properly.</span><button style="background:#ff8a65;color:#1c1917;border:0;border-radius:10px;padding:8px 14px;font:700 15px system-ui,sans-serif;cursor:pointer">Reload</button>';d.querySelector('button').onclick=function(){var u=new URL(location.href);u.searchParams.set('r',Date.now());location.replace(u.href);};document.body.appendChild(d);}
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>

@@ -1,5 +1,5 @@
 // ============================================================
-// BONCE: shared pieces for the Home pages (parent, teacher, admin)
+// LOBE LIMPET: shared pieces for the Home pages (parent, teacher, admin)
 // Each Home has the same shape: greeting, tiles at a glance,
 // "Needs your attention", "Recent activity", then a summary list.
 // Styles live in ui.css (.home-*).

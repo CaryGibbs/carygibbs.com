@@ -1,13 +1,13 @@
 // ============================================================
-// BONCE (formerly Clasp) — Brand Configuration
+// LOBE LIMPET (formerly Clasp, then Bonce) — Brand Configuration
 // To white-label: update this file and swap assets/images/brand/
 // ============================================================
 
 const BRAND = {
-  name: "Bonce",
-  tagline: "Revision that sticks in your bonce.",
+  name: "Lobe Limpet",
+  tagline: "Knowledge that sticks.",
   logoUrl: "/hub/assets/images/brand/logo.svg",
   faviconUrl: "/hub/assets/images/brand/favicon.svg",
   supportEmail: "hello@clasp.app",
-  primaryColour: "#6c63ff",
+  primaryColour: "#ff7a59",
 };

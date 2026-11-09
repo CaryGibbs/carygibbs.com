@@ -1,5 +1,5 @@
 // ============================================================
-// BONCE: flashcard answer length
+// LOBE LIMPET: flashcard answer length
 // Students choose how much of each answer the card shows:
 //   full      the whole answer, as written
 //   short     a version of 15 words or fewer
@@ -9,8 +9,8 @@
 // student shares them. Until they're ready, a simple cut-down is shown.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261108a';
-import { askClaude, jsonOf } from './ai.js?v=20261108a';
+import { db } from './firebase-config.js?v=20261109a';
+import { askClaude, jsonOf } from './ai.js?v=20261109a';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const LENGTHS = [

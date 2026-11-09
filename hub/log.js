@@ -1,5 +1,5 @@
 // ============================================================
-// BONCE: activity log (who did what, for admins)
+// LOBE LIMPET: activity log (who did what, for admins)
 // One entry per action in the `logs` collection:
 //   { ts, at, uid, name, role, action, cat, target, detail, expireAt }
 //   ts       when (ms, used for sorting)    at  server time
@@ -13,7 +13,7 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261108a';
+import { db, auth } from './firebase-config.js?v=20261109a';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
