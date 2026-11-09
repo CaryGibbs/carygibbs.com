@@ -706,6 +706,13 @@ async function loadSubjects(user, groupId) {
 
   const sgrid = document.getElementById('subjects-grid');
 
+  // Official links set on the subject in admin (spec, past papers, Bitesize...)
+  const resHtml = (list) => {
+    const ok = (list || []).filter(r => /^https?:\/\//i.test(r?.url || ''));
+    if (!ok.length) return '';
+    return `<div class="topics-section"><button class="topics-toggle" onclick="toggleTopics(this)"><span class="chevron">›</span> Official resources</button>
+      <div class="topics-list">${ok.map(r => `<div class="topic-row"><a class="topic-row-name" href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--color-primary);text-decoration:none;">${esc(r.label)} <span style="opacity:.6">↗</span></a></div>`).join('')}</div></div>`;
+  };
   subjects.forEach((s, i) => {
     const topics = subjectTopics[s.id] || [];
     const topicCount = topics.length;
@@ -750,6 +757,7 @@ async function loadSubjects(user, groupId) {
           <i data-icon="zap"></i> Quiz
         </button>
       </div>
+      ${resHtml(s.resources)}
       ${topicCount > 0 ? `
       <div class="topics-section">
         <button class="topics-toggle" onclick="toggleTopics(this)">

@@ -879,6 +879,11 @@
         <input type="text" id="subject-name-input" placeholder="e.g. Geography" maxlength="60">
       </div>
     </div>
+    <div class="form-group" style="margin-top:var(--space-md);">
+      <label>Official resources <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-faint)">(optional, one per line: Label | link)</span></label>
+      <textarea id="subject-res-input" rows="4" style="width:100%;font-size:0.88rem;" placeholder="Specification | https://www.aqa.org.uk/...&#10;Past papers and mark schemes | https://www.aqa.org.uk/...&#10;BBC Bitesize | https://www.bbc.co.uk/bitesize/..."></textarea>
+      <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">Shown to students on this subject as links. Link only; don't copy exam board content into questions.</p>
+    </div>
     <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md);">
       <button class="btn btn-secondary" data-close="modal-subject">Cancel</button>
       <button class="btn btn-primary" data-action="save-subject">Save subject</button>
@@ -1633,11 +1638,13 @@ async function openSubjectModal(id) {
   document.getElementById('modal-subject-title').textContent = id ? 'Edit subject' : 'New subject';
   document.getElementById('subject-name-input').value = '';
   document.getElementById('subject-emoji-input').value = '';
+  document.getElementById('subject-res-input').value = '';
   if (id) {
     const snap = await getDoc(doc(db, subjectsPath(), id));
     if (snap.exists()) {
       document.getElementById('subject-name-input').value = snap.data().name || '';
       document.getElementById('subject-emoji-input').value = snap.data().emoji || '';
+      document.getElementById('subject-res-input').value = (snap.data().resources || []).map(r => `${r.label} | ${r.url}`).join('\n');
     }
   }
   openModal('modal-subject');
@@ -1648,13 +1655,24 @@ async function saveSubject() {
   const name  = document.getElementById('subject-name-input').value.trim();
   const emoji = document.getElementById('subject-emoji-input').value.trim() || '📚';
   if (!name) { showToast('Subject name is required', 'error'); return; }
+  // "Label | https://link" per line; a bare link gets its site name as the label
+  const resources = [];
+  for (const line of document.getElementById('subject-res-input').value.split('\n')) {
+    const t = line.trim(); if (!t) continue;
+    const bar = t.lastIndexOf('|');
+    const url = (bar >= 0 ? t.slice(bar + 1) : t).trim();
+    let u; try { u = new URL(url); } catch (e) { u = null; }
+    if (!u || !/^https?:$/.test(u.protocol)) { showToast(`Not a valid link: ${url.slice(0, 60)}`, 'error'); return; }
+    const label = (bar >= 0 ? t.slice(0, bar).trim() : '') || u.hostname.replace(/^www\./, '');
+    resources.push({ label: label.slice(0, 80), url: u.href });
+  }
   try {
     if (editingItem) {
-      await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji });
+      await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji, resources });
       logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Edited' });
     } else {
       const snap = await getDocs(collection(db, subjectsPath()));
-      await addDoc(collection(db, subjectsPath()), { name, emoji, order: snap.size, createdAt: serverTimestamp() });
+      await addDoc(collection(db, subjectsPath()), { name, emoji, resources, order: snap.size, createdAt: serverTimestamp() });
       logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Created' });
     }
     closeModal('modal-subject');
