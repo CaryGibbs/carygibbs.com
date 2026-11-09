@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109g">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109g">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109g">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109g">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109h">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109h">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109h">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109h">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109g">
-  <script src="icons.js?v=20261109g"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109h">
+  <script src="icons.js?v=20261109h"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -511,7 +511,7 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109g">
+  <link rel="stylesheet" href="ui.css?v=20261109h">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1111,15 +1111,15 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109g';
-import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109g';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109g';
-import { mountShell } from './shell.js?v=20261109g';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109g';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109g';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109g';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109g';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109g';
+import { auth, db, storage } from './firebase-config.js?v=20261109h';
+import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109h';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109h';
+import { mountShell } from './shell.js?v=20261109h';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109h';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109h';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109h';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109h';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109h';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1135,7 +1135,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109g';
+import { saveEmailIndex } from './email-index.js?v=20261109h';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2774,6 +2774,9 @@ function logRoleOf(e) {
   const u = logState.users?.[e.uid];
   return u ? primaryRole(Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role || 'student']) : 'other';
 }
+// Show each person's current profile name (entries keep the name used at the
+// time, which can be out of date, e.g. a login first made as a child account)
+function logName(e) { return logState.users?.[e.uid]?.name || e.name || ''; }
 function logTarget(e) {
   return e.target || (e.targetId && logState.users?.[e.targetId]?.name) || '';
 }
@@ -2783,7 +2786,7 @@ function logFiltered(ignoreTab = false) {
   return logState.rows.filter(e =>
     (ignoreTab || logState.tab === 'all' || logRoleOf(e) === logState.tab) &&
     (!cat || e.cat === cat) &&
-    (!q || [e.name, logTarget(e), e.detail, LOG_ACTIONS[e.action]?.label].join(' ').toLowerCase().includes(q)));
+    (!q || [logName(e), e.name, logTarget(e), e.detail, LOG_ACTIONS[e.action]?.label].join(' ').toLowerCase().includes(q)));
 }
 function logTimeText(ts) { return new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
 function logDayText(ts) {
@@ -2809,7 +2812,7 @@ function renderLogs() {
       lastDay = day;
       return `${head}<tr>
         <td class="log-time" title="${esc(new Date(e.ts).toLocaleString('en-GB'))}">${logTimeText(e.ts)}</td>
-        <td class="log-who"><button data-who="${esc(e.name || '')}" title="Show only ${esc(e.name || '')}">${esc(e.name || 'Unknown')}</button><span class="log-role ${role}">${role === 'other' ? '—' : role[0].toUpperCase() + role.slice(1)}</span></td>
+        <td class="log-who"><button data-who="${esc(logName(e))}" title="Show only ${esc(logName(e))}">${esc(logName(e) || 'Unknown')}</button><span class="log-role ${role}">${role === 'other' ? '—' : role[0].toUpperCase() + role.slice(1)}</span></td>
         <td class="log-action${e.action === 'account.signin_fail' || /delete/.test(e.action) ? ' warn' : ''}">${esc(LOG_ACTIONS[e.action]?.label || e.action)}</td>
         <td>${esc(logTarget(e))}</td>
         <td class="log-detail">${esc(e.detail || '')}</td>
@@ -2849,7 +2852,7 @@ function exportLogs() {
   if (!rows.length) { showToast('Nothing to export', 'info'); return; }
   const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const lines = [['Date', 'Time', 'Name', 'Role', 'Action', 'Affected', 'Details', 'User ID'].map(cell).join(',')];
-  rows.forEach(e => { const d = new Date(e.ts); lines.push([d.toLocaleDateString('en-GB'), logTimeText(e.ts), e.name, logRoleOf(e), LOG_ACTIONS[e.action]?.label || e.action, logTarget(e), e.detail, e.uid].map(cell).join(',')); });
+  rows.forEach(e => { const d = new Date(e.ts); lines.push([d.toLocaleDateString('en-GB'), logTimeText(e.ts), logName(e), logRoleOf(e), LOG_ACTIONS[e.action]?.label || e.action, logTarget(e), e.detail, e.uid].map(cell).join(',')); });
   const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -2985,6 +2988,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109g"></script>
+<script src="site.js?v=20261109h"></script>
 </body>
 </html>
