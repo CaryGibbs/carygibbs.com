@@ -58,15 +58,26 @@ export function emailMatches(invite, email) {
   return !invite.email || invite.email === String(email || '').trim().toLowerCase();
 }
 
-// Give the role and the shared students to an account (new or existing)
-export async function acceptInvite(invite, uid, profile = {}) {
+// Give the role and the shared students to an account (new or existing).
+// profile is null when the login exists but has no profile record yet
+// (e.g. a sign-up that never finished): one is created from the invite.
+export async function acceptInvite(invite, uid, profile = {}, email = '') {
+  const missing = !profile;
+  profile = profile || {};
   const roles = new Set(Array.isArray(profile.roles) && profile.roles.length ? profile.roles : [profile.role].filter(Boolean));
   roles.add(invite.role);
   if (invite.role === 'admin') roles.add('parent');
   roles.delete('student');
   const list = [...roles];
   const primary = ['admin', 'teacher', 'parent'].find(r => list.includes(r)) || 'parent';
-  await updateDoc(doc(db, 'users', uid), { roles: list, role: primary });
+  if (missing) {
+    await setDoc(doc(db, 'users', uid), {
+      name: invite.name || '', email: (email || invite.email || '').toLowerCase(),
+      roles: list, role: primary, theme: 'parent', createdAt: Date.now(), children: {},
+    }, { merge: true });
+  } else {
+    await updateDoc(doc(db, 'users', uid), { roles: list, role: primary });
+  }
   for (const sid of invite.studentIds || []) {
     const s = await getDoc(doc(db, 'users', sid)).catch(() => null);
     const st = s?.exists() ? s.data() : {};

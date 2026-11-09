@@ -220,8 +220,14 @@
       showError(`This invite is for ${invite.email}. Sign in or sign up with that email.`);
       return false;
     }
-    const snap = await getDoc(doc(db, 'users', uid));
-    await acceptInvite(invite, uid, snap.exists() ? snap.data() : {});
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      await acceptInvite(invite, uid, snap.exists() ? snap.data() : null, email);
+    } catch (e) {
+      console.error('Invite not accepted:', e.code, e.message);
+      const err = new Error('Signed in, but the invite couldn\'t be accepted (' + (e.code || e.message) + '). Please try again, or ask for a new invite.');
+      err.code = 'clasp/invite'; err.shown = err.message; throw err;
+    }
     return true;
   }
 
@@ -258,7 +264,7 @@
     } catch(e) {
       if (/wrong-password|invalid-credential|user-not-found|too-many-requests/.test(e.code || '')) logEvent('account.signin_fail', { as: { uid: 'signed-out', name: email, role: 'account' }, detail: e.code === 'auth/too-many-requests' ? 'Too many attempts, locked for a while' : 'Wrong email or password' });
       flowBusy = false;
-      console.error('Login error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
+      console.error('Login error:', e.code, e.message); showError(e.shown || friendlyError(e.code));
       setLoading('btn-login', false);
     }
   };
@@ -327,7 +333,7 @@
         showError(invite ? 'You already have a Lobe Limpet account with this email. Enter your password to sign in and accept the invite.' : 'You already have a Lobe Limpet account with this email. Enter your password to sign in.');
         return;
       }
-      console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code);
+      console.error('Signup error:', e.code, e.message); showError(e.shown || friendlyError(e.code));
     }
   };
 
@@ -338,7 +344,7 @@
       await sendPasswordResetEmail(auth, email);
       logEvent('account.reset', { as: { uid: 'signed-out', name: email, role: 'account' } });
       showToast('Password reset email sent!', 'success');
-    } catch(e) { console.error('Signup error:', e.code, e.message); showError(friendlyError(e.code) || e.message || 'Error: ' + e.code); }
+    } catch(e) { console.error('Signup error:', e.code, e.message); showError(e.shown || friendlyError(e.code)); }
   };
 
   // Already signed in (e.g. returning visit): go straight through.
@@ -390,8 +396,13 @@
       'clasp/timeout':'Signed in, but your account is taking too long to load. Check your connection and tap Sign in again.',
       'clasp/no-profile':'This account isn\'t set up yet. Ask your parent or teacher to check it.',
       'unavailable':'Can\'t reach the server. Check your internet connection and try again.',
+      'auth/invalid-login-credentials':'Incorrect email or password.',
+      'auth/missing-password':'Please enter your password.',
+      'auth/user-disabled':'This account has been switched off. Ask an admin to check it.',
+      'permission-denied':'Signed in, but your account couldn\'t be loaded (permission denied). Ask an admin to check it.',
+      'not-found':'Signed in, but your profile couldn\'t be found. Ask an admin to check it.',
     };
-    return map[code] || 'Something went wrong. Please try again.';
+    return map[code] || ('Something went wrong' + (code ? ` (${code})` : '') + '. Please try again.');
   }
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
