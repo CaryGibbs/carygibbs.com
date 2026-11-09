@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109b">
-  <script src="icons.js?v=20261109b"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109d">
+  <script src="icons.js?v=20261109d"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -286,7 +286,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109b">
+  <link rel="stylesheet" href="ui.css?v=20261109d">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -485,13 +485,13 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261109b';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261109b';
-  import { mountShell } from './shell.js?v=20261109b';
-  import { logEvent } from './log.js?v=20261109b';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261109b';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109b';
-  import { app as firebaseApp } from './firebase-config.js?v=20261109b';
+  import { auth, db } from './firebase-config.js?v=20261109d';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261109d';
+  import { mountShell } from './shell.js?v=20261109d';
+  import { logEvent } from './log.js?v=20261109d';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261109d';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261109d';
+  import { app as firebaseApp } from './firebase-config.js?v=20261109d';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -1159,6 +1159,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261109c"></script>
+<script src="site.js?v=20261109d"></script>
 </body>
 </html>

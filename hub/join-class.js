@@ -5,7 +5,7 @@
 // revision packs, and adds them to the teacher's class list.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109b';
+import { db } from './firebase-config.js?v=20261109d';
 import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export function cleanCode(code) {
