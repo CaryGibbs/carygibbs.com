@@ -1,7 +1,7 @@
 // ============================================================
 // LOBE LIMPET: invitations
 // A parent (or an admin) invites someone by email. The invite is saved
-// as invites/{code} and shared as a link: index.html?invite=CODE.
+// as invites/{code} and shared as a link: login.html?invite=CODE.
 //   { email, name, role, studentIds, studentNames, by, byName,
 //     createdAt, expiresAt, usedBy, usedAt }
 // The person opening the link either creates an account or signs in
@@ -25,8 +25,8 @@ function newCode() {
   return [...a].map(n => chars[n % chars.length]).join('');
 }
 function hubUrl(file) { return new URL(file, location.href).href.split('#')[0]; }
-export function inviteLink(code) { return hubUrl(`index.html?invite=${code}`); }
-export function signupLink(type = 'parent') { return hubUrl(`index.html?signup=${type}`); }
+export function inviteLink(code) { return hubUrl(`login.html?invite=${code}`); }
+export function signupLink(type = 'parent') { return hubUrl(`login.html?signup=${type}`); }
 
 export async function createInvite({ email, name, role = 'parent', students = [], byUid, byName }) {
   const code = newCode();

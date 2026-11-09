@@ -2,7 +2,7 @@
   "name": "Lobe Limpet",
   "short_name": "Lobe Limpet",
   "description": "Knowledge that sticks.",
-  "start_url": "/hub/index.html",
+  "start_url": "/hub/login.html",
   "scope": "/hub/",
   "display": "standalone",
   "background_color": "#d4f1ea",

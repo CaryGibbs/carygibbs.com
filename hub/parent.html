@@ -454,7 +454,7 @@ let allGroups     = []; // [{ id, name }]
 /* ── Auth ────────────────────────────────────────────────── */
 requireAuth((user, profile) => {
   if (!hasRole(profile, 'parent')) {
-    window.location.href = 'index.html'; return;
+    window.location.href = 'login.html'; return;
   }
   parentUid = user.uid;
   // Streak repair / shield rules set by the admin; redraw cards once known

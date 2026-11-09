@@ -1,421 +1,295 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="edge">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Old invite and sign-up links pointed here. Send them on to the sign-in page, untouched.
+    (function () {
+      var q = location.search;
+      if (/[?&](invite|signup)=/.test(q)) location.replace('login.html' + q + location.hash);
+    })();
+  </script>
   <title>Lobe Limpet — Knowledge that sticks.</title>
+  <meta name="description" content="Free GCSE revision that sticks: quick quizzes, subject maps, cheat sheets and spaced review, with streaks and badges to keep you going.">
   <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109b">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109b">
   <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109b">
   <link rel="manifest" href="manifest.webmanifest?v=20261109b">
+  <meta name="theme-color" content="#123a4a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
-  <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109b">
-  <script src="icons.js?v=20261109b"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
-    .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
-    .bg-orbs::before { content:''; position:absolute; width:600px; height:600px; background:radial-gradient(circle,rgba(108,99,255,0.12) 0%,transparent 70%); top:-200px; left:-200px; animation:drift 12s ease-in-out infinite alternate; }
-    .bg-orbs::after  { content:''; position:absolute; width:400px; height:400px; background:radial-gradient(circle,rgba(255,107,107,0.08) 0%,transparent 70%); bottom:-100px; right:-100px; animation:drift 16s ease-in-out infinite alternate-reverse; }
-    @keyframes drift { from{transform:translate(0,0)} to{transform:translate(40px,30px)} }
-    .container { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:var(--space-xl) var(--space-lg); }
-    .logo-wrap { text-align:center; margin-bottom:var(--space-xl); animation:fadeIn 0.6s ease both; }
-    .logo-mark { display:inline-flex; align-items:center; gap:12px; margin-bottom:var(--space-sm); }
-    .logo-icon { width:48px; height:48px; background:var(--color-primary); border-radius:14px; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-glow); font-size:24px; }
-    .logo-text { font-family:var(--font-heading); font-size:2.4rem; font-weight:800; color:var(--color-text); letter-spacing:-0.02em; }
-    .logo-text span { color:var(--color-primary); }
-    .tagline { font-family:var(--font-ui); color:var(--color-text-muted); font-size:1rem; letter-spacing:0.02em; }
-    .auth-card { width:100%; max-width:420px; animation:fadeIn 0.6s 0.15s ease both; }
-    .tab-row { display:flex; background:var(--color-surface-2); border-radius:var(--radius-button); padding:4px; margin-bottom:var(--space-lg); gap:4px; }
-    .tab-btn { flex:1; padding:10px; border-radius:calc(var(--radius-button) - 2px); background:transparent; color:var(--color-text-muted); font-family:var(--font-ui); font-weight:600; font-size:0.9rem; transition:all var(--transition-base); }
-    .tab-btn.active { background:var(--color-surface); color:var(--color-text); box-shadow:0 2px 8px rgba(0,0,0,0.2); }
-    .form-panel { display:none; }
-    .form-panel.active { display:block; }
-    .form-group { margin-bottom:var(--space-md); }
-    .form-group label { display:block; font-family:var(--font-ui); font-size:0.85rem; font-weight:600; color:var(--color-text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em; }
-    .form-group input { padding:14px var(--space-md); border-radius:var(--radius-button); font-size:1rem; }
-    .form-hint { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; }
-    .optional-label { font-size:0.75rem; color:var(--color-text-faint); font-style:italic; margin-left:4px; }
-    .btn-submit { width:100%; padding:14px; margin-top:var(--space-sm); font-size:1rem; border-radius:var(--radius-button); }
-    .divider { text-align:center; position:relative; margin:var(--space-lg) 0; color:var(--color-text-faint); font-size:0.8rem; font-family:var(--font-ui); }
-    .divider::before,.divider::after { content:''; position:absolute; top:50%; width:calc(50% - 20px); height:1px; background:var(--color-border); }
-    .divider::before{left:0} .divider::after{right:0}
-    .signup-type-row { display:flex; gap:var(--space-sm); margin-bottom:var(--space-lg); }
-    .signup-type-btn { flex:1; padding:12px var(--space-sm); border-radius:var(--radius-card); background:var(--color-surface-2); border:2px solid var(--color-border); color:var(--color-text-muted); font-family:var(--font-ui); font-size:0.82rem; font-weight:600; text-align:center; cursor:pointer; transition:all var(--transition-base); }
-    .signup-type-btn .role-icon { display:block; font-size:1.4rem; margin-bottom:4px; }
-    .signup-type-btn.selected { border-color:var(--color-primary); background:var(--color-primary-glow); color:var(--color-primary); }
-    .error-msg { background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); border-radius:var(--radius-sm); color:var(--color-danger); padding:var(--space-sm) var(--space-md); font-size:0.875rem; margin-bottom:var(--space-md); display:none; }
-    .error-msg.visible { display:block; }
-    .invite-box { background:color-mix(in srgb, var(--color-primary) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-primary) 30%, transparent); border-radius:var(--radius-sm); padding:12px 14px; font-size:0.9rem; line-height:1.45; margin-bottom:var(--space-md); }
-    .invite-box span { display:block; color:var(--color-text-muted); font-size:0.82rem; margin-top:3px; }
-    .invite-box.warn { background:rgba(255,170,60,0.1); border-color:rgba(255,170,60,0.4); }
-    .invite-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .invite-btns .btn { padding:8px 14px; font-size:0.85rem; }
-    .invite-alt { text-align:center; font-size:0.85rem; color:var(--color-text-muted); margin-top:var(--space-md); }
-    .invite-alt a { color:var(--color-primary); }
-    .btn-submit.loading { opacity:0.7; pointer-events:none; }
-    .btn-submit.loading::after { content:''; display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; margin-left:8px; vertical-align:middle; }
-    .auth-footer { text-align:center; margin-top:var(--space-lg); font-size:0.8rem; color:var(--color-text-faint); font-family:var(--font-ui); animation:fadeIn 0.6s 0.3s ease both; }
-    .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
-    .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
+    :root {
+      --sea: #d4f1ea;        /* rock-pool water */
+      --sea-2: #e9f8f4;
+      --deep: #123a4a;       /* deep water */
+      --rock: #5d7c89;
+      --coral: #ff7a59;      /* the limpet */
+      --coral-dark: #e85f3d;
+      --sand: #fff8ef;
+      --ink: #123a4a;
+      --muted: #4f6b76;
+      --card: #ffffff;
+      --line: #cfe6e0;
+      --radius: 18px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--sand); line-height: 1.55; overflow-x: hidden; }
+    a { color: inherit; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── Header ─────────────────────────────── */
+    header { position: sticky; top: 0; z-index: 10; background: rgba(212,241,234,0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(18,58,74,0.08); }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand svg { width: 40px; height: 34px; }
+    .word { font-family: 'Fredoka', system-ui, sans-serif; font-weight: 600; font-size: 1.45rem; letter-spacing: -0.01em; color: var(--deep); white-space: nowrap; }
+    .word span { color: var(--coral); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; font-weight: 700; font-size: 0.98rem; text-decoration: none; border-radius: 999px; padding: 12px 22px; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; cursor: pointer; border: 0; white-space: nowrap; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-coral { background: var(--coral); color: #fff; box-shadow: 0 6px 18px rgba(255,122,89,0.35); }
+    .btn-coral:hover { background: var(--coral-dark); }
+    .btn-deep { background: var(--deep); color: #fff; padding: 9px 18px; font-size: 0.9rem; }
+    .btn-ghost { background: rgba(255,255,255,0.7); color: var(--deep); border: 1.5px solid rgba(18,58,74,0.15); }
+
+    /* ── Hero ───────────────────────────────── */
+    .hero { background: linear-gradient(180deg, var(--sea) 0%, var(--sea-2) 70%, var(--sand) 100%); padding: 56px 0 72px; position: relative; overflow: hidden; }
+    .hero::before, .hero::after { content: ''; position: absolute; border-radius: 50%; border: 2px solid rgba(18,58,74,0.06); pointer-events: none; }
+    .hero::before { width: 520px; height: 520px; right: -160px; top: -120px; }
+    .hero::after { width: 300px; height: 300px; right: -40px; top: -10px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; position: relative; }
+    .eyebrow { display: inline-block; font-weight: 600; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rock); background: rgba(255,255,255,0.6); padding: 6px 12px; border-radius: 999px; margin-bottom: 18px; }
+    h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: clamp(2.2rem, 5.2vw, 3.6rem); line-height: 1.06; letter-spacing: -0.03em; margin-bottom: 18px; }
+    h1 em { font-style: normal; color: var(--coral); }
+    .lede { font-size: 1.15rem; color: var(--muted); max-width: 32em; margin-bottom: 28px; }
+    .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+    .small-print { margin-top: 14px; font-size: 0.86rem; color: var(--muted); }
+
+    /* Mock quiz card */
+    .mock { position: relative; justify-self: center; width: 100%; max-width: 340px; }
+    .mock-card { background: var(--card); border-radius: 26px; padding: 22px; box-shadow: 0 24px 60px rgba(18,58,74,0.18); border: 1px solid var(--line); }
+    .mock-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+    .bar { height: 6px; background: #eef4f2; border-radius: 99px; margin-bottom: 18px; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 60%; background: var(--coral); border-radius: 99px; }
+    .q { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; line-height: 1.35; }
+    .opt { border: 1.5px solid var(--line); border-radius: 12px; padding: 11px 14px; font-size: 0.92rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .opt.right { border-color: #3fbf8a; background: #eafaf2; font-weight: 600; }
+    .opt.right::after { content: '✓'; color: #2a9d6e; font-weight: 800; }
+    .chip { position: absolute; background: #fff; border-radius: 999px; padding: 8px 14px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 10px 28px rgba(18,58,74,0.16); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .chip.xp { top: -16px; right: -14px; color: #b7791f; }
+    .chip.streak { bottom: -18px; left: -20px; color: var(--coral-dark); }
+
+    /* ── Sections ───────────────────────────── */
+    section { padding: 72px 0; }
+    .sec-head { text-align: center; max-width: 620px; margin: 0 auto 40px; }
+    h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: clamp(1.7rem, 3.4vw, 2.3rem); letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 10px; }
+    .sec-head p { color: var(--muted); font-size: 1.05rem; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; }
+    .icon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; margin-bottom: 16px; }
+    .icon svg { width: 24px; height: 24px; }
+    .i-coral { background: #ffe7df; color: var(--coral-dark); }
+    .i-sea { background: var(--sea); color: var(--deep); }
+    .i-gold { background: #fff1cc; color: #b7791f; }
+    h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.15rem; margin-bottom: 6px; }
+    .card p { color: var(--muted); font-size: 0.97rem; }
+
+    .steps { background: var(--deep); color: #fff; border-radius: 28px; padding: 44px 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .step b { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--coral); color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 12px; }
+    .step h3 { color: #fff; }
+    .step p { color: #b9d3d9; font-size: 0.97rem; }
+
+    .who .card { display: flex; flex-direction: column; }
+    .who .card p { flex: 1; margin-bottom: 18px; }
+    .who .btn { align-self: flex-start; }
+
+    .trust { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 28px; color: var(--muted); font-weight: 600; font-size: 0.95rem; }
+    .trust span::before { content: '●'; color: var(--coral); font-size: 0.6rem; margin-right: 8px; vertical-align: middle; }
+
+    .final { text-align: center; background: var(--sea); border-radius: 28px; padding: 48px 24px; }
+    .final p { color: var(--muted); margin: 0 auto 24px; max-width: 30em; }
+
+    footer { padding: 32px 0 44px; color: var(--muted); font-size: 0.86rem; }
+    .foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .foot a { margin-left: 16px; text-decoration: none; }
+    .foot a:hover { text-decoration: underline; }
+
+    @media (max-width: 860px) {
+      .hero { padding: 36px 0 56px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 44px; }
+      .mock { max-width: 300px; }
+      .grid3, .steps { grid-template-columns: 1fr; }
+      .steps { padding: 32px 24px; }
+      section { padding: 52px 0; }
+    }
+    @media (max-width: 420px) {
+      .word { font-size: 1.25rem; }
+      .chip.streak { left: -8px; }
+      .chip.xp { right: -6px; }
+      .ctas .btn { flex: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn { transition: none; } }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109b">
 </head>
 <body>
-<div class="bg-orbs"></div>
-<div id="toast-container"></div>
-<div class="container page-fade">
-  <div class="logo-wrap">
-    <div class="logo-mark">
-      <div class="logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></div>
-      <div class="logo-text brand-word">lobe <span class="brand-accent">limpet</span></div>
-    </div>
-    <p class="tagline">Knowledge that sticks.</p>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="./" aria-label="Lobe Limpet home">
+      <svg viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg>
+      <span class="word">lobe <span>limpet</span></span>
+    </a>
+    <a class="btn btn-deep" href="login.html" id="nav-btn">Sign in</a>
   </div>
+</header>
 
-  <div class="auth-card card">
-    <div class="tab-row">
-      <button class="tab-btn active" onclick="switchTab('login')">Sign in</button>
-      <button class="tab-btn" onclick="switchTab('signup')">Create account</button>
-    </div>
-    <div class="error-msg" id="error-msg"></div>
-    <div class="invite-box" id="invite-box" hidden></div>
-
-    <!-- LOGIN -->
-    <div class="form-panel active" id="panel-login">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+<div class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">GCSE revision</span>
+      <h1>Revision that <em>sticks</em>, like a limpet to a rock.</h1>
+      <p class="lede">Bite-size quizzes, subject maps and cheat sheets for your GCSE subjects. Streaks and badges keep you coming back, and smart review brings topics back just before you forget them.</p>
+      <div class="ctas">
+        <a class="btn btn-coral" href="login.html?signup=student" id="hero-btn">Start revising, free</a>
+        <a class="btn btn-ghost" href="#who">For parents &amp; teachers</a>
       </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <button class="btn btn-primary btn-submit" id="btn-login" onclick="handleLogin()">Sign in</button>
-      <div class="divider">or</div>
-      <p style="text-align:center; font-size:0.85rem; color:var(--color-text-muted);">
-        <a href="#" onclick="showForgotPassword()" style="color:var(--color-primary);">Forgot your password?</a>
-      </p>
+      <p class="small-print" id="hero-note">Free to start. No card needed.</p>
     </div>
 
-    <!-- SIGNUP -->
-    <div class="form-panel" id="panel-signup">
-      <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:var(--space-md);">I am a...</p>
-      <div class="signup-type-row">
-        <div class="signup-type-btn selected" id="type-parent" onclick="selectType('parent')">
-          <span class="role-icon"><i data-icon="users"></i></span>Parent
-        </div>
-        <div class="signup-type-btn" id="type-student" onclick="selectType('student')">
-          <span class="role-icon"><i data-icon="graduation-cap"></i></span>Student
-        </div>
-        <div class="signup-type-btn" id="type-teacher" onclick="selectType('teacher')">
-          <span class="role-icon"><i data-icon="school"></i></span>Teacher
-        </div>
+    <div class="mock" aria-hidden="true">
+      <div class="mock-card">
+        <div class="mock-top"><span>Chemistry · Rates of reaction</span><span>6 / 10</span></div>
+        <div class="bar"><i></i></div>
+        <p class="q">Which change would make the reaction go faster?</p>
+        <div class="opt">Using larger marble chips</div>
+        <div class="opt right">Raising the temperature</div>
+        <div class="opt">Diluting the acid</div>
+        <div class="opt">Removing the catalyst</div>
       </div>
-      <div class="form-group">
-        <label>Your name</label>
-        <input type="text" id="signup-name" placeholder="Your full name" autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
-        <p class="form-hint">Minimum 8 characters</p>
-      </div>
-      <div class="form-group" id="school-group" style="display:none;">
-        <label>School</label>
-        <input type="text" id="signup-school" placeholder="Your school's name" autocomplete="organization">
-      </div>
-      <div class="form-group" id="class-code-group" style="display:none;">
-        <label>Class code <span class="optional-label">(optional)</span></label>
-        <input type="text" id="signup-class-code" placeholder="e.g. XK7P2M" maxlength="6" class="code-input">
-        <p class="form-hint">Enter the code your teacher gave you, or leave blank.</p>
-      </div>
-      <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create account</button>
-      <p class="invite-alt" id="invite-alt" hidden>Already have a Lobe Limpet account? <a href="#" onclick="switchTab('login');return false;">Sign in to accept</a></p>
+      <div class="chip xp">⭐ +20 XP</div>
+      <div class="chip streak">🔥 7-day streak</div>
     </div>
-  </div>
-
-  <div class="auth-footer">
-    By signing in you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>
   </div>
 </div>
 
-<script>
-  function switchTab(t) { window._switchTab && window._switchTab(t); }
-  function selectType(t) { window._selectType && window._selectType(t); }
-  function handleLogin() { window._handleLogin && window._handleLogin(); }
-  function handleSignup() { window._handleSignup && window._handleSignup(); }
-  function showForgotPassword() { window._showForgotPassword && window._showForgotPassword(); }
-</script>
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Learn it. Test it. Keep it.</h2>
+      <p>Everything you need to go from "I've read it" to "I know it".</p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <div class="icon i-sea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg></div>
+        <h3>Learn it first</h3>
+        <p>Subject maps, flashcards and one-page cheat sheets show the whole topic at a glance, so you know what matters before you're tested.</p>
+      </div>
+      <div class="card">
+        <div class="icon i-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></div>
+        <h3>Test yourself</h3>
+        <p>Ten-question quizzes mixing multiple choice, true or false, gap fills, matching and written answers, with instant, helpful marking.</p>
+      </div>
+      <div class="card">
+        <div class="icon i-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3>Remember it</h3>
+        <p>Smart review brings back the questions you're starting to forget, so knowledge sticks right through to exam day.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="steps">
+      <div class="step"><b>1</b><h3>Pick your packs</h3><p>Choose a revision pack for each subject, or have a parent or teacher set them up for you.</p></div>
+      <div class="step"><b>2</b><h3>Little and often</h3><p>Ten minutes a day beats a night of cramming. Your streak keeps count.</p></div>
+      <div class="step"><b>3</b><h3>Watch it grow</h3><p>Earn XP, level up and collect badges as your topics turn from red to green.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="who" id="who" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Made for everyone helping with revision</h2>
+      <p>One app, three views. Pick the one that fits you.</p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <div class="icon i-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></div>
+        <h3>Students</h3>
+        <p>Revise at your own pace, build a streak and see exactly which topics need more work.</p>
+        <a class="btn btn-coral" href="login.html?signup=student">I'm a student</a>
+      </div>
+      <div class="card">
+        <div class="icon i-sea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Parents</h3>
+        <p>Set up your students' revision packs, see their progress at a glance and send a word of encouragement.</p>
+        <a class="btn btn-ghost" href="login.html?signup=parent">I'm a parent</a>
+      </div>
+      <div class="card">
+        <div class="icon i-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div>
+        <h3>Teachers</h3>
+        <p>Create packs for your classes, share a join code and spot which topics the group is finding hard.</p>
+        <a class="btn btn-ghost" href="login.html?signup=teacher">I'm a teacher</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="trust">
+      <span>Built around AQA GCSE specifications</span>
+      <span>Free to start</span>
+      <span>Works on phone, tablet and laptop</span>
+      <span>Made by a parent, tested by GCSE students</span>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="final">
+      <h2>Ready to make it stick?</h2>
+      <p>Set up takes a minute. Your first quiz takes five.</p>
+      <a class="btn btn-coral" href="login.html?signup=student" id="final-btn">Start revising, free</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 Lobe Limpet · Knowledge that sticks.</span>
+    <span><a href="login.html">Sign in</a><a href="#">Terms</a><a href="#">Privacy</a></span>
+  </div>
+</footer>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261109b';
-  import { redirectByRole } from './auth.js?v=20261109b';
-  import { logEvent } from './log.js?v=20261109b';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261109b';
-  import { findClass } from './join-class.js?v=20261109b';
-  import {
-    signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import {
-    doc, setDoc, getDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  let signupType = 'parent';
-
-  /* ── Invites and sign-up links ─────────────────────────────
-     index.html?invite=CODE   an invite from a parent or admin
-     index.html?signup=parent open straight on "Create account"
-     Either way a signed-in visitor isn't sent straight on, so the
-     page can be used (or they can sign out first). */
-  const params = new URLSearchParams(location.search);
-  const inviteCode = params.get('invite');
-  const signupParam = ['parent', 'student', 'teacher'].includes(params.get('signup')) ? params.get('signup') : null;
-  let invite = null;          // a valid invite, once read
-  let inviteReady = null;     // promise for the lookup
-  let flowBusy = false;       // a sign-in or sign-up is in progress here
-  const firstOf = n => String(n || '').split(' ')[0];
-  const escH = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  function inviteBox(html, kind = '') {
-    const box = document.getElementById('invite-box');
-    box.className = 'invite-box' + (kind ? ' ' + kind : '');
-    box.innerHTML = html; box.hidden = false;
-  }
-  function lockSignupToInvite() {
-    document.querySelector('#panel-signup .signup-type-row').style.display = 'none';
-    document.querySelector('#panel-signup > p').style.display = 'none';
-    signupType = invite.role === 'teacher' ? 'teacher' : 'parent';
-    window._selectType(signupType);
-    document.getElementById('signup-name').value = invite.name || '';
-    const em = document.getElementById('signup-email'); em.value = invite.email || ''; em.readOnly = !!invite.email;
-    document.getElementById('login-email').value = invite.email || '';
-    document.getElementById('invite-alt').hidden = false;
-  }
-  if (inviteCode) {
-    inviteReady = readInvite(inviteCode).then(r => {
-      if (r.ok) {
-        invite = r.invite;
-        const kids = (invite.studentNames || []).map(firstOf).filter(Boolean);
-        inviteBox(`<strong>${escH(firstOf(invite.byName) || 'Someone')}</strong> has invited you to join Lobe Limpet as ${invite.role === 'admin' ? 'an' : 'a'} <strong>${ROLE_LABEL[invite.role]}</strong>${kids.length ? `, to follow ${escH(kids.join(' and '))}'s revision` : ''}.<span>Create your account below, or sign in if you already have one.</span>`);
-        window._switchTab('signup');
-        lockSignupToInvite();
-      } else {
-        const why = { used: 'has already been used', expired: 'has expired', notfound: 'isn\'t valid', missing: 'isn\'t valid' }[r.reason] || 'isn\'t valid';
-        inviteBox(`This invite ${why}.<span>Ask ${escH(firstOf(r.invite?.byName) || 'the person who sent it')} for a new one.</span>`, 'warn');
-      }
-      return invite;
-    });
-  } else if (signupParam) {
-    setTimeout(() => { window._switchTab('signup'); window._selectType(signupParam); }, 0);
-  }
-  // Invite checks shared by sign-in and sign-up
-  async function useInvite(uid, email) {
-    if (!invite) return true;
-    if (!emailMatches(invite, email)) {
-      showError(`This invite is for ${invite.email}. Sign in or sign up with that email.`);
-      return false;
-    }
+  // Signed-in visitors still see this page, but the buttons take them straight to their dashboard.
+  // (login.html sends a signed-in user on to the right place.)
+  const check = async () => {
     try {
-      const snap = await getDoc(doc(db, 'users', uid));
-      await acceptInvite(invite, uid, snap.exists() ? snap.data() : null, email);
-    } catch (e) {
-      console.error('Invite not accepted:', e.code, e.message);
-      const err = new Error('Signed in, but the invite couldn\'t be accepted (' + (e.code || e.message) + '). Please try again, or ask for a new invite.');
-      err.code = 'clasp/invite'; err.shown = err.message; throw err;
-    }
-    return true;
-  }
-
-  window._switchTab = function(tab) {
-    document.querySelectorAll('.tab-btn').forEach((b,i) => {
-      b.classList.toggle('active',(tab==='login'&&i===0)||(tab==='signup'&&i===1));
-    });
-    document.getElementById('panel-login').classList.toggle('active', tab==='login');
-    document.getElementById('panel-signup').classList.toggle('active', tab==='signup');
-    hideError();
-  };
-
-  window._selectType = function(type) {
-    signupType = type;
-    document.getElementById('type-parent').classList.toggle('selected', type==='parent');
-    document.getElementById('type-student').classList.toggle('selected', type==='student');
-    document.getElementById('type-teacher').classList.toggle('selected', type==='teacher');
-    document.getElementById('school-group').style.display = type==='teacher' ? 'block' : 'none';
-    document.getElementById('class-code-group').style.display = type==='student' ? 'block' : 'none';
-  };
-
-  window._handleLogin = async function() {
-    const email    = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    if (!email || !password) { showError('Please enter your email and password.'); return; }
-    setLoading('btn-login', true);
-    try {
-      flowBusy = true;
-      if (inviteReady) await inviteReady;
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      if (!(await useInvite(cred.user.uid, email))) { await signOut(auth); flowBusy = false; setLoading('btn-login', false); return; }
-      await Promise.race([logEvent('account.signin', { as: { uid: cred.user.uid, name: cred.user.displayName || email, role: 'account' } }), new Promise(r => setTimeout(r, 1500))]);
-      await redirectByRole(cred.user.uid);
-    } catch(e) {
-      if (/wrong-password|invalid-credential|user-not-found|too-many-requests/.test(e.code || '')) logEvent('account.signin_fail', { as: { uid: 'signed-out', name: email, role: 'account' }, detail: e.code === 'auth/too-many-requests' ? 'Too many attempts, locked for a while' : 'Wrong email or password' });
-      flowBusy = false;
-      console.error('Login error:', e.code, e.message); showError(e.shown || friendlyError(e.code));
-      setLoading('btn-login', false);
-    }
-  };
-
-  window._handleSignup = async function() {
-    const name     = document.getElementById('signup-name').value.trim();
-    const email    = document.getElementById('signup-email').value.trim().toLowerCase();
-    const password = document.getElementById('signup-password').value;
-    const code     = document.getElementById('signup-class-code').value.trim().toUpperCase();
-
-    if (!name)               { showError('Please enter your name.'); return; }
-    if (!email)              { showError('Please enter your email.'); return; }
-    if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
-    const school = (document.getElementById('signup-school')?.value || '').trim();
-    if (signupType === 'teacher' && !school) { showError('Please enter your school name.'); return; }
-
-    // Validate class code if provided
-    let classInfo = null;
-    if (signupType === 'student' && code) {
-      classInfo = await findClass(code).catch(() => null);
-      if (!classInfo) { showError('Class code not found. Please check and try again.'); return; }
-    }
-
-    if (invite && !emailMatches(invite, email)) { showError(`This invite is for ${invite.email}.`); return; }
-    setLoading('btn-signup', true);
-    flowBusy = true;
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const uid  = cred.user.uid;
-      await updateProfile(cred.user, { displayName: name });
-
-      if (signupType === 'parent') {
-        await setDoc(doc(db, 'users', uid), {
-          name, email, role: 'parent', theme: 'parent',
-          createdAt: Date.now(), children: {}
-        });
-      } else if (signupType === 'teacher') {
-        await setDoc(doc(db, 'users', uid), {
-          name, email, school, role: 'teacher', roles: ['teacher'], theme: 'parent',
-          createdAt: Date.now()
-        });
-      } else {
-        const profile = {
-          name, email, role: 'student', theme: 'edge',
-          createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
-          classes: classInfo ? { [classInfo.classId]: true } : {},
-          classPacks: classInfo ? { [classInfo.classId]: classInfo.packIds || [] } : {}
-        };
-        await setDoc(doc(db, 'users', uid), profile);
-        if (classInfo) {
-          await setDoc(doc(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students`, uid), { name, email, joinedAt: Date.now() });
+      const { auth } = await import('./firebase-config.js?v=20261109b');
+      const { onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+      onAuthStateChanged(auth, (user) => {
+        if (!user) return;
+        const nav = document.getElementById('nav-btn');
+        nav.textContent = 'Go to my hub';
+        for (const id of ['hero-btn', 'final-btn']) {
+          const b = document.getElementById(id);
+          b.textContent = 'Carry on revising';
+          b.href = 'login.html';
         }
-      }
-      if (invite) await useInvite(uid, email);
-      await Promise.race([logEvent('account.signup', { as: { uid, name, role: signupType === 'parent' ? 'parent' : signupType }, detail: signupType === 'teacher' ? `Teacher at ${school}` : classInfo ? `Joined ${classInfo.className || 'a class'}` : `${signupType[0].toUpperCase() + signupType.slice(1)} account` }), new Promise(r => setTimeout(r, 1500))]);
-      await redirectByRole(uid);
-    } catch(e) {
-      flowBusy = false;
-      setLoading('btn-signup', false);
-      if (e.code === 'auth/email-already-in-use') {
-        // They already have an account: take them to Sign in with the email filled in
-        window._switchTab('login');
-        document.getElementById('login-email').value = email;
-        document.getElementById('login-password').value = '';
-        document.getElementById('login-password').focus();
-        showError(invite ? 'You already have a Lobe Limpet account with this email. Enter your password to sign in and accept the invite.' : 'You already have a Lobe Limpet account with this email. Enter your password to sign in.');
-        return;
-      }
-      console.error('Signup error:', e.code, e.message); showError(e.shown || friendlyError(e.code));
-    }
+        document.getElementById('hero-note').textContent = "You're signed in. Pick up where you left off.";
+      });
+    } catch (e) { /* page works fine without this */ }
   };
-
-  window._showForgotPassword = async function() {
-    const email = document.getElementById('login-email').value.trim();
-    if (!email) { showError('Enter your email above first.'); return; }
-    try {
-      await sendPasswordResetEmail(auth, email);
-      logEvent('account.reset', { as: { uid: 'signed-out', name: email, role: 'account' } });
-      showToast('Password reset email sent!', 'success');
-    } catch(e) { console.error('Signup error:', e.code, e.message); showError(e.shown || friendlyError(e.code)); }
-  };
-
-  // Already signed in (e.g. returning visit): go straight through.
-  // Failures here are quiet; the sign-in form is still usable.
-  onAuthStateChanged(auth, async (user) => {
-    if (!user || flowBusy) return;
-    if (inviteCode || signupParam) { await inviteReady; return signedInChoice(user); }
-    try { await redirectByRole(user.uid); }
-    catch (e) {
-      console.warn('Auto sign-in redirect failed:', e.message);
-      if (e.code === 'clasp/timeout') showError(friendlyError(e.code));
-    }
-  });
-
-  // Opened an invite or sign-up link while already signed in
-  function signedInChoice(user) {
-    const email = user.email || '';
-    const canAccept = invite && emailMatches(invite, email);
-    inviteBox(`You're signed in as <strong>${escH(email)}</strong>.<span>${canAccept ? 'Accept the invite with this account, or sign out to use another.' : invite ? `This invite is for ${escH(invite.email)}. Sign out, then sign in or sign up with that email.` : 'To create a new account, sign out first.'}</span>
-      <div class="invite-btns">${canAccept ? '<button class="btn btn-primary" id="iv-accept">Accept invite</button>' : ''}<button class="btn btn-secondary" id="iv-signout">Sign out</button><button class="btn btn-ghost" id="iv-go">Go to Lobe Limpet</button></div>`, invite ? '' : 'plain');
-    document.getElementById('iv-signout').onclick = async () => { await signOut(auth); document.getElementById('invite-box').hidden = !invite && !inviteCode; if (invite) inviteReady.then(() => location.reload()); };
-    document.getElementById('iv-go').onclick = () => redirectByRole(user.uid);
-    document.getElementById('iv-accept')?.addEventListener('click', async (ev) => {
-      ev.target.disabled = true; ev.target.textContent = 'Accepting…';
-      try { flowBusy = true; await useInvite(user.uid, email); await redirectByRole(user.uid); }
-      catch (e) { flowBusy = false; ev.target.disabled = false; ev.target.textContent = 'Accept invite'; showError('Could not accept the invite: ' + e.message); }
-    });
-  }
-
-  // Safari restores this page from its back/forward cache with the button
-  // still spinning: reset it whenever the page is shown again.
-  window.addEventListener('pageshow', (ev) => {
-    if (ev.persisted) { setLoading('btn-login', false); setLoading('btn-signup', false); }
-  });
-
-  function showError(msg) { const el=document.getElementById('error-msg'); el.textContent=msg; el.classList.add('visible'); }
-  function hideError() { document.getElementById('error-msg').classList.remove('visible'); }
-  function setLoading(id,v) { document.getElementById(id).classList.toggle('loading',v); }
-  function friendlyError(code) {
-    const map = {
-      'auth/user-not-found':'No account found with that email.',
-      'auth/wrong-password':'Incorrect password. Please try again.',
-      'auth/email-already-in-use':'An account with that email already exists.',
-      'auth/invalid-email':'Please enter a valid email address.',
-      'auth/weak-password':'Password must be at least 8 characters.',
-      'auth/too-many-requests':'Too many attempts. Please try again later.',
-      'auth/invalid-credential':'Incorrect email or password.',
-      'auth/network-request-failed':'Can\'t reach the server. Check your internet connection and try again.',
-      'clasp/timeout':'Signed in, but your account is taking too long to load. Check your connection and tap Sign in again.',
-      'clasp/no-profile':'This account isn\'t set up yet. Ask your parent or teacher to check it.',
-      'unavailable':'Can\'t reach the server. Check your internet connection and try again.',
-      'auth/invalid-login-credentials':'Incorrect email or password.',
-      'auth/missing-password':'Please enter your password.',
-      'auth/user-disabled':'This account has been switched off. Ask an admin to check it.',
-      'permission-denied':'Signed in, but your account couldn\'t be loaded (permission denied). Ask an admin to check it.',
-      'not-found':'Signed in, but your profile couldn\'t be found. Ask an admin to check it.',
-    };
-    return map[code] || ('Something went wrong' + (code ? ` (${code})` : '') + '. Please try again.');
-  }
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter') return;
-    if (document.getElementById('panel-login').classList.contains('active')) window._handleLogin();
-    else window._handleSignup();
-  });
-</script>
-<script>
-  window.showToast = function(msg,type='info') {
-    const c=document.getElementById('toast-container');
-    const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg;
-    c.appendChild(t); setTimeout(()=>t.remove(),3500);
-  };
+  ('requestIdleCallback' in window) ? requestIdleCallback(check, { timeout: 1500 }) : setTimeout(check, 300);
 </script>
 </body>
 </html>

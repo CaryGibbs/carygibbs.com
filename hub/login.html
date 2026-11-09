@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="edge">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — Lobe Limpet</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109b">
+  <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
+  <meta name="application-name" content="Lobe Limpet">
+  <link rel="stylesheet" href="theme.css?v=20261109b">
+  <script src="icons.js?v=20261109b"></script>
+  <style>
+    body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
+    .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+    .bg-orbs::before { content:''; position:absolute; width:600px; height:600px; background:radial-gradient(circle,rgba(108,99,255,0.12) 0%,transparent 70%); top:-200px; left:-200px; animation:drift 12s ease-in-out infinite alternate; }
+    .bg-orbs::after  { content:''; position:absolute; width:400px; height:400px; background:radial-gradient(circle,rgba(255,107,107,0.08) 0%,transparent 70%); bottom:-100px; right:-100px; animation:drift 16s ease-in-out infinite alternate-reverse; }
+    @keyframes drift { from{transform:translate(0,0)} to{transform:translate(40px,30px)} }
+    .container { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:var(--space-xl) var(--space-lg); }
+    .logo-wrap { text-align:center; margin-bottom:var(--space-xl); animation:fadeIn 0.6s ease both; }
+    .logo-mark { display:inline-flex; align-items:center; gap:12px; margin-bottom:var(--space-sm); }
+    .logo-icon { width:48px; height:48px; background:var(--color-primary); border-radius:14px; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-glow); font-size:24px; }
+    .logo-text { font-family:var(--font-heading); font-size:2.4rem; font-weight:800; color:var(--color-text); letter-spacing:-0.02em; }
+    .logo-text span { color:var(--color-primary); }
+    .tagline { font-family:var(--font-ui); color:var(--color-text-muted); font-size:1rem; letter-spacing:0.02em; }
+    .auth-card { width:100%; max-width:420px; animation:fadeIn 0.6s 0.15s ease both; }
+    .tab-row { display:flex; background:var(--color-surface-2); border-radius:var(--radius-button); padding:4px; margin-bottom:var(--space-lg); gap:4px; }
+    .tab-btn { flex:1; padding:10px; border-radius:calc(var(--radius-button) - 2px); background:transparent; color:var(--color-text-muted); font-family:var(--font-ui); font-weight:600; font-size:0.9rem; transition:all var(--transition-base); }
+    .tab-btn.active { background:var(--color-surface); color:var(--color-text); box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+    .form-panel { display:none; }
+    .form-panel.active { display:block; }
+    .form-group { margin-bottom:var(--space-md); }
+    .form-group label { display:block; font-family:var(--font-ui); font-size:0.85rem; font-weight:600; color:var(--color-text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em; }
+    .form-group input { padding:14px var(--space-md); border-radius:var(--radius-button); font-size:1rem; }
+    .form-hint { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; }
+    .optional-label { font-size:0.75rem; color:var(--color-text-faint); font-style:italic; margin-left:4px; }
+    .btn-submit { width:100%; padding:14px; margin-top:var(--space-sm); font-size:1rem; border-radius:var(--radius-button); }
+    .divider { text-align:center; position:relative; margin:var(--space-lg) 0; color:var(--color-text-faint); font-size:0.8rem; font-family:var(--font-ui); }
+    .divider::before,.divider::after { content:''; position:absolute; top:50%; width:calc(50% - 20px); height:1px; background:var(--color-border); }
+    .divider::before{left:0} .divider::after{right:0}
+    .signup-type-row { display:flex; gap:var(--space-sm); margin-bottom:var(--space-lg); }
+    .signup-type-btn { flex:1; padding:12px var(--space-sm); border-radius:var(--radius-card); background:var(--color-surface-2); border:2px solid var(--color-border); color:var(--color-text-muted); font-family:var(--font-ui); font-size:0.82rem; font-weight:600; text-align:center; cursor:pointer; transition:all var(--transition-base); }
+    .signup-type-btn .role-icon { display:block; font-size:1.4rem; margin-bottom:4px; }
+    .signup-type-btn.selected { border-color:var(--color-primary); background:var(--color-primary-glow); color:var(--color-primary); }
+    .error-msg { background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); border-radius:var(--radius-sm); color:var(--color-danger); padding:var(--space-sm) var(--space-md); font-size:0.875rem; margin-bottom:var(--space-md); display:none; }
+    .error-msg.visible { display:block; }
+    .invite-box { background:color-mix(in srgb, var(--color-primary) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-primary) 30%, transparent); border-radius:var(--radius-sm); padding:12px 14px; font-size:0.9rem; line-height:1.45; margin-bottom:var(--space-md); }
+    .invite-box span { display:block; color:var(--color-text-muted); font-size:0.82rem; margin-top:3px; }
+    .invite-box.warn { background:rgba(255,170,60,0.1); border-color:rgba(255,170,60,0.4); }
+    .invite-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .invite-btns .btn { padding:8px 14px; font-size:0.85rem; }
+    .invite-alt { text-align:center; font-size:0.85rem; color:var(--color-text-muted); margin-top:var(--space-md); }
+    .invite-alt a { color:var(--color-primary); }
+    .btn-submit.loading { opacity:0.7; pointer-events:none; }
+    .btn-submit.loading::after { content:''; display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; margin-left:8px; vertical-align:middle; }
+    .auth-footer { text-align:center; margin-top:var(--space-lg); font-size:0.8rem; color:var(--color-text-faint); font-family:var(--font-ui); animation:fadeIn 0.6s 0.3s ease both; }
+    .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
+    .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
+  </style>
+  <link rel="stylesheet" href="ui.css?v=20261109b">
+</head>
+<body>
+<div class="bg-orbs"></div>
+<div id="toast-container"></div>
+<div class="container page-fade">
+  <div class="logo-wrap"><a href="./" style="text-decoration:none;color:inherit;">
+    <div class="logo-mark">
+      <div class="logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></div>
+      <div class="logo-text brand-word">lobe <span class="brand-accent">limpet</span></div>
+    </div>
+    <p class="tagline">Knowledge that sticks.</p></a>
+  </div>
+
+  <div class="auth-card card">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">Sign in</button>
+      <button class="tab-btn" onclick="switchTab('signup')">Create account</button>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+    <div class="invite-box" id="invite-box" hidden></div>
+
+    <!-- LOGIN -->
+    <div class="form-panel active" id="panel-login">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary btn-submit" id="btn-login" onclick="handleLogin()">Sign in</button>
+      <div class="divider">or</div>
+      <p style="text-align:center; font-size:0.85rem; color:var(--color-text-muted);">
+        <a href="#" onclick="showForgotPassword()" style="color:var(--color-primary);">Forgot your password?</a>
+      </p>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="form-panel" id="panel-signup">
+      <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:var(--space-md);">I am a...</p>
+      <div class="signup-type-row">
+        <div class="signup-type-btn selected" id="type-parent" onclick="selectType('parent')">
+          <span class="role-icon"><i data-icon="users"></i></span>Parent
+        </div>
+        <div class="signup-type-btn" id="type-student" onclick="selectType('student')">
+          <span class="role-icon"><i data-icon="graduation-cap"></i></span>Student
+        </div>
+        <div class="signup-type-btn" id="type-teacher" onclick="selectType('teacher')">
+          <span class="role-icon"><i data-icon="school"></i></span>Teacher
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Your name</label>
+        <input type="text" id="signup-name" placeholder="Your full name" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
+        <p class="form-hint">Minimum 8 characters</p>
+      </div>
+      <div class="form-group" id="school-group" style="display:none;">
+        <label>School</label>
+        <input type="text" id="signup-school" placeholder="Your school's name" autocomplete="organization">
+      </div>
+      <div class="form-group" id="class-code-group" style="display:none;">
+        <label>Class code <span class="optional-label">(optional)</span></label>
+        <input type="text" id="signup-class-code" placeholder="e.g. XK7P2M" maxlength="6" class="code-input">
+        <p class="form-hint">Enter the code your teacher gave you, or leave blank.</p>
+      </div>
+      <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create account</button>
+      <p class="invite-alt" id="invite-alt" hidden>Already have a Lobe Limpet account? <a href="#" onclick="switchTab('login');return false;">Sign in to accept</a></p>
+    </div>
+  </div>
+
+  <div class="auth-footer">
+    By signing in you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>
+  </div>
+</div>
+
+<script>
+  function switchTab(t) { window._switchTab && window._switchTab(t); }
+  function selectType(t) { window._selectType && window._selectType(t); }
+  function handleLogin() { window._handleLogin && window._handleLogin(); }
+  function handleSignup() { window._handleSignup && window._handleSignup(); }
+  function showForgotPassword() { window._showForgotPassword && window._showForgotPassword(); }
+</script>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js?v=20261109b';
+  import { redirectByRole } from './auth.js?v=20261109b';
+  import { logEvent } from './log.js?v=20261109b';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261109b';
+  import { findClass } from './join-class.js?v=20261109b';
+  import {
+    signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    doc, setDoc, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  let signupType = 'parent';
+
+  /* ── Invites and sign-up links ─────────────────────────────
+     login.html?invite=CODE   an invite from a parent or admin
+     login.html?signup=parent open straight on "Create account"
+     Either way a signed-in visitor isn't sent straight on, so the
+     page can be used (or they can sign out first). */
+  const params = new URLSearchParams(location.search);
+  const inviteCode = params.get('invite');
+  const signupParam = ['parent', 'student', 'teacher'].includes(params.get('signup')) ? params.get('signup') : null;
+  let invite = null;          // a valid invite, once read
+  let inviteReady = null;     // promise for the lookup
+  let flowBusy = false;       // a sign-in or sign-up is in progress here
+  const firstOf = n => String(n || '').split(' ')[0];
+  const escH = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  function inviteBox(html, kind = '') {
+    const box = document.getElementById('invite-box');
+    box.className = 'invite-box' + (kind ? ' ' + kind : '');
+    box.innerHTML = html; box.hidden = false;
+  }
+  function lockSignupToInvite() {
+    document.querySelector('#panel-signup .signup-type-row').style.display = 'none';
+    document.querySelector('#panel-signup > p').style.display = 'none';
+    signupType = invite.role === 'teacher' ? 'teacher' : 'parent';
+    window._selectType(signupType);
+    document.getElementById('signup-name').value = invite.name || '';
+    const em = document.getElementById('signup-email'); em.value = invite.email || ''; em.readOnly = !!invite.email;
+    document.getElementById('login-email').value = invite.email || '';
+    document.getElementById('invite-alt').hidden = false;
+  }
+  if (inviteCode) {
+    inviteReady = readInvite(inviteCode).then(r => {
+      if (r.ok) {
+        invite = r.invite;
+        const kids = (invite.studentNames || []).map(firstOf).filter(Boolean);
+        inviteBox(`<strong>${escH(firstOf(invite.byName) || 'Someone')}</strong> has invited you to join Lobe Limpet as ${invite.role === 'admin' ? 'an' : 'a'} <strong>${ROLE_LABEL[invite.role]}</strong>${kids.length ? `, to follow ${escH(kids.join(' and '))}'s revision` : ''}.<span>Create your account below, or sign in if you already have one.</span>`);
+        window._switchTab('signup');
+        lockSignupToInvite();
+      } else {
+        const why = { used: 'has already been used', expired: 'has expired', notfound: 'isn\'t valid', missing: 'isn\'t valid' }[r.reason] || 'isn\'t valid';
+        inviteBox(`This invite ${why}.<span>Ask ${escH(firstOf(r.invite?.byName) || 'the person who sent it')} for a new one.</span>`, 'warn');
+      }
+      return invite;
+    });
+  } else if (signupParam) {
+    setTimeout(() => { window._switchTab('signup'); window._selectType(signupParam); }, 0);
+  }
+  // Invite checks shared by sign-in and sign-up
+  async function useInvite(uid, email) {
+    if (!invite) return true;
+    if (!emailMatches(invite, email)) {
+      showError(`This invite is for ${invite.email}. Sign in or sign up with that email.`);
+      return false;
+    }
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      await acceptInvite(invite, uid, snap.exists() ? snap.data() : null, email);
+    } catch (e) {
+      console.error('Invite not accepted:', e.code, e.message);
+      const err = new Error('Signed in, but the invite couldn\'t be accepted (' + (e.code || e.message) + '). Please try again, or ask for a new invite.');
+      err.code = 'clasp/invite'; err.shown = err.message; throw err;
+    }
+    return true;
+  }
+
+  window._switchTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.toggle('active',(tab==='login'&&i===0)||(tab==='signup'&&i===1));
+    });
+    document.getElementById('panel-login').classList.toggle('active', tab==='login');
+    document.getElementById('panel-signup').classList.toggle('active', tab==='signup');
+    hideError();
+  };
+
+  window._selectType = function(type) {
+    signupType = type;
+    document.getElementById('type-parent').classList.toggle('selected', type==='parent');
+    document.getElementById('type-student').classList.toggle('selected', type==='student');
+    document.getElementById('type-teacher').classList.toggle('selected', type==='teacher');
+    document.getElementById('school-group').style.display = type==='teacher' ? 'block' : 'none';
+    document.getElementById('class-code-group').style.display = type==='student' ? 'block' : 'none';
+  };
+
+  window._handleLogin = async function() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) { showError('Please enter your email and password.'); return; }
+    setLoading('btn-login', true);
+    try {
+      flowBusy = true;
+      if (inviteReady) await inviteReady;
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      if (!(await useInvite(cred.user.uid, email))) { await signOut(auth); flowBusy = false; setLoading('btn-login', false); return; }
+      await Promise.race([logEvent('account.signin', { as: { uid: cred.user.uid, name: cred.user.displayName || email, role: 'account' } }), new Promise(r => setTimeout(r, 1500))]);
+      await redirectByRole(cred.user.uid);
+    } catch(e) {
+      if (/wrong-password|invalid-credential|user-not-found|too-many-requests/.test(e.code || '')) logEvent('account.signin_fail', { as: { uid: 'signed-out', name: email, role: 'account' }, detail: e.code === 'auth/too-many-requests' ? 'Too many attempts, locked for a while' : 'Wrong email or password' });
+      flowBusy = false;
+      console.error('Login error:', e.code, e.message); showError(e.shown || friendlyError(e.code));
+      setLoading('btn-login', false);
+    }
+  };
+
+  window._handleSignup = async function() {
+    const name     = document.getElementById('signup-name').value.trim();
+    const email    = document.getElementById('signup-email').value.trim().toLowerCase();
+    const password = document.getElementById('signup-password').value;
+    const code     = document.getElementById('signup-class-code').value.trim().toUpperCase();
+
+    if (!name)               { showError('Please enter your name.'); return; }
+    if (!email)              { showError('Please enter your email.'); return; }
+    if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
+    const school = (document.getElementById('signup-school')?.value || '').trim();
+    if (signupType === 'teacher' && !school) { showError('Please enter your school name.'); return; }
+
+    // Validate class code if provided
+    let classInfo = null;
+    if (signupType === 'student' && code) {
+      classInfo = await findClass(code).catch(() => null);
+      if (!classInfo) { showError('Class code not found. Please check and try again.'); return; }
+    }
+
+    if (invite && !emailMatches(invite, email)) { showError(`This invite is for ${invite.email}.`); return; }
+    setLoading('btn-signup', true);
+    flowBusy = true;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid  = cred.user.uid;
+      await updateProfile(cred.user, { displayName: name });
+
+      if (signupType === 'parent') {
+        await setDoc(doc(db, 'users', uid), {
+          name, email, role: 'parent', theme: 'parent',
+          createdAt: Date.now(), children: {}
+        });
+      } else if (signupType === 'teacher') {
+        await setDoc(doc(db, 'users', uid), {
+          name, email, school, role: 'teacher', roles: ['teacher'], theme: 'parent',
+          createdAt: Date.now()
+        });
+      } else {
+        const profile = {
+          name, email, role: 'student', theme: 'edge',
+          createdAt: Date.now(), xp: 0, level: 1, streak: 0, sessions: [],
+          classes: classInfo ? { [classInfo.classId]: true } : {},
+          classPacks: classInfo ? { [classInfo.classId]: classInfo.packIds || [] } : {}
+        };
+        await setDoc(doc(db, 'users', uid), profile);
+        if (classInfo) {
+          await setDoc(doc(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students`, uid), { name, email, joinedAt: Date.now() });
+        }
+      }
+      if (invite) await useInvite(uid, email);
+      await Promise.race([logEvent('account.signup', { as: { uid, name, role: signupType === 'parent' ? 'parent' : signupType }, detail: signupType === 'teacher' ? `Teacher at ${school}` : classInfo ? `Joined ${classInfo.className || 'a class'}` : `${signupType[0].toUpperCase() + signupType.slice(1)} account` }), new Promise(r => setTimeout(r, 1500))]);
+      await redirectByRole(uid);
+    } catch(e) {
+      flowBusy = false;
+      setLoading('btn-signup', false);
+      if (e.code === 'auth/email-already-in-use') {
+        // They already have an account: take them to Sign in with the email filled in
+        window._switchTab('login');
+        document.getElementById('login-email').value = email;
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-password').focus();
+        showError(invite ? 'You already have a Lobe Limpet account with this email. Enter your password to sign in and accept the invite.' : 'You already have a Lobe Limpet account with this email. Enter your password to sign in.');
+        return;
+      }
+      console.error('Signup error:', e.code, e.message); showError(e.shown || friendlyError(e.code));
+    }
+  };
+
+  window._showForgotPassword = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) { showError('Enter your email above first.'); return; }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      logEvent('account.reset', { as: { uid: 'signed-out', name: email, role: 'account' } });
+      showToast('Password reset email sent!', 'success');
+    } catch(e) { console.error('Signup error:', e.code, e.message); showError(e.shown || friendlyError(e.code)); }
+  };
+
+  // Already signed in (e.g. returning visit): go straight through.
+  // Failures here are quiet; the sign-in form is still usable.
+  onAuthStateChanged(auth, async (user) => {
+    if (!user || flowBusy) return;
+    if (inviteCode || signupParam) { await inviteReady; return signedInChoice(user); }
+    try { await redirectByRole(user.uid); }
+    catch (e) {
+      console.warn('Auto sign-in redirect failed:', e.message);
+      if (e.code === 'clasp/timeout') showError(friendlyError(e.code));
+    }
+  });
+
+  // Opened an invite or sign-up link while already signed in
+  function signedInChoice(user) {
+    const email = user.email || '';
+    const canAccept = invite && emailMatches(invite, email);
+    inviteBox(`You're signed in as <strong>${escH(email)}</strong>.<span>${canAccept ? 'Accept the invite with this account, or sign out to use another.' : invite ? `This invite is for ${escH(invite.email)}. Sign out, then sign in or sign up with that email.` : 'To create a new account, sign out first.'}</span>
+      <div class="invite-btns">${canAccept ? '<button class="btn btn-primary" id="iv-accept">Accept invite</button>' : ''}<button class="btn btn-secondary" id="iv-signout">Sign out</button><button class="btn btn-ghost" id="iv-go">Go to Lobe Limpet</button></div>`, invite ? '' : 'plain');
+    document.getElementById('iv-signout').onclick = async () => { await signOut(auth); document.getElementById('invite-box').hidden = !invite && !inviteCode; if (invite) inviteReady.then(() => location.reload()); };
+    document.getElementById('iv-go').onclick = () => redirectByRole(user.uid);
+    document.getElementById('iv-accept')?.addEventListener('click', async (ev) => {
+      ev.target.disabled = true; ev.target.textContent = 'Accepting…';
+      try { flowBusy = true; await useInvite(user.uid, email); await redirectByRole(user.uid); }
+      catch (e) { flowBusy = false; ev.target.disabled = false; ev.target.textContent = 'Accept invite'; showError('Could not accept the invite: ' + e.message); }
+    });
+  }
+
+  // Safari restores this page from its back/forward cache with the button
+  // still spinning: reset it whenever the page is shown again.
+  window.addEventListener('pageshow', (ev) => {
+    if (ev.persisted) { setLoading('btn-login', false); setLoading('btn-signup', false); }
+  });
+
+  function showError(msg) { const el=document.getElementById('error-msg'); el.textContent=msg; el.classList.add('visible'); }
+  function hideError() { document.getElementById('error-msg').classList.remove('visible'); }
+  function setLoading(id,v) { document.getElementById(id).classList.toggle('loading',v); }
+  function friendlyError(code) {
+    const map = {
+      'auth/user-not-found':'No account found with that email.',
+      'auth/wrong-password':'Incorrect password. Please try again.',
+      'auth/email-already-in-use':'An account with that email already exists.',
+      'auth/invalid-email':'Please enter a valid email address.',
+      'auth/weak-password':'Password must be at least 8 characters.',
+      'auth/too-many-requests':'Too many attempts. Please try again later.',
+      'auth/invalid-credential':'Incorrect email or password.',
+      'auth/network-request-failed':'Can\'t reach the server. Check your internet connection and try again.',
+      'clasp/timeout':'Signed in, but your account is taking too long to load. Check your connection and tap Sign in again.',
+      'clasp/no-profile':'This account isn\'t set up yet. Ask your parent or teacher to check it.',
+      'unavailable':'Can\'t reach the server. Check your internet connection and try again.',
+      'auth/invalid-login-credentials':'Incorrect email or password.',
+      'auth/missing-password':'Please enter your password.',
+      'auth/user-disabled':'This account has been switched off. Ask an admin to check it.',
+      'permission-denied':'Signed in, but your account couldn\'t be loaded (permission denied). Ask an admin to check it.',
+      'not-found':'Signed in, but your profile couldn\'t be found. Ask an admin to check it.',
+    };
+    return map[code] || ('Something went wrong' + (code ? ` (${code})` : '') + '. Please try again.');
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (document.getElementById('panel-login').classList.contains('active')) window._handleLogin();
+    else window._handleSignup();
+  });
+</script>
+<script>
+  window.showToast = function(msg,type='info') {
+    const c=document.getElementById('toast-container');
+    const t=document.createElement('div'); t.className=`toast ${type}`; t.textContent=msg;
+    c.appendChild(t); setTimeout(()=>t.remove(),3500);
+  };
+</script>
+</body>
+</html>

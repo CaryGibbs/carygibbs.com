@@ -53,7 +53,7 @@ export function previewInfo() { return _preview; }
 // (admin, parent, teacher) in the window ends the preview.
 const PREVIEW_PAGES = ['hub.html', 'profile.html', 'quiz.html', 'mindmap.html'];
 function viewAsId() {
-  const page = location.pathname.split('/').pop() || 'index.html';
+  const page = location.pathname.split('/').pop() || 'login.html';
   try {
     if (!PREVIEW_PAGES.includes(page)) { sessionStorage.removeItem(VIEW_AS_KEY); return null; }
     return sessionStorage.getItem(VIEW_AS_KEY);
@@ -106,10 +106,10 @@ function showPreviewBanner(student) {
 
 export function requireAuth(callback) {
   onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = 'index.html'; return; }
+    if (!user) { window.location.href = 'login.html'; return; }
     try {
       let profile = await getUserProfile(user.uid);
-      if (!profile) { await signOut(auth); window.location.href = 'index.html'; return; }
+      if (!profile) { await signOut(auth); window.location.href = 'login.html'; return; }
       setLogActor(user.uid, profile, pageRole());
 
       const targetId = viewAsId();
@@ -167,7 +167,7 @@ function lastView(uid) { try { return localStorage.getItem('clasp_view_' + uid);
 
 export function requireRole(role, callback) {
   requireAuth((user, profile) => {
-    if (!hasRole(profile, role)) { window.location.href = 'index.html'; return; }
+    if (!hasRole(profile, role)) { window.location.href = 'login.html'; return; }
     callback(user, profile);
   });
 }
@@ -176,7 +176,7 @@ export async function handleSignOut() {
   if (_preview) { exitPreview(); return; } // in a preview window, "Sign out" just leaves the preview
   await Promise.race([logEvent('account.signout'), new Promise(r => setTimeout(r, 1500))]);
   await signOut(auth);
-  window.location.href = 'index.html';
+  window.location.href = 'login.html';
 }
 
 // Throws on failure so the login page can reset its button and show a message.
