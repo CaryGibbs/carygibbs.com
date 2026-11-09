@@ -3,7 +3,7 @@
 // Next goals, revision time, time by subject, badge collection.
 // ============================================================
 
-import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261109f';
+import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261109g';
 
 /* ── Markup ──────────────────────────────────────────────── */
 // Section ids (goals, time, subjects, badges) are the jump-link targets.
