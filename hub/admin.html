@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109e">
-  <script src="icons.js?v=20261109e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109f">
+  <script src="icons.js?v=20261109f"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -511,7 +511,7 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109e">
+  <link rel="stylesheet" href="ui.css?v=20261109f">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1111,15 +1111,15 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109e';
-import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109e';
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109e';
-import { mountShell } from './shell.js?v=20261109e';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109e';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109e';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109e';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109e';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109e';
+import { auth, db, storage } from './firebase-config.js?v=20261109f';
+import { requireRole, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109f';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109f';
+import { mountShell } from './shell.js?v=20261109f';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109f';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109f';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109f';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings } from './gamification.js?v=20261109f';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109f';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1135,7 +1135,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109e';
+import { saveEmailIndex } from './email-index.js?v=20261109f';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2891,9 +2891,15 @@ let usersCache = [];
 async function loadUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
-  const snap = await getDocs(query(collection(db,'users'), orderBy('createdAt','asc'))).catch(() => ({ forEach:()=>{} }));
+  // No orderBy: it would hide anyone missing a createdAt date
+  const snap = await getDocs(collection(db,'users')).catch(() => ({ forEach:()=>{} }));
   const users = [];
   snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+  // Sorted by highest role (Admin, Teacher, Parent, Student), then A–Z by name (or email)
+  const RANK = { admin: 0, teacher: 1, parent: 2, student: 3 };
+  const rankOf = u => RANK[primaryRole(Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role || 'student'])] ?? 4;
+  const sortName = u => (u.name || u.email || '').trim().toLowerCase();
+  users.sort((a, b) => rankOf(a) - rankOf(b) || sortName(a).localeCompare(sortName(b), 'en-GB'));
   usersCache = users;
   if (!users.length) { list.innerHTML = `<div class="empty-state"><h3>No users yet</h3></div>`; return; }
   const roleIcon = { parent:'house', student:'graduation-cap', teacher:'school', admin:'shield' };
@@ -2979,6 +2985,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109e"></script>
+<script src="site.js?v=20261109f"></script>
 </body>
 </html>
