@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110a">
-  <script src="icons.js?v=20261110a"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110b">
+  <script src="icons.js?v=20261110b"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -316,7 +316,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110a">
+  <link rel="stylesheet" href="ui.css?v=20261110b">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -521,12 +521,12 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110a';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261110a';
-import { askClaude, jsonOf } from './ai.js?v=20261110a';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261110a';
-import { logEvent } from './log.js?v=20261110a';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261110a';
+import { auth, db } from './firebase-config.js?v=20261110b';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261110b';
+import { askClaude, jsonOf } from './ai.js?v=20261110b';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261110b';
+import { logEvent } from './log.js?v=20261110b';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261110b';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -1008,7 +1008,9 @@ function handleMatchClick(item, side) {
     const leftItem  = matchState.selectedLeft;
     const leftIdx   = parseInt(leftItem.dataset.pairIdx);
     const rightIdx  = parseInt(item.dataset.pairIdx);
-    const correct   = leftIdx === rightIdx;
+    // Right items can repeat (e.g. two "Chemical change"), so match by text too
+    const same = (a, b) => String(a ?? '').trim().toLowerCase() === String(b ?? '').trim().toLowerCase();
+    const correct   = leftIdx === rightIdx || same(matchState.pairs?.[leftIdx]?.right, matchState.pairs?.[rightIdx]?.right);
 
     leftItem.classList.remove('selected');
     leftItem.classList.add(correct ? 'matched-correct' : 'matched-wrong');
@@ -1046,7 +1048,7 @@ function showMatchReview() {
   const review = document.getElementById('match-review');
   review.innerHTML = `<div class="match-review-title">Correct pairs</div>` + pairs.map((p, i) => {
     const pick = matchState.picks[i];
-    const right = pick === i;
+    const right = pick === i || (pick !== undefined && String(pairs[pick]?.right ?? '').trim().toLowerCase() === String(p.right ?? '').trim().toLowerCase());
     const yours = pick !== undefined && !right ? pairs[pick]?.right : '';
     return `<div class="mr-row${right ? '' : ' wrong'}">
       <div class="mr-icon">${right ? '<i data-icon="circle-check"></i>' : '<i data-icon="circle-x"></i>'}</div>

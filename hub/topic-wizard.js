@@ -9,10 +9,10 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261110a';
-import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261110a';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261110a';
-import { logEvent } from './log.js?v=20261110a';
+import { db } from './firebase-config.js?v=20261110b';
+import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261110b';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261110b';
+import { logEvent } from './log.js?v=20261110b';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -89,7 +89,7 @@ Use these types in roughly equal proportions from: ${types.join(', ')}.
 For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
 For True/False: make roughly HALF the answers true and HALF false (e.g. 5 of 10), in a random order, not alternating. Build each false statement from a real fact with one key detail changed (a number, term, place, cause or direction) so it is a plausible misconception, not obviously silly. Don't give away the answer through wording: avoid putting words like "always", "never" or "only" mostly in the false ones, and keep true and false statements similar in length.
 For Fill-in-the-blank: use _____ (five underscores) for the gap.
-For Match pairs: include exactly 4 pairs.
+For Match pairs: include exactly 4 pairs, and make all 4 right-hand items different from each other (never two the same, e.g. two "Chemical change"), so each left item has only one possible match.
 
 Return ONLY a JSON array with no markdown, no preamble, no backticks. Each element must follow one of these schemas:
 ${schemas}
