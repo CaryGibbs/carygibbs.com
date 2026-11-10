@@ -9,10 +9,10 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109w';
-import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261109w';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261109w';
-import { logEvent } from './log.js?v=20261109w';
+import { db } from './firebase-config.js?v=20261109x';
+import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261109x';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261109x';
+import { logEvent } from './log.js?v=20261109x';
 import {
   doc, getDoc, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -20,14 +20,29 @@ import {
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /* ── AI instructions ─────────────────────────────────────── */
-export function notesPromptFromText(text) {
-  return `Extract all key points from the content below and organise them into logical sub-topic groups. Do not add anything not in the content, and do not omit anything. Cover every concept, definition, process, fact, example, and term mentioned. Where the content describes a diagram, graph or table, turn what it shows into key points too.
+// kind: 'auto' (AI decides), 'extract' (notes/textbook: use what it says),
+//       'teach' (checklist/spec/objectives: write what each point means)
+// context: e.g. "GCSE AQA Chemistry: Atomic structure" (helps the level)
+const NOTES_JSON = `Return ONLY a JSON array of groups, no markdown, no backticks, no preamble. Use between 3 and 12 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name about the SUBJECT (e.g. "Atoms and Elements", "Balancing Equations"), never about the document (not "Revision Checklist Format" or "Row 3"). Keep each explanation under 30 words.
+[{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits: 2 for easting, 2 for northing"},{"term":"Easting","explanation":"The horizontal value, read first"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map distance and real-world distance"}]}]`;
+const IGNORE_LAYOUT = `Ignore everything about how the document is laid out or used, and never make notes about it: tables and columns, row numbers, tick boxes, confidence or traffic-light columns, smiley faces, page headers and footers, logos, instructions to the student (e.g. "tick when revised"), and messages like "Good luck".`;
+export function notesPromptFromText(text, kind = 'auto', context = '') {
+  const teach = `For every item a student must know or be able to do, write the actual knowledge they need, as revision notes: definitions, facts, processes, rules, formulas, worked examples, equations and named examples, at the level the document is for (GCSE unless it says otherwise, e.g. Year 9 or A level). Turn "be able to state / describe / explain X" into what X actually is. Use the document's sections or headings as the groups. Be accurate and only include what is on the specification for that item; if you're not sure of a detail, keep it general.`;
+  const extract = `Extract all key points from the content and organise them into logical sub-topic groups. Do not add anything not in the content, and do not omit anything. Cover every concept, definition, process, fact, example, and term mentioned. Where the content describes a diagram, graph or table of SUBJECT information, turn what it shows into key points too.`;
+  const how = kind === 'teach' ? teach
+    : kind === 'extract' ? extract
+    : `First decide what kind of document this is.
+- If it EXPLAINS the subject (revision notes, a textbook page, a handout, a teacher's slides): ${extract}
+- If it mainly LISTS what to learn without explaining it (a revision checklist, specification, list of learning objectives or "I can…" statements): ${teach}
+- If it's a mix, do both: use the explanations given, and write the knowledge for any point that is only listed.`;
+  return `You are an expert UK teacher writing revision notes for a student.${context ? `
+Where this will be saved: ${context} (if the document is clearly about something else, follow the document)` : ''}
 
-Return ONLY a JSON array of groups (minimum 3 groups, maximum 8 groups), no markdown, no backticks. Every group MUST have a non-empty descriptive name:
-[{"group":"Group name","points":[{"term":"Term","explanation":"Clear explanation"},...]},...]
+${how}
 
-Example:
-[{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits — 2 for easting, 2 for northing"},{"term":"Easting","explanation":"The horizontal value read first (along the corridor)"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map distance and real-world distance"}]}]
+${IGNORE_LAYOUT}
+
+${NOTES_JSON}
 
 Content:
 ${String(text).substring(0, 80000)}`;
@@ -95,7 +110,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   document.getElementById('tw')?.remove();
   const snap = await getDoc(doc(db, topicPath)).catch(() => null);
   const st = {
-    step: 1, source: null, text: '', note: '',
+    step: 1, source: null, text: '', note: '', kind: 'auto',
     current: asGroups(snap?.data()?.keyPoints || []),
     notes: [], merge: 'add', questions: [], busy: false,
     qty: 20, types: QUESTION_TYPES.map(t => t.id),
@@ -165,6 +180,12 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       src.innerHTML = `<label class="tw-label">What should the notes cover?<input id="tw-topic" class="tw-input" value="${esc(st.aiTopic)}"></label>
         <p class="tw-hint">Be specific: the exam board and level help. You can list the sub-topics too, separated by commas.</p>`;
     }
+    if (st.source === 'upload' || st.source === 'paste') {
+      src.insertAdjacentHTML('beforeend', `<div class="tw-kind"><span class="tw-label-s">What is it?</span>
+        ${[['auto', 'Let AI decide'], ['extract', 'Notes or a textbook: use what it says'], ['teach', 'A checklist or specification: write notes that teach each point']]
+          .map(([v, t]) => `<label><input type="radio" name="tw-kind" value="${v}" ${st.kind === v ? 'checked' : ''}> ${t}</label>`).join('')}</div>`);
+      src.querySelectorAll('[name="tw-kind"]').forEach(r => r.onchange = () => { st.kind = r.value; });
+    }
     if (st.note) msg(st.note);
     foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
       <button class="btn btn-primary" data-go="next" ${st.source ? '' : 'disabled'}>${st.source === 'existing' ? 'Next: make questions' : 'Next: make notes'} →</button>`;
@@ -205,11 +226,12 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     } else {
       st.text = (document.getElementById('tw-text')?.value || '').trim();
       if (st.text.length < 40) { msg(st.source === 'upload' ? 'Choose a file first.' : 'Paste some notes first.', true); return; }
-      prompt = notesPromptFromText(st.text);
+      prompt = notesPromptFromText(st.text, st.kind, st.aiTopic);
     }
     busy(true, 'Writing the notes… (up to a minute)');
     try {
-      st.notes = asGroups(await ask(prompt, st.source === 'ai' || st.text.length > 12000 ? 16000 : 8000));
+      // Teaching from a list writes much more than it reads, so allow a long reply
+      st.notes = asGroups(await ask(prompt, st.source === 'ai' || st.kind !== 'extract' || st.text.length > 12000 ? 16000 : 8000));
       st.step = 2;
     } catch (e) { busy(false); msg(e.message, true); return; }
     busy(false);
@@ -382,6 +404,9 @@ function injectStyle() {
   .tw-msg { min-height: 1.2em; font-size: 0.85rem; margin-top: 10px; color: var(--color-text-muted); }
   .tw-msg.err { color: var(--color-danger); }
   .tw-busy { position: absolute; inset: 0; background: color-mix(in srgb, var(--color-surface) 88%, transparent); display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font-ui); font-weight: 600; text-align: center; padding: 20px; }
+  .tw-kind { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; font-size: 0.88rem; }
+  .tw-kind label { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .tw-kind input { width: auto !important; margin: 0; flex-shrink: 0; }
   .tw-merge { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; font-size: 0.88rem; background: var(--color-surface-2); padding: 10px 12px; border-radius: 10px; }
   .tw-merge label, .tw-check { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; cursor: pointer; text-transform: none; letter-spacing: 0; }
   .tw-merge input, .tw-check input { width: auto !important; margin: 0; flex-shrink: 0; }

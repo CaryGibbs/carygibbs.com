@@ -137,7 +137,8 @@ export async function readDocumentWithAI(file, askClaude, onProgress) {
     });
     content.push({ type: 'text', text: `These are pages of revision material for a UK GCSE student. Write out everything on them as plain text, so it can be used to make revision notes and questions:
 - Copy all the text accurately, in reading order, keeping headings and lists. Include handwriting if it's readable.
-- For every diagram, graph, chart, map, table or picture, write "[Diagram: …]" (or Graph, Table, Map, Picture) and describe it fully in words: what it shows, every label, value, axis, arrow and key, and what it means. Write tables out row by row.
+- For every diagram, graph, chart, map, table or picture that carries subject information, write "[Diagram: …]" (or Graph, Table, Map, Picture) and describe it fully in words: what it shows, every label, value, axis, arrow and key, and what it means. Write tables of information out row by row.
+- Skip page decoration and form layout: logos, borders, tick boxes, empty columns, smiley or traffic-light faces. For a checklist, just list each item.
 - Don't add anything that isn't on the page, and don't summarise.
 Start each page with "Page N" on its own line. Reply with the text only.` });
     const data = await askClaude('generation', content, 8000);
