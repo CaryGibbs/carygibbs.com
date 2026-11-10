@@ -9,10 +9,10 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109x';
-import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261109x';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261109x';
-import { logEvent } from './log.js?v=20261109x';
+import { db } from './firebase-config.js?v=20261109y';
+import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261109y';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261109y';
+import { logEvent } from './log.js?v=20261109y';
 import {
   doc, getDoc, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -91,6 +91,8 @@ export function notesToText(kps = []) {
   if (kps[0] && 'group' in kps[0]) return kps.map(g => `## ${g.group}\n` + (g.points || []).map(p => `${p.term}: ${p.explanation}`).join('\n')).join('\n\n');
   return kps.map(p => `${p.term}: ${p.explanation}`).join('\n');
 }
+const MAX_QUESTIONS = 150;   // per go
+const BATCH = 30;            // questions per AI request
 const notesWord = n => `${n} note${n === 1 ? '' : 's'}`;
 const pointCount = kps => (kps || []).reduce((a, g) => a + (g && g.points ? g.points.length : 1), 0);
 const asGroups = kps => !kps?.length ? [] : ('group' in (kps[0] || {}) ? kps : [{ group: 'Notes', points: kps }]);
@@ -113,7 +115,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     step: 1, source: null, text: '', note: '', kind: 'auto',
     current: asGroups(snap?.data()?.keyPoints || []),
     notes: [], merge: 'add', questions: [], busy: false,
-    qty: 20, types: QUESTION_TYPES.map(t => t.id),
+    qty: 20, qtyChosen: false, types: QUESTION_TYPES.map(t => t.id),
     aiTopic: [subject.level, subject.examBoard, subject.name].filter(Boolean).join(' ') + (subject.name ? ': ' : '') + (topic.name || ''),
   };
   document.body.insertAdjacentHTML('beforeend', `
@@ -295,25 +297,29 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   /* Step 3: make questions */
   function step3() {
     const n = pointCount(st.current);
+    // About one and a half questions per note covers everything without repeating
+    const suggested = Math.max(10, Math.min(MAX_QUESTIONS, Math.round(n * 1.5 / 5) * 5));
+    if (!st.qtyChosen) st.qty = suggested;
     body().innerHTML = `
       <h3 class="tw-h">Make questions</h3>
       <p class="tw-hint">Made from the ${notesWord(n)} for this topic. You'll see them before anything is saved.</p>
       <div class="tw-row"><span class="tw-label-s">How many?</span>
-        ${[10, 20, 40].map(q => `<button class="tw-chip${st.qty === q ? ' on' : ''}" data-qty="${q}">${q}</button>`).join('')}
-        <input type="number" class="tw-num" id="tw-qty" min="3" max="100" value="${st.qty}" aria-label="Number of questions"></div>
+        ${[10, 20, 40, 60, 80, 100].map(q => `<button class="tw-chip${st.qty === q ? ' on' : ''}" data-qty="${q}">${q}</button>`).join('')}
+        <input type="number" class="tw-num" id="tw-qty" min="3" max="${MAX_QUESTIONS}" value="${st.qty}" aria-label="Number of questions"></div>
+      <p class="tw-hint tw-suggest">About ${suggested} suits ${notesWord(n)}. Asking for more than the notes can support gives fewer, so nothing is repeated.</p>
       <div class="tw-row tw-types"><span class="tw-label-s">Kinds</span>
         ${QUESTION_TYPES.map(t => `<label class="tw-chip${st.types.includes(t.id) ? ' on' : ''}"><input type="checkbox" value="${t.id}" ${st.types.includes(t.id) ? 'checked' : ''}> ${t.label}</label>`).join('')}</div>
-      <div id="tw-qs">${st.questions.length ? questionsHtml() : ''}</div>
+      <div id="tw-qs">${st.questions.length ? (st.genNote ? `<p class="tw-gen-note">${esc(st.genNote)}</p>` : '') + questionsHtml() : ''}</div>
       <div class="tw-msg" id="tw-msg"></div>`;
-    body().querySelectorAll('[data-qty]').forEach(b => b.onclick = () => { st.qty = +b.dataset.qty; step3(); });
-    document.getElementById('tw-qty').oninput = e => { st.qty = Math.max(3, Math.min(100, +e.target.value || 20)); body().querySelectorAll('[data-qty]').forEach(b => b.classList.toggle('on', +b.dataset.qty === st.qty)); };
+    body().querySelectorAll('[data-qty]').forEach(b => b.onclick = () => { st.qty = +b.dataset.qty; st.qtyChosen = true; step3(); });
+    document.getElementById('tw-qty').oninput = e => { st.qty = Math.max(3, Math.min(MAX_QUESTIONS, +e.target.value || 20)); st.qtyChosen = true; body().querySelectorAll('[data-qty]').forEach(b => b.classList.toggle('on', +b.dataset.qty === st.qty)); };
     body().querySelectorAll('.tw-types input').forEach(c => c.onchange = () => {
       st.types = [...body().querySelectorAll('.tw-types input:checked')].map(i => i.value);
       c.closest('label').classList.toggle('on', c.checked);
     });
     body().onclick = e => {
       const d = e.target.closest('[data-delq]');
-      if (d) { st.questions.splice(+d.dataset.delq, 1); document.getElementById('tw-qs').innerHTML = questionsHtml(); updateSave(); }
+      if (d) { st.questions.splice(+d.dataset.delq, 1); st.genNote = ''; document.getElementById('tw-qs').innerHTML = questionsHtml(); updateSave(); }
     };
     const has = st.questions.length;
     foot().innerHTML = `<button class="btn btn-secondary" data-go="back">← Notes</button>
@@ -346,9 +352,28 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     if (!st.types.length) { msg('Pick at least one kind of question.', true); return; }
     const content = notesToText(st.current);
     if (!content) { msg('This topic has no notes yet.', true); return; }
-    busy(true, `Writing up to ${st.qty} questions… (up to a minute)`);
-    try { st.questions = tfFix(await ask(questionsPrompt(content, st.qty, st.types), 16000)).filter(q => QUESTION_TYPES.some(t => t.id === q?.type)); }
-    catch (e) { busy(false); msg(e.message, true); return; }
+    // Large requests are made in batches (one reply holds about 40), each told
+    // what's already been written so nothing is repeated. Stops early when the
+    // notes run out of new things to ask.
+    const got = [];
+    const textOf = q => q.question || q.sentence || q.instruction || '';
+    busy(true, `Writing up to ${st.qty} questions… (about a minute${st.qty > BATCH ? ' per ' + BATCH : ''})`);
+    try {
+      while (got.length < st.qty) {
+        const want = Math.min(BATCH, st.qty - got.length);
+        if (got.length) setBusyText(`Writing questions ${got.length + 1} to ${got.length + want} of up to ${st.qty}…`);
+        const avoid = got.length ? `\n\nQuestions already written. Do NOT repeat these or test the same facts again; cover different points:\n${got.map(q => '- ' + textOf(q)).join('\n')}` : '';
+        const batch = tfFix(await ask(questionsPrompt(content + avoid, want, st.types), 16000)).filter(q => QUESTION_TYPES.some(t => t.id === q?.type));
+        got.push(...batch);
+        if (batch.length < want * 0.5) break;   // the notes have run out of new questions
+      }
+    } catch (e) {
+      if (!got.length) { busy(false); msg(e.message, true); return; }
+    }
+    st.questions = got.slice(0, st.qty);
+    st.genNote = st.questions.length < st.qty
+      ? `Made ${st.questions.length} of the ${st.qty} asked for: that's everything these notes can support without repeating. For more, add more notes.`
+      : `Made ${st.questions.length} questions. Remove any you don't want, then save.`;
     busy(false);
     step3();
   }
@@ -425,6 +450,7 @@ function injectStyle() {
   .tw-chip.on { border-color: var(--color-primary); background: var(--color-primary-glow); color: var(--color-primary); font-weight: 600; }
   .tw-chip input { display: none; }
   .tw-num { width: 70px; padding: 6px 8px; border-radius: 8px; }
+  .tw-gen-note { margin: 4px 0 8px; padding: 8px 12px; border-radius: 10px; background: var(--color-primary-glow); font-size: 0.86rem; }
   .tw-qlist { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
   .tw-q { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--color-border); border-radius: 10px; padding: 8px 10px; font-size: 0.88rem; }
   .tw-qtype { font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); width: 92px; flex-shrink: 0; padding-top: 2px; }
