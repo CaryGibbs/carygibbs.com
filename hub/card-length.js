@@ -9,8 +9,8 @@
 // student shares them. Until they're ready, a simple cut-down is shown.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261110b';
-import { askClaude, jsonOf } from './ai.js?v=20261110b';
+import { db } from './firebase-config.js?v=20261110c';
+import { askClaude, jsonOf } from './ai.js?v=20261110c';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const LENGTHS = [

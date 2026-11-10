@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110b">
-  <script src="icons.js?v=20261110b"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110c">
+  <script src="icons.js?v=20261110c"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -196,6 +196,8 @@
     .match-item.matched-correct { border-color: var(--color-success); background: rgba(107,203,119,0.1); color: var(--color-success); }
     .match-item.matched-wrong   { border-color: var(--color-danger);  background: rgba(255,107,107,0.1); color: var(--color-danger); }
     .match-item.used { opacity: 0.4; cursor: default; }
+    .match-item.paired { border-color: var(--color-primary); color: var(--color-primary); }
+    .match-item.paired.selected { background: var(--color-primary-glow); }
     .match-lines { display: none; } /* visual lines — handled by colour */
     .match-num {
       flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; margin-right: 8px;
@@ -316,7 +318,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110b">
+  <link rel="stylesheet" href="ui.css?v=20261110c">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -401,7 +403,7 @@
     <!-- Match pairs -->
     <div id="input-match" class="q-input" style="display:none;">
       <div class="match-wrap">
-        <p style="font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">Click a left item, then click the matching right item.</p>
+        <p style="font-size:0.88rem;color:var(--color-text-muted);margin-bottom:var(--space-md);">Tap an item on the left, then its match on the right. You can change any pair (tap it again) until you press Check answer.</p>
         <div class="match-cols">
           <div>
             <div class="match-col-label">Terms</div>
@@ -521,12 +523,12 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110b';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261110b';
-import { askClaude, jsonOf } from './ai.js?v=20261110b';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261110b';
-import { logEvent } from './log.js?v=20261110b';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261110b';
+import { auth, db } from './firebase-config.js?v=20261110c';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261110c';
+import { askClaude, jsonOf } from './ai.js?v=20261110c';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261110c';
+import { logEvent } from './log.js?v=20261110c';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261110c';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -995,51 +997,84 @@ window._submitTF = function(btn) {
 };
 
 /* ── Match pairs interaction ─────────────────────────────── */
+// Pairs can be changed freely until "Check answer" is pressed:
+// tap a left item, then a right item to pair them (re-pairing replaces the
+// old pair; taking a right item already used frees its old partner).
+// Tap a paired right item with nothing selected to undo that pair.
+// picks: { leftIdx: rightPairIdx }
+const sameText = (a, b) => String(a ?? '').trim().toLowerCase() === String(b ?? '').trim().toLowerCase();
+function matchItems(side) { return [...document.querySelectorAll(`#match-${side} .match-item`)]; }
+function drawMatchPairs() {
+  const picks = matchState.picks;
+  const leftOf = {};   // right pairIdx -> left idx
+  Object.entries(picks).forEach(([l, r]) => { leftOf[r] = +l; });
+  matchItems('left').forEach(el => {
+    const i = +el.dataset.pairIdx;
+    el.querySelector('.match-num')?.remove();
+    el.classList.toggle('paired', picks[i] !== undefined);
+    el.classList.toggle('selected', matchState.selectedLeft === el);
+    if (picks[i] !== undefined) el.insertAdjacentHTML('afterbegin', `<span class="match-num"><span>${i + 1}</span></span>`);
+  });
+  matchItems('right').forEach(el => {
+    const r = +el.dataset.pairIdx;
+    el.querySelector('.match-num')?.remove();
+    const l = leftOf[r];
+    el.classList.toggle('paired', l !== undefined);
+    if (l !== undefined) el.insertAdjacentHTML('afterbegin', `<span class="match-num"><span>${l + 1}</span></span>`);
+  });
+  const all = Object.keys(picks).length >= matchState.total;
+  document.getElementById('btn-submit').style.display = all ? 'inline-flex' : 'none';
+}
 function handleMatchClick(item, side) {
-  if (item.classList.contains('matched-correct') || item.classList.contains('matched-wrong') || item.classList.contains('used')) return;
-
+  if (answered) return;
+  const picks = matchState.picks;
   if (side === 'left') {
-    // Deselect any other left
-    document.querySelectorAll('#match-left .match-item').forEach(el => el.classList.remove('selected'));
-    item.classList.add('selected');
-    matchState.selectedLeft = item;
-  } else if (side === 'right') {
-    if (!matchState.selectedLeft) return;
-    const leftItem  = matchState.selectedLeft;
-    const leftIdx   = parseInt(leftItem.dataset.pairIdx);
-    const rightIdx  = parseInt(item.dataset.pairIdx);
-    // Right items can repeat (e.g. two "Chemical change"), so match by text too
-    const same = (a, b) => String(a ?? '').trim().toLowerCase() === String(b ?? '').trim().toLowerCase();
-    const correct   = leftIdx === rightIdx || same(matchState.pairs?.[leftIdx]?.right, matchState.pairs?.[rightIdx]?.right);
-
-    leftItem.classList.remove('selected');
-    leftItem.classList.add(correct ? 'matched-correct' : 'matched-wrong');
-    item.classList.add(correct ? 'matched-correct' : 'matched-wrong');
-    // Number both sides so it's clear which went with which
-    matchState.picks[leftIdx] = rightIdx;
-    const n = Object.keys(matchState.picks).length;
-    [leftItem, item].forEach(el => el.insertAdjacentHTML('afterbegin', `<span class="match-num"><span>${n}</span></span>`));
-    leftItem.style.pointerEvents = 'none';
-    item.style.pointerEvents = 'none';
-    matchState.selectedLeft = null;
-
-    if (correct) matchState.matched = (matchState.matched || 0) + 1;
-    else matchState.wrongMatches = (matchState.wrongMatches || 0) + 1;
-
-    const totalDone = (matchState.matched || 0) + (matchState.wrongMatches || 0);
-    if (totalDone >= matchState.total) {
-      // All matched
-      answered = true;
-      const allCorrect = matchState.matched === matchState.total;
-      if (allCorrect) score++;
-      if (!allCorrect) showMatchReview();
-      const summary = allCorrect
-        ? 'All pairs matched correctly!'
-        : `You got ${matchState.matched} of ${matchState.total} pairs right. The correct pairs are shown above.`;
-      showFeedback(allCorrect, [summary, questions[currentIdx]?.explanation].filter(Boolean).join(' '));
-      showNextBtn();
+    // Tap the selected item again to deselect it
+    matchState.selectedLeft = matchState.selectedLeft === item ? null : item;
+  } else {
+    const r = +item.dataset.pairIdx;
+    const owner = Object.keys(picks).find(l => picks[l] === r);
+    if (!matchState.selectedLeft) {
+      // Nothing selected: tapping a paired right item undoes that pair
+      if (owner !== undefined) delete picks[owner];
+    } else {
+      const l = +matchState.selectedLeft.dataset.pairIdx;
+      if (owner !== undefined) delete picks[owner];
+      picks[l] = r;
+      matchState.selectedLeft = null;
+      // Then move on to the next unpaired left item, to save a tap
+      const next = matchItems('left').find(el => picks[+el.dataset.pairIdx] === undefined);
+      if (next && Object.keys(picks).length < matchState.total) matchState.selectedLeft = next;
     }
   }
+  drawMatchPairs();
+}
+function submitMatch() {
+  const picks = matchState.picks, pairs = matchState.pairs || [];
+  if (Object.keys(picks).length < matchState.total) { showToast('Match every item first', 'error'); return; }
+  answered = true;
+  matchState.selectedLeft = null;
+  let right = 0;
+  matchItems('left').forEach(el => {
+    const i = +el.dataset.pairIdx;
+    const ok = picks[i] === i || sameText(pairs[i]?.right, pairs[picks[i]]?.right);
+    if (ok) right++;
+    el.classList.remove('paired', 'selected');
+    el.classList.add(ok ? 'matched-correct' : 'matched-wrong');
+    const rEl = matchItems('right').find(x => +x.dataset.pairIdx === picks[i]);
+    if (rEl) { rEl.classList.remove('paired'); rEl.classList.add(ok ? 'matched-correct' : 'matched-wrong'); }
+  });
+  matchItems('left').concat(matchItems('right')).forEach(el => { el.style.pointerEvents = 'none'; });
+  matchState.matched = right;
+  document.getElementById('btn-submit').style.display = 'none';
+  const allCorrect = right === matchState.total;
+  if (allCorrect) score++;
+  else showMatchReview();
+  const summary = allCorrect
+    ? 'All pairs matched correctly!'
+    : `You got ${right} of ${matchState.total} pairs right. The correct pairs are shown above.`;
+  showFeedback(allCorrect, [summary, questions[currentIdx]?.explanation].filter(Boolean).join(' '));
+  showNextBtn();
 }
 
 // Replace the two columns with a clear list of the correct pairs
@@ -1048,7 +1083,7 @@ function showMatchReview() {
   const review = document.getElementById('match-review');
   review.innerHTML = `<div class="match-review-title">Correct pairs</div>` + pairs.map((p, i) => {
     const pick = matchState.picks[i];
-    const right = pick === i || (pick !== undefined && String(pairs[pick]?.right ?? '').trim().toLowerCase() === String(p.right ?? '').trim().toLowerCase());
+    const right = pick === i || (pick !== undefined && sameText(pairs[pick]?.right, p.right));
     const yours = pick !== undefined && !right ? pairs[pick]?.right : '';
     return `<div class="mr-row${right ? '' : ' wrong'}">
       <div class="mr-icon">${right ? '<i data-icon="circle-check"></i>' : '<i data-icon="circle-x"></i>'}</div>
@@ -1111,9 +1146,7 @@ window._submitAnswer = function() {
     markShortWritten(q, userAns);
   }
 
-  else if (q.type === 'match') {
-    // Match submits automatically when all pairs done
-  }
+  else if (q.type === 'match') submitMatch();
 };
 
 /* ── AI marking for short written ───────────────────────── */
