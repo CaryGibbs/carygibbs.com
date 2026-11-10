@@ -11,6 +11,7 @@
 //   task 'generation'  writing questions, key points, links   Plus or admin only
 //   task 'learning'    learning notes, cheat sheets, cards    any signed-in user
 //   task 'marking'     marking written quiz answers           any signed-in user
+//   (generation may include page pictures, to read scanned PDFs and diagrams)
 //   action 'checkLinks'  checking resource links load        any signed-in user
 //   action 'deleteAccount'  delete a user's account and data  yourself, a student's
 //                       only parent, or an admin (only the owner can delete admins)
@@ -38,6 +39,10 @@ const TASKS = {
   marking:    { maxTokens: 1000,  maxPrompt: 20000,  needsPlus: false },
 };
 const MAX_LINKS = 20;
+// Page pictures (reading scanned PDFs and diagrams): generation only, so Plus only
+const MAX_IMAGES = 8;                    // per request
+const MAX_IMAGE_B64 = 5 * 1024 * 1024;   // per picture (base64 characters)
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 export default {
   async fetch(request, env) {
@@ -96,7 +101,22 @@ export default {
     const model = MODELS.includes(body.model) ? body.model : 'claude-sonnet-4-5';
     const messages = Array.isArray(body.messages) ? body.messages : [];
     if (!messages.length) return fail(400, 'Nothing to send');
-    const size = JSON.stringify(messages).length;
+    // Pictures are checked separately and don't count towards the text limit
+    let images = 0, bad = false;
+    const textOnly = messages.map(m => {
+      if (!Array.isArray(m.content)) return m;
+      return { ...m, content: m.content.map(c => {
+        if (c?.type !== 'image') return c;
+        images++;
+        const src = c.source || {};
+        if (src.type !== 'base64' || !IMAGE_TYPES.includes(src.media_type) || typeof src.data !== 'string' || src.data.length > MAX_IMAGE_B64) bad = true;
+        return { type: 'text', text: '' };
+      }) };
+    });
+    if (images && taskName !== 'generation') return fail(403, 'Reading pictures is part of Lobe Limpet Plus');
+    if (bad) return fail(413, 'A page picture was too big or not a picture');
+    if (images > MAX_IMAGES) return fail(413, `Send at most ${MAX_IMAGES} pages at a time`);
+    const size = JSON.stringify(textOnly).length;
     if (size > task.maxPrompt) return fail(413, 'That is too much text in one go. Try a smaller piece.');
     const maxTokens = Math.max(1, Math.min(Number(body.max_tokens) || 1000, task.maxTokens));
 

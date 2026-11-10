@@ -6,7 +6,7 @@
 // app has always used, so nothing breaks.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261109u';
+import { db, auth } from './firebase-config.js?v=20261109v';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -57,6 +57,7 @@ export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallb
   const headers = await authHeaders(task);
   const send = m => fetch(PROXY_URL, {
     method: 'POST', headers,
+    // prompt: text, or a list of content blocks (e.g. page pictures and text)
     body: JSON.stringify({ model: m, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
   }).then(async r => {
     const data = await r.json().catch(() => ({}));
