@@ -157,7 +157,8 @@ Start each page with "Page N" on its own line. Reply with the text only.` });
 /* Add an "Upload a document" button above a text box. The read text is
    added to whatever's already in the box. */
 // options.askClaude: when given (Plus), also offer "Read with AI" for scans and diagrams
-export function addDocumentButton(textarea, { askClaude = null } = {}) {
+// options.allowed(): false shows the AI button but opens options.onLocked() instead (Plus upsell)
+export function addDocumentButton(textarea, { askClaude = null, allowed = () => true, onLocked = null } = {}) {
   if (!textarea || textarea.dataset.docButton) return;
   textarea.dataset.docButton = '1';
   if (!document.getElementById('doc-text-style')) document.head.insertAdjacentHTML('beforeend', `<style id="doc-text-style">
@@ -172,12 +173,16 @@ export function addDocumentButton(textarea, { askClaude = null } = {}) {
   const wrap = document.createElement('div');
   wrap.className = 'doc-up';
   wrap.innerHTML = `<label><i data-icon="file-text"></i> Upload a document<input type="file" data-mode="text" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"></label>
-    ${askClaude ? `<label title="For scanned pages, photos, diagrams, graphs and tables. Uses AI, so takes a little longer."><i data-icon="sparkles"></i> Read with AI (scans &amp; diagrams)<input type="file" data-mode="ai" accept=".pdf,application/pdf,image/png,image/jpeg,image/webp"></label>` : ''}
+    ${askClaude ? `<label class="needs-plus" title="For scanned pages, photos, diagrams, graphs and tables. Uses AI, so takes a little longer."><i data-icon="sparkles"></i> Read with AI (scans &amp; diagrams)<input type="file" data-mode="ai" accept=".pdf,application/pdf,image/png,image/jpeg,image/webp"></label>` : ''}
     <span class="doc-up-msg">${askClaude
       ? 'Upload a document reads the words in a PDF, Word or text file. Read with AI also reads scans, photos and diagrams (PDF or photo, up to 30 pages).'
       : 'PDF, Word (.docx) or text. The words are read on this device and added below.'}</span>`;
   textarea.before(wrap);
   const msg = wrap.querySelector('.doc-up-msg');
+  // Without Plus: the AI button explains instead of opening the file picker
+  wrap.querySelector('input[data-mode="ai"]')?.closest('label').addEventListener('click', e => {
+    if (!allowed()) { e.preventDefault(); onLocked && onLocked(); }
+  });
   wrap.querySelectorAll('input').forEach(input => input.addEventListener('change', async () => {
     const file = input.files[0];
     if (!file) return;
