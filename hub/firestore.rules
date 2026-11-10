@@ -10,7 +10,8 @@ rules_version = '2';
 //   Students: their own record.
 //   Revision packs (content/{pack}):
 //     Official packs (made by admins): any signed-in user can read; admins write.
-//     Own packs (ownerUid, visibility 'private'): made by parents and teachers;
+//     Own packs (ownerUid, visibility 'private'): made by parents and teachers
+//     (and by students, for their own flashcard sets);
 //     only the owner, admins and students given the pack (packIds on the
 //     student) can read; only the owner and admins write.
 //     Library packs (visibility 'library'): frozen copies an admin approved
@@ -227,9 +228,10 @@ service cloud.firestore {
         || resource.data.visibility == 'official'
         || resource.data.visibility == 'library'
         || resource.data.ownerUid == me());
-      // Parents and teachers make private packs of their own
+      // Parents and teachers make private packs of their own; students make
+      // one for their own flashcard sets (cards.html)
       allow create: if isAdmin() || (signedIn()
-        && (hasRole(userDoc(me()), 'parent') || hasRole(userDoc(me()), 'teacher'))
+        && (hasRole(userDoc(me()), 'parent') || hasRole(userDoc(me()), 'teacher') || hasRole(userDoc(me()), 'student'))
         && request.resource.data.ownerUid == me()
         && request.resource.data.visibility == 'private');
       allow update: if isAdmin() || ownerEditOK();

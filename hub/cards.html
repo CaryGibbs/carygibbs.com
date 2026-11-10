@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="edge">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lobe Limpet — My flashcards</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110e">
+  <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
+  <meta name="application-name" content="Lobe Limpet">
+  <link rel="stylesheet" href="theme.css?v=20261110e">
+  <script src="icons.js?v=20261110e"></script>
+  <style>
+    body { min-height: 100vh; background: var(--color-bg); }
+    .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
+      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 12px; }
+    .nav-back { display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted); text-decoration: none; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-back:hover { color: var(--color-primary); }
+    .nav-title { font-family: var(--font-heading); font-size: 1rem; font-weight: 700; }
+    .page { max-width: 860px; margin: 0 auto; padding: var(--space-xl) var(--space-lg) 120px; }
+    @media (max-width: 600px) { .topnav { padding: 0 var(--space-md); } .page { padding: var(--space-lg) var(--space-md) 120px; } }
+    [hidden] { display: none !important; }
+    input[type=checkbox], input[type=radio] { width: auto; margin: 0; flex: none; }
+    .study-opts label, .seps label, .dialog-actions label { white-space: nowrap; }
+
+    h1.page-title { font-family: var(--font-heading); font-size: 1.6rem; margin: 0 0 4px; }
+    .lead { color: var(--color-text-muted); font-size: 0.95rem; margin: 0 0 var(--space-lg); line-height: 1.5; }
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .plus-tag { display: inline-block; margin-left: 4px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+      color: #fff; background: linear-gradient(135deg, #ff7a59, #e0643f); padding: 2px 6px; border-radius: 999px; vertical-align: 1px; }
+
+    /* ── Set list ──────────────────────────────────────── */
+    .subject-head { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--color-text-muted); margin: var(--space-xl) 0 var(--space-sm); }
+    .set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--space-md); }
+    .set-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-md) var(--space-lg);
+      display: flex; flex-direction: column; gap: 10px; }
+    .set-name { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; line-height: 1.3; word-break: break-word; }
+    .set-meta { font-size: 0.82rem; color: var(--color-text-muted); }
+    .set-card .row-actions .btn { padding: 7px 12px; font-size: 0.82rem; }
+    .icon-only { background: none; border: 1px solid var(--color-border); border-radius: var(--radius-button); color: var(--color-text-muted); cursor: pointer;
+      width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+    .icon-only:hover { color: var(--color-primary); border-color: var(--color-primary); }
+    .icon-only.danger:hover { color: var(--color-danger); border-color: var(--color-danger); }
+    .empty { background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: var(--radius-card); padding: var(--space-xl); text-align: center; }
+    .empty h2 { font-family: var(--font-heading); font-size: 1.2rem; margin: 8px 0; }
+    .empty p { color: var(--color-text-muted); margin: 0 auto var(--space-md); max-width: 460px; line-height: 1.5; }
+    .why { margin-top: var(--space-xl); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: var(--space-lg); }
+    .why h3 { font-family: var(--font-heading); font-size: 1rem; margin: 0 0 8px; }
+    .why ul { margin: 0; padding-left: 20px; color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── Editor ────────────────────────────────────────── */
+    .field-label { display: block; font-family: var(--font-ui); font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted); margin-bottom: 6px; }
+    .field { width: 100%; box-sizing: border-box; font: inherit; font-size: 1rem; color: var(--color-text); background: var(--color-surface);
+      border: 1px solid var(--color-border); border-radius: 10px; padding: 10px 12px; }
+    .field:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
+    .meta-grid { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md); }
+    @media (max-width: 600px) { .meta-grid { grid-template-columns: 1fr; } }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: var(--space-md) 0; }
+    .toolbar .btn { padding: 8px 14px; font-size: 0.85rem; }
+    .draft-note { background: var(--color-primary-glow); border: 1px solid var(--color-primary); border-radius: 10px; padding: 10px 14px; font-size: 0.88rem;
+      display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: var(--space-md); }
+    .draft-note button { background: none; border: none; color: var(--color-primary); font-weight: 700; cursor: pointer; font: inherit; font-size: 0.85rem; }
+
+    .cards { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .card-row { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 10px 12px 12px; }
+    .card-row.dup { border-color: #f59f00; }
+    .card-row.incomplete { border-color: var(--color-danger); }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .card-num { font-family: var(--font-ui); font-weight: 800; font-size: 0.85rem; color: var(--color-text-muted); }
+    .card-flag { font-size: 0.75rem; font-weight: 700; color: #b97700; margin-left: 8px; }
+    .card-flag.err { color: var(--color-danger); }
+    .card-fields { display: grid; grid-template-columns: 1fr 1.6fr; gap: var(--space-md); }
+    @media (max-width: 600px) { .card-fields { grid-template-columns: 1fr; gap: 6px; } }
+    .card-fields textarea { width: 100%; box-sizing: border-box; resize: none; overflow: hidden; font: inherit; font-size: 0.98rem; line-height: 1.4; min-height: 42px;
+      color: var(--color-text); background: transparent; border: none; border-bottom: 2px solid var(--color-border); padding: 8px 2px; }
+    .card-fields textarea:focus { outline: none; border-bottom-color: var(--color-primary); }
+    .card-fields small { display: block; font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-muted); margin-top: 4px; }
+    .add-row { margin-top: var(--space-sm); width: 100%; padding: 16px; border: 2px dashed var(--color-border); border-radius: var(--radius-card); background: none;
+      font-family: var(--font-ui); font-weight: 700; color: var(--color-text-muted); cursor: pointer; font-size: 0.95rem; }
+    .add-row:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; background: var(--color-surface); border-top: 1px solid var(--color-border);
+      padding: 12px var(--space-lg); display: flex; justify-content: center; }
+    .savebar-inner { max-width: 860px; width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .savebar-info { font-size: 0.85rem; color: var(--color-text-muted); }
+    .hint { font-size: 0.8rem; color: var(--color-text-muted); margin-top: var(--space-sm); }
+
+    /* ── Dialogs ───────────────────────────────────────── */
+    .overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(10,12,20,0.5); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px; overflow-y: auto; }
+    .dialog { background: var(--color-surface); color: var(--color-text); border-radius: 18px; padding: 22px; max-width: 640px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+    .dialog h2 { font-family: var(--font-heading); font-size: 1.2rem; margin: 0 0 6px; }
+    .dialog p { color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5; margin: 0 0 12px; }
+    .dialog textarea.field { min-height: 170px; resize: vertical; font-size: 0.92rem; }
+    .seps { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    @media (max-width: 600px) { .seps { grid-template-columns: 1fr; } }
+    .seps fieldset { border: 1px solid var(--color-border); border-radius: 10px; padding: 8px 12px; margin: 0; }
+    .seps legend { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted); padding: 0 4px; }
+    .seps label { display: inline-flex; align-items: center; gap: 5px; margin: 4px 12px 4px 0; font-size: 0.88rem; cursor: pointer; }
+    .seps input[type=text] { width: 70px; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: 6px; font: inherit; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text); }
+    .preview { max-height: 180px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 10px; font-size: 0.85rem; }
+    .preview div { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--color-border); }
+    .preview div:last-child { border-bottom: none; }
+    .preview .missing { color: var(--color-danger); font-style: italic; }
+    .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    .dialog-actions .grow { flex: 1; font-size: 0.82rem; color: var(--color-text-muted); }
+    .count-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 0.9rem; }
+    .count-row select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--color-border); font: inherit; background: var(--color-surface); color: var(--color-text); }
+    .status { font-size: 0.85rem; color: var(--color-text-muted); }
+    .status.err { color: var(--color-danger); }
+
+    /* ── Flashcard study ───────────────────────────────── */
+    .study { position: fixed; inset: 0; z-index: 2500; background: var(--color-bg); display: flex; flex-direction: column; }
+    .study-top { display: flex; justify-content: space-between; align-items: center; padding: 14px var(--space-lg); border-bottom: 1px solid var(--color-border); background: var(--color-surface); gap: 10px; }
+    .study-title { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .study-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-lg); gap: var(--space-md); overflow-y: auto; }
+    .study-progress { width: 100%; max-width: 640px; display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: 0.85rem; font-weight: 700; color: var(--color-text-muted); }
+    .bar { width: 100%; max-width: 640px; height: 6px; background: var(--color-border); border-radius: 999px; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--color-primary); transition: width .2s; }
+    .flip { width: 100%; max-width: 640px; aspect-ratio: 16 / 10; perspective: 1400px; cursor: pointer; border: none; background: none; padding: 0; }
+    @media (max-width: 600px) { .flip { aspect-ratio: 4 / 5; max-height: 55vh; } }
+    .flip-inner { position: relative; width: 100%; height: 100%; transition: transform .45s; transform-style: preserve-3d; }
+    .flip.flipped .flip-inner { transform: rotateY(180deg); }
+    .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; padding: 28px; text-align: center;
+      font-size: clamp(1.1rem, 3.2vw, 1.7rem); line-height: 1.4; color: var(--color-text); overflow-y: auto; word-break: break-word; }
+    .face.back { transform: rotateY(180deg); font-size: clamp(1rem, 2.6vw, 1.35rem); }
+    .face-label { position: absolute; top: 12px; left: 16px; font-family: var(--font-ui); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-muted); }
+    .study-buttons { display: flex; gap: 12px; width: 100%; max-width: 640px; }
+    .study-buttons .btn { flex: 1; padding: 14px; font-size: 0.95rem; }
+    .btn-learning { background: var(--color-surface); border: 2px solid #f59f00; color: #b97700; }
+    .btn-know { background: var(--color-surface); border: 2px solid #12b886; color: #0b8a63; }
+    .study-opts { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; font-size: 0.85rem; color: var(--color-text-muted); }
+    .study-opts label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+    .keys { font-size: 0.75rem; color: var(--color-text-muted); }
+    .done-box { text-align: center; max-width: 480px; }
+    .done-box h2 { font-family: var(--font-heading); font-size: 1.5rem; margin: 8px 0; }
+    .done-box p { color: var(--color-text-muted); line-height: 1.5; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="hub.html" class="nav-back" id="nav-back">← Hub</a>
+  <div class="nav-title" id="nav-title">My flashcards</div>
+  <span style="width:48px"></span>
+</nav>
+
+<div class="page page-fade">
+  <!-- List of sets -->
+  <section id="view-list">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h1 class="page-title">My flashcards</h1>
+        <p class="lead">Make your own sets of cards. Each card becomes quiz questions and goes into your daily review.</p>
+      </div>
+      <button class="btn btn-primary" data-action="new-set" id="btn-new-set"><i data-icon="plus"></i> New set</button>
+    </div>
+    <div id="sets"><div class="empty"><div class="spinner" style="margin:0 auto;"></div></div></div>
+    <div class="why">
+      <h3>How your cards help you revise</h3>
+      <ul>
+        <li><strong>Flashcards</strong>: flip through, then sort into "Know it" and "Still learning" until you know them all.</li>
+        <li><strong>Quiz</strong>: every card becomes multiple choice, true or false, type the term, match the pairs and a written answer.</li>
+        <li><strong>Written answers are marked by AI</strong>, so you can explain in your own words instead of matching the card word for word.</li>
+        <li><strong>Review today</strong>: cards you get wrong come back at just the right time to make them stick.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Editor -->
+  <section id="view-edit" hidden>
+    <h1 class="page-title" id="edit-heading">New flashcard set</h1>
+    <p class="lead">Type a term and its meaning on each card. Press <strong>Enter</strong> to move on (Shift+Enter for a new line).</p>
+    <div id="draft-note"></div>
+    <div class="meta-grid">
+      <div><label class="field-label" for="set-name">Set name</label>
+        <input class="field" id="set-name" maxlength="120" placeholder="e.g. Cell biology key words" autocomplete="off"></div>
+      <div><label class="field-label" for="set-subject">Subject</label>
+        <input class="field" id="set-subject" maxlength="60" placeholder="e.g. Biology" list="subject-list" autocomplete="off">
+        <datalist id="subject-list"></datalist></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-secondary" data-action="open-import"><i data-icon="file-text"></i> Import</button>
+      <button class="btn btn-secondary" data-action="open-ai"><i data-icon="sparkles"></i> Make cards with AI<span class="plus-tag" data-plus-tag hidden>Plus</span></button>
+      <button class="btn btn-secondary" data-action="fill-defs"><i data-icon="sparkles"></i> Fill in missing meanings<span class="plus-tag" data-plus-tag hidden>Plus</span></button>
+      <button class="btn btn-secondary" data-action="swap"><i data-icon="repeat"></i> Swap sides</button>
+    </div>
+    <div class="cards" id="cards"></div>
+    <button class="add-row" data-action="add-card">＋ Add a card</button>
+    <p class="hint">Tip: copy a set from Quizlet (Export) or a spreadsheet and use Import to bring it all in at once.</p>
+  </section>
+</div>
+
+<div class="savebar" id="savebar" hidden>
+  <div class="savebar-inner">
+    <span class="savebar-info" id="savebar-info"></span>
+    <span class="row-actions">
+      <button class="btn btn-ghost" data-action="cancel-edit">Cancel</button>
+      <button class="btn btn-primary" data-action="save-set" id="btn-save"><i data-icon="save"></i> Save set</button>
+    </span>
+  </div>
+</div>
+
+<script type="module">
+import { db } from './firebase-config.js?v=20261110e';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261110e';
+import { askClaude, jsonOf } from './ai.js?v=20261110e';
+import { showPlusUpsell } from './plus.js?v=20261110e';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261110e';
+import { flatPackIds } from './packs.js?v=20261110e';
+import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
+  questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi } from './cards-core.js?v=20261110e';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, writeBatch, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const $ = id => document.getElementById(id);
+
+let me = null, profile = null, packId = null;
+let subjects = {};        // id -> { name, emoji }
+let sets = [];            // [{ id, subjectId, name, cards }]
+let editing = null;       // the set being edited (null for a new one)
+let dirty = false;
+const readOnly = () => isPreview() || me?.uid === 'preview-readonly';
+const canAI = () => hasPlus(profile);
+const draftKey = () => `ll_cards_draft_${me?.uid}_${editing?.id || 'new'}`;
+
+/* ── Start ───────────────────────────────────────────────── */
+requireAuth(async (user, prof) => {
+  me = user; profile = prof;
+  if (!isStudent(profile)) {
+    $('sets').innerHTML = `<div class="empty"><h2>Flashcard sets are made by students</h2><p>Students make their own sets here. To make revision for your students, use My packs.</p><a class="btn btn-primary" href="hub.html">Back</a></div>`;
+    $('btn-new-set').hidden = true; return;
+  }
+  if (readOnly()) $('btn-new-set').hidden = true;
+  document.querySelectorAll('[data-plus-tag]').forEach(t => { t.hidden = canAI(); });
+  packId = profile.myPackId || null;
+  await loadSets();
+  const p = new URLSearchParams(location.search);
+  if (p.get('new') && !readOnly()) openEditor(null);
+});
+
+async function loadSets() {
+  subjects = {}; sets = [];
+  if (packId) {
+    try {
+      const sSnap = await getDocs(collection(db, `content/${packId}/subjects`));
+      sSnap.forEach(d => { subjects[d.id] = { name: d.data().name || 'Subject', emoji: d.data().emoji || '📚', order: d.data().order ?? 0 }; });
+      await Promise.all(Object.keys(subjects).map(async sid => {
+        const tSnap = await getDocs(collection(db, `content/${packId}/subjects/${sid}/topics`));
+        tSnap.forEach(d => sets.push({ id: d.id, subjectId: sid, ...d.data(), cards: d.data().cards || [] }));
+      }));
+    } catch (e) {
+      $('sets').innerHTML = `<div class="empty"><h2>Couldn't load your sets</h2><p>${esc(e.message)}</p></div>`; return;
+    }
+  }
+  renderList();
+}
+
+function renderList() {
+  $('subject-list').innerHTML = Object.values(subjects).map(s => `<option value="${esc(s.name)}">`).join('');
+  if (!sets.length) {
+    $('sets').innerHTML = `<div class="empty">
+      <div style="font-size:2rem;">🃏</div>
+      <h2>Make your first set</h2>
+      <p>Type your own cards, paste a list from your notes or Quizlet, or let AI make them from a document or photo.</p>
+      ${readOnly() ? '' : '<button class="btn btn-primary" data-action="new-set"><i data-icon="plus"></i> New set</button>'}
+    </div>`;
+    return;
+  }
+  const bySubject = {};
+  sets.forEach(s => (bySubject[s.subjectId] = bySubject[s.subjectId] || []).push(s));
+  const order = Object.keys(bySubject).sort((a, b) => (subjects[a]?.name || '').localeCompare(subjects[b]?.name || ''));
+  $('sets').innerHTML = order.map(sid => `
+    <div class="subject-head">${esc(subjects[sid]?.emoji || '📚')} ${esc(subjects[sid]?.name || 'Subject')}</div>
+    <div class="set-grid">${bySubject[sid].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(setCard).join('')}</div>`).join('');
+}
+
+function setCard(s) {
+  const n = s.cards.length;
+  return `<div class="set-card">
+    <div><div class="set-name">${esc(s.name || 'Untitled set')}</div><div class="set-meta">${n} card${n === 1 ? '' : 's'}</div></div>
+    <div class="row-actions">
+      <button class="btn btn-primary" data-action="study" data-id="${s.id}" ${n ? '' : 'disabled'}><i data-icon="layers"></i> Flashcards</button>
+      <button class="btn btn-secondary" data-action="quiz" data-id="${s.id}" ${n ? '' : 'disabled'}><i data-icon="zap"></i> Quiz</button>
+      ${readOnly() ? '' : `<button class="icon-only" data-action="edit-set" data-id="${s.id}" title="Edit" aria-label="Edit set"><i data-icon="pencil"></i></button>
+      <button class="icon-only danger" data-action="delete-set" data-id="${s.id}" title="Delete" aria-label="Delete set"><i data-icon="trash-2"></i></button>`}
+    </div>
+  </div>`;
+}
+
+/* ── Editor ──────────────────────────────────────────────── */
+function openEditor(set) {
+  editing = set;
+  $('view-list').hidden = true; $('view-edit').hidden = false; $('savebar').hidden = false;
+  $('nav-title').textContent = set ? 'Edit set' : 'New set';
+  $('edit-heading').textContent = set ? 'Edit flashcard set' : 'New flashcard set';
+  $('nav-back').textContent = '← My flashcards';
+  $('set-name').value = set?.name || '';
+  $('set-subject').value = set ? (subjects[set.subjectId]?.name || '') : (sets.length ? subjects[sets[sets.length - 1].subjectId]?.name || '' : '');
+  $('cards').innerHTML = '';
+  const cards = set?.cards?.length ? set.cards : [{}, {}, {}];
+  cards.forEach(c => addRow(c));
+  dirty = false;
+  offerDraft();
+  updateInfo();
+  window.scrollTo(0, 0);
+  if (!set) $('set-name').focus();
+}
+
+function closeEditor() {
+  clearTimeout(draftTimer);
+  editing = null; dirty = false;
+  $('view-list').hidden = false; $('view-edit').hidden = true; $('savebar').hidden = true;
+  $('nav-title').textContent = 'My flashcards';
+  $('nav-back').textContent = '← Hub';
+  $('draft-note').innerHTML = '';
+  history.replaceState(null, '', 'cards.html');
+}
+
+function rowHtml(c, n) {
+  return `<div class="card-row" data-id="${esc(c.id || newCardId())}">
+    <div class="card-top"><span><span class="card-num">${n}</span><span class="card-flag"></span></span>
+      <button class="icon-only danger" data-action="del-card" title="Delete card" aria-label="Delete card"><i data-icon="trash-2"></i></button></div>
+    <div class="card-fields">
+      <div><textarea class="c-term" rows="1" maxlength="${MAX_TERM}" aria-label="Term" placeholder="Enter term">${esc(c.term || '')}</textarea><small>Term</small></div>
+      <div><textarea class="c-def" rows="1" maxlength="${MAX_DEF}" aria-label="Definition" placeholder="Enter definition">${esc(c.definition || '')}</textarea><small>Definition</small></div>
+    </div>
+  </div>`;
+}
+
+function addRow(c = {}, after = null) {
+  const n = $('cards').children.length + 1;
+  if (n > MAX_CARDS) { showToast(`A set can have up to ${MAX_CARDS} cards. Start another set for the rest.`, 'error'); return null; }
+  const html = rowHtml(c, n);
+  if (after) after.insertAdjacentHTML('afterend', html); else $('cards').insertAdjacentHTML('beforeend', html);
+  const row = after ? after.nextElementSibling : $('cards').lastElementChild;
+  row.querySelectorAll('textarea').forEach(grow);
+  if (after) renumber();
+  return row;
+}
+
+function readCards() {
+  return [...$('cards').querySelectorAll('.card-row')].map(r => ({
+    id: r.dataset.id,
+    term: r.querySelector('.c-term').value.trim(),
+    definition: r.querySelector('.c-def').value.trim(),
+  }));
+}
+
+function setCards(cards) {
+  $('cards').innerHTML = '';
+  (cards.length ? cards : [{}]).forEach(c => addRow(c));
+  changed();
+}
+
+function renumber() {
+  const rows = [...$('cards').querySelectorAll('.card-row')];
+  rows.forEach((r, i) => { r.querySelector('.card-num').textContent = i + 1; });
+  const dups = duplicateIndexes(readCards());
+  rows.forEach((r, i) => {
+    r.classList.toggle('dup', dups.has(i));
+    if (!r.classList.contains('incomplete')) r.querySelector('.card-flag').textContent = dups.has(i) ? 'Same term as another card' : '';
+  });
+}
+
+function grow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+
+function updateInfo() {
+  const n = readCards().filter(c => c.term && c.definition).length;
+  $('savebar-info').textContent = `${n} complete card${n === 1 ? '' : 's'}`;
+}
+
+let draftTimer = null;
+function changed() {
+  dirty = true;
+  renumber(); updateInfo();
+  clearTimeout(draftTimer);
+  const key = draftKey();
+  draftTimer = setTimeout(() => {
+    try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), name: $('set-name').value, subject: $('set-subject').value, cards: readCards() })); } catch (e) {}
+  }, 600);
+}
+
+function offerDraft() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(draftKey()) || 'null'); } catch (e) {}
+  const note = $('draft-note');
+  note.innerHTML = '';
+  if (!d || !(d.cards || []).some(c => c.term || c.definition)) return;
+  const when = new Date(d.at).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+  note.innerHTML = `<div class="draft-note"><span>You have unsaved changes from ${esc(when)}.</span>
+    <span><button data-action="restore-draft">Restore them</button> · <button data-action="discard-draft">Discard</button></span></div>`;
+  note.querySelector('[data-action="restore-draft"]').onclick = () => {
+    $('set-name').value = d.name || ''; $('set-subject').value = d.subject || '';
+    setCards(d.cards || []); note.innerHTML = '';
+  };
+  note.querySelector('[data-action="discard-draft"]').onclick = () => { clearDraft(); note.innerHTML = ''; };
+}
+function clearDraft() { clearTimeout(draftTimer); try { localStorage.removeItem(draftKey()); } catch (e) {} }
+
+// Typing: Enter moves on, Tab on the last definition adds a card
+$('cards').addEventListener('input', e => { if (e.target.matches('textarea')) { grow(e.target); e.target.closest('.card-row').classList.remove('incomplete'); changed(); } });
+$('cards').addEventListener('keydown', e => {
+  const t = e.target;
+  if (!t.matches('textarea')) return;
+  const row = t.closest('.card-row');
+  const last = row === $('cards').lastElementChild;
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (t.classList.contains('c-term')) row.querySelector('.c-def').focus();
+    else (row.nextElementSibling || addRow())?.querySelector('.c-term').focus();
+  } else if (e.key === 'Tab' && !e.shiftKey && last && t.classList.contains('c-def')) {
+    e.preventDefault();
+    addRow()?.querySelector('.c-term').focus();
+  }
+});
+$('set-name').addEventListener('input', changed);
+$('set-subject').addEventListener('input', changed);
+
+/* ── Saving ──────────────────────────────────────────────── */
+// The student's own pack, made the first time they save a set
+async function ensurePack() {
+  if (packId) {
+    const s = await getDoc(doc(db, 'content', packId)).catch(() => null);
+    if (s?.exists()) return packId;
+  }
+  const ref = await addDoc(collection(db, 'content'), {
+    name: 'My flashcards', description: 'Flashcard sets I made myself',
+    ownerUid: me.uid, visibility: 'private', studentMade: true, createdAt: serverTimestamp(),
+  });
+  packId = ref.id;
+  const next = { ...profile, myPackId: packId };
+  await updateDoc(doc(db, 'users', me.uid), { myPackId: packId, packIds: flatPackIds(next) });
+  profile = next;
+  return packId;
+}
+
+async function ensureSubject(name) {
+  const found = Object.entries(subjects).find(([, s]) => s.name.trim().toLowerCase() === name.trim().toLowerCase());
+  if (found) return found[0];
+  const ref = await addDoc(collection(db, `content/${packId}/subjects`), {
+    name, emoji: '📚', resources: [], examBoard: '', level: '', order: Object.keys(subjects).length, createdAt: serverTimestamp(),
+  });
+  subjects[ref.id] = { name, emoji: '📚' };
+  return ref.id;
+}
+
+// Write (and remove) docs in batches Firestore accepts
+async function commitAll(ops) {
+  for (let i = 0; i < ops.length; i += 400) {
+    const b = writeBatch(db);
+    ops.slice(i, i + 400).forEach(o => o.del ? b.delete(o.ref) : b.set(o.ref, o.data));
+    await b.commit();
+  }
+}
+
+async function deleteTopic(sid, tid) {
+  const base = `content/${packId}/subjects/${sid}/topics/${tid}`;
+  const ops = [];
+  for (const sub of ['questions', 'notes']) {
+    const snap = await getDocs(collection(db, `${base}/${sub}`)).catch(() => null);
+    snap?.forEach(d => ops.push({ del: true, ref: d.ref }));
+  }
+  ops.push({ del: true, ref: doc(db, base) });
+  await commitAll(ops);
+}
+
+async function saveSet() {
+  const name = $('set-name').value.trim();
+  const subjectName = $('set-subject').value.trim();
+  const rows = [...$('cards').querySelectorAll('.card-row')];
+  const all = readCards();
+  let firstBad = null;
+  all.forEach((c, i) => {
+    const bad = !!(c.term || c.definition) && !(c.term && c.definition);
+    rows[i].classList.toggle('incomplete', bad);
+    const flag = rows[i].querySelector('.card-flag');
+    flag.classList.toggle('err', bad);
+    if (bad) { flag.textContent = c.term ? 'Add a definition' : 'Add a term'; firstBad = firstBad || rows[i]; }
+  });
+  if (!name) { showToast('Give your set a name', 'error'); $('set-name').focus(); return; }
+  if (!subjectName) { showToast('Choose or type a subject', 'error'); $('set-subject').focus(); return; }
+  if (firstBad) { showToast('Some cards need both a term and a definition', 'error'); firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const cards = all.filter(c => c.term && c.definition);
+  if (!cards.length) { showToast('Add at least one card', 'error'); return; }
+
+  const btn = $('btn-save'); btn.disabled = true; btn.classList.add('loading');
+  try {
+    await ensurePack();
+    const sid = await ensureSubject(subjectName);
+    const moving = editing && editing.subjectId !== sid;
+    const topicsCol = `content/${packId}/subjects/${sid}/topics`;
+    const topicRef = editing && !moving ? doc(db, topicsCol, editing.id) : doc(collection(db, topicsCol));
+    const isNew = !editing || moving;
+    await setDoc(topicRef, {
+      name, cards, keyPoints: keyPointsFromCards(cards), cardSet: true, updatedAt: serverTimestamp(),
+      ...(isNew ? { createdAt: serverTimestamp(), order: sets.filter(s => s.subjectId === sid).length } : {}),
+    }, { merge: true });
+    // Questions: fixed ids, so review progress is kept; remove ones for deleted cards
+    const qPath = `${topicsCol}/${topicRef.id}/questions`;
+    const qs = questionsFromCards(cards);
+    const keep = new Set(qs.map(q => q.id));
+    const ops = qs.map(({ id, ...data }) => ({ ref: doc(db, qPath, id), data: { ...data, createdAt: serverTimestamp() } }));
+    if (!isNew) {
+      const old = await getDocs(collection(db, qPath));
+      old.forEach(d => { if (!keep.has(d.id)) ops.push({ del: true, ref: d.ref }); });
+    }
+    await commitAll(ops);
+    if (moving) await deleteTopic(editing.subjectId, editing.id);
+    clearDraft();
+    showToast(`Saved: ${cards.length} card${cards.length === 1 ? '' : 's'}, ${qs.length} quiz questions`, 'success');
+    closeEditor();
+    await loadSets();
+  } catch (e) {
+    showToast('Could not save: ' + e.message, 'error');
+  } finally { btn.disabled = false; btn.classList.remove('loading'); }
+}
+
+async function deleteSet(s) {
+  if (!confirm(`Delete "${s.name}" and its ${s.cards.length} cards? This can't be undone.`)) return;
+  try {
+    await deleteTopic(s.subjectId, s.id);
+    showToast('Set deleted', 'success');
+    await loadSets();
+  } catch (e) { showToast('Could not delete: ' + e.message, 'error'); }
+}
+
+/* ── Import ──────────────────────────────────────────────── */
+function openImport() {
+  const box = dialog(`
+    <h2>Import cards</h2>
+    <p>Paste from your notes, a spreadsheet, Word or a Quizlet export. Put each card on its own line with the term first, then its meaning.</p>
+    <textarea class="field" id="imp-text" placeholder="Photosynthesis&#9;How plants make glucose using light&#10;Osmosis&#9;Water moving across a partially permeable membrane"></textarea>
+    <div class="seps">
+      <fieldset><legend>Between term and definition</legend>
+        <label><input type="radio" name="imp-b" value="tab"> Tab</label>
+        <label><input type="radio" name="imp-b" value="comma"> Comma</label>
+        <label><input type="radio" name="imp-b" value="dash"> Dash ( - )</label>
+        <label><input type="radio" name="imp-b" value="colon"> Colon</label>
+        <label><input type="radio" name="imp-b" value="custom"> <input type="text" id="imp-b-custom" placeholder="Custom" maxlength="10"></label>
+      </fieldset>
+      <fieldset><legend>Between cards</legend>
+        <label><input type="radio" name="imp-r" value="newline"> New line</label>
+        <label><input type="radio" name="imp-r" value="semicolon"> Semicolon</label>
+        <label><input type="radio" name="imp-r" value="custom"> <input type="text" id="imp-r-custom" placeholder="Custom" maxlength="10"></label>
+      </fieldset>
+    </div>
+    <div class="field-label" id="imp-count">Preview</div>
+    <div class="preview" id="imp-preview"><div><span class="status">Nothing pasted yet</span></div></div>
+    <div class="dialog-actions"><label class="grow"><input type="checkbox" id="imp-replace"> Replace the cards already in this set</label>
+      <button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="imp-go" disabled>Import</button></div>`);
+  const text = box.querySelector('#imp-text');
+  let auto = true;
+  const pick = () => {
+    const b = box.querySelector('input[name=imp-b]:checked')?.value || 'tab';
+    const r = box.querySelector('input[name=imp-r]:checked')?.value || 'newline';
+    return { b: b === 'custom' ? (box.querySelector('#imp-b-custom').value || '\t') : b, r: r === 'custom' ? (box.querySelector('#imp-r-custom').value || '\n') : r };
+  };
+  const setRadio = (name, v) => { const el = box.querySelector(`input[name=${name}][value="${v}"]`); if (el) el.checked = true; };
+  setRadio('imp-b', 'tab'); setRadio('imp-r', 'newline');
+  let parsed = [];
+  const update = () => {
+    if (auto && text.value.trim()) { const d = detectSeparators(text.value); setRadio('imp-b', d.between); setRadio('imp-r', d.rows); }
+    const { b, r } = pick();
+    parsed = parseImport(text.value, b, r).slice(0, MAX_CARDS);
+    const missing = parsed.filter(c => !c.term || !c.definition).length;
+    box.querySelector('#imp-count').textContent = parsed.length
+      ? `Preview: ${parsed.length} card${parsed.length === 1 ? '' : 's'}${missing ? ` (${missing} missing a side; change the separator if that looks wrong)` : ''}` : 'Preview';
+    box.querySelector('#imp-preview').innerHTML = parsed.length
+      ? parsed.slice(0, 50).map(c => `<div><span>${c.term ? esc(c.term) : '<span class="missing">no term</span>'}</span><span>${c.definition ? esc(c.definition) : '<span class="missing">no definition</span>'}</span></div>`).join('')
+      : '<div><span class="status">Nothing pasted yet</span></div>';
+    box.querySelector('#imp-go').disabled = !parsed.length;
+  };
+  text.addEventListener('input', update);
+  box.querySelectorAll('.seps input').forEach(i => i.addEventListener('input', () => { auto = false; update(); }));
+  box.querySelector('#imp-go').onclick = () => {
+    addCards(parsed, box.querySelector('#imp-replace').checked);
+    closeDialog();
+    showToast(`Imported ${parsed.length} card${parsed.length === 1 ? '' : 's'}`, 'success');
+  };
+  text.focus();
+}
+
+// Add cards to the editor, filling empty rows first
+function addCards(list, replace = false) {
+  const current = replace ? [] : readCards().filter(c => c.term || c.definition);
+  const room = MAX_CARDS - current.length;
+  if (list.length > room) showToast(`Only the first ${room} were added: a set can have up to ${MAX_CARDS} cards.`, 'error');
+  setCards([...current, ...list.slice(0, Math.max(0, room)).map(c => ({ ...c, id: newCardId() }))]);
+}
+
+/* ── AI (Plus) ───────────────────────────────────────────── */
+function openAi() {
+  if (!canAI()) { showPlusUpsell('Making flashcards with AI'); return; }
+  const box = dialog(`
+    <h2><i data-icon="sparkles"></i> Make cards with AI</h2>
+    <p>Paste your notes or upload a document or photo, and AI picks out the key terms and facts. Leave it empty to make cards from the set name. Check every card before you save.</p>
+    <textarea class="field" id="ai-notes" placeholder="Paste your notes here (optional)"></textarea>
+    <div class="count-row">How many cards?
+      <select id="ai-count">${[10, 15, 20, 30, 40, 50].map(n => `<option${n === 20 ? ' selected' : ''}>${n}</option>`).join('')}</select>
+      <span class="status" id="ai-status"></span></div>
+    <div class="dialog-actions"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="ai-go"><i data-icon="sparkles"></i> Make cards</button></div>`);
+  const notes = box.querySelector('#ai-notes');
+  addDocumentButton(notes, { askClaude, allowed: canAI, onLocked: () => showPlusUpsell('Reading scans and photos with AI') });
+  box.querySelector('#ai-go').onclick = async () => {
+    const setName = $('set-name').value.trim(), subject = $('set-subject').value.trim();
+    if (!notes.value.trim() && !setName) { status('Paste some notes, or give your set a name first.', true); return; }
+    const count = +box.querySelector('#ai-count').value;
+    const go = box.querySelector('#ai-go'); go.disabled = true;
+    status('Making your cards… this takes a few seconds.');
+    try {
+      const existing = readCards().map(c => c.term).filter(Boolean);
+      const data = await askClaude('generation', cardsPrompt({ notes: notes.value.slice(0, MAX_CHARS), setName, subject, count, existing }), Math.min(8000, 400 + count * 90));
+      const have = new Set(existing.map(t => t.toLowerCase()));
+      const made = cardsFromAi(jsonOf(data)).filter(c => !have.has(c.term.toLowerCase()));
+      if (!made.length) { status("AI didn't find anything new to make cards from. Try adding more notes.", true); go.disabled = false; return; }
+      addCards(made);
+      closeDialog();
+      showToast(`Added ${made.length} cards. Check them, then save.`, 'success');
+    } catch (e) { status('Something went wrong: ' + e.message, true); go.disabled = false; }
+  };
+  function status(t, err) { const s = box.querySelector('#ai-status'); s.textContent = t; s.className = 'status' + (err ? ' err' : ''); }
+}
+
+async function fillDefinitions() {
+  if (!canAI()) { showPlusUpsell('Filling in meanings with AI'); return; }
+  const rows = [...$('cards').querySelectorAll('.card-row')].filter(r => r.querySelector('.c-term').value.trim() && !r.querySelector('.c-def').value.trim());
+  if (!rows.length) { showToast('Every card with a term already has a definition. Type some terms with the definition left empty, then try again.', 'info'); return; }
+  const btn = document.querySelector('[data-action="fill-defs"]'); btn.disabled = true;
+  showToast(`Writing ${rows.length} definition${rows.length === 1 ? '' : 's'}…`, 'info');
+  try {
+    const terms = rows.map(r => r.querySelector('.c-term').value.trim()).slice(0, 60);
+    const data = await askClaude('generation', definitionsPrompt({ terms, setName: $('set-name').value.trim(), subject: $('set-subject').value.trim() }), Math.min(8000, 300 + terms.length * 80));
+    const got = cardsFromAi(jsonOf(data));
+    const byTerm = {}; got.forEach(c => { byTerm[c.term.toLowerCase()] = c.definition; });
+    let n = 0;
+    rows.slice(0, 60).forEach((r, i) => {
+      const d = byTerm[terms[i].toLowerCase()] || got[i]?.definition;
+      if (d) { const t = r.querySelector('.c-def'); t.value = d; grow(t); n++; }
+    });
+    changed();
+    showToast(`Filled in ${n} definition${n === 1 ? '' : 's'}. Check them before you save.`, 'success');
+  } catch (e) { showToast('Something went wrong: ' + e.message, 'error'); }
+  finally { btn.disabled = false; }
+}
+
+/* ── Dialog helper ───────────────────────────────────────── */
+function dialog(html) {
+  closeDialog();
+  document.body.insertAdjacentHTML('beforeend', `<div class="overlay" id="dlg" role="dialog" aria-modal="true"><div class="dialog">${html}</div></div>`);
+  const o = $('dlg');
+  o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-close]')) closeDialog(); });
+  return o.querySelector('.dialog');
+}
+function closeDialog() { $('dlg')?.remove(); }
+
+/* ── Flashcard study ─────────────────────────────────────── */
+let st = null;   // { set, deck, i, flipped, know, learning, defFirst, shuffle }
+function startStudy(s) {
+  st = { set: s, cards: s.cards.filter(c => c.term && c.definition), defFirst: false, shuffle: true };
+  newRound(st.cards);
+  document.body.insertAdjacentHTML('beforeend', `<div class="study" id="study">
+    <div class="study-top"><span class="study-title">${esc(s.name)}</span><button class="btn btn-ghost" data-study="close"><i data-icon="x"></i> Close</button></div>
+    <div class="study-body" id="study-body"></div></div>`);
+  document.body.style.overflow = 'hidden';
+  drawStudy();
+}
+function newRound(cards) {
+  const deck = [...cards];
+  if (st.shuffle) for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  Object.assign(st, { deck, i: 0, flipped: false, know: [], learning: [] });
+}
+function drawStudy() {
+  const body = $('study-body'); if (!body) return;
+  if (st.i >= st.deck.length) {
+    const all = st.know.length === st.deck.length;
+    body.innerHTML = `<div class="done-box"><div style="font-size:2.4rem;">${all ? '🎉' : '💪'}</div>
+      <h2>${all ? 'You know them all!' : `You know ${st.know.length} of ${st.deck.length}`}</h2>
+      <p>${all ? 'Now test yourself properly with a quiz. Cards you get wrong will come back in your daily review.' : `Go through the ${st.learning.length} you're still learning again until they stick.`}</p>
+      <div class="row-actions" style="justify-content:center;">
+        ${all ? '' : `<button class="btn btn-primary" data-study="again-learning"><i data-icon="refresh-cw"></i> Study ${st.learning.length} again</button>`}
+        <button class="btn ${all ? 'btn-primary' : 'btn-secondary'}" data-study="quiz"><i data-icon="zap"></i> Take the quiz</button>
+        <button class="btn btn-ghost" data-study="restart"><i data-icon="rotate-ccw"></i> Start over</button>
+      </div></div>`;
+    return;
+  }
+  const c = st.deck[st.i];
+  const [front, back] = st.defFirst ? [c.definition, c.term] : [c.term, c.definition];
+  const [fl, bl] = st.defFirst ? ['Definition', 'Term'] : ['Term', 'Definition'];
+  body.innerHTML = `
+    <div class="study-progress"><span>${st.i + 1} / ${st.deck.length}</span><span>✓ ${st.know.length} · Still learning ${st.learning.length}</span></div>
+    <div class="bar"><span style="width:${(st.i / st.deck.length) * 100}%"></span></div>
+    <button class="flip${st.flipped ? ' flipped' : ''}" data-study="flip" aria-label="Flip card">
+      <div class="flip-inner"><div class="face"><span class="face-label">${fl}</span>${esc(front)}</div><div class="face back"><span class="face-label">${bl}</span>${esc(back)}</div></div>
+    </button>
+    <div class="study-buttons">
+      <button class="btn btn-learning" data-study="learning">✗ Still learning</button>
+      <button class="btn btn-know" data-study="know">✓ Know it</button>
+    </div>
+    <div class="study-opts">
+      <label><input type="checkbox" data-study-opt="defFirst" ${st.defFirst ? 'checked' : ''}> Show the definition first</label>
+      <label><input type="checkbox" data-study-opt="shuffle" ${st.shuffle ? 'checked' : ''}> Shuffle</label>
+      ${st.i > 0 ? '<button class="btn btn-ghost" style="padding:4px 10px;font-size:0.82rem;" data-study="back"><i data-icon="arrow-left"></i> Undo</button>' : ''}
+    </div>
+    <div class="keys">Tap the card or press Space to flip · ← still learning · → know it</div>`;
+}
+function studyAction(a) {
+  if (!st) return;
+  const c = st.deck[st.i];
+  if (a === 'close') { $('study')?.remove(); document.body.style.overflow = ''; st = null; return; }
+  if (a === 'flip') { st.flipped = !st.flipped; $('study-body').querySelector('.flip')?.classList.toggle('flipped', st.flipped); return; }
+  if ((a === 'know' || a === 'learning') && c) { (a === 'know' ? st.know : st.learning).push(c); st.i++; st.flipped = false; }
+  if (a === 'back' && st.i > 0) { st.i--; const p = st.deck[st.i]; st.know = st.know.filter(x => x !== p); st.learning = st.learning.filter(x => x !== p); st.flipped = false; }
+  if (a === 'again-learning') newRound(st.learning);
+  if (a === 'restart') newRound(st.cards);
+  if (a === 'quiz') { goQuiz(st.set); return; }
+  drawStudy();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-study]'); if (b) studyAction(b.dataset.study);
+});
+document.addEventListener('change', e => {
+  const o = e.target.closest('[data-study-opt]'); if (!o || !st) return;
+  st[o.dataset.studyOpt] = o.checked;
+  if (o.dataset.studyOpt === 'shuffle') newRound(st.cards);
+  st.flipped = false; drawStudy();
+});
+document.addEventListener('keydown', e => {
+  if (!st) { if (e.key === 'Escape') closeDialog(); return; }
+  if (e.target.matches('input, textarea')) return;
+  if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); studyAction('flip'); }
+  else if (e.key === 'ArrowRight') studyAction('know');
+  else if (e.key === 'ArrowLeft') studyAction('learning');
+  else if (e.key === 'Escape') studyAction('close');
+});
+
+function goQuiz(s) {
+  const u = new URL('quiz.html', location.href);
+  Object.entries({ groupId: packId, subjectId: s.subjectId, subjectName: subjects[s.subjectId]?.name || 'Quiz', topicId: s.id, topicName: s.name })
+    .forEach(([k, v]) => u.searchParams.set(k, v));
+  location.href = u.toString();
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-action]'); if (!b) return;
+  const s = sets.find(x => x.id === b.dataset.id);
+  switch (b.dataset.action) {
+    case 'new-set': if (!readOnly()) openEditor(null); break;
+    case 'edit-set': if (s) openEditor(s); break;
+    case 'delete-set': if (s) deleteSet(s); break;
+    case 'study': if (s) startStudy(s); break;
+    case 'quiz': if (s) goQuiz(s); break;
+    case 'add-card': addRow()?.querySelector('.c-term').focus(); changed(); break;
+    case 'del-card': {
+      const row = b.closest('.card-row');
+      if ($('cards').children.length === 1) { row.querySelectorAll('textarea').forEach(t => { t.value = ''; grow(t); }); }
+      else row.remove();
+      changed(); break;
+    }
+    case 'swap': setCards(readCards().map(c => ({ id: c.id, term: c.definition.slice(0, MAX_TERM), definition: c.term }))); showToast('Terms and definitions swapped', 'success'); break;
+    case 'open-import': openImport(); break;
+    case 'open-ai': openAi(); break;
+    case 'fill-defs': fillDefinitions(); break;
+    case 'save-set': saveSet(); break;
+    case 'cancel-edit':
+      if (dirty && !confirm('Leave without saving? Your changes are kept as a draft on this device.')) break;
+      closeEditor(); break;
+  }
+});
+$('nav-back').addEventListener('click', e => {
+  if ($('view-edit').hidden) return;
+  e.preventDefault();
+  if (dirty && !confirm('Leave without saving? Your changes are kept as a draft on this device.')) return;
+  closeEditor();
+});
+window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+</script>
+<script src="site.js?v=20261110e"></script>
+</body>
+</html>

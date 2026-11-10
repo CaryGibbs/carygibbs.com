@@ -8,6 +8,7 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 
 export const PLUS_FEATURES = [
   'Create notes and questions with AI, from your own notes, a document or just a topic name',
+  'Make flashcards with AI, and fill in meanings for the terms you type',
   'Upload PDFs and Word documents to build revision from',
   'Read scanned pages, photos and diagrams with AI',
   'Suggested links to official exam board resources',

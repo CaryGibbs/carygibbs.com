@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110e">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110d">
-  <script src="icons.js?v=20261110d"></script>
-  <link rel="stylesheet" href="stats.css?v=20261110d">
+  <link rel="stylesheet" href="theme.css?v=20261110e">
+  <script src="icons.js?v=20261110e"></script>
+  <link rel="stylesheet" href="stats.css?v=20261110e">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -281,7 +281,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110d">
+  <link rel="stylesheet" href="ui.css?v=20261110e">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -301,6 +301,7 @@
   <a class="jump-link" href="#time"><i data-icon="clock"></i> Time</a>
   <a class="jump-link" href="#subjects"><i data-icon="library"></i> By subject</a>
   <a class="jump-link" href="#badges"><i data-icon="award"></i> Badges</a>
+  <a class="jump-link" href="cards.html"><i data-icon="layers"></i> My flashcards</a>
   <a class="jump-link" href="profile.html"><i data-icon="user"></i> Full profile</a>
 </div>
 
@@ -363,16 +364,16 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110d';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261110d';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261110d';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261110d';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261110d';
-import { listPacks, samePackIds } from './packs.js?v=20261110d';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261110d';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261110d';
-import { openPlanCalendar } from './plan-view.js?v=20261110d';
-import { logEvent } from './log.js?v=20261110d';
+import { auth, db } from './firebase-config.js?v=20261110e';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261110e';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261110e';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261110e';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261110e';
+import { listPacks, samePackIds } from './packs.js?v=20261110e';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261110e';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261110e';
+import { openPlanCalendar } from './plan-view.js?v=20261110e';
+import { logEvent } from './log.js?v=20261110e';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -440,6 +441,8 @@ requireAuth(async (user, profile) => {
         <h3>No revision pack yet</h3>
         <p>Got a class code from your teacher? Enter it here. Otherwise, ask your parent or teacher to choose a revision pack for you.</p>
         ${joinFormHtml()}
+        <p style="margin-top:var(--space-lg);">Or make your own flashcards to revise from.</p>
+        <a class="btn btn-secondary" href="cards.html"><i data-icon="layers"></i> My flashcards</a>
       </div>`;
     wireJoinForm(user, profile);
     return;
@@ -448,8 +451,8 @@ requireAuth(async (user, profile) => {
   // Small "Join a class" link under the welcome line
   const jw = document.getElementById('join-wrap');
   if (jw && !isPreview()) {
-    jw.innerHTML = `<button class="join-toggle" type="button"><i data-icon="plus"></i> Join a class</button>`;
-    jw.querySelector('.join-toggle').onclick = () => { jw.innerHTML = joinFormHtml(); wireJoinForm(user, profile); jw.querySelector('input').focus(); };
+    jw.innerHTML = `<a class="join-toggle" href="cards.html" style="margin-right:16px;text-decoration:none;"><i data-icon="layers"></i> My flashcards</a><button class="join-toggle" type="button"><i data-icon="plus"></i> Join a class</button>`;
+    jw.querySelector('button.join-toggle').onclick = () => { jw.innerHTML = joinFormHtml(); wireJoinForm(user, profile); jw.querySelector('input').focus(); };
   }
 
   await loadSubjects(user, groupId);
@@ -510,6 +513,7 @@ function wireJoinForm(user, profile) {
 function packIdsFor(profile) {
   const ids = [...(profile.groupIds || (profile.groupId ? [profile.groupId] : []))];
   Object.values(profile.classPacks || {}).forEach(list => (list || []).forEach(id => ids.push(id)));
+  if (profile.myPackId) ids.push(profile.myPackId);   // their own flashcard sets
   return [...new Set(ids.filter(Boolean))];
 }
 function chosenPack(user, profile, ids) {
@@ -846,6 +850,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261110d"></script>
+<script src="site.js?v=20261110e"></script>
 </body>
 </html>

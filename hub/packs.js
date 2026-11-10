@@ -8,10 +8,11 @@
 //                           signed in can read it and make their own copy)
 // Students carry a flat list of every pack they've been given,
 // users/{uid}.packIds, so the security rules can check access
-// (groupIds from a parent + every list in classPacks from teachers).
+// (groupIds from a parent + every list in classPacks from teachers + the
+// student's own flashcard pack, myPackId).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261110d';
+import { db } from './firebase-config.js?v=20261110e';
 import {
   collection, getDocs, getDoc, doc, query, where, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -25,6 +26,7 @@ export const isOfficialPack = p => !!p && (p.visibility === 'official' || !p.own
 export function flatPackIds(profile = {}) {
   const ids = [...(profile.groupIds || (profile.groupId ? [profile.groupId] : []))];
   Object.values(profile.classPacks || {}).forEach(list => (list || []).forEach(id => ids.push(id)));
+  if (profile.myPackId) ids.push(profile.myPackId);   // the student's own flashcard sets
   return [...new Set(ids.filter(Boolean))];
 }
 export function samePackIds(a = [], b = []) {
