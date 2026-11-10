@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109t">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109t">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109t">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109t">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109u">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109u">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109u">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109u">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109t">
-  <script src="icons.js?v=20261109t"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109u">
+  <script src="icons.js?v=20261109u"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -578,8 +578,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109t">
-  <link rel="stylesheet" href="stats.css?v=20261109t">
+  <link rel="stylesheet" href="ui.css?v=20261109u">
+  <link rel="stylesheet" href="stats.css?v=20261109u">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1264,20 +1264,23 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109t';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109t';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109t';
-import { openDeleteAccount } from './account.js?v=20261109t';
+import { auth, db, storage } from './firebase-config.js?v=20261109u';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109u';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109u';
+import { openDeleteAccount } from './account.js?v=20261109u';
+import { addDocumentButton } from './doc-text.js?v=20261109u';
+// "Upload a document" above each box where content is pasted for AI generation
+['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id)));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109t';
-import { mountShell } from './shell.js?v=20261109t';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109t';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109t';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109t';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109t';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109t';
-import { dueEntries } from './srs.js?v=20261109t';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109t';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109u';
+import { mountShell } from './shell.js?v=20261109u';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109u';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109u';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109u';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109u';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109u';
+import { dueEntries } from './srs.js?v=20261109u';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109u';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1293,7 +1296,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109t';
+import { saveEmailIndex } from './email-index.js?v=20261109u';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2268,9 +2271,10 @@ Example:
 [{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits — 2 for easting, 2 for northing"},{"term":"Easting","explanation":"The horizontal value read first (along the corridor)"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map distance and real-world distance"}]}]
 
 Content:
-${contentText.substring(0, 6000)}`;
+${contentText.substring(0, 80000)}`;
   try {
-    const resp = await aiFetch(prompt, 8000);
+    // Long documents need a longer reply; the Worker allows up to 16,000
+    const resp = await aiFetch(prompt, contentText.length > 12000 ? 16000 : 8000);
     const data = await resp.json();
     const raw = (data.content || []).map(c => c.text || '').join('');
     const cleaned = raw.replace(/^```[a-z]*\n?/i,'').replace(/```$/,'').trim();
@@ -3864,6 +3868,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109t"></script>
+<script src="site.js?v=20261109u"></script>
 </body>
 </html>
