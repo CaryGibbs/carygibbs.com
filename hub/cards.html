@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110h">
-  <script src="icons.js?v=20261110h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110i">
+  <script src="icons.js?v=20261110i"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -216,15 +216,17 @@
 </div>
 
 <script type="module">
-import { db, storage } from './firebase-config.js?v=20261110h';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261110h';
-import { askClaude, jsonOf } from './ai.js?v=20261110h';
-import { showPlusUpsell } from './plus.js?v=20261110h';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261110h';
-import { flatPackIds } from './packs.js?v=20261110h';
+import { db, storage } from './firebase-config.js?v=20261110i';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261110i';
+import { askClaude, jsonOf } from './ai.js?v=20261110i';
+import { showPlusUpsell } from './plus.js?v=20261110i';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261110i';
+import { flatPackIds } from './packs.js?v=20261110i';
+import { logEvent } from './log.js?v=20261110i';
+import { startStudyTimer } from './study-timer.js?v=20261110i';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
   questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
-  cardComplete, shortName, copyCards } from './cards-core.js?v=20261110h';
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261110i';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -339,7 +341,11 @@ function closeEditor() {
 function rowHtml(c, n) {
   return `<div class="card-row" data-id="${esc(c.id || newCardId())}">
     <div class="card-top"><span><span class="card-num">${n}</span><span class="card-flag"></span></span>
-      <button class="icon-only danger" data-action="del-card" title="Delete card" aria-label="Delete card"><i data-icon="trash-2"></i></button></div>
+      <span class="row-actions" style="gap:6px;">
+        <button class="icon-only" data-action="move-up" title="Move up (Alt+↑)" aria-label="Move card up"><i data-icon="chevron-up"></i></button>
+        <button class="icon-only" data-action="move-down" title="Move down (Alt+↓)" aria-label="Move card down"><i data-icon="chevron-down"></i></button>
+        <button class="icon-only danger" data-action="del-card" title="Delete card" aria-label="Delete card"><i data-icon="trash-2"></i></button>
+      </span></div>
     <div class="card-fields">
       <div><textarea class="c-term" rows="1" maxlength="${MAX_TERM}" aria-label="Term" placeholder="Enter term">${esc(c.term || '')}</textarea><small>Term</small></div>
       <div><textarea class="c-def" rows="1" maxlength="${MAX_DEF}" aria-label="Definition" placeholder="Enter definition">${esc(c.definition || '')}</textarea><small>Definition</small>
@@ -350,7 +356,7 @@ function rowHtml(c, n) {
 
 function picHtml(url) {
   return url
-    ? `<img src="${esc(url)}" alt="Picture on this card"><button class="pic-btn small" data-action="pic-change"><i data-icon="image"></i> Change</button><button class="pic-btn small" data-action="pic-remove"><i data-icon="x"></i> Remove</button>`
+    ? `<img src="${esc(url)}" alt="Picture on this card" onerror="this.alt='Picture missing';this.style.opacity=0.3"><button class="pic-btn small" data-action="pic-change"><i data-icon="image"></i> Change</button><button class="pic-btn small" data-action="pic-remove"><i data-icon="x"></i> Remove</button>`
     : `<button class="pic-btn" data-action="pic-add"><i data-icon="image"></i> Add a picture</button>`;
 }
 
@@ -389,6 +395,14 @@ function renumber() {
     r.classList.toggle('dup', dups.has(i));
     if (!r.classList.contains('incomplete')) r.querySelector('.card-flag').textContent = dups.has(i) ? 'Same term as another card' : '';
   });
+}
+
+function moveRow(row, dir) {
+  const other = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+  if (!other) return;
+  if (dir < 0) other.before(row); else other.after(row);
+  row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  changed();
 }
 
 function grow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
@@ -433,6 +447,12 @@ $('cards').addEventListener('keydown', e => {
   if (!t.matches('textarea')) return;
   const row = t.closest('.card-row');
   const last = row === $('cards').lastElementChild;
+  if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    e.preventDefault();
+    moveRow(row, e.key === 'ArrowUp' ? -1 : 1);
+    t.focus();
+    return;
+  }
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     if (t.classList.contains('c-term')) row.querySelector('.c-def').focus();
@@ -552,6 +572,7 @@ async function saveSet() {
       await updateDoc(topicRef, { sharedWith: still }).catch(() => {});
     }
     clearDraft();
+    logEvent(isNew && !moving ? 'cards.create' : 'cards.edit', { target: name, targetId: topicRef.id, detail: `${cards.length} cards · ${subjectName}${cards.some(c => c.imageUrl) ? ' · with pictures' : ''}` });
     showToast(`Saved: ${cards.length} card${cards.length === 1 ? '' : 's'}, ${qs.length} quiz questions`, 'success');
     closeEditor();
     await loadSets();
@@ -568,6 +589,7 @@ async function deleteSet(s) {
       if (c) await deleteDoc(doc(db, 'users', c.tid, 'classes', cid, 'sharedSets', `${me.uid}_${s.id}`)).catch(() => {});
     }
     await deleteTopic(s.subjectId, s.id);
+    logEvent('cards.delete', { target: s.name, targetId: s.id, detail: `${s.cards.length} cards` });
     showToast('Set deleted', 'success');
     await loadSets();
   } catch (e) { showToast('Could not delete: ' + e.message, 'error'); }
@@ -663,6 +685,7 @@ function openAi() {
       const made = cardsFromAi(jsonOf(data)).filter(c => !have.has(c.term.toLowerCase()));
       if (!made.length) { status("AI didn't find anything new to make cards from. Try adding more notes.", true); go.disabled = false; return; }
       addCards(made);
+      logEvent('cards.ai', { target: setName || 'New set', detail: `${made.length} cards from ${notes.value.trim() ? 'notes' : 'the set name'}` });
       closeDialog();
       showToast(`Added ${made.length} cards. Check them, then save.`, 'success');
     } catch (e) { status('Something went wrong: ' + e.message, true); go.disabled = false; }
@@ -706,6 +729,11 @@ function closeDialog() { $('dlg')?.remove(); }
 let st = null;   // { set, deck, i, flipped, know, learning, defFirst, shuffle }
 function startStudy(s) {
   st = { set: s, cards: s.cards.filter(cardComplete), defFirst: false, shuffle: true };
+  // Flashcard time counts as revision time (own sets: they have a subject)
+  if (!readOnly()) {
+    logEvent('cards.study', { target: s.name, detail: s.shared ? `Shared by ${s.ownerName || 'a classmate'}` : `${st.cards.length} cards` });
+    if (!s.shared && s.subjectId) startStudyTimer({ user: me, profile, subjectId: s.subjectId, subjectName: subjects[s.subjectId]?.name || 'Flashcards' });
+  }
   newRound(st.cards);
   document.body.insertAdjacentHTML('beforeend', `<div class="study" id="study">
     <div class="study-top"><span class="study-title">${esc(s.name)}</span><button class="btn btn-ghost" data-study="close"><i data-icon="x"></i> Close</button></div>
@@ -733,7 +761,7 @@ function drawStudy() {
     return;
   }
   const c = st.deck[st.i];
-  const defSide = `<div class="face-content">${c.imageUrl ? `<img src="${esc(c.imageUrl)}" alt="">` : ''}${esc(c.definition || '')}</div>`;
+  const defSide = `<div class="face-content">${c.imageUrl ? `<img src="${esc(c.imageUrl)}" alt="" onerror="this.remove()">` : ''}${esc(c.definition || '')}</div>`;
   const termSide = `<div class="face-content">${esc(c.term)}</div>`;
   const [front, back] = st.defFirst ? [defSide, termSide] : [termSide, defSide];
   const [fl, bl] = st.defFirst ? ['Definition', 'Term'] : ['Term', 'Definition'];
@@ -880,6 +908,10 @@ function openShare(s) {
         else if (on.has(c.cid)) await deleteDoc(ref);
       }
       await updateDoc(doc(db, `content/${packId}/subjects/${s.subjectId}/topics/${s.id}`), { sharedWith: done });
+      const names = ids => ids.map(id => myClasses.find(c => c.cid === id)?.name).filter(Boolean).join(', ');
+      const added = done.filter(c => !on.has(c)), removed = [...on].filter(c => !done.includes(c));
+      if (added.length) logEvent('cards.share', { target: s.name, targetId: s.id, detail: `With ${names(added)}` });
+      if (removed.length) logEvent('cards.unshare', { target: s.name, targetId: s.id, detail: `From ${names(removed)}` });
       s.sharedWith = done;
       closeDialog(); renderList(); loadShared();
       showToast(done.length ? `Shared with ${done.length === 1 ? myClasses.find(c => c.cid === done[0]).name : done.length + ' classes'}` : 'No longer shared', 'success');
@@ -920,6 +952,7 @@ async function loadShared() {
 
 // Open the editor with a copy of a classmate's set, to check and save as mine
 function copyShared(x) {
+  logEvent('cards.copy', { target: x.name, detail: `From ${x.ownerName || 'a classmate'}${x.className ? ' · ' + x.className : ''}` });
   openEditor(null);
   $('set-name').value = x.name || '';
   $('set-subject').value = x.subject || $('set-subject').value;
@@ -945,6 +978,7 @@ document.addEventListener('click', e => {
     case 'study': if (s) startStudy(s); break;
     case 'quiz': if (s) goQuiz(s); break;
     case 'add-card': addRow()?.querySelector('.c-term').focus(); changed(); break;
+    case 'move-up': case 'move-down': moveRow(b.closest('.card-row'), b.dataset.action === 'move-up' ? -1 : 1); break;
     case 'del-card': {
       const row = b.closest('.card-row');
       if ($('cards').children.length === 1) { row.querySelectorAll('textarea').forEach(t => { t.value = ''; grow(t); }); }
@@ -974,6 +1008,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261110h"></script>
+<script src="site.js?v=20261110i"></script>
 </body>
 </html>

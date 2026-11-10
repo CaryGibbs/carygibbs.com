@@ -24,6 +24,10 @@ rules_version = '2';
 //   Students' own flashcard packs (studentMade): their parents and teachers
 //   can read them too. Sets shared with a class live under the teacher's
 //   class (sharedSets): members and the teacher read them.
+//   Private packs given to a student also need the pack's owner to be one
+//   of that student's parents or teachers (not just the id in packIds).
+//   aiUsage: written by the AI Worker; admins and the person read it.
+//   plusRequests: a person asks for Plus; admins read, switch on, clear.
 //   Library reports: any signed-in user can report; admins read and clear.
 //   Settings: any signed-in user can read; admins write.
 //
@@ -76,11 +80,31 @@ service cloud.firestore {
       // "plan" holds the study plan; only the value 'plus' (paid) is protected
       function gainsPlus() { return newData().get('plan', null) == 'plus' && resource.data.get('plan', null) != 'plus'; }
 
+      // A class you've joined: you're on that class's student list
+      function inClass(j) {
+        return exists(/databases/$(database)/documents/users/$(j.get('teacherUid', 'none'))/classes/$(j.get('classId', 'none'))/students/$(me()));
+      }
+      // Teacher links (teacherIds) let a teacher's own packs be read, so you
+      // can only add the teacher of a class you've just joined (lastJoin),
+      // or remove teachers
+      function teacherIdsCreateOK() {
+        let t = newData().get('teacherIds', []);
+        return t.size() == 0
+          || (t.size() == 1 && t[0] == newData().get('lastJoin', {}).get('teacherUid', '') && inClass(newData().get('lastJoin', {})));
+      }
+      function teacherIdsUpdateOK() {
+        let was = resource.data.get('teacherIds', []).toSet();
+        let now = newData().get('teacherIds', []).toSet();
+        let j = newData().get('lastJoin', {});
+        return was.hasAll(now)
+          || (now == was.union([j.get('teacherUid', '')].toSet()) && inClass(j));
+      }
       // Signing yourself up: no admin (unless invited), no paid plan, no parent links
       function selfCreateOK() {
         return (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
           && newData().get('plan', null) != 'plus'
-          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid']);
+          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit'])
+          && teacherIdsCreateOK();
       }
       // A parent or teacher creating a student account
       function studentCreateOK() {
@@ -94,13 +118,14 @@ service cloud.firestore {
       // Editing yourself: can't change plan or who your parents are; can only
       // add admin with a valid admin invite
       function selfUpdateOK() {
-        return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid'])
+        return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit'])
           && !gainsPlus()
+          && teacherIdsUpdateOK()
           && (!gainsAdmin() || adminInvite(newData().get('inviteCode', '')));
       }
       // A parent editing their student: anything except roles, paid plan and teacher links
       function guardianUpdateOK() {
-        return !changedKeys().hasAny(['roles', 'role', 'teacherIds', 'teacherUid']) && !gainsPlus();
+        return !changedKeys().hasAny(['roles', 'role', 'teacherIds', 'teacherUid', 'aiLimit']) && !gainsPlus();
       }
       // Accepting an invite that shares this student: add only yourself as a guardian
       function inviteGuardianOK() {
@@ -225,9 +250,17 @@ service cloud.firestore {
     // Admin packs: visibility 'official', or older packs with no owner
     function officialPack(d) { return d.get('ownerUid', '') == '' || d.get('visibility', '') == 'official'; }
     function ownsPack(d) { return signedIn() && d.get('ownerUid', '') == me(); }
-    function givenPack(p) {
+    // A pack given to me: listed on my record (packIds) AND made by one of
+    // my own parents or teachers. packIds alone isn't enough, since a
+    // student can edit their own record; who their parents and teachers
+    // are, they can't.
+    function givenPack(d, p) {
+      let u = userDoc(me());
+      let owner = d.get('ownerUid', '');
       return exists(/databases/$(database)/documents/users/$(me()))
-        && p in userDoc(me()).get('packIds', []);
+        && p in u.get('packIds', [])
+        && owner != ''
+        && (owner == u.get('parentUid', '') || owner in u.get('guardianIds', []) || owner in u.get('teacherIds', []));
     }
     function libraryPack(d) { return d.get('visibility', '') == 'library'; }
     // A student's own flashcard pack: their parents and teachers can read it
@@ -236,7 +269,7 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(d.ownerUid))
         && (guardianOf(userDoc(d.ownerUid)) || teacherOf(userDoc(d.ownerUid)));
     }
-    function canReadPack(d, p) { return signedIn() && (officialPack(d) || libraryPack(d) || ownsPack(d) || isAdmin() || givenPack(p) || studentPackOfMine(d)); }
+    function canReadPack(d, p) { return signedIn() && (officialPack(d) || libraryPack(d) || ownsPack(d) || isAdmin() || givenPack(d, p) || studentPackOfMine(d)); }
     // An owner editing their own (non-library) pack: can't change who owns it or
     // where it lives, can only ask for library review (or withdraw), and can
     // only clear the link to its library copy
@@ -277,6 +310,26 @@ service cloud.firestore {
       match /notes/{n} {
         allow create: if canReadPack(packDoc(p), p) && !libraryPack(packDoc(p));
       }
+    }
+
+    // ── AI usage (written by the AI Worker only) ──────────
+    match /aiUsage/{id} {
+      allow get: if signedIn() && (isAdmin() || resource.data.uid == me());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+    // Rate limits for signed-out logging (Worker only)
+    match /rateLimits/{id} { allow read, write: if false; }
+
+    // ── Asking for Plus ───────────────────────────────────
+    // One request per person (id = their uid); admins switch Plus on in Users
+    match /plusRequests/{uid} {
+      allow get: if signedIn() && (me() == uid || isAdmin());
+      allow list, delete: if isAdmin();
+      allow create, update: if isAdmin() || (signedIn() && me() == uid
+        && request.resource.data.uid == me()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.get('note', '') is string && request.resource.data.get('note', '').size() <= 500);
     }
 
     // ── Library reports ───────────────────────────────────

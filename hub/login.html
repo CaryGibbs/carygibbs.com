@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110h">
-  <script src="icons.js?v=20261110h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110i">
+  <script src="icons.js?v=20261110i"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -61,7 +61,7 @@
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110h">
+  <link rel="stylesheet" href="ui.css?v=20261110i">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -160,12 +160,12 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261110h';
-  import { redirectByRole } from './auth.js?v=20261110h';
-  import { logEvent } from './log.js?v=20261110h';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261110h';
-  import { findClass } from './join-class.js?v=20261110h';
-  import { saveEmailIndex } from './email-index.js?v=20261110h';
+  import { auth, db } from './firebase-config.js?v=20261110i';
+  import { redirectByRole } from './auth.js?v=20261110i';
+  import { logEvent } from './log.js?v=20261110i';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261110i';
+  import { findClass } from './join-class.js?v=20261110i';
+  import { saveEmailIndex } from './email-index.js?v=20261110i';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
@@ -332,13 +332,15 @@
           classPacks: classInfo ? { [classInfo.classId]: classInfo.packIds || [] } : {},
           packIds: classInfo ? (classInfo.packIds || []) : [],
           ageConfirmed: { over13: true, at: Date.now() },   // ticked "I'm 13 or over" at sign-up
-          teacherIds: classInfo ? [classInfo.teacherUid] : []
+          teacherIds: classInfo ? [classInfo.teacherUid] : [],
+          ...(classInfo ? { lastJoin: { teacherUid: classInfo.teacherUid, classId: classInfo.classId, at: Date.now() } } : {})
         };
-        await setDoc(doc(db, 'users', uid), profile);
-        await saveEmailIndex(uid, email, name, ['student']);
+        // Class list first: the rules check it before accepting the teacher link
         if (classInfo) {
           await setDoc(doc(db, `users/${classInfo.teacherUid}/classes/${classInfo.classId}/students`, uid), { name, email, joinedAt: Date.now() });
         }
+        await setDoc(doc(db, 'users', uid), profile);
+        await saveEmailIndex(uid, email, name, ['student']);
       }
       if (invite) await useInvite(uid, email);
       await Promise.race([logEvent('account.signup', { as: { uid, name, role: signupType === 'parent' ? 'parent' : signupType }, detail: signupType === 'teacher' ? `Teacher at ${school}` : classInfo ? `Joined ${classInfo.className || 'a class'}` : `${signupType[0].toUpperCase() + signupType.slice(1)} account` }), new Promise(r => setTimeout(r, 1500))]);

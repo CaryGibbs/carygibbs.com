@@ -15,13 +15,22 @@
 //   action 'checkLinks'  checking resource links load        any signed-in user
 //   action 'deleteAccount'  delete a user's account and data  yourself, a student's
 //                       only parent, or an admin (only the owner can delete admins)
+//   action 'logSignedOut'   log a failed sign-in or password reset  anyone (no sign-in),
+//                       at most 30 a day from one internet address
+//   action 'storageSweep'   delete pictures nothing uses any more    admins only
+//                       (also runs on a schedule if a Cron Trigger is set)
+// AI use is counted per person per day (aiUsage/{uid}_{day}) and capped by the
+// daily token allowance in settings/aiLimits (free and Plus; admins unlimited).
 // Only the models below can be used, and each task has a size limit.
 //
 // Settings (Cloudflare → Workers → this Worker → Settings → Variables):
 //   ANTHROPIC_API_KEY   secret: the Anthropic API key
 //   FIREBASE_SERVICE_ACCOUNT  secret: the whole JSON file from Firebase console →
 //                       Project settings → Service accounts → Generate new private
-//                       key. Only used for deleting accounts.
+//                       key. Used for deleting accounts, AI usage limits, sign-in
+//                       logs and picture clean-up.
+// Optional Cron Trigger (Settings → Triggers), e.g. "0 3 * * 0" (Sundays 3am):
+//   runs the picture clean-up automatically.
 //   ALLOW_ANON          "true" only while switching over from the old Worker,
 //                       so pages that haven't updated yet keep working
 //                       (unsigned requests then work as they did before).
@@ -43,9 +52,20 @@ const MAX_LINKS = 20;
 const MAX_IMAGES = 8;                    // per request
 const MAX_IMAGE_B64 = 5 * 1024 * 1024;   // per picture (base64 characters)
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const BUCKET = 'clasp-revision.firebasestorage.app';
+// Daily AI allowance in tokens (prompt + reply), unless settings/aiLimits says otherwise
+const LIMIT_DEFAULTS = { free: 150000, plus: 2000000 };
+const SIGNED_OUT_ACTIONS = ['account.signin_fail', 'account.reset'];
+const SIGNED_OUT_PER_DAY = 30;
+const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 
 export default {
-  async fetch(request, env) {
+  // Weekly picture clean-up, if a Cron Trigger is set on the Worker
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(storageSweep(env, false).catch(e => console.warn('Sweep failed', e.message)));
+  },
+
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
     const cors = {
       'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
@@ -64,6 +84,12 @@ export default {
     let body;
     try { body = await request.json(); } catch (e) { return fail(400, 'Bad request'); }
 
+    // ── Signed out: a failed sign-in or a password reset, for the activity log ──
+    if (body.action === 'logSignedOut') {
+      try { return reply(200, await logSignedOut(env, request, body)); }
+      catch (e) { return reply(200, { ok: false }); }
+    }
+
     // ── Who is asking? ──
     const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
     let user = null;
@@ -81,6 +107,17 @@ export default {
       catch (e) { return fail(e.status || 500, e.message || 'Could not delete the account'); }
     }
 
+    // ── Picture clean-up (admins) ──
+    if (body.action === 'storageSweep') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try {
+        const tok = await serviceToken(env);
+        const me = await fsGet(tok, `users/${user.uid}`);
+        if (!(user.uid === OWNER_UID || rolesOf(me).has('admin'))) return fail(403, 'Admins only');
+        return reply(200, await storageSweep(env, !!body.dryRun));
+      } catch (e) { return fail(e.status || 500, e.message || 'Clean-up failed'); }
+    }
+
     // ── Link checking ──
     if (body.action === 'checkLinks') {
       const urls = (Array.isArray(body.urls) ? body.urls : []).slice(0, MAX_LINKS);
@@ -94,9 +131,29 @@ export default {
     const taskName = String(request.headers.get('X-Task') || body.task || (user ? '' : 'generation'));
     const task = TASKS[taskName];
     if (!task) return fail(400, 'Unknown task');
+    // Who they are (plan, roles) and what they've used today
+    let who = null, used = null, limits = null, svc = null;
+    const day = londonDay();
+    if (user && env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        svc = await serviceToken(env);
+        [who, used, limits] = await Promise.all([
+          fsGet(svc, `users/${user.uid}`), fsGet(svc, `aiUsage/${user.uid}_${day}`), fsGet(svc, 'settings/aiLimits'),
+        ]);
+      } catch (e) { console.warn('Usage check skipped:', e.message); svc = null; }
+    }
+    const isAdmin = !!user && (user.uid === OWNER_UID || rolesOf(who).has('admin'));
+    const isPlus = isAdmin || who?.plan === 'plus';
     if (task.needsPlus && user) {
-      const allowed = await hasPlus(user, token);
+      const allowed = who ? isPlus : await hasPlus(user, token);
       if (!allowed) return fail(403, 'AI generation is part of Lobe Limpet Plus');
+    }
+    if (user && who && !isAdmin) {
+      const lim = { ...LIMIT_DEFAULTS, ...(limits || {}) };
+      const cap = Number(who.aiLimit) > 0 ? Number(who.aiLimit) : Number(isPlus ? lim.plus : lim.free);
+      if (cap > 0 && (used?.tokens || 0) >= cap) {
+        return fail(429, "You've used today's AI allowance. It resets at midnight. If you need more, ask Lobe Limpet to raise your limit.");
+      }
     }
     const model = MODELS.includes(body.model) ? body.model : 'claude-sonnet-4-5';
     const messages = Array.isArray(body.messages) ? body.messages : [];
@@ -131,6 +188,15 @@ export default {
       body: JSON.stringify({ model, max_tokens: maxTokens, messages }),
     });
     const text = await upstream.text();
+    // Count what was used (after replying, so it doesn't slow anything down)
+    if (svc && upstream.ok) {
+      try {
+        const u = JSON.parse(text).usage || {};
+        const input = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
+        const output = u.output_tokens || 0;
+        ctx.waitUntil(recordUsage(svc, user, who, day, taskName, model, input, output).catch(e => console.warn('Usage not saved:', e.message)));
+      } catch (e) { /* reply wasn't JSON: nothing to count */ }
+    }
     return new Response(text, { status: upstream.status, headers: { ...cors, 'Content-Type': 'application/json' } });
   },
 };
@@ -384,4 +450,120 @@ async function deleteAccount(env, caller, uid, checkOnly) {
     if (!/USER_NOT_FOUND/.test(t)) throw oops(500, `Their data was deleted, but the sign-in couldn't be (${r.status}). Please try again.`);
   }
   return { ok: true, deleted: writes.length };
+}
+
+/* ============================================================
+   AI usage per person per day: aiUsage/{uid}_{YYYY-MM-DD}
+   { uid, day, name, email, plan, tokens, inputTokens, outputTokens,
+     requests, tasks.{task}, models.{model}, lastAt, expireAt }
+   ============================================================ */
+const tsv = d => ({ timestampValue: d.toISOString() });
+async function recordUsage(tok, user, who, day, task, model, input, output) {
+  const path = `aiUsage/${user.uid}_${day}`;
+  const name = `${DOCS}/${path}`;
+  const inc = (fieldPath, n) => ({ fieldPath, increment: { integerValue: String(n) } });
+  await fsCommit(tok, [{
+    update: { name, fields: {
+      uid: { stringValue: user.uid }, day: { stringValue: day },
+      name: { stringValue: String(who?.name || '').slice(0, 80) }, email: { stringValue: String(who?.email || user.email || '').slice(0, 120) },
+      plan: { stringValue: who?.plan === 'plus' ? 'plus' : 'free' },
+      lastAt: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 90 * 86400000)),
+    } },
+    updateMask: { fieldPaths: ['uid', 'day', 'name', 'email', 'plan', 'lastAt', 'expireAt'] },
+    updateTransforms: [
+      inc('tokens', input + output), inc('inputTokens', input), inc('outputTokens', output), inc('requests', 1),
+      inc(`tasks.${bt(task)}`, 1), inc(`models.${bt(model)}`, input + output),
+    ],
+  }]);
+}
+
+/* ============================================================
+   Failed sign-ins and password resets: the person isn't signed in,
+   so the browser can't write the log entry itself
+   ============================================================ */
+async function sha(s) {
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(h)].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function logSignedOut(env, request, body) {
+  const action = String(body.logAction || '');
+  if (!SIGNED_OUT_ACTIONS.includes(action)) return { ok: false };
+  const tok = await serviceToken(env);
+  const day = londonDay();
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const rl = `rateLimits/signedout_${await sha(ip + PROJECT_ID)}_${day}`;
+  const seen = await fsGet(tok, rl);
+  if ((seen?.count || 0) >= SIGNED_OUT_PER_DAY) return { ok: false, limited: true };
+  const clip = (v, n) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+  const now = new Date();
+  const where = request.cf?.country ? ` (from ${request.cf.country})` : '';
+  const id = crypto.randomUUID().replace(/-/g, '').slice(0, 20);
+  await fsCommit(tok, [
+    { update: { name: `${DOCS}/logs/${id}`, fields: {
+      ts: { integerValue: String(now.getTime()) }, at: tsv(now),
+      uid: { stringValue: 'signed-out' }, name: { stringValue: clip(body.name, 120) }, role: { stringValue: 'account' },
+      action: { stringValue: action }, cat: { stringValue: 'account' },
+      target: { stringValue: '' }, targetId: { stringValue: '' },
+      detail: { stringValue: clip(body.detail, 160) + where },
+      expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
+    } }, currentDocument: { exists: false } },
+    { update: { name: `${DOCS}/${rl}`, fields: { expireAt: tsv(new Date(now.getTime() + 2 * 86400000)) } },
+      updateMask: { fieldPaths: ['expireAt'] },
+      updateTransforms: [{ fieldPath: 'count', increment: { integerValue: '1' } }] },
+  ]);
+  return { ok: true };
+}
+
+/* ============================================================
+   Picture clean-up: delete pictures under content/ that no question,
+   flashcard or shared set points to any more (deleted cards, questions,
+   packs and accounts, and uploads that were never saved). Pictures
+   less than a day old are left alone, in case someone is still editing.
+   ============================================================ */
+const GCS = `https://storage.googleapis.com/storage/v1/b/${BUCKET}/o`;
+function objectNameOf(url) {
+  const m = String(url || '').match(/\/o\/([^?#]+)/);
+  if (!m) return null;
+  try { return decodeURIComponent(m[1]); } catch (e) { return null; }
+}
+async function collectionGroup(tok, collectionId, select, where) {
+  const r = await fetch(`${FS}:runQuery`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId, allDescendants: true }], select: { fields: select.map(f => ({ fieldPath: f })) }, ...(where ? { where } : {}) } }),
+  });
+  if (!r.ok) throw oops(500, `Could not read ${collectionId} (${r.status}): ${(await r.text()).slice(0, 160)}`);
+  return (await r.json()).filter(x => x.document).map(x => fields(x.document.fields));
+}
+async function storageSweep(env, dryRun) {
+  const tok = await serviceToken(env);
+  // Everything that points at a picture
+  const used = new Set();
+  const add = u => { const n = objectNameOf(u); if (n) used.add(n); };
+  const [questions, topics, shared] = await Promise.all([
+    collectionGroup(tok, 'questions', ['imageUrl']),
+    collectionGroup(tok, 'topics', ['cards']),
+    collectionGroup(tok, 'sharedSets', ['cards']),
+  ]);
+  questions.forEach(q => add(q.imageUrl));
+  [...topics, ...shared].forEach(t => (Array.isArray(t.cards) ? t.cards : []).forEach(c => add(c?.imageUrl)));
+  // Every picture stored
+  const objects = []; let page = '';
+  do {
+    const r = await fetch(`${GCS}?prefix=content%2F&maxResults=1000&fields=items(name,size,timeCreated),nextPageToken${page ? `&pageToken=${encodeURIComponent(page)}` : ''}`, { headers: { Authorization: `Bearer ${tok}` } });
+    if (!r.ok) throw oops(500, `Could not list pictures (${r.status}): ${(await r.text()).slice(0, 160)}`);
+    const d = await r.json();
+    (d.items || []).forEach(o => objects.push(o));
+    page = d.nextPageToken || '';
+  } while (page);
+  const dayAgo = Date.now() - 86400000;
+  const unused = objects.filter(o => !used.has(o.name) && Date.parse(o.timeCreated) < dayAgo);
+  const bytes = unused.reduce((a, o) => a + Number(o.size || 0), 0);
+  let deleted = 0;
+  if (!dryRun) {
+    for (const o of unused.slice(0, 500)) {
+      const r = await fetch(`${GCS}/${encodeURIComponent(o.name)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${tok}` } });
+      if (r.ok || r.status === 404) deleted++;
+    }
+  }
+  return { ok: true, dryRun, stored: objects.length, inUse: objects.length - unused.length, unused: unused.length, unusedBytes: bytes, deleted, more: unused.length > 500 };
 }

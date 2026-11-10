@@ -13,7 +13,8 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261110h';
+import { db, auth } from './firebase-config.js?v=20261110i';
+import { PROXY_URL } from './ai.js?v=20261110i';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
@@ -45,6 +46,17 @@ export const ACTIONS = {
   'class.add':           { label: 'Added a student',         cat: 'class' },
   'class.remove':        { label: 'Removed a student',       cat: 'class' },
   'class.join':          { label: 'Joined a class',          cat: 'class' },
+  'class.takedown_set':  { label: 'Took down a shared flashcard set', cat: 'class' },
+  'cards.create':        { label: 'Made a flashcard set',    cat: 'cards' },
+  'cards.edit':          { label: 'Edited a flashcard set',  cat: 'cards' },
+  'cards.delete':        { label: 'Deleted a flashcard set', cat: 'cards' },
+  'cards.ai':            { label: 'Made flashcards with AI', cat: 'cards' },
+  'cards.share':         { label: 'Shared a flashcard set',  cat: 'cards' },
+  'cards.unshare':       { label: 'Stopped sharing a flashcard set', cat: 'cards' },
+  'cards.copy':          { label: "Copied a classmate's flashcards", cat: 'cards' },
+  'cards.study':         { label: 'Studied flashcards',      cat: 'cards' },
+  'account.plus_request': { label: 'Asked for Plus',         cat: 'account' },
+  'account.plus':        { label: 'Changed Plus',            cat: 'account' },
   'student.add':         { label: 'Added a student',         cat: 'family' },
   'student.edit':        { label: 'Updated a student',       cat: 'family' },
   'student.share':       { label: 'Shared a student',        cat: 'family' },
@@ -62,7 +74,7 @@ export const ACTIONS = {
 
 export const CATS = {
   account: 'Accounts', admin: 'Admin', content: 'Content', class: 'Classes',
-  family: 'Students', plan: 'Study plans', study: 'Studying',
+  family: 'Students', plan: 'Study plans', study: 'Studying', cards: 'Flashcards',
 };
 
 // Who is acting. Set by auth.js once the profile has loaded; the role
@@ -89,6 +101,12 @@ export function logEvent(action, opts = {}) {
   try {
     const who = opts.as || actor || (auth.currentUser ? { uid: auth.currentUser.uid, name: auth.currentUser.displayName || auth.currentUser.email || '', role: pageRole() } : null);
     if (!who || !who.uid || who.uid === 'preview-readonly') return Promise.resolve();
+    // Not signed in (failed sign-in, password reset): the AI Worker writes it
+    if (who.uid === 'signed-out') {
+      return fetch(PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logSignedOut', logAction: action, name: clip(who.name, 120), detail: clip(opts.detail, 160) }) })
+        .catch(e => console.warn('Log not saved:', e.message));
+    }
     const now = Date.now();
     const entry = {
       ts: now, at: serverTimestamp(),

@@ -5,9 +5,9 @@
 // revision packs, and adds them to the teacher's class list.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261110h';
+import { db } from './firebase-config.js?v=20261110i';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { flatPackIds } from './packs.js?v=20261110h';
+import { flatPackIds } from './packs.js?v=20261110i';
 
 export function cleanCode(code) {
   return String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -27,14 +27,17 @@ export async function findClass(code) {
 }
 
 // Join (the student's own record must already exist)
+// The class list entry goes first: the security rules only let a student add
+// a teacher (teacherIds) for a class whose list they're already on (lastJoin).
 export async function joinClass(uid, profile, info) {
+  await setDoc(doc(db, 'users', info.teacherUid, 'classes', info.classId, 'students', uid),
+    { name: profile.name || '', email: profile.email || '', joinedAt: Date.now() });
   await updateDoc(doc(db, 'users', uid), {
     [`classes.${info.classId}`]: true,
     [`classPacks.${info.classId}`]: info.packIds || [],
     // every pack the student has, so the security rules can let them read it
     packIds: flatPackIds({ ...profile, classPacks: { ...(profile.classPacks || {}), [info.classId]: info.packIds || [] } }),
     teacherIds: arrayUnion(info.teacherUid),   // lets the teacher see this student's progress
+    lastJoin: { teacherUid: info.teacherUid, classId: info.classId, at: Date.now() },
   });
-  await setDoc(doc(db, 'users', info.teacherUid, 'classes', info.classId, 'students', uid),
-    { name: profile.name || '', email: profile.email || '', joinedAt: Date.now() });
 }

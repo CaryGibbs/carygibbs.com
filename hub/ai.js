@@ -6,7 +6,7 @@
 // app has always used, so nothing breaks.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261110h';
+import { db, auth } from './firebase-config.js?v=20261110i';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -86,6 +86,14 @@ export async function checkLinks(urls) {
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.results) throw new Error(data.error?.message || `Link check failed (${r.status})`);
   return data.results;
+}
+
+// Other jobs the Worker does for a signed-in person (e.g. storageSweep)
+export async function workerAction(action, payload = {}) {
+  const r = await fetch(PROXY_URL, { method: 'POST', headers: await authHeaders(), body: JSON.stringify({ action, ...payload }) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || data.error) throw new Error(data.error?.message || `Request failed (${r.status})`);
+  return data;
 }
 
 // Text of a response

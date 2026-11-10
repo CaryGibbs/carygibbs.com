@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110h">
-  <script src="icons.js?v=20261110h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110i">
+  <script src="icons.js?v=20261110i"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -411,6 +411,9 @@
     .ai-test-row.warn .icon { color: var(--color-warning); }
     .ai-test-row.bad .icon { color: var(--color-danger); }
     /* ── Users & roles ─────────────────────────────────── */
+    .plus-switch { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .plus-switch input { width: auto; margin: 0; }
+    .lim-input { width: 180px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; font: inherit; background: var(--color-surface); color: var(--color-text); }
     .users-table { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: 0.88rem; }
     .users-table th { text-align: left; padding: 8px 12px; color: var(--color-text-muted); border-bottom: 2px solid var(--color-border); font-weight: 600; }
     .users-table td { padding: 10px 12px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
@@ -582,8 +585,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261110h">
-  <link rel="stylesheet" href="stats.css?v=20261110h">
+  <link rel="stylesheet" href="ui.css?v=20261110i">
+  <link rel="stylesheet" href="stats.css?v=20261110i">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -941,6 +944,36 @@
       <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
         <div class="ai-settings-head">
           <div>
+            <h3>AI usage and daily limits</h3>
+            <p>Each person's AI use is counted every day (UK time). When someone reaches their daily allowance, AI stops for them until midnight. Admins have no limit. A token is roughly ¾ of a word, counting both what's sent and the reply.</p>
+          </div>
+        </div>
+        <div class="ai-field"><label for="lim-free">Free accounts: tokens a day</label><p>Learning notes, cheat sheets and marking written answers.</p><input type="number" id="lim-free" min="0" step="10000" class="lim-input"></div>
+        <div class="ai-field"><label for="lim-plus">Plus accounts: tokens a day</label><p>Also covers creating notes, questions and flashcards with AI.</p><input type="number" id="lim-plus" min="0" step="100000" class="lim-input"></div>
+        <div class="ai-settings-actions">
+          <button class="btn btn-primary" id="btn-save-limits"><i data-icon="save"></i> Save limits</button>
+          <span class="ai-status" id="limits-status"></span>
+        </div>
+        <div id="ai-usage"></div>
+      </div>
+
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
+        <div class="ai-settings-head">
+          <div>
+            <h3>Picture clean-up</h3>
+            <p>Deletes pictures that nothing uses any more: from deleted questions, flashcards, packs and accounts, and uploads that were never saved. Pictures added in the last day are kept. If a weekly schedule is set on the AI Worker, this also runs on its own.</p>
+          </div>
+        </div>
+        <div class="ai-settings-actions">
+          <button class="btn btn-secondary" id="btn-sweep-check"><i data-icon="search"></i> Check</button>
+          <button class="btn btn-danger" id="btn-sweep-run" disabled><i data-icon="trash-2"></i> Delete unused pictures</button>
+          <span class="ai-status" id="sweep-status"></span>
+        </div>
+      </div>
+
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
+        <div class="ai-settings-head">
+          <div>
             <h3>Study plans</h3>
             <p>Daily targets for each plan level. Parents choose a student's level (or Auto, which follows their exam dates) in Manage student.</p>
           </div>
@@ -1282,27 +1315,27 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261110h';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261110h';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261110h';
-import { openDeleteAccount } from './account.js?v=20261110h';
-import { addDocumentButton } from './doc-text.js?v=20261110h';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261110h';
-import { showPlusUpsell } from './plus.js?v=20261110h';
+import { auth, db, storage } from './firebase-config.js?v=20261110i';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261110i';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261110i';
+import { openDeleteAccount } from './account.js?v=20261110i';
+import { addDocumentButton } from './doc-text.js?v=20261110i';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261110i';
+import { showPlusUpsell } from './plus.js?v=20261110i';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261110h';
-import { mountShell } from './shell.js?v=20261110h';
-import { openInviteDialog, signupLink } from './invite.js?v=20261110h';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261110h';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261110h';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261110h';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110h';
-import { dueEntries } from './srs.js?v=20261110h';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261110h';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261110i';
+import { mountShell } from './shell.js?v=20261110i';
+import { openInviteDialog, signupLink } from './invite.js?v=20261110i';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261110i';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261110i';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261110i';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110i';
+import { dueEntries } from './srs.js?v=20261110i';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261110i';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1318,7 +1351,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261110h';
+import { saveEmailIndex } from './email-index.js?v=20261110i';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1455,6 +1488,9 @@ async function renderAdminHome() {
       if (noQ.length) items.push({ p: 1, emoji: '❓', text: `${noQ.length} topic${noQ.length === 1 ? '' : 's'} in ${esc(p.name)} ${noQ.length === 1 ? 'has' : 'have'} no questions`, sub: listOf(noQ), action: smallBtn('Open pack', `location.hash='groups'`) });
       if (noK.length) items.push({ p: 2, emoji: '🗺️', text: `${noK.length} topic${noK.length === 1 ? '' : 's'} in ${esc(p.name)} ${noK.length === 1 ? 'has' : 'have'} no key points`, sub: `${listOf(noK)} · nothing to learn or map yet`, action: smallBtn('Open pack', `location.hash='groups'`) });
     });
+    const reqSnap = await getDocs(collection(db, 'plusRequests')).catch(() => null);
+    const plusAsked = []; reqSnap?.forEach(d => { if (d.data().status === 'pending') plusAsked.push(d.data()); });
+    if (plusAsked.length) items.push({ p: -2, emoji: '✨', text: `${plusAsked.length} ${plusAsked.length === 1 ? 'person has' : 'people have'} asked for Plus`, sub: plusAsked.slice(0, 3).map(r => esc(r.name || r.email || '')).join(', ') + '. Switch it on in Users.', action: smallBtn('Users', `location.hash='users'`, true) });
     if (libraryWaiting.length) items.push({ p: -1, emoji: '📚', text: `${libraryWaiting.length} pack${libraryWaiting.length === 1 ? '' : 's'} waiting for library review`, sub: libraryWaiting.slice(0, 3).map(p => esc(p.name || '')).join(', '), action: smallBtn('Review', `location.hash='library'`, true) });
     const packless = students.filter(u => !(u.groupIds || []).length && !Object.values(u.classPacks || {}).some(l => (l || []).length));
     if (packless.length) items.push({ p: 3, emoji: '🎒', text: `${packless.length} student${packless.length === 1 ? ' has' : 's have'} no revision pack`, sub: packless.slice(0, 4).map(u => esc(u.name || u.email || '')).join(', ') + (packless.length > 4 ? '…' : ''), action: smallBtn('Users', `location.hash='users'`) });
@@ -1675,6 +1711,72 @@ document.getElementById('btn-test-ai').onclick = async () => {
   }));
   box.innerHTML = rows.join('');
 };
+/* ── AI usage and limits ─────────────────────────────────────
+   The Worker counts tokens per person per day in aiUsage/{uid}_{day}
+   and enforces settings/aiLimits (see workers/ai-proxy.js). */
+const LIMIT_DEFAULTS = { free: 150000, plus: 2000000 };
+const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const fmtTok = n => n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1000 ? `${Math.round(n / 1000)}k` : String(n || 0);
+async function renderAiLimits() {
+  const snap = await getDoc(doc(db, 'settings', 'aiLimits')).catch(() => null);
+  const lim = { ...LIMIT_DEFAULTS, ...(snap?.exists() ? snap.data() : {}) };
+  document.getElementById('lim-free').value = lim.free;
+  document.getElementById('lim-plus').value = lim.plus;
+  document.getElementById('limits-status').textContent = snap?.exists() ? `Saved ${new Date(lim.updatedAt || Date.now()).toLocaleDateString('en-GB')}` : 'Using defaults';
+  const box = document.getElementById('ai-usage');
+  box.innerHTML = '<p class="ai-status">Loading usage…</p>';
+  try {
+    const days = [...Array(7)].map((_, i) => londonDay(new Date(Date.now() - i * 86400000)));
+    const q = query(collection(db, 'aiUsage'), where('day', '>=', days[6]));
+    const rows = []; (await getDocs(q)).forEach(d => rows.push(d.data()));
+    if (!rows.length) { box.innerHTML = '<p class="ai-status" style="margin-top:12px;">No AI use recorded yet (counting starts once the updated Worker is live).</p>'; return; }
+    const people = {};
+    rows.forEach(r => {
+      const p = people[r.uid] = people[r.uid] || { name: r.name || r.email || 'Someone', plan: r.plan, today: 0, week: 0, req: 0 };
+      p.week += r.tokens || 0; p.req += r.requests || 0;
+      if (r.day === days[0]) p.today += r.tokens || 0;
+    });
+    const list = Object.entries(people).sort((a, b) => b[1].week - a[1].week);
+    const total = list.reduce((a, [, p]) => a + p.week, 0), today = list.reduce((a, [, p]) => a + p.today, 0);
+    const capOf = (uid, p) => { const u = usersCache?.find?.(x => x.id === uid); if (u && rolesOf(u).has('admin')) return 0; return Number(u?.aiLimit) || (p.plan === 'plus' ? lim.plus : lim.free); };
+    box.innerHTML = `<h4 style="margin:16px 0 6px;font-size:0.9rem;">Last 7 days: ${fmtTok(total)} tokens (${fmtTok(today)} today)</h4>
+      <table class="users-table"><thead><tr><th>Person</th><th>Plan</th><th>Today</th><th>7 days</th><th>Requests</th></tr></thead><tbody>
+      ${list.map(([uid, p]) => { const cap = capOf(uid, p); const pct = cap ? Math.round(p.today / cap * 100) : 0;
+        return `<tr><td>${esc(p.name)}</td><td>${p.plan === 'plus' ? '<span class="badge badge-warning">Plus</span>' : 'Free'}</td>
+        <td${pct >= 100 ? ' style="color:var(--color-danger);font-weight:700;"' : ''}>${fmtTok(p.today)}${cap ? ` <span class="muted">(${pct}% of ${fmtTok(cap)})</span>` : ' <span class="muted">(no limit)</span>'}</td>
+        <td>${fmtTok(p.week)}</td><td>${p.req}</td></tr>`; }).join('')}
+      </tbody></table>`;
+  } catch (e) { box.innerHTML = `<p class="ai-status">Couldn't load usage: ${esc(e.message)}</p>`; }
+}
+document.getElementById('btn-save-limits').onclick = async () => {
+  const free = Math.max(0, Math.round(Number(document.getElementById('lim-free').value) || 0));
+  const plus = Math.max(0, Math.round(Number(document.getElementById('lim-plus').value) || 0));
+  try {
+    await setDoc(doc(db, 'settings', 'aiLimits'), { free, plus, updatedAt: Date.now() });
+    logEvent('admin.settings', { target: 'AI limits', detail: `Free ${fmtTok(free)}, Plus ${fmtTok(plus)} tokens a day` });
+    showToast('Limits saved', 'success'); renderAiLimits();
+  } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
+};
+const fmtBytes = b => b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
+document.getElementById('btn-sweep-check').onclick = async () => {
+  const st = document.getElementById('sweep-status'), run = document.getElementById('btn-sweep-run');
+  st.textContent = 'Checking…'; run.disabled = true;
+  try {
+    const r = await workerAction('storageSweep', { dryRun: true });
+    st.textContent = `${r.stored} pictures stored, ${r.inUse} in use. ${r.unused ? `${r.unused} unused (${fmtBytes(r.unusedBytes)}).` : 'Nothing to clean up.'}`;
+    run.disabled = !r.unused;
+  } catch (e) { st.textContent = /Unknown task|Nothing to send/.test(e.message) ? 'The AI Worker needs updating first.' : 'Could not check: ' + e.message; }
+};
+document.getElementById('btn-sweep-run').onclick = async () => {
+  const st = document.getElementById('sweep-status'), run = document.getElementById('btn-sweep-run');
+  run.disabled = true; st.textContent = 'Deleting…';
+  try {
+    const r = await workerAction('storageSweep', { dryRun: false });
+    st.textContent = `Deleted ${r.deleted} unused picture${r.deleted === 1 ? '' : 's'} (${fmtBytes(r.unusedBytes)}).${r.more ? ' More left: run it again.' : ''}`;
+    logEvent('admin.settings', { target: 'Picture clean-up', detail: `Deleted ${r.deleted} unused pictures` });
+  } catch (e) { st.textContent = 'Could not delete: ' + e.message; }
+};
+
 function showPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -1688,7 +1790,7 @@ function showPanel(name) {
   if (name === 'library')  { document.getElementById('preview-actions').style.display = 'none'; loadLibraryAdmin(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
-  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); }
+  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 
@@ -3600,6 +3702,15 @@ async function deletePackTree(packId) {
   await deleteDoc(doc(db, 'content', packId));
 }
 
+// A subject or topic with everything under it (topics, questions, notes).
+// Pictures left behind are removed by the picture clean-up.
+async function deleteSubtree(path) {
+  const kids = async p => { const s = await getDocs(collection(db, p)).catch(() => null); const ids = []; s?.forEach(d => ids.push(d.id)); return ids; };
+  if (/\/subjects\/[^/]+$/.test(path)) for (const tid of await kids(`${path}/topics`)) await deleteSubtree(`${path}/topics/${tid}`);
+  else for (const sub of ['questions', 'notes']) await Promise.all((await kids(`${path}/${sub}`)).map(id => deleteDoc(doc(db, `${path}/${sub}`, id))));
+  await deleteDoc(doc(db, path));
+}
+
 function setConfirmButton(label = 'Delete', danger = true) {
   const b = document.getElementById('btn-confirm-ok');
   b.textContent = label;
@@ -3613,8 +3724,8 @@ function confirmDelete(type, id, name) {
   confirmCallback = async () => {
     try {
       if (type === 'group')    await deletePackTree(id);
-      if (type === 'subject')  await deleteDoc(doc(db, subjectsPath(), id));
-      if (type === 'topic')    await deleteDoc(doc(db, topicsPath(), id));
+      if (type === 'subject')  await deleteSubtree(`${subjectsPath()}/${id}`);
+      if (type === 'topic')    await deleteSubtree(`${topicsPath()}/${id}`);
       if (type === 'question') { await deleteDoc(doc(db, questionsPath(), id)); loadExistingQuestions(); }
       logEvent('content.delete', { target: name, targetId: id, detail: `Deleted ${type === 'group' ? 'revision pack' : type}` });
       closeModal('modal-confirm');
@@ -3780,11 +3891,36 @@ document.getElementById('btn-signup-link').onclick = async () => {
 
 /* ── USERS (basic list) ───────────────────────────────────── */
 let usersCache = [];
+let plusRequests = {};   // uid -> pending request
+// Plus on or off for one person (admins only; the rules stop anyone else)
+document.addEventListener('change', async e => {
+  const box = e.target.closest('[data-plus-uid]'); if (!box) return;
+  const uid = box.dataset.plusUid, on = box.checked;
+  const u = usersCache.find(x => x.id === uid) || {};
+  box.disabled = true;
+  try {
+    await updateDoc(doc(db, 'users', uid), { plan: on ? 'plus' : 'free' });
+    u.plan = on ? 'plus' : 'free';
+    if (plusRequests[uid]) {
+      await setDoc(doc(db, 'plusRequests', uid), { ...plusRequests[uid], status: on ? 'done' : 'declined', decidedAt: Date.now() }).catch(() => {});
+      delete plusRequests[uid];
+      box.closest('td')?.querySelector('.badge')?.remove();
+    }
+    logEvent('account.plus', { target: u.name || u.email || '', targetId: uid, detail: on ? 'Plus switched on' : 'Plus switched off' });
+    showToast(`Plus ${on ? 'on' : 'off'} for ${u.name || u.email || 'this person'}`, 'success');
+  } catch (err) { box.checked = !on; showToast('Could not change Plus: ' + err.message, 'error'); }
+  finally { box.disabled = false; }
+});
+
 async function loadUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
   // No orderBy: it would hide anyone missing a createdAt date
-  const snap = await getDocs(collection(db,'users')).catch(() => ({ forEach:()=>{} }));
+  const [snap, reqSnap] = await Promise.all([
+    getDocs(collection(db,'users')).catch(() => ({ forEach:()=>{} })),
+    getDocs(collection(db, 'plusRequests')).catch(() => ({ forEach:()=>{} })),
+  ]);
+  plusRequests = {}; reqSnap.forEach(d => { if (d.data().status === 'pending') plusRequests[d.id] = d.data(); });
   const users = [];
   snap.forEach(d => users.push({ id: d.id, ...d.data() }));
   // Sorted by highest role (Admin, Teacher, Parent, Student), then A–Z by name (or email)
@@ -3798,13 +3934,14 @@ async function loadUsers() {
   const roleColour = { parent:'badge-success', student:'badge-primary', teacher:'badge-warning', admin:'badge-primary' };
   const rolesFor = u => (Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role || 'student']);
   list.innerHTML = `<table class="users-table">
-    <thead><tr><th>Name</th><th>Email</th><th>Roles</th><th>Joined</th><th></th></tr></thead>
+    <thead><tr><th>Name</th><th>Email</th><th>Roles</th><th>Plan</th><th>Joined</th><th></th></tr></thead>
     <tbody>${users.map(u => {
       const roles = rolesFor(u), student = roles.includes('student');
       return `<tr data-user-row="${esc(u.id)}">
       <td><span class="user-name"><span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span></td>
       <td class="muted">${esc(u.email||'—')}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
+      <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : `<label class="plus-switch" title="Plus: AI features"><input type="checkbox" data-plus-uid="${esc(u.id)}" ${u.plan === 'plus' ? 'checked' : ''}> Plus</label>${plusRequests[u.id] ? ' <span class="badge badge-warning" title="' + esc(plusRequests[u.id].note || 'Asked for Plus') + '">Asked</span>' : ''}`}</td>
       <td class="muted">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
       <td class="actions">${student
         ? `<button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
@@ -3822,7 +3959,7 @@ function openRolesEditor(uid) {
   const roles = Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role];
   const row = document.querySelector(`[data-user-row="${CSS.escape(uid)}"]`);
   const isMe = uid === currentAdminUid;
-  row.insertAdjacentHTML('afterend', `<tr class="roles-editor-row"><td colspan="5">
+  row.insertAdjacentHTML('afterend', `<tr class="roles-editor-row"><td colspan="6">
     <div class="roles-editor">
       <span class="roles-editor-label">Roles for ${esc(u.name || u.email)}:</span>
       ${['parent','teacher','admin'].map(r => `<label class="roles-check"><input type="checkbox" value="${r}" ${roles.includes(r) || (r === 'parent' && roles.includes('admin')) ? 'checked' : ''} ${isMe && r === 'admin' ? 'disabled title="You can\'t remove your own admin role"' : ''}> ${r[0].toUpperCase() + r.slice(1)}</label>`).join('')}
@@ -3879,6 +4016,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261110h"></script>
+<script src="site.js?v=20261110i"></script>
 </body>
 </html>
