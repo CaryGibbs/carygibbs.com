@@ -35,7 +35,8 @@
       <p class="lede">Bite-size quizzes, flashcards, subject maps and cheat sheets for GCSE and A level. Written answers marked by AI, progress you can see, and streaks and badges that keep you coming back. Smart review brings topics back just before you forget them.</p>
       <div class="ctas">
         <a class="btn btn-coral" href="login.html?signup=student" id="hero-btn">Start revising, free</a>
-        <a class="btn btn-ghost" href="#who">For parents &amp; teachers</a>
+        <a class="btn btn-ghost" href="#parents">For parents</a>
+        <a class="btn btn-ghost" href="#teachers">For teachers</a>
       </div>
       <p class="small-print" id="hero-note">Free to start. No card needed. No adverts.</p>
     </div>
@@ -141,30 +142,70 @@
   <div class="wrap">
     <div class="sec-head">
       <h2>Made for everyone helping with revision</h2>
-      <p>One app, three views. Pick the one that fits you.</p>
+      <p>One app, three views. See what it does for you.</p>
     </div>
-    <div class="grid3">
-      <div class="card">
-        <div class="icon i-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></div>
-        <h3>Students</h3>
-        <p>Revise at your own pace, build a streak and see exactly which topics need more work.</p>
-        <a class="btn btn-coral" href="login.html?signup=student">I'm a student</a>
-      </div>
-      <div class="card">
-        <div class="icon i-sea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <h3>Parents</h3>
-        <p>Set up your students' revision packs, see their progress at a glance and send a word of encouragement.</p>
-        <a class="btn btn-ghost" href="login.html?signup=parent">I'm a parent</a>
-      </div>
-      <div class="card">
-        <div class="icon i-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div>
-        <h3>Teachers</h3>
-        <p>Create packs for your classes, share a join code and spot which topics the group is finding hard.</p>
-        <a class="btn btn-ghost" href="login.html?signup=teacher">I'm a teacher</a>
-      </div>
+    <div class="aud-tabs" role="tablist" aria-label="Who are you?">
+      <button class="aud-tab on" role="tab" aria-selected="true" aria-controls="aud-student" id="tab-student" data-aud="student">🎒 Students</button>
+      <button class="aud-tab" role="tab" aria-selected="false" aria-controls="aud-parent" id="tab-parent" data-aud="parent">🏡 Parents</button>
+      <button class="aud-tab" role="tab" aria-selected="false" aria-controls="aud-teacher" id="tab-teacher" data-aud="teacher">🏫 Teachers</button>
+    </div>
+
+    <div class="aud-panel" id="aud-student" role="tabpanel" aria-labelledby="tab-student">
+      <div class="aud-head"><h3>Revise in ten minutes a day, and actually remember it</h3><p>Everything you need is free, with no adverts.</p></div>
+      <ul class="aud-list">
+        <li><span>⚡</span><div><strong>Quick quizzes that fit a spare ten minutes</strong>Multiple choice, true or false, fill the gap, match the pairs and written answers, so it never gets samey.</div></li>
+        <li><span>✍️</span><div><strong>Explain it your way</strong>Written answers are marked by AI with feedback, so you practise what exams really ask, not just spotting the right option.</div></li>
+        <li><span>🃏</span><div><strong>Your own flashcards, made smarter</strong>Type them, paste them in or bring them from Quizlet. Add pictures. Every card becomes quiz questions and goes into your review.</div></li>
+        <li><span>📈</span><div><strong>See yourself getting better</strong>Scores going up, your weakest topics first and the questions you keep missing, so you know exactly what to do next.</div></li>
+        <li><span>🔥</span><div><strong>Streaks, badges and levels</strong>80+ badges to collect, and streak shields so one off day doesn't wipe out your effort.</div></li>
+        <li><span>🔁</span><div><strong>Remember it on exam day</strong>Smart review brings questions back just before you'd forget them.</div></li>
+      </ul>
+      <p class="aud-plus"><span class="plus-mark">Plus</span> Turn your class notes or a photo of a worksheet into flashcards with AI.</p>
+      <a class="btn btn-coral" href="login.html?signup=student">Start revising, free</a>
+    </div>
+
+    <div class="aud-panel" id="aud-parent" role="tabpanel" aria-labelledby="tab-parent" hidden>
+      <div class="aud-head"><h3>Know how revision is really going, without nagging</h3><p>Set it up once, then see progress at a glance.</p></div>
+      <ul class="aud-list">
+        <li><span>👀</span><div><strong>See what they're actually doing</strong>Time spent, quizzes taken and scores this week, with a trend for every subject and their weakest topics first.</div></li>
+        <li><span>📚</span><div><strong>Revision that matches their exams</strong>Use ready-made packs or the checked library, or add their own subjects, topics and questions for their exam board.</div></li>
+        <li><span>🗓️</span><div><strong>A study plan that fits the calendar</strong>Daily goals that build towards exam dates, rest days when they need a break, and an exam push when it counts.</div></li>
+        <li><span>💬</span><div><strong>Encourage, don't nag</strong>Send a message they'll see in their hub. Streaks and badges do the motivating for you.</div></li>
+        <li><span>👪</span><div><strong>Share it with the other parent</strong>Invite another parent or carer to see the same progress.</div></li>
+        <li><span>🔒</span><div><strong>Safe and private</strong>No adverts. You create accounts for under-13s, and you can delete their data at any time.</div></li>
+      </ul>
+      <p class="aud-plus"><span class="plus-mark">Plus</span> Upload a revision guide, school notes or a photo, and AI writes the notes and quiz questions in minutes.</p>
+      <a class="btn btn-coral" href="login.html?signup=parent">I'm a parent: start free</a>
+    </div>
+
+    <div class="aud-panel" id="aud-teacher" role="tabpanel" aria-labelledby="tab-teacher" hidden>
+      <div class="aud-head"><h3>Retrieval practice for your classes, with the marking done</h3><p>Set up a class in minutes and see where the gaps are.</p></div>
+      <ul class="aud-list">
+        <li><span>🔑</span><div><strong>Classes in minutes</strong>Share a join code, choose the revision packs, and every student in the class gets them.</div></li>
+        <li><span>🧭</span><div><strong>See the gaps at a glance</strong>A colour-coded grid of every student against every topic, with flags for who needs a nudge.</div></li>
+        <li><span>✍️</span><div><strong>Written answers marked for you</strong>AI marks short answers against the key points and gives each student feedback.</div></li>
+        <li><span>🔁</span><div><strong>Spaced retrieval built in</strong>Questions come back for each student just before they'd forget them, with no extra planning.</div></li>
+        <li><span>📝</span><div><strong>Your content, your way</strong>Write your own packs, or copy and adapt checked packs from the library. Share yours with other teachers.</div></li>
+        <li><span>🃏</span><div><strong>Students teach each other</strong>Students can share flashcard sets with the class, and you can take down anything unsuitable.</div></li>
+      </ul>
+      <p class="aud-plus"><span class="plus-mark">Plus</span> Turn your scheme of work, slides as PDF or a specification into notes and a full question bank with AI.</p>
+      <a class="btn btn-coral" href="login.html?signup=teacher">I'm a teacher: start free</a>
     </div>
   </div>
 </section>
+<script>
+// Audience switcher: Students / Parents / Teachers (also opened by #parents, #teachers links)
+(function () {
+  var tabs = document.querySelectorAll('.aud-tab');
+  function show(aud) {
+    tabs.forEach(function (t) { var on = t.dataset.aud === aud; t.classList.toggle('on', on); t.setAttribute('aria-selected', on); });
+    document.querySelectorAll('.aud-panel').forEach(function (p) { p.hidden = p.id !== 'aud-' + aud; });
+  }
+  tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.aud); }); });
+  var fromHash = function () { var h = location.hash.replace('#', ''); if (h === 'parents' || h === 'teachers') { show(h.slice(0, -1)); document.getElementById('who').scrollIntoView(); } };
+  window.addEventListener('hashchange', fromHash); fromHash();
+})();
+</script>
 
 <section style="padding-top:0" id="plans">
   <div class="wrap">
