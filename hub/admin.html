@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110i">
-  <script src="icons.js?v=20261110i"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110j">
+  <script src="icons.js?v=20261110j"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -411,6 +411,8 @@
     .ai-test-row.warn .icon { color: var(--color-warning); }
     .ai-test-row.bad .icon { color: var(--color-danger); }
     /* ── Users & roles ─────────────────────────────────── */
+    .plus-note { margin: 6px 0 0 30px; font-size: 0.8rem; line-height: 1.4; color: var(--color-text-muted); max-width: 360px; white-space: normal; }
+    .plus-note strong { color: #b97700; }
     .plus-switch { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .plus-switch input { width: auto; margin: 0; }
     .lim-input { width: 180px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; font: inherit; background: var(--color-surface); color: var(--color-text); }
@@ -585,8 +587,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261110i">
-  <link rel="stylesheet" href="stats.css?v=20261110i">
+  <link rel="stylesheet" href="ui.css?v=20261110j">
+  <link rel="stylesheet" href="stats.css?v=20261110j">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1315,27 +1317,27 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261110i';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261110i';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261110i';
-import { openDeleteAccount } from './account.js?v=20261110i';
-import { addDocumentButton } from './doc-text.js?v=20261110i';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261110i';
-import { showPlusUpsell } from './plus.js?v=20261110i';
+import { auth, db, storage } from './firebase-config.js?v=20261110j';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261110j';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261110j';
+import { openDeleteAccount } from './account.js?v=20261110j';
+import { addDocumentButton } from './doc-text.js?v=20261110j';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261110j';
+import { showPlusUpsell } from './plus.js?v=20261110j';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261110i';
-import { mountShell } from './shell.js?v=20261110i';
-import { openInviteDialog, signupLink } from './invite.js?v=20261110i';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261110i';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261110i';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261110i';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110i';
-import { dueEntries } from './srs.js?v=20261110i';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261110i';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261110j';
+import { mountShell } from './shell.js?v=20261110j';
+import { openInviteDialog, signupLink } from './invite.js?v=20261110j';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261110j';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261110j';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261110j';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110j';
+import { dueEntries } from './srs.js?v=20261110j';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261110j';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1351,7 +1353,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261110i';
+import { saveEmailIndex } from './email-index.js?v=20261110j';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1490,7 +1492,11 @@ async function renderAdminHome() {
     });
     const reqSnap = await getDocs(collection(db, 'plusRequests')).catch(() => null);
     const plusAsked = []; reqSnap?.forEach(d => { if (d.data().status === 'pending') plusAsked.push(d.data()); });
-    if (plusAsked.length) items.push({ p: -2, emoji: '✨', text: `${plusAsked.length} ${plusAsked.length === 1 ? 'person has' : 'people have'} asked for Plus`, sub: plusAsked.slice(0, 3).map(r => esc(r.name || r.email || '')).join(', ') + '. Switch it on in Users.', action: smallBtn('Users', `location.hash='users'`, true) });
+    // Each request on its own line with their message (oldest first); a summary if there are lots
+    plusAsked.sort((a, b) => (a.at || 0) - (b.at || 0));
+    const reqSub = r => [r.note ? `“${esc(r.note)}”` : '', esc(r.email || ''), r.at ? agoText(r.at) : ''].filter(Boolean).join(' · ');
+    plusAsked.slice(0, 4).forEach(r => items.push({ p: -2, emoji: '✨', text: `${esc(r.name || r.email || 'Someone')} asked for Plus${(r.roles || []).length ? ` <span class="muted">(${esc(r.roles.join(', '))})</span>` : ''}`, sub: reqSub(r), action: smallBtn('Users', `location.hash='users'`, true) }));
+    if (plusAsked.length > 4) items.push({ p: -2, emoji: '✨', text: `${plusAsked.length - 4} more ${plusAsked.length - 4 === 1 ? 'person has' : 'people have'} asked for Plus`, sub: plusAsked.slice(4, 8).map(r => esc(r.name || r.email || '')).join(', '), action: smallBtn('Users', `location.hash='users'`, true) });
     if (libraryWaiting.length) items.push({ p: -1, emoji: '📚', text: `${libraryWaiting.length} pack${libraryWaiting.length === 1 ? '' : 's'} waiting for library review`, sub: libraryWaiting.slice(0, 3).map(p => esc(p.name || '')).join(', '), action: smallBtn('Review', `location.hash='library'`, true) });
     const packless = students.filter(u => !(u.groupIds || []).length && !Object.values(u.classPacks || {}).some(l => (l || []).length));
     if (packless.length) items.push({ p: 3, emoji: '🎒', text: `${packless.length} student${packless.length === 1 ? ' has' : 's have'} no revision pack`, sub: packless.slice(0, 4).map(u => esc(u.name || u.email || '')).join(', ') + (packless.length > 4 ? '…' : ''), action: smallBtn('Users', `location.hash='users'`) });
@@ -3905,6 +3911,7 @@ document.addEventListener('change', async e => {
       await setDoc(doc(db, 'plusRequests', uid), { ...plusRequests[uid], status: on ? 'done' : 'declined', decidedAt: Date.now() }).catch(() => {});
       delete plusRequests[uid];
       box.closest('td')?.querySelector('.badge')?.remove();
+      box.closest('tr')?.querySelector('.plus-note')?.remove();
     }
     logEvent('account.plus', { target: u.name || u.email || '', targetId: uid, detail: on ? 'Plus switched on' : 'Plus switched off' });
     showToast(`Plus ${on ? 'on' : 'off'} for ${u.name || u.email || 'this person'}`, 'success');
@@ -3938,10 +3945,10 @@ async function loadUsers() {
     <tbody>${users.map(u => {
       const roles = rolesFor(u), student = roles.includes('student');
       return `<tr data-user-row="${esc(u.id)}">
-      <td><span class="user-name"><span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span></td>
+      <td><span class="user-name"><span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
       <td class="muted">${esc(u.email||'—')}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
-      <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : `<label class="plus-switch" title="Plus: AI features"><input type="checkbox" data-plus-uid="${esc(u.id)}" ${u.plan === 'plus' ? 'checked' : ''}> Plus</label>${plusRequests[u.id] ? ' <span class="badge badge-warning" title="' + esc(plusRequests[u.id].note || 'Asked for Plus') + '">Asked</span>' : ''}`}</td>
+      <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : `<label class="plus-switch" title="Plus: AI features"><input type="checkbox" data-plus-uid="${esc(u.id)}" ${u.plan === 'plus' ? 'checked' : ''}> Plus</label>${plusRequests[u.id] ? ' <span class="badge badge-warning">Asked</span>' : ''}`}</td>
       <td class="muted">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
       <td class="actions">${student
         ? `<button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
@@ -4016,6 +4023,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261110i"></script>
+<script src="site.js?v=20261110j"></script>
 </body>
 </html>
