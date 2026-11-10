@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109q">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109q">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109q">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109q">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109r">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109r">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109r">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109r">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109q">
-  <script src="icons.js?v=20261109q"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109r">
+  <script src="icons.js?v=20261109r"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -576,8 +576,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109q">
-  <link rel="stylesheet" href="stats.css?v=20261109q">
+  <link rel="stylesheet" href="ui.css?v=20261109r">
+  <link rel="stylesheet" href="stats.css?v=20261109r">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1258,20 +1258,20 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109q';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109q';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109q';
-import { openDeleteAccount } from './account.js?v=20261109q';
+import { auth, db, storage } from './firebase-config.js?v=20261109r';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109r';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109r';
+import { openDeleteAccount } from './account.js?v=20261109r';
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109q';
-import { mountShell } from './shell.js?v=20261109q';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109q';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109q';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109q';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109q';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109q';
-import { dueEntries } from './srs.js?v=20261109q';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109q';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109r';
+import { mountShell } from './shell.js?v=20261109r';
+import { openInviteDialog, signupLink } from './invite.js?v=20261109r';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109r';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109r';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109r';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109r';
+import { dueEntries } from './srs.js?v=20261109r';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109r';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1285,9 +1285,9 @@ async function aiFetch(prompt, maxTokens) {
 }
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch
+  query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109q';
+import { saveEmailIndex } from './email-index.js?v=20261109r';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1370,6 +1370,12 @@ else requireRole('admin', (user, profile) => {
   });
 });
 
+// How many documents in a collection, without reading them all (saves the daily allowance)
+async function qCountOf(path) {
+  try { return (await getCountFromServer(collection(db, path))).data().count; }
+  catch (e) { return 0; }
+}
+
 /* ── Admin Home ──────────────────────────────────────────────
    Users and content at a glance, gaps in the content, and recent
    sign-ups and revision across all students. */
@@ -1401,9 +1407,10 @@ async function renderAdminHome() {
         const tSnap = await getDocs(collection(db, `content/${p.id}/subjects/${s.id}/topics`)).catch(() => null);
         const ts = []; tSnap?.forEach(d => ts.push({ id: d.id, ...d.data() }));
         await Promise.all(ts.map(async t => {
-          const qSnap = await getDocs(collection(db, `content/${p.id}/subjects/${s.id}/topics/${t.id}/questions`)).catch(() => null);
+          // Count only (one read per 1,000 questions, not one per question)
+          const qCount = await qCountOf(`content/${p.id}/subjects/${s.id}/topics/${t.id}/questions`);
           const kp = (t.keyPoints || []).reduce((a, x) => a + (x && x.points ? x.points.length : 1), 0);
-          topics.push({ pack: p, subject: s, topic: t, questions: qSnap ? qSnap.size : 0, keyPoints: kp });
+          topics.push({ pack: p, subject: s, topic: t, questions: qCount, keyPoints: kp });
         }));
       }));
     }));
@@ -2088,11 +2095,7 @@ async function loadTopics() {
   // Count questions per topic
   const countPromises = [];
   snap.forEach(d => {
-    countPromises.push(
-      getDocs(collection(db, topicsPath() + '/' + d.id + '/questions'))
-        .then(qs => { counts[d.id] = qs.size; })
-        .catch(() => { counts[d.id] = 0; })
-    );
+    countPromises.push(qCountOf(topicsPath() + '/' + d.id + '/questions').then(n => { counts[d.id] = n; }));
   });
   await Promise.all(countPromises);
   snap.forEach(d => grid.appendChild(topicCard(d.id, d.data(), counts[d.id] || 0)));
@@ -3832,6 +3835,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109q"></script>
+<script src="site.js?v=20261109r"></script>
 </body>
 </html>
