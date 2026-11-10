@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110e">
-  <script src="icons.js?v=20261110e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110f">
+  <script src="icons.js?v=20261110f"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -87,6 +87,18 @@
     .savebar-info { font-size: 0.85rem; color: var(--color-text-muted); }
     .hint { font-size: 0.8rem; color: var(--color-text-muted); margin-top: var(--space-sm); }
 
+    .card-pic { margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+    .card-pic img { max-height: 90px; max-width: 160px; border-radius: 8px; border: 1px solid var(--color-border); object-fit: contain; background: #fff; }
+    .pic-btn { background: none; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-text-muted); cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 600; padding: 6px 10px; display: inline-flex; gap: 6px; align-items: center; }
+    .pic-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
+    .pic-btn.small { border-style: solid; padding: 4px 8px; }
+    .shared-tag { font-size: 0.75rem; font-weight: 700; color: var(--color-primary); }
+    .class-list label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; font-size: 0.92rem; }
+    .checks label { display: flex; gap: 8px; align-items: flex-start; font-size: 0.88rem; margin: 8px 0; cursor: pointer; line-height: 1.4; }
+    .checks input { margin-top: 3px; }
+    .face img { max-width: 100%; max-height: 60%; object-fit: contain; border-radius: 10px; display: block; margin: 0 auto 12px; background: #fff; }
+    .face-content { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-height: 100%; }
+
     /* ── Dialogs ───────────────────────────────────────── */
     .overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(10,12,20,0.5); display: flex; align-items: flex-start; justify-content: center; padding: 6vh 16px; overflow-y: auto; }
     .dialog { background: var(--color-surface); color: var(--color-text); border-radius: 18px; padding: 22px; max-width: 640px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
@@ -157,6 +169,7 @@
       <button class="btn btn-primary" data-action="new-set" id="btn-new-set"><i data-icon="plus"></i> New set</button>
     </div>
     <div id="sets"><div class="empty"><div class="spinner" style="margin:0 auto;"></div></div></div>
+    <div id="shared-section"></div>
     <div class="why">
       <h3>How your cards help you revise</h3>
       <ul>
@@ -188,7 +201,7 @@
     </div>
     <div class="cards" id="cards"></div>
     <button class="add-row" data-action="add-card">＋ Add a card</button>
-    <p class="hint">Tip: copy a set from Quizlet (Export) or a spreadsheet and use Import to bring it all in at once.</p>
+    <p class="hint">Tip: copy a set from Quizlet (Export) or a spreadsheet and use Import to bring it all in at once. Add a picture to any card: a diagram, map or labelled photo. With a picture, the definition is optional.</p>
   </section>
 </div>
 
@@ -203,16 +216,18 @@
 </div>
 
 <script type="module">
-import { db } from './firebase-config.js?v=20261110e';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261110e';
-import { askClaude, jsonOf } from './ai.js?v=20261110e';
-import { showPlusUpsell } from './plus.js?v=20261110e';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261110e';
-import { flatPackIds } from './packs.js?v=20261110e';
+import { db, storage } from './firebase-config.js?v=20261110f';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261110f';
+import { askClaude, jsonOf } from './ai.js?v=20261110f';
+import { showPlusUpsell } from './plus.js?v=20261110f';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261110f';
+import { flatPackIds } from './packs.js?v=20261110f';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
-  questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi } from './cards-core.js?v=20261110e';
-import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, writeBatch, serverTimestamp }
+  questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261110f';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const $ = id => document.getElementById(id);
@@ -237,6 +252,7 @@ requireAuth(async (user, prof) => {
   document.querySelectorAll('[data-plus-tag]').forEach(t => { t.hidden = canAI(); });
   packId = profile.myPackId || null;
   await loadSets();
+  if (!readOnly()) loadClasses().then(loadShared);
   const p = new URLSearchParams(location.search);
   if (p.get('new') && !readOnly()) openEditor(null);
 });
@@ -280,11 +296,12 @@ function renderList() {
 function setCard(s) {
   const n = s.cards.length;
   return `<div class="set-card">
-    <div><div class="set-name">${esc(s.name || 'Untitled set')}</div><div class="set-meta">${n} card${n === 1 ? '' : 's'}</div></div>
+    <div><div class="set-name">${esc(s.name || 'Untitled set')}</div><div class="set-meta">${n} card${n === 1 ? '' : 's'}${(s.sharedWith || []).length ? ' · <span class="shared-tag">Shared with your class</span>' : ''}</div></div>
     <div class="row-actions">
       <button class="btn btn-primary" data-action="study" data-id="${s.id}" ${n ? '' : 'disabled'}><i data-icon="layers"></i> Flashcards</button>
       <button class="btn btn-secondary" data-action="quiz" data-id="${s.id}" ${n ? '' : 'disabled'}><i data-icon="zap"></i> Quiz</button>
-      ${readOnly() ? '' : `<button class="icon-only" data-action="edit-set" data-id="${s.id}" title="Edit" aria-label="Edit set"><i data-icon="pencil"></i></button>
+      ${readOnly() ? '' : `${myClasses.length ? `<button class="icon-only" data-action="share-set" data-id="${s.id}" title="Share with my class" aria-label="Share with my class"><i data-icon="share-2"></i></button>` : ''}
+      <button class="icon-only" data-action="edit-set" data-id="${s.id}" title="Edit" aria-label="Edit set"><i data-icon="pencil"></i></button>
       <button class="icon-only danger" data-action="delete-set" data-id="${s.id}" title="Delete" aria-label="Delete set"><i data-icon="trash-2"></i></button>`}
     </div>
   </div>`;
@@ -325,9 +342,16 @@ function rowHtml(c, n) {
       <button class="icon-only danger" data-action="del-card" title="Delete card" aria-label="Delete card"><i data-icon="trash-2"></i></button></div>
     <div class="card-fields">
       <div><textarea class="c-term" rows="1" maxlength="${MAX_TERM}" aria-label="Term" placeholder="Enter term">${esc(c.term || '')}</textarea><small>Term</small></div>
-      <div><textarea class="c-def" rows="1" maxlength="${MAX_DEF}" aria-label="Definition" placeholder="Enter definition">${esc(c.definition || '')}</textarea><small>Definition</small></div>
+      <div><textarea class="c-def" rows="1" maxlength="${MAX_DEF}" aria-label="Definition" placeholder="Enter definition">${esc(c.definition || '')}</textarea><small>Definition</small>
+        <div class="card-pic">${picHtml(c.imageUrl)}</div></div>
     </div>
   </div>`;
+}
+
+function picHtml(url) {
+  return url
+    ? `<img src="${esc(url)}" alt="Picture on this card"><button class="pic-btn small" data-action="pic-change"><i data-icon="image"></i> Change</button><button class="pic-btn small" data-action="pic-remove"><i data-icon="x"></i> Remove</button>`
+    : `<button class="pic-btn" data-action="pic-add"><i data-icon="image"></i> Add a picture</button>`;
 }
 
 function addRow(c = {}, after = null) {
@@ -336,6 +360,7 @@ function addRow(c = {}, after = null) {
   const html = rowHtml(c, n);
   if (after) after.insertAdjacentHTML('afterend', html); else $('cards').insertAdjacentHTML('beforeend', html);
   const row = after ? after.nextElementSibling : $('cards').lastElementChild;
+  if (c.imageUrl) row.dataset.img = c.imageUrl;
   row.querySelectorAll('textarea').forEach(grow);
   if (after) renumber();
   return row;
@@ -346,6 +371,7 @@ function readCards() {
     id: r.dataset.id,
     term: r.querySelector('.c-term').value.trim(),
     definition: r.querySelector('.c-def').value.trim(),
+    ...(r.dataset.img ? { imageUrl: r.dataset.img } : {}),
   }));
 }
 
@@ -368,7 +394,7 @@ function renumber() {
 function grow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 
 function updateInfo() {
-  const n = readCards().filter(c => c.term && c.definition).length;
+  const n = readCards().filter(cardComplete).length;
   $('savebar-info').textContent = `${n} complete card${n === 1 ? '' : 's'}`;
 }
 
@@ -388,7 +414,7 @@ function offerDraft() {
   try { d = JSON.parse(localStorage.getItem(draftKey()) || 'null'); } catch (e) {}
   const note = $('draft-note');
   note.innerHTML = '';
-  if (!d || !(d.cards || []).some(c => c.term || c.definition)) return;
+  if (!d || !(d.cards || []).some(c => c.term || c.definition || c.imageUrl)) return;
   const when = new Date(d.at).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
   note.innerHTML = `<div class="draft-note"><span>You have unsaved changes from ${esc(when)}.</span>
     <span><button data-action="restore-draft">Restore them</button> · <button data-action="discard-draft">Discard</button></span></div>`;
@@ -474,17 +500,18 @@ async function saveSet() {
   const all = readCards();
   let firstBad = null;
   all.forEach((c, i) => {
-    const bad = !!(c.term || c.definition) && !(c.term && c.definition);
+    const bad = !!(c.term || c.definition || c.imageUrl) && !cardComplete(c);
     rows[i].classList.toggle('incomplete', bad);
     const flag = rows[i].querySelector('.card-flag');
     flag.classList.toggle('err', bad);
-    if (bad) { flag.textContent = c.term ? 'Add a definition' : 'Add a term'; firstBad = firstBad || rows[i]; }
+    if (bad) { flag.textContent = c.term ? 'Add a definition or a picture' : 'Add a term'; firstBad = firstBad || rows[i]; }
   });
   if (!name) { showToast('Give your set a name', 'error'); $('set-name').focus(); return; }
   if (!subjectName) { showToast('Choose or type a subject', 'error'); $('set-subject').focus(); return; }
-  if (firstBad) { showToast('Some cards need both a term and a definition', 'error'); firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
-  const cards = all.filter(c => c.term && c.definition);
+  if (firstBad) { showToast('Some cards need a term, and a definition or a picture', 'error'); firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const cards = all.filter(cardComplete);
   if (!cards.length) { showToast('Add at least one card', 'error'); return; }
+  if (uploading) { showToast('Wait for the picture to finish uploading', 'info'); return; }
 
   const btn = $('btn-save'); btn.disabled = true; btn.classList.add('loading');
   try {
@@ -509,6 +536,21 @@ async function saveSet() {
     }
     await commitAll(ops);
     if (moving) await deleteTopic(editing.subjectId, editing.id);
+    // Keep copies shared with classes up to date
+    const sharedWith = editing?.sharedWith || [];
+    if (sharedWith.length) {
+      const still = [];
+      for (const cid of sharedWith) {
+        const c = myClasses.find(x => x.cid === cid);
+        if (!c) continue;
+        try {
+          if (moving) await deleteDoc(doc(db, 'users', c.tid, 'classes', cid, 'sharedSets', `${me.uid}_${editing.id}`)).catch(() => {});
+          await setDoc(doc(db, 'users', c.tid, 'classes', cid, 'sharedSets', `${me.uid}_${topicRef.id}`), sharedData({ id: topicRef.id, name, cards }, subjectName));
+          still.push(cid);
+        } catch (e) { console.warn('Could not update shared copy', e.message); }
+      }
+      await updateDoc(topicRef, { sharedWith: still }).catch(() => {});
+    }
     clearDraft();
     showToast(`Saved: ${cards.length} card${cards.length === 1 ? '' : 's'}, ${qs.length} quiz questions`, 'success');
     closeEditor();
@@ -521,6 +563,10 @@ async function saveSet() {
 async function deleteSet(s) {
   if (!confirm(`Delete "${s.name}" and its ${s.cards.length} cards? This can't be undone.`)) return;
   try {
+    for (const cid of s.sharedWith || []) {
+      const c = myClasses.find(x => x.cid === cid);
+      if (c) await deleteDoc(doc(db, 'users', c.tid, 'classes', cid, 'sharedSets', `${me.uid}_${s.id}`)).catch(() => {});
+    }
     await deleteTopic(s.subjectId, s.id);
     showToast('Set deleted', 'success');
     await loadSets();
@@ -659,7 +705,7 @@ function closeDialog() { $('dlg')?.remove(); }
 /* ── Flashcard study ─────────────────────────────────────── */
 let st = null;   // { set, deck, i, flipped, know, learning, defFirst, shuffle }
 function startStudy(s) {
-  st = { set: s, cards: s.cards.filter(c => c.term && c.definition), defFirst: false, shuffle: true };
+  st = { set: s, cards: s.cards.filter(cardComplete), defFirst: false, shuffle: true };
   newRound(st.cards);
   document.body.insertAdjacentHTML('beforeend', `<div class="study" id="study">
     <div class="study-top"><span class="study-title">${esc(s.name)}</span><button class="btn btn-ghost" data-study="close"><i data-icon="x"></i> Close</button></div>
@@ -678,22 +724,24 @@ function drawStudy() {
     const all = st.know.length === st.deck.length;
     body.innerHTML = `<div class="done-box"><div style="font-size:2.4rem;">${all ? '🎉' : '💪'}</div>
       <h2>${all ? 'You know them all!' : `You know ${st.know.length} of ${st.deck.length}`}</h2>
-      <p>${all ? 'Now test yourself properly with a quiz. Cards you get wrong will come back in your daily review.' : `Go through the ${st.learning.length} you're still learning again until they stick.`}</p>
+      <p>${all ? (st.set.shared ? 'Add the set to your own flashcards to quiz yourself on it and get it in your daily review.' : 'Now test yourself properly with a quiz. Cards you get wrong will come back in your daily review.') : `Go through the ${st.learning.length} you're still learning again until they stick.`}</p>
       <div class="row-actions" style="justify-content:center;">
         ${all ? '' : `<button class="btn btn-primary" data-study="again-learning"><i data-icon="refresh-cw"></i> Study ${st.learning.length} again</button>`}
-        <button class="btn ${all ? 'btn-primary' : 'btn-secondary'}" data-study="quiz"><i data-icon="zap"></i> Take the quiz</button>
+        ${st.set.shared ? `<button class="btn ${all ? 'btn-primary' : 'btn-secondary'}" data-study="copy"><i data-icon="plus"></i> Add to my flashcards</button>` : `<button class="btn ${all ? 'btn-primary' : 'btn-secondary'}" data-study="quiz"><i data-icon="zap"></i> Take the quiz</button>`}
         <button class="btn btn-ghost" data-study="restart"><i data-icon="rotate-ccw"></i> Start over</button>
       </div></div>`;
     return;
   }
   const c = st.deck[st.i];
-  const [front, back] = st.defFirst ? [c.definition, c.term] : [c.term, c.definition];
+  const defSide = `<div class="face-content">${c.imageUrl ? `<img src="${esc(c.imageUrl)}" alt="">` : ''}${esc(c.definition || '')}</div>`;
+  const termSide = `<div class="face-content">${esc(c.term)}</div>`;
+  const [front, back] = st.defFirst ? [defSide, termSide] : [termSide, defSide];
   const [fl, bl] = st.defFirst ? ['Definition', 'Term'] : ['Term', 'Definition'];
   body.innerHTML = `
     <div class="study-progress"><span>${st.i + 1} / ${st.deck.length}</span><span>✓ ${st.know.length} · Still learning ${st.learning.length}</span></div>
     <div class="bar"><span style="width:${(st.i / st.deck.length) * 100}%"></span></div>
     <button class="flip${st.flipped ? ' flipped' : ''}" data-study="flip" aria-label="Flip card">
-      <div class="flip-inner"><div class="face"><span class="face-label">${fl}</span>${esc(front)}</div><div class="face back"><span class="face-label">${bl}</span>${esc(back)}</div></div>
+      <div class="flip-inner"><div class="face"><span class="face-label">${fl}</span>${front}</div><div class="face back"><span class="face-label">${bl}</span>${back}</div></div>
     </button>
     <div class="study-buttons">
       <button class="btn btn-learning" data-study="learning">✗ Still learning</button>
@@ -716,6 +764,7 @@ function studyAction(a) {
   if (a === 'again-learning') newRound(st.learning);
   if (a === 'restart') newRound(st.cards);
   if (a === 'quiz') { goQuiz(st.set); return; }
+  if (a === 'copy') { const s = st.set; studyAction('close'); copyShared(s); return; }
   drawStudy();
 }
 document.addEventListener('click', e => {
@@ -735,6 +784,148 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'ArrowLeft') studyAction('learning');
   else if (e.key === 'Escape') studyAction('close');
 });
+
+/* ── Pictures on cards ───────────────────────────────────
+   Shrunk on the device (longest side 1200px, JPEG) before upload, so they
+   load fast and stay well under the 5 MB limit. Stored in the student's own
+   pack, which the Storage rules let its owner write to. */
+let uploading = 0;
+function pickPicture(row) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/png,image/jpeg,image/webp,image/gif';
+  input.onchange = () => { const f = input.files[0]; if (f) uploadPicture(row, f); };
+  input.click();
+}
+async function shrink(file) {
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, 1200 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(bmp, 0, 0, c.width, c.height);
+  return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("Couldn't read that picture")), 'image/jpeg', 0.85));
+}
+async function uploadPicture(row, file) {
+  if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) { showToast('Please choose a picture (JPG, PNG, GIF or WebP).', 'error'); return; }
+  if (file.size > 20 * 1024 * 1024) { showToast('That picture is too big (over 20 MB).', 'error'); return; }
+  const box = row.querySelector('.card-pic');
+  box.innerHTML = '<span class="status">Uploading picture…</span>';
+  uploading++;
+  try {
+    await ensurePack();
+    const blob = file.type === 'image/gif' && file.size < 4 * 1024 * 1024 ? file : await shrink(file);
+    const ext = blob.type === 'image/gif' ? 'gif' : 'jpg';
+    const snap = await uploadBytes(storageRef(storage, `content/${packId}/cards/${row.dataset.id}_${Date.now()}.${ext}`), blob, { contentType: blob.type || 'image/jpeg' });
+    row.dataset.img = await getDownloadURL(snap.ref);
+    box.innerHTML = picHtml(row.dataset.img);
+    row.classList.remove('incomplete'); row.querySelector('.card-flag').textContent = '';
+    changed();
+  } catch (e) {
+    box.innerHTML = picHtml(row.dataset.img || '');
+    showToast('Picture upload failed: ' + e.message, 'error');
+  } finally { uploading--; }
+}
+
+/* ── Sharing with my classes ─────────────────────────────
+   A shared set is a copy at users/{teacher}/classes/{class}/sharedSets/
+   {myUid}_{setId}. Classmates and the teacher can read it; classmates
+   make their own copy to study. The teacher can take it down. */
+let myClasses = [];     // [{ cid, tid, name }]
+let sharedList = [];    // sets classmates have shared: [{ key, cid, className, ...data }]
+
+async function loadClasses() {
+  const cids = [...new Set([...Object.keys(profile.classes || {}), ...Object.keys(profile.classPacks || {})])];
+  const tids = profile.teacherIds || (profile.teacherUid ? [profile.teacherUid] : []);
+  const found = [];
+  await Promise.all(cids.map(async cid => {
+    for (const tid of tids) {
+      const c = await getDoc(doc(db, 'users', tid, 'classes', cid)).catch(() => null);
+      if (c?.exists()) { found.push({ cid, tid, name: c.data().name || 'My class' }); return; }
+    }
+  }));
+  myClasses = found.sort((a, b) => a.name.localeCompare(b.name));
+  if (myClasses.length) renderList();
+}
+
+function sharedData(s, subjectName) {
+  return {
+    ownerUid: me.uid, ownerName: shortName(profile.name), setId: s.id, name: s.name,
+    subject: subjectName || '', cards: s.cards.filter(cardComplete), count: s.cards.filter(cardComplete).length, sharedAt: serverTimestamp(),
+  };
+}
+
+function openShare(s) {
+  const on = new Set(s.sharedWith || []);
+  const box = dialog(`
+    <h2><i data-icon="share-2"></i> Share "${esc(s.name)}"</h2>
+    <p>Classmates will see the set with your first name and initial, and can add a copy to their own flashcards. Your teacher can see it and take it down.</p>
+    <div class="class-list">${myClasses.map(c => `<label><input type="checkbox" value="${esc(c.cid)}" ${on.has(c.cid) ? 'checked' : ''}> ${esc(c.name)}</label>`).join('')}</div>
+    <div class="checks">
+      <label><input type="checkbox" id="sh-ok1"> I made these cards myself and checked they're right.</label>
+      <label><input type="checkbox" id="sh-ok2"> There are no names, photos of people or other personal details on them.</label>
+    </div>
+    <div class="dialog-actions"><span class="grow status" id="sh-status"></span><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="sh-go">Save</button></div>`);
+  box.querySelector('#sh-go').onclick = async () => {
+    const want = [...box.querySelectorAll('.class-list input:checked')].map(i => i.value);
+    const adding = want.some(c => !on.has(c));
+    const st = box.querySelector('#sh-status');
+    if (adding && !(box.querySelector('#sh-ok1').checked && box.querySelector('#sh-ok2').checked)) { st.textContent = 'Tick both boxes to share.'; st.className = 'grow status err'; return; }
+    const go = box.querySelector('#sh-go'); go.disabled = true; st.textContent = 'Saving…'; st.className = 'grow status';
+    const subjectName = subjects[s.subjectId]?.name || '';
+    const done = [];
+    try {
+      for (const c of myClasses) {
+        const ref = doc(db, 'users', c.tid, 'classes', c.cid, 'sharedSets', `${me.uid}_${s.id}`);
+        if (want.includes(c.cid)) { await setDoc(ref, sharedData(s, subjectName)); done.push(c.cid); }
+        else if (on.has(c.cid)) await deleteDoc(ref);
+      }
+      await updateDoc(doc(db, `content/${packId}/subjects/${s.subjectId}/topics/${s.id}`), { sharedWith: done });
+      s.sharedWith = done;
+      closeDialog(); renderList(); loadShared();
+      showToast(done.length ? `Shared with ${done.length === 1 ? myClasses.find(c => c.cid === done[0]).name : done.length + ' classes'}` : 'No longer shared', 'success');
+    } catch (e) { st.textContent = 'Could not share: ' + e.message; st.className = 'grow status err'; go.disabled = false; }
+  };
+}
+
+async function loadShared() {
+  const out = [], mine = new Set();
+  await Promise.all(myClasses.map(async c => {
+    const snap = await getDocs(collection(db, 'users', c.tid, 'classes', c.cid, 'sharedSets')).catch(() => null);
+    snap?.forEach(d => {
+      if (d.data().ownerUid !== me.uid) out.push({ key: `${c.cid}/${d.id}`, cid: c.cid, className: c.name, ...d.data(), cards: d.data().cards || [] });
+      else mine.add(`${c.cid}/${d.data().setId}`);
+    });
+  }));
+  // A teacher may have taken one of mine down: show it as not shared
+  let fixed = false;
+  sets.forEach(x => {
+    const now = (x.sharedWith || []).filter(cid => mine.has(`${cid}/${x.id}`) || !myClasses.some(c => c.cid === cid));
+    if (now.length !== (x.sharedWith || []).length) {
+      x.sharedWith = now; fixed = true;
+      updateDoc(doc(db, `content/${packId}/subjects/${x.subjectId}/topics/${x.id}`), { sharedWith: now }).catch(() => {});
+    }
+  });
+  if (fixed) renderList();
+  sharedList = out.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const el = $('shared-section');
+  if (!sharedList.length) { el.innerHTML = myClasses.length ? `<div class="subject-head">Shared by my classes</div><p class="set-meta">Nothing shared yet. Share one of your sets with the <i data-icon="share-2"></i> button so classmates can use it too.</p>` : ''; return; }
+  el.innerHTML = `<div class="subject-head">Shared by my classes</div><div class="set-grid">${sharedList.map(x => `<div class="set-card">
+      <div><div class="set-name">${esc(x.name || 'Untitled set')}</div>
+        <div class="set-meta">${x.count || x.cards.length} cards · by ${esc(x.ownerName || 'a classmate')}${x.subject ? ` · ${esc(x.subject)}` : ''}${myClasses.length > 1 ? ` · ${esc(x.className)}` : ''}</div></div>
+      <div class="row-actions">
+        <button class="btn btn-primary" data-action="study-shared" data-key="${esc(x.key)}"><i data-icon="layers"></i> Flashcards</button>
+        <button class="btn btn-secondary" data-action="copy-shared" data-key="${esc(x.key)}"><i data-icon="plus"></i> Add to mine</button>
+      </div></div>`).join('')}</div>`;
+}
+
+// Open the editor with a copy of a classmate's set, to check and save as mine
+function copyShared(x) {
+  openEditor(null);
+  $('set-name').value = x.name || '';
+  $('set-subject').value = x.subject || $('set-subject').value;
+  setCards(copyCards(x.cards));
+  $('draft-note').innerHTML = `<div class="draft-note"><span>A copy of ${esc(x.ownerName || 'a classmate')}'s set. Check the cards, change anything you like, then save it as yours.</span></div>`;
+}
 
 function goQuiz(s) {
   const u = new URL('quiz.html', location.href);
@@ -762,6 +953,11 @@ document.addEventListener('click', e => {
     }
     case 'swap': setCards(readCards().map(c => ({ id: c.id, term: c.definition.slice(0, MAX_TERM), definition: c.term }))); showToast('Terms and definitions swapped', 'success'); break;
     case 'open-import': openImport(); break;
+    case 'pic-add': case 'pic-change': pickPicture(b.closest('.card-row')); break;
+    case 'pic-remove': { const row = b.closest('.card-row'); delete row.dataset.img; row.querySelector('.card-pic').innerHTML = picHtml(''); changed(); break; }
+    case 'share-set': if (s) openShare(s); break;
+    case 'study-shared': { const x = sharedList.find(y => y.key === b.dataset.key); if (x) startStudy({ ...x, shared: true }); break; }
+    case 'copy-shared': { const x = sharedList.find(y => y.key === b.dataset.key); if (x) copyShared(x); break; }
     case 'open-ai': openAi(); break;
     case 'fill-defs': fillDefinitions(); break;
     case 'save-set': saveSet(); break;
@@ -778,6 +974,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261110e"></script>
+<script src="site.js?v=20261110f"></script>
 </body>
 </html>

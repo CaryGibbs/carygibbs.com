@@ -5,6 +5,8 @@
 // so Learn, the cheat sheet and the mind map work on them too.
 // Every card is turned into quiz questions with fixed ids, so a student's
 // review progress survives edits to the set.
+// A card may have a picture (imageUrl); a card with a picture needs a term
+// but its definition can be left empty.
 // No Firebase here, so this file can be tested on its own.
 // ============================================================
 
@@ -99,35 +101,39 @@ export function termAlternatives(term = '') {
   return [...alts].filter(a => a.toLowerCase() !== t.toLowerCase());
 }
 
+export const cardComplete = c => !!clean(c.term) && (!!clean(c.definition) || !!c.imageUrl);
+
 export function questionsFromCards(cards = [], rand = Math.random) {
-  const list = cards.map(c => ({ id: c.id, term: clean(c.term), definition: clean(c.definition) }))
-    .filter(c => c.id && c.term && c.definition);
+  const list = cards.map(c => ({ id: c.id, term: clean(c.term), definition: clean(c.definition), imageUrl: c.imageUrl || '' }))
+    .filter(c => c.id && cardComplete(c));
+  const withDef = list.filter(c => c.definition);
   const qs = [];
   list.forEach((c, i) => {
     const others = list.filter(o => o.id !== c.id && o.term.toLowerCase() !== c.term.toLowerCase());
-    const explanation = `${c.term}: ${c.definition}`;
+    const explanation = c.definition ? `${c.term}: ${c.definition}` : c.term;
     const base = { source: 'cards', cardId: c.id };
+    const pic = c.imageUrl ? { imageUrl: c.imageUrl } : {};
     if (others.length) {
       const wrong = shuffled([...new Set(others.map(o => o.term))], rand).slice(0, 3);
-      qs.push({ id: `c_${c.id}_mcq`, ...base, type: 'mcq',
-        question: `Which term matches this? ${c.definition}`,
+      qs.push({ id: `c_${c.id}_mcq`, ...base, ...pic, type: 'mcq',
+        question: c.definition ? `Which term matches this? ${c.definition}` : 'Which term matches this picture?',
         options: shuffled([{ text: c.term, correct: true }, ...wrong.map(t => ({ text: t, correct: false }))], rand),
         explanation });
+    }
+    // True or false needs words to compare (a picture alone can't be stated)
+    if (c.definition) {
+      const otherDefs = withDef.filter(o => o.id !== c.id && o.definition.toLowerCase() !== c.definition.toLowerCase());
       // Alternate true and false statements through the set
-      const isTrue = i % 2 === 0;
-      const otherDef = others[Math.floor(rand() * others.length)].definition;
-      const useFalse = !isTrue && otherDef.toLowerCase() !== c.definition.toLowerCase();
+      const useFalse = i % 2 === 1 && otherDefs.length > 0;
+      const otherDef = useFalse ? otherDefs[Math.floor(rand() * otherDefs.length)].definition : '';
       qs.push({ id: `c_${c.id}_tf`, ...base, type: 'tf',
         question: `"${c.term}" means: ${useFalse ? otherDef : c.definition}`,
         answer: !useFalse, explanation });
-    } else {
-      qs.push({ id: `c_${c.id}_tf`, ...base, type: 'tf',
-        question: `"${c.term}" means: ${c.definition}`, answer: true, explanation });
     }
     // Typing the exact term is fair for short terms only
     if (words(c.term) <= 5 && c.term.length <= 40) {
-      qs.push({ id: `c_${c.id}_fill`, ...base, type: 'fill',
-        sentence: `${c.definition} → _____`, answer: c.term, alternatives: termAlternatives(c.term), explanation });
+      qs.push({ id: `c_${c.id}_fill`, ...base, ...pic, type: 'fill',
+        sentence: `${c.definition || 'This picture shows'} → _____`, answer: c.term, alternatives: termAlternatives(c.term), explanation });
     }
     // A written answer is worth it when there's something to explain
     if (words(c.definition) >= 4) {
@@ -137,9 +143,9 @@ export function questionsFromCards(cards = [], rand = Math.random) {
     }
   });
   // Match the pairs, four cards at a time (the last group may be 3 to 5)
-  if (list.length >= 3) {
+  if (withDef.length >= 3) {
     const groups = [];
-    for (let i = 0; i < list.length; i += 4) groups.push(list.slice(i, i + 4));
+    for (let i = 0; i < withDef.length; i += 4) groups.push(withDef.slice(i, i + 4));
     const last = groups[groups.length - 1];
     if (groups.length > 1 && last.length < 3) groups[groups.length - 2].push(...groups.pop());
     groups.forEach((g, n) => {
@@ -193,3 +199,14 @@ export function cardsFromAi(reply) {
   return arr.map(x => ({ term: clean(x?.term).slice(0, MAX_TERM), definition: clean(x?.definition).slice(0, MAX_DEF) }))
     .filter(c => c.term && c.definition);
 }
+
+/* ── Sharing with a class ────────────────────────────────── */
+// "Emily G." from "Emily Gibbs": enough for classmates, no surname
+export function shortName(name = '') {
+  const parts = clean(name).split(' ').filter(Boolean);
+  if (!parts.length) return 'A classmate';
+  return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.` : parts[0];
+}
+// A copy of someone else's cards, with new ids, ready to save as my own set
+export const copyCards = (cards = []) => cards.filter(cardComplete)
+  .map(c => ({ id: newCardId(), term: clean(c.term), definition: clean(c.definition), ...(c.imageUrl ? { imageUrl: c.imageUrl } : {}) }));

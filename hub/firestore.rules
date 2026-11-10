@@ -21,6 +21,9 @@ rules_version = '2';
 //     can't approve it themselves.
 //     Students may save AI cheat sheets / notes / short answers on official
 //     and own packs they can read (not library packs).
+//   Students' own flashcard packs (studentMade): their parents and teachers
+//   can read them too. Sets shared with a class live under the teacher's
+//   class (sharedSets): members and the teacher read them.
 //   Library reports: any signed-in user can report; admins read and clear.
 //   Settings: any signed-in user can read; admins write.
 //
@@ -156,6 +159,23 @@ service cloud.firestore {
             || (me() == sid && exists(/databases/$(database)/documents/users/$(uid)/classes/$(cid))));
           allow delete: if signedIn() && (me() == uid || me() == sid || isAdmin());
         }
+
+        // Flashcard sets a student has shared with the class (cards.html).
+        // Doc id is {ownerUid}_{setId}. Class members and the teacher read;
+        // a member shares their own; the owner, teacher or an admin removes.
+        match /sharedSets/{setId} {
+          function member() { return exists(/databases/$(database)/documents/users/$(uid)/classes/$(cid)/students/$(me())); }
+          function validShare() {
+            return request.resource.data.ownerUid == me()
+              && setId.matches(me() + '_.+')
+              && request.resource.data.cards is list && request.resource.data.cards.size() <= 300
+              && request.resource.data.name is string && request.resource.data.name.size() <= 120;
+          }
+          allow read: if signedIn() && (me() == uid || isAdmin() || member());
+          allow create: if signedIn() && member() && validShare();
+          allow update: if signedIn() && member() && resource.data.ownerUid == me() && validShare();
+          allow delete: if signedIn() && (me() == uid || isAdmin() || resource.data.ownerUid == me());
+        }
       }
     }
 
@@ -210,7 +230,13 @@ service cloud.firestore {
         && p in userDoc(me()).get('packIds', []);
     }
     function libraryPack(d) { return d.get('visibility', '') == 'library'; }
-    function canReadPack(d, p) { return signedIn() && (officialPack(d) || libraryPack(d) || ownsPack(d) || isAdmin() || givenPack(p)); }
+    // A student's own flashcard pack: their parents and teachers can read it
+    function studentPackOfMine(d) {
+      return d.get('studentMade', false) == true && d.get('ownerUid', '') != ''
+        && exists(/databases/$(database)/documents/users/$(d.ownerUid))
+        && (guardianOf(userDoc(d.ownerUid)) || teacherOf(userDoc(d.ownerUid)));
+    }
+    function canReadPack(d, p) { return signedIn() && (officialPack(d) || libraryPack(d) || ownsPack(d) || isAdmin() || givenPack(p) || studentPackOfMine(d)); }
     // An owner editing their own (non-library) pack: can't change who owns it or
     // where it lives, can only ask for library review (or withdraw), and can
     // only clear the link to its library copy

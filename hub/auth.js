@@ -2,10 +2,10 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261110e';
+import { auth, db } from './firebase-config.js?v=20261110f';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261110e';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261110f';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -51,7 +51,7 @@ export function previewInfo() { return _preview; }
 
 // Only the student-facing pages can be previewed. Opening any other page
 // (admin, parent, teacher) in the window ends the preview.
-const PREVIEW_PAGES = ['hub.html', 'profile.html', 'quiz.html', 'mindmap.html'];
+const PREVIEW_PAGES = ['hub.html', 'profile.html', 'quiz.html', 'mindmap.html', 'cards.html'];
 function viewAsId() {
   const page = location.pathname.split('/').pop() || 'login.html';
   try {
