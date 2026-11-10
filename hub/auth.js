@@ -2,10 +2,10 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261110n';
+import { auth, db } from './firebase-config.js?v=20261110o';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261110n';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261110o';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -105,10 +105,16 @@ function showPreviewBanner(student) {
 }
 
 export function requireAuth(callback) {
+  // If the account hasn't loaded after 15 seconds (a stalled connection, e.g.
+  // after the computer slept), offer Try again instead of "Loading…" forever
+  let loaded = false;
+  const stall = setTimeout(() => { if (!loaded) showConnectionProblem(); }, 15000);
   onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = 'login.html'; return; }
+    if (!user) { clearTimeout(stall); window.location.href = 'login.html'; return; }
     try {
       let profile = await getUserProfile(user.uid);
+      loaded = true; clearTimeout(stall);
+      document.getElementById('clasp-conn-problem')?.remove();
       if (!profile) { await signOut(auth); window.location.href = 'login.html'; return; }
       setLogActor(user.uid, profile, pageRole());
       rememberHome(profile);
@@ -132,6 +138,7 @@ export function requireAuth(callback) {
     } catch(e) {
       // Network trouble: keep them signed in and offer a retry, rather than bouncing to login
       console.error('requireAuth failed:', e);
+      clearTimeout(stall);
       showConnectionProblem();
     }
   });
