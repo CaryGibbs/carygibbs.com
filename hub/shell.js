@@ -8,11 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261110k';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261110k';
-import { themeColour } from './themes.js?v=20261110k';
+import { db } from './firebase-config.js?v=20261110l';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261110l';
+import { themeColour } from './themes.js?v=20261110l';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openDeleteAccount } from './account.js?v=20261110k';
+import { openDeleteAccount } from './account.js?v=20261110l';
+import { plusPillHtml } from './plus.js?v=20261110l';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -110,6 +111,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     <nav class="sidebar-nav">${navHtml}
     </nav>
     <div class="sidebar-footer">
+      ${profile?.plan !== 'plus' && !viewsOf(profile).includes('admin') ? `<a class="nav-item" href="plus.html" style="color:#e0643f;font-weight:700;"><span class="nav-icon"><i data-icon="sparkles"></i></span><span>Upgrade to Plus</span></a>` : ''}
       <div class="sidebar-account">
         <span class="sidebar-avatar">${esc(initials)}</span>
         <span class="sidebar-account-text"><strong>${esc(profile.name || 'Account')}</strong><small>${esc(accountRole)} · ${esc(profile.email || '')}</small></span>
@@ -125,7 +127,7 @@ export function mountShell(user, profile, { view, active } = {}) {
   const topbar = document.querySelector('.app-layout .topbar');
   if (topbar && !topbar.querySelector('.view-chip')) {
     const actions = topbar.querySelector('.topbar-actions') || topbar;
-    actions.insertAdjacentHTML('afterbegin', `<span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>`);
+    actions.insertAdjacentHTML('afterbegin', `${plusPillHtml(profile)}<span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>`);
   }
 
   // Phone: menu button + overlay
@@ -136,6 +138,7 @@ export function mountShell(user, profile, { view, active } = {}) {
         <span class="sidebar-logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></span><span class="shell-mobile-title"><span class="brand-word">lobe <span class="brand-accent">limpet</span></span></span><span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>
       </div>
       <div class="shell-scrim" id="shell-scrim"></div>`);
+    document.querySelector('#shell-mobilebar .view-chip')?.insertAdjacentHTML('beforebegin', plusPillHtml(profile, { short: true }));
   }
   const open = () => document.body.classList.add('shell-open');
   const close = () => document.body.classList.remove('shell-open');

@@ -55,7 +55,9 @@
       if (document.querySelector('.ll-slimfoot')) return;
       var el = document.createElement('footer');
       el.className = 'll-slimfoot';
-      el.innerHTML = '<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
+      var home = 'login.html';
+      try { home = localStorage.getItem('ll_home') || 'login.html'; } catch (e) {}
+      el.innerHTML = '<a href="' + home + '"><strong>Home</strong></a>·<a href="plus.html">Free &amp; Plus</a>·<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
         '<span class="ll-tag">© ' + YEAR + ' Lobe Limpet · ' + TAGLINE + '</span>';
       (document.querySelector('main.main') || document.body).appendChild(el);
     };
@@ -75,7 +77,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261110k'),
+        import('./firebase-config.js?v=20261110l'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {

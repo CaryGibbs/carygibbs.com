@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110k">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110k">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110k">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110k">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110l">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110l">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110l">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110l">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110k">
-  <script src="icons.js?v=20261110k"></script>
-  <link rel="stylesheet" href="stats.css?v=20261110k">
+  <link rel="stylesheet" href="theme.css?v=20261110l">
+  <script src="icons.js?v=20261110l"></script>
+  <link rel="stylesheet" href="stats.css?v=20261110l">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -154,7 +154,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261110k">
+  <link rel="stylesheet" href="ui.css?v=20261110l">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -162,7 +162,7 @@
 <nav class="topnav">
   <a href="hub.html" class="nav-back">← Hub</a>
   <div class="nav-title">My Profile</div>
-  <div style="width:60px;"></div>
+  <div id="plus-link" style="min-width:60px;text-align:right;"></div>
 </nav>
 
 <div class="page page-fade" id="page-content" style="display:none;">
@@ -241,13 +241,14 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110k';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261110k';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261110k';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261110k';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261110k';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261110k';
-import { openDeleteAccount } from './account.js?v=20261110k';
+import { auth, db } from './firebase-config.js?v=20261110l';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261110l';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261110l';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261110l';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261110l';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261110l';
+import { openDeleteAccount } from './account.js?v=20261110l';
+import { plusPillHtml } from './plus.js?v=20261110l';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
@@ -296,6 +297,7 @@ function renderThemePicker(user, profile) {
 }
 
 requireAuth(async (user, profile) => {
+  if (!isPreview()) document.getElementById('plus-link').innerHTML = plusPillHtml(profile);
   if (!isStudent(profile)) { location.href = 'hub.html'; return; }
   if (isPreview()) document.getElementById('delete-section').hidden = true;
   else document.getElementById('btn-delete-account').onclick = () => openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true });
@@ -407,6 +409,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261110k"></script>
+<script src="site.js?v=20261110l"></script>
 </body>
 </html>

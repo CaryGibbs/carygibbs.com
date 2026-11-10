@@ -2,10 +2,10 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261110k';
+import { auth, db } from './firebase-config.js?v=20261110l';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261110k';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261110l';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -111,6 +111,7 @@ export function requireAuth(callback) {
       let profile = await getUserProfile(user.uid);
       if (!profile) { await signOut(auth); window.location.href = 'login.html'; return; }
       setLogActor(user.uid, profile, pageRole());
+      rememberHome(profile);
 
       const targetId = viewAsId();
       if (targetId && targetId !== user.uid) {
@@ -162,7 +163,19 @@ export function primaryRole(roles) {
   return ['admin', 'teacher', 'parent', 'student'].find(r => roles.includes(r)) || 'student';
 }
 const VIEW_HOME = { parent: 'parent.html', teacher: 'teacher-dashboard.html', admin: 'admin.html' };
-export function rememberView(uid, view) { try { localStorage.setItem('clasp_view_' + uid, view); } catch (e) {} }
+export function rememberView(uid, view) { try { localStorage.setItem('clasp_view_' + uid, view); localStorage.setItem('ll_home', VIEW_HOME[view] || 'hub.html'); } catch (e) {} }
+// Where "Home" (in the footer of every app page) goes: the student hub, or
+// the adult view in use (parent, teacher or admin page)
+function rememberHome(profile) {
+  try {
+    const views = viewsOf(profile);
+    const role = pageRole();
+    let home = 'hub.html';
+    if (views.length) home = views.includes(role) ? VIEW_HOME[role] : (localStorage.getItem('ll_home') || VIEW_HOME[views[views.length - 1]]);
+    if (home === 'hub.html' && views.length && !isStudent(profile)) home = VIEW_HOME[views[views.length - 1]];
+    localStorage.setItem('ll_home', home);
+  } catch (e) {}
+}
 function lastView(uid) { try { return localStorage.getItem('clasp_view_' + uid); } catch (e) { return null; } }
 
 export function requireRole(role, callback) {

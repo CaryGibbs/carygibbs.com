@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110k">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110k">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110k">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110k">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110l">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110l">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110l">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110l">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110k">
-  <script src="icons.js?v=20261110k"></script>
-  <link rel="stylesheet" href="stats.css?v=20261110k">
+  <link rel="stylesheet" href="theme.css?v=20261110l">
+  <script src="icons.js?v=20261110l"></script>
+  <link rel="stylesheet" href="stats.css?v=20261110l">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -281,7 +281,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110k">
+  <link rel="stylesheet" href="ui.css?v=20261110l">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -291,6 +291,7 @@
     <div class="nav-logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></div><span class="brand-word">lobe <span class="brand-accent">limpet</span></span>
   </a>
   <div class="nav-right">
+    <span id="plus-link"></span>
     <span class="nav-user">Hey, <strong id="nav-name">...</strong></span>
     <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
   </div>
@@ -364,16 +365,17 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110k';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261110k';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261110k';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261110k';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261110k';
-import { listPacks, samePackIds } from './packs.js?v=20261110k';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261110k';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261110k';
-import { openPlanCalendar } from './plan-view.js?v=20261110k';
-import { logEvent } from './log.js?v=20261110k';
+import { auth, db } from './firebase-config.js?v=20261110l';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261110l';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261110l';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261110l';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261110l';
+import { listPacks, samePackIds } from './packs.js?v=20261110l';
+import { plusPillHtml } from './plus.js?v=20261110l';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261110l';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261110l';
+import { openPlanCalendar } from './plan-view.js?v=20261110l';
+import { logEvent } from './log.js?v=20261110l';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -405,6 +407,7 @@ requireAuth(async (user, profile) => {
   const firstName = (profile.name || 'there').split(' ')[0];
   document.getElementById('student-name').textContent = firstName;
   document.getElementById('nav-name').textContent = firstName;
+  if (!isPreview()) document.getElementById('plus-link').innerHTML = plusPillHtml(profile);
 
   // Admin/parent: show admin link and load first available group for preview
   if (!isStudent(profile)) {
@@ -850,6 +853,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261110k"></script>
+<script src="site.js?v=20261110l"></script>
 </body>
 </html>

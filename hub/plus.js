@@ -48,3 +48,20 @@ export function showPlusUpsell(feature = '') {
   document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
   document.getElementById('pu-go').focus();
 }
+
+// A small "Upgrade to Plus" link for page headers, always visible to people
+// without Plus (and a quiet "Plus" badge for those who have it). Admins see
+// nothing: they have everything.
+export function plusPillHtml(profile, { short = false } = {}) {
+  if (!document.getElementById('plus-pill-style')) document.head.insertAdjacentHTML('beforeend', `<style id="plus-pill-style">
+    .plus-pill { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; text-decoration: none; font-family: var(--font-ui, system-ui); font-size: 0.8rem; font-weight: 800;
+      color: #fff; background: linear-gradient(135deg, #ff7a59, #e0643f); padding: 6px 12px; border-radius: 999px; box-shadow: 0 2px 8px rgba(224,100,63,0.25); }
+    .plus-pill:hover { filter: brightness(1.05); }
+    .plus-pill.have { background: none; color: #e0643f; box-shadow: none; border: 1px solid rgba(224,100,63,0.4); padding: 5px 10px; }
+    @media (max-width: 600px) { .plus-pill .long { display: none; } }
+  </style>`);
+  const roles = new Set([...(profile?.roles || []), profile?.role].filter(Boolean));
+  if (roles.has('admin')) return '';
+  if (profile?.plan === 'plus') return `<a class="plus-pill have" href="plus.html" title="You have Lobe Limpet Plus">✨ Plus</a>`;
+  return `<a class="plus-pill" href="plus.html" title="See what's in Plus">✨ <span class="long">Upgrade to </span>Plus</a>`;
+}
