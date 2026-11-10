@@ -9,12 +9,12 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109y';
-import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261109y';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261109y';
-import { logEvent } from './log.js?v=20261109y';
+import { db } from './firebase-config.js?v=20261109z';
+import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261109z';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261109z';
+import { logEvent } from './log.js?v=20261109z';
 import {
-  doc, getDoc, updateDoc, addDoc, collection, serverTimestamp,
+  doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -309,7 +309,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       <p class="tw-hint tw-suggest">About ${suggested} suits ${notesWord(n)}. Asking for more than the notes can support gives fewer, so nothing is repeated.</p>
       <div class="tw-row tw-types"><span class="tw-label-s">Kinds</span>
         ${QUESTION_TYPES.map(t => `<label class="tw-chip${st.types.includes(t.id) ? ' on' : ''}"><input type="checkbox" value="${t.id}" ${st.types.includes(t.id) ? 'checked' : ''}> ${t.label}</label>`).join('')}</div>
-      <div id="tw-qs">${st.questions.length ? (st.genNote ? `<p class="tw-gen-note">${esc(st.genNote)}</p>` : '') + questionsHtml() : ''}</div>
+      <div id="tw-qs">${st.genNote ? `<p class="tw-gen-note">${esc(st.genNote)}</p>` : ''}${st.questions.length ? questionsHtml() : ''}</div>
       <div class="tw-msg" id="tw-msg"></div>`;
     body().querySelectorAll('[data-qty]').forEach(b => b.onclick = () => { st.qty = +b.dataset.qty; st.qtyChosen = true; step3(); });
     document.getElementById('tw-qty').oninput = e => { st.qty = Math.max(3, Math.min(MAX_QUESTIONS, +e.target.value || 20)); st.qtyChosen = true; body().querySelectorAll('[data-qty]').forEach(b => b.classList.toggle('on', +b.dataset.qty === st.qty)); };
@@ -357,12 +357,16 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     // notes run out of new things to ask.
     const got = [];
     const textOf = q => q.question || q.sentence || q.instruction || '';
+    // Questions already saved on this topic: new ones mustn't repeat them
+    const saved = [];
+    (await getDocs(collection(db, `${topicPath}/questions`)).catch(() => null))?.forEach(d => { const t = textOf(d.data()); if (t) saved.push(t); });
     busy(true, `Writing up to ${st.qty} questions… (about a minute${st.qty > BATCH ? ' per ' + BATCH : ''})`);
     try {
       while (got.length < st.qty) {
         const want = Math.min(BATCH, st.qty - got.length);
         if (got.length) setBusyText(`Writing questions ${got.length + 1} to ${got.length + want} of up to ${st.qty}…`);
-        const avoid = got.length ? `\n\nQuestions already written. Do NOT repeat these or test the same facts again; cover different points:\n${got.map(q => '- ' + textOf(q)).join('\n')}` : '';
+        const done = [...saved, ...got.map(textOf)].slice(-200);
+        const avoid = done.length ? `\n\nQuestions already written. Do NOT repeat these or test the same facts again; cover different points:\n${done.map(t => '- ' + t).join('\n')}` : '';
         const batch = tfFix(await ask(questionsPrompt(content + avoid, want, st.types), 16000)).filter(q => QUESTION_TYPES.some(t => t.id === q?.type));
         got.push(...batch);
         if (batch.length < want * 0.5) break;   // the notes have run out of new questions
@@ -371,9 +375,12 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       if (!got.length) { busy(false); msg(e.message, true); return; }
     }
     st.questions = got.slice(0, st.qty);
-    st.genNote = st.questions.length < st.qty
-      ? `Made ${st.questions.length} of the ${st.qty} asked for: that's everything these notes can support without repeating. For more, add more notes.`
-      : `Made ${st.questions.length} questions. Remove any you don't want, then save.`;
+    const extra = saved.length ? ` new questions (the topic already has ${saved.length}, which weren't repeated)` : ' questions';
+    st.genNote = !st.questions.length
+      ? `No new questions: the ${saved.length} already saved cover everything in these notes. For more, add more notes.`
+      : st.questions.length < st.qty
+      ? `Made ${st.questions.length} of the ${st.qty}${extra} asked for: that's everything these notes can support without repeating. For more, add more notes.`
+      : `Made ${st.questions.length}${extra}. Remove any you don't want, then save.`;
     busy(false);
     step3();
   }
