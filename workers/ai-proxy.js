@@ -12,10 +12,15 @@
 //   task 'learning'    learning notes, cheat sheets, cards    any signed-in user
 //   task 'marking'     marking written quiz answers           any signed-in user
 //   action 'checkLinks'  checking resource links load        any signed-in user
+//   action 'deleteAccount'  delete a user's account and data  yourself, a student's
+//                       only parent, or an admin (only the owner can delete admins)
 // Only the models below can be used, and each task has a size limit.
 //
 // Settings (Cloudflare → Workers → this Worker → Settings → Variables):
 //   ANTHROPIC_API_KEY   secret: the Anthropic API key
+//   FIREBASE_SERVICE_ACCOUNT  secret: the whole JSON file from Firebase console →
+//                       Project settings → Service accounts → Generate new private
+//                       key. Only used for deleting accounts.
 //   ALLOW_ANON          "true" only while switching over from the old Worker,
 //                       so pages that haven't updated yet keep working
 //                       (unsigned requests then work as they did before).
@@ -62,6 +67,13 @@ export default {
       catch (e) { return fail(401, 'Please sign in again (' + e.message + ')'); }
     } else if (String(env.ALLOW_ANON) !== 'true') {
       return fail(401, 'Please sign in to use this');
+    }
+
+    // ── Deleting an account ──
+    if (body.action === 'deleteAccount') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await deleteAccount(env, user, String(body.uid || ''), !!body.check)); }
+      catch (e) { return fail(e.status || 500, e.message || 'Could not delete the account'); }
     }
 
     // ── Link checking ──
@@ -159,4 +171,197 @@ async function checkLink(url) {
   } catch (e) {
     return { ok: false, status: 0 };
   }
+}
+
+/* ============================================================
+   Deleting an account (needs FIREBASE_SERVICE_ACCOUNT)
+   ============================================================ */
+const FS = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const DOCS = `projects/${PROJECT_ID}/databases/(default)/documents`;
+const oops = (status, message) => Object.assign(new Error(message), { status });
+
+// Google access token for the service account (cached until near expiry)
+let saToken = { token: null, until: 0 };
+async function serviceToken(env) {
+  if (saToken.token && Date.now() < saToken.until) return saToken.token;
+  if (!env.FIREBASE_SERVICE_ACCOUNT) throw oops(500, 'Account deletion is not set up yet (missing service account)');
+  const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+  const now = Math.floor(Date.now() / 1000);
+  const enc = o => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const unsigned = `${enc({ alg: 'RS256', typ: 'JWT' })}.${enc({
+    iss: sa.client_email, scope: 'https://www.googleapis.com/auth/cloud-platform',
+    aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600,
+  })}`;
+  const pem = sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  const key = await crypto.subtle.importKey('pkcs8', Uint8Array.from(atob(pem), c => c.charCodeAt(0)),
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned)));
+  const jwt = `${unsigned}.${btoa(String.fromCharCode(...sig)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_')}`;
+  const r = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=${encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer')}&assertion=${jwt}`,
+  });
+  const data = await r.json();
+  if (!data.access_token) throw oops(500, 'Could not sign in to Firebase as the service account');
+  saToken = { token: data.access_token, until: Date.now() + (data.expires_in - 120) * 1000 };
+  return saToken.token;
+}
+
+// Firestore REST values ↔ plain values
+function plain(v) {
+  if (!v) return null;
+  if ('stringValue' in v) return v.stringValue;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('integerValue' in v) return Number(v.integerValue);
+  if ('doubleValue' in v) return v.doubleValue;
+  if ('arrayValue' in v) return (v.arrayValue.values || []).map(plain);
+  if ('mapValue' in v) return fields(v.mapValue.fields || {});
+  return null;
+}
+function fields(f = {}) { const o = {}; Object.entries(f).forEach(([k, v]) => { o[k] = plain(v); }); return o; }
+
+async function fsGet(tok, path) {
+  const r = await fetch(`${FS}/${path}`, { headers: { Authorization: `Bearer ${tok}` } });
+  if (r.status === 404) return null;
+  if (!r.ok) throw oops(500, `Firestore read failed (${r.status})`);
+  return fields((await r.json()).fields);
+}
+async function fsList(tok, path) {
+  const ids = []; let page = '';
+  do {
+    const r = await fetch(`${FS}/${path}?pageSize=300&mask.fieldPaths=__name__${page ? `&pageToken=${page}` : ''}`, { headers: { Authorization: `Bearer ${tok}` } });
+    if (!r.ok) break;
+    const d = await r.json();
+    (d.documents || []).forEach(x => ids.push(x.name.split('/').pop()));
+    page = d.nextPageToken || '';
+  } while (page);
+  return ids;
+}
+async function fsQuery(tok, collectionId, field, op, value) {
+  const r = await fetch(`${FS}:runQuery`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId }], where: { fieldFilter: { field: { fieldPath: field }, op, value: { stringValue: value } } }, limit: 1000 } }),
+  });
+  if (!r.ok) return [];
+  return (await r.json()).filter(x => x.document).map(x => ({ id: x.document.name.split('/').pop(), ...fields(x.document.fields) }));
+}
+// Which of these documents exist? (one request for up to 300)
+async function fsExisting(tok, paths) {
+  const found = new Set();
+  for (let i = 0; i < paths.length; i += 300) {
+    const r = await fetch(`${FS}:batchGet`, {
+      method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documents: paths.slice(i, i + 300).map(p => `${DOCS}/${p}`), mask: { fieldPaths: ['__name__'] } }),
+    });
+    if (!r.ok) continue;
+    (await r.json()).forEach(x => { if (x.found) found.add(x.found.name.slice(DOCS.length + 1)); });
+  }
+  return found;
+}
+async function fsCommit(tok, writes) {
+  for (let i = 0; i < writes.length; i += 450) {
+    const r = await fetch(`${FS}:commit`, {
+      method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ writes: writes.slice(i, i + 450) }),
+    });
+    if (!r.ok) throw oops(500, `Firestore write failed (${r.status}): ${(await r.text()).slice(0, 200)}`);
+  }
+}
+const del = path => ({ delete: `${DOCS}/${path}` });
+const bt = k => '`' + String(k).replace(/`/g, '\\`') + '`';
+
+const rolesOf = d => { const r = new Set(Array.isArray(d?.roles) ? d.roles : []); if (d?.role) r.add(d.role); return r; };
+
+async function deleteAccount(env, caller, uid, checkOnly) {
+  if (!uid) throw oops(400, 'No account given');
+  if (uid === OWNER_UID) throw oops(403, "The owner's account can't be deleted here");
+  const tok = await serviceToken(env);
+  const target = await fsGet(tok, `users/${uid}`);
+  const callerDoc = caller.uid === uid ? target : await fsGet(tok, `users/${caller.uid}`);
+  const callerAdmin = caller.uid === OWNER_UID || rolesOf(callerDoc).has('admin');
+  const tRoles = rolesOf(target);
+
+  // ── Who may do this? ──
+  if (caller.uid !== uid) {
+    const guardians = [target?.parentUid, ...(target?.guardianIds || [])].filter(Boolean);
+    const onlyParent = guardians.length && guardians.every(g => g === caller.uid);
+    const isStudentOnly = tRoles.size === 1 && tRoles.has('student');
+    if (callerAdmin) {
+      if (tRoles.has('admin') && caller.uid !== OWNER_UID) throw oops(403, 'Only the owner can delete an admin');
+    } else if (!(onlyParent && isStudentOnly)) {
+      throw oops(403, "You can only delete your own account, or a student you're the only parent for");
+    }
+  }
+
+  // Students this person looks after
+  const [asParent, asGuardian] = await Promise.all([
+    fsQuery(tok, 'users', 'parentUid', 'EQUAL', uid),
+    fsQuery(tok, 'users', 'guardianIds', 'ARRAY_CONTAINS', uid),
+  ]);
+  const looked = new Map([...asParent, ...asGuardian].filter(s => s.id !== uid).map(s => [s.id, s]));
+  const othersOf = s => [s.parentUid, ...(s.guardianIds || [])].filter(g => g && g !== uid);
+  const onlyMine = [...looked.values()].filter(s => !othersOf(s).length);
+  if (onlyMine.length) {
+    throw oops(409, `First remove or delete the student${onlyMine.length > 1 ? 's' : ''} you look after on your own: ${onlyMine.map(s => s.name || s.email || 'a student').join(', ')}.`);
+  }
+  if (checkOnly) return { ok: true, check: true };
+
+  const writes = [];
+  // Their record, and the things only they had
+  if (target) writes.push(del(`users/${uid}`));
+  if (target?.email) writes.push(del(`emailIndex/${String(target.email).trim().toLowerCase()}`));
+  for (const sid of await fsList(tok, `users/${uid}/children`)) writes.push(del(`users/${uid}/children/${sid}`));
+  // As a teacher: their classes, join codes, and the class on each student
+  for (const cid of await fsList(tok, `users/${uid}/classes`)) {
+    const cls = await fsGet(tok, `users/${uid}/classes/${cid}`);
+    const sids = await fsList(tok, `users/${uid}/classes/${cid}/students`);
+    const live = await fsExisting(tok, sids.map(sid => `users/${sid}`));
+    for (const sid of sids) {
+      writes.push(del(`users/${uid}/classes/${cid}/students/${sid}`));
+      if (sid !== uid && live.has(`users/${sid}`)) {
+        writes.push({ update: { name: `${DOCS}/users/${sid}`, fields: {} },
+          updateMask: { fieldPaths: [`classes.${bt(cid)}`, `classPacks.${bt(cid)}`] }, currentDocument: { exists: true } });
+        writes.push({ transform: { document: `${DOCS}/users/${sid}`, fieldTransforms: [{ fieldPath: 'teacherIds', removeAllFromArray: { values: [{ stringValue: uid }] } }] } });
+      }
+    }
+    if (cls?.joinCode) writes.push(del(`classCodes/${cls.joinCode}`));
+    writes.push(del(`users/${uid}/classes/${cid}`));
+  }
+  // As a student: off their parents' lists and their teachers' classes
+  if (target) {
+    [target.parentUid, ...(target.guardianIds || [])].filter(Boolean).forEach(g => writes.push(del(`users/${g}/children/${uid}`)));
+    const classIds = Object.keys(target.classes || {});
+    (target.teacherIds || []).forEach(t => classIds.forEach(c => writes.push(del(`users/${t}/classes/${c}/students/${uid}`))));
+  }
+  // As a parent who shares students: stay with the other parent
+  for (const s of looked.values()) {
+    const others = othersOf(s);
+    if (s.parentUid === uid) writes.push({ update: { name: `${DOCS}/users/${s.id}`, fields: { parentUid: { stringValue: others[0] } } }, updateMask: { fieldPaths: ['parentUid'] }, currentDocument: { exists: true } });
+    writes.push({ transform: { document: `${DOCS}/users/${s.id}`, fieldTransforms: [{ fieldPath: 'guardianIds', removeAllFromArray: { values: [{ stringValue: uid }] } }] } });
+  }
+  // Anything left that they owned or wrote (pack contents were removed in the app first)
+  const [packs, reports, logsBy, logsAbout, invites] = await Promise.all([
+    fsQuery(tok, 'content', 'ownerUid', 'EQUAL', uid),
+    fsQuery(tok, 'libraryReports', 'by', 'EQUAL', uid),
+    fsQuery(tok, 'logs', 'uid', 'EQUAL', uid),
+    fsQuery(tok, 'logs', 'targetId', 'EQUAL', uid),
+    fsQuery(tok, 'invites', 'by', 'EQUAL', uid),
+  ]);
+  packs.forEach(p => writes.push(del(`content/${p.id}`)));
+  reports.forEach(x => writes.push(del(`libraryReports/${x.id}`)));
+  new Set([...logsBy, ...logsAbout].map(x => x.id)).forEach(id => writes.push(del(`logs/${id}`)));
+  invites.forEach(x => writes.push(del(`invites/${x.id}`)));
+
+  await fsCommit(tok, writes);
+
+  // The sign-in itself
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:delete`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ localId: uid }),
+  });
+  if (!r.ok && r.status !== 404) {
+    const t = await r.text();
+    if (!/USER_NOT_FOUND/.test(t)) throw oops(500, `Their data was deleted, but the sign-in couldn't be (${r.status}). Please try again.`);
+  }
+  return { ok: true, deleted: writes.length };
 }

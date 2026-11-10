@@ -8,10 +8,11 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109p';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261109p';
-import { themeColour } from './themes.js?v=20261109p';
+import { db } from './firebase-config.js?v=20261109q';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261109q';
+import { themeColour } from './themes.js?v=20261109q';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { openDeleteAccount } from './account.js?v=20261109q';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -114,6 +115,7 @@ export function mountShell(user, profile, { view, active } = {}) {
         <span class="sidebar-account-text"><strong>${esc(profile.name || 'Account')}</strong><small>${esc(accountRole)} · ${esc(profile.email || '')}</small></span>
       </div>
       <button class="nav-item" id="shell-signout"><span class="nav-icon"><i data-icon="log-out"></i></span><span>Sign out</span></button>
+      <button class="shell-delete" id="shell-delete">Delete my account</button>
     </div>`;
 
   // Highlight the right admin item
@@ -142,6 +144,10 @@ export function mountShell(user, profile, { view, active } = {}) {
   sidebar.querySelector('.sidebar-close').onclick = close;
   sidebar.addEventListener('click', e => { if (e.target.closest('a.nav-item, button.nav-item')) close(); });
   document.getElementById('shell-signout').onclick = () => handleSignOut();
+  document.getElementById('shell-delete').onclick = () => openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true });
+  if (!document.getElementById('shell-delete-style')) document.head.insertAdjacentHTML('beforeend', `<style id="shell-delete-style">
+    .shell-delete { background: none; border: 0; padding: 2px 12px 4px; font: inherit; font-size: 0.75rem; color: var(--color-text-muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    .shell-delete:hover { color: var(--color-danger); }</style>`);
 
   if (view === 'parent') loadChildShortcuts(user);
 }

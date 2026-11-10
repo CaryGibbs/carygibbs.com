@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109p">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109p">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109p">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109p">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109q">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109q">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109q">
+  <link rel="manifest" href="manifest.webmanifest?v=20261109q">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109p">
-  <script src="icons.js?v=20261109p"></script>
+  <link rel="stylesheet" href="theme.css?v=20261109q">
+  <script src="icons.js?v=20261109q"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -35,6 +35,8 @@
     .form-group label { display:block; font-family:var(--font-ui); font-size:0.85rem; font-weight:600; color:var(--color-text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em; }
     .form-group input { padding:14px var(--space-md); border-radius:var(--radius-button); font-size:1rem; }
     .form-hint { font-size:0.8rem; color:var(--color-text-muted); margin-top:4px; }
+    .age-label { display:flex !important; align-items:center; gap:10px; text-transform:none !important; letter-spacing:0 !important; font-size:0.95rem !important; color:var(--color-text) !important; cursor:pointer; }
+    .age-label input { width:20px; height:20px; padding:0; accent-color: var(--color-primary); flex-shrink:0; }
     .optional-label { font-size:0.75rem; color:var(--color-text-faint); font-style:italic; margin-left:4px; }
     .btn-submit { width:100%; padding:14px; margin-top:var(--space-sm); font-size:1rem; border-radius:var(--radius-button); }
     .divider { text-align:center; position:relative; margin:var(--space-lg) 0; color:var(--color-text-faint); font-size:0.8rem; font-family:var(--font-ui); }
@@ -59,7 +61,7 @@
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261109p">
+  <link rel="stylesheet" href="ui.css?v=20261109q">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -134,6 +136,11 @@
         <input type="text" id="signup-class-code" placeholder="e.g. XK7P2M" maxlength="6" class="code-input">
         <p class="form-hint">Enter the code your teacher gave you, or leave blank.</p>
       </div>
+      <!-- Students signing up themselves must be 13 or over (see Privacy and Terms) -->
+      <div class="form-group age-check" id="age-group" style="display:none;">
+        <label class="age-label"><input type="checkbox" id="signup-age13"> <span>I'm 13 or over</span></label>
+        <p class="form-hint">Under 13? Ask a parent or carer to sign up as a parent and create your account for you.</p>
+      </div>
       <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create account</button>
       <p class="invite-alt" id="invite-alt" hidden>Already have a Lobe Limpet account? <a href="#" onclick="switchTab('login');return false;">Sign in to accept</a></p>
     </div>
@@ -153,12 +160,12 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261109p';
-  import { redirectByRole } from './auth.js?v=20261109p';
-  import { logEvent } from './log.js?v=20261109p';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261109p';
-  import { findClass } from './join-class.js?v=20261109p';
-  import { saveEmailIndex } from './email-index.js?v=20261109p';
+  import { auth, db } from './firebase-config.js?v=20261109q';
+  import { redirectByRole } from './auth.js?v=20261109q';
+  import { logEvent } from './log.js?v=20261109q';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261109q';
+  import { findClass } from './join-class.js?v=20261109q';
+  import { saveEmailIndex } from './email-index.js?v=20261109q';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
@@ -248,6 +255,7 @@
     document.getElementById('type-teacher').classList.toggle('selected', type==='teacher');
     document.getElementById('school-group').style.display = type==='teacher' ? 'block' : 'none';
     document.getElementById('class-code-group').style.display = type==='student' ? 'block' : 'none';
+    document.getElementById('age-group').style.display = type==='student' ? 'block' : 'none';
   };
 
   window._handleLogin = async function() {
@@ -286,6 +294,8 @@
     if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
     const school = (document.getElementById('signup-school')?.value || '').trim();
     if (signupType === 'teacher' && !school) { showError('Please enter your school name.'); return; }
+    const age13 = document.getElementById('signup-age13').checked;
+    if (signupType === 'student' && !age13) { showError("Please confirm you're 13 or over. If you're under 13, a parent or carer needs to create your account."); return; }
 
     // Validate class code if provided
     let classInfo = null;
@@ -321,6 +331,7 @@
           classes: classInfo ? { [classInfo.classId]: true } : {},
           classPacks: classInfo ? { [classInfo.classId]: classInfo.packIds || [] } : {},
           packIds: classInfo ? (classInfo.packIds || []) : [],
+          ageConfirmed: { over13: true, at: Date.now() },   // ticked "I'm 13 or over" at sign-up
           teacherIds: classInfo ? [classInfo.teacherUid] : []
         };
         await setDoc(doc(db, 'users', uid), profile);
