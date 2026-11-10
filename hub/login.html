@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110o">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110o">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110o">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110o">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110p">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110p">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110p">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110p">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110o">
-  <script src="icons.js?v=20261110o"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110p">
+  <script src="icons.js?v=20261110p"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -61,7 +61,7 @@
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110o">
+  <link rel="stylesheet" href="ui.css?v=20261110p">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -160,12 +160,12 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261110o';
-  import { redirectByRole } from './auth.js?v=20261110o';
-  import { logEvent } from './log.js?v=20261110o';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261110o';
-  import { findClass } from './join-class.js?v=20261110o';
-  import { saveEmailIndex } from './email-index.js?v=20261110o';
+  import { auth, db } from './firebase-config.js?v=20261110p';
+  import { redirectByRole } from './auth.js?v=20261110p';
+  import { logEvent } from './log.js?v=20261110p';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261110p';
+  import { findClass } from './join-class.js?v=20261110p';
+  import { saveEmailIndex } from './email-index.js?v=20261110p';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
@@ -266,11 +266,13 @@
     try {
       flowBusy = true;
       if (inviteReady) await inviteReady;
-      const cred = await signInWithEmailAndPassword(auth, email, password);
+      // Time limits: a stuck connection or browser storage shows a message instead of spinning forever
+      const limit = (p, ms, code) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error(code), { code })), ms))]);
+      const cred = await limit(signInWithEmailAndPassword(auth, email, password), 20000, 'clasp/signin-timeout');
       if (!(await useInvite(cred.user.uid, email))) { await signOut(auth); flowBusy = false; setLoading('btn-login', false); return; }
       // Log under the profile name. The sign-in's own name can be out of date
       // (e.g. a login first made as a child account), so bring it into line too.
-      const prof = await getDoc(doc(db, 'users', cred.user.uid)).then(d => d.exists() ? d.data() : null).catch(() => null);
+      const prof = await limit(getDoc(doc(db, 'users', cred.user.uid)), 6000, 'clasp/timeout').then(d => d.exists() ? d.data() : null).catch(() => null);
       const shownName = prof?.name || cred.user.displayName || email;
       if (prof?.name && prof.name !== cred.user.displayName) updateProfile(cred.user, { displayName: prof.name }).catch(() => {});
       await Promise.race([logEvent('account.signin', { as: { uid: cred.user.uid, name: shownName, role: 'account' } }), new Promise(r => setTimeout(r, 1500))]);
@@ -417,6 +419,7 @@
       'auth/too-many-requests':'Too many attempts. Please try again later.',
       'auth/invalid-credential':'Incorrect email or password.',
       'auth/network-request-failed':'Can\'t reach the server. Check your internet connection and try again.',
+      'clasp/signin-timeout':"Signing in is taking too long. Your browser may be stuck: quit it completely (on a Mac, press Cmd+Q) and open it again, or try a private window.",
       'clasp/timeout':'Signed in, but your account is taking too long to load. Check your connection and tap Sign in again.',
       'clasp/no-profile':'This account isn\'t set up yet. Ask your parent or teacher to check it.',
       'unavailable':'Can\'t reach the server. Check your internet connection and try again.',
