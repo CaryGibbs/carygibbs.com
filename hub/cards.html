@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110j">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110j">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110j">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110j">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110k">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110k">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110k">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110k">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110j">
-  <script src="icons.js?v=20261110j"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110k">
+  <script src="icons.js?v=20261110k"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -201,7 +201,7 @@
     </div>
     <div class="cards" id="cards"></div>
     <button class="add-row" data-action="add-card">＋ Add a card</button>
-    <p class="hint">Tip: copy a set from Quizlet (Export) or a spreadsheet and use Import to bring it all in at once. Add a picture to any card: a diagram, map or labelled photo. With a picture, the definition is optional.</p>
+    <p class="hint">Tip: copy a set from Quizlet (Export) or a spreadsheet and use Import to bring it all in at once. Add a picture to any card: a diagram, map or labelled photo. With a picture, the definition is optional: a card with just a term and a picture becomes a "what's this?" card, showing the picture first.</p>
   </section>
 </div>
 
@@ -216,17 +216,17 @@
 </div>
 
 <script type="module">
-import { db, storage } from './firebase-config.js?v=20261110j';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261110j';
-import { askClaude, jsonOf } from './ai.js?v=20261110j';
-import { showPlusUpsell } from './plus.js?v=20261110j';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261110j';
-import { flatPackIds } from './packs.js?v=20261110j';
-import { logEvent } from './log.js?v=20261110j';
-import { startStudyTimer } from './study-timer.js?v=20261110j';
+import { db, storage } from './firebase-config.js?v=20261110k';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261110k';
+import { askClaude, jsonOf } from './ai.js?v=20261110k';
+import { showPlusUpsell } from './plus.js?v=20261110k';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261110k';
+import { flatPackIds } from './packs.js?v=20261110k';
+import { logEvent } from './log.js?v=20261110k';
+import { startStudyTimer } from './study-timer.js?v=20261110k';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
   questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
-  cardComplete, shortName, copyCards } from './cards-core.js?v=20261110j';
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261110k';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -357,7 +357,7 @@ function rowHtml(c, n) {
 function picHtml(url) {
   return url
     ? `<img src="${esc(url)}" alt="Picture on this card" onerror="this.alt='Picture missing';this.style.opacity=0.3"><button class="pic-btn small" data-action="pic-change"><i data-icon="image"></i> Change</button><button class="pic-btn small" data-action="pic-remove"><i data-icon="x"></i> Remove</button>`
-    : `<button class="pic-btn" data-action="pic-add"><i data-icon="image"></i> Add a picture</button>`;
+    : `<button class="pic-btn" data-action="pic-add"><i data-icon="image"></i> Add a picture (diagram, map, photo)</button>`;
 }
 
 function addRow(c = {}, after = null) {
@@ -763,8 +763,11 @@ function drawStudy() {
   const c = st.deck[st.i];
   const defSide = `<div class="face-content">${c.imageUrl ? `<img src="${esc(c.imageUrl)}" alt="" onerror="this.remove()">` : ''}${esc(c.definition || '')}</div>`;
   const termSide = `<div class="face-content">${esc(c.term)}</div>`;
-  const [front, back] = st.defFirst ? [defSide, termSide] : [termSide, defSide];
-  const [fl, bl] = st.defFirst ? ['Definition', 'Term'] : ['Term', 'Definition'];
+  // A picture with no definition is a "what's this?" card: picture first
+  const picOnly = !!c.imageUrl && !c.definition;
+  const defFirst = st.defFirst || picOnly;
+  const [front, back] = defFirst ? [defSide, termSide] : [termSide, defSide];
+  const [fl, bl] = picOnly ? ["What's this?", 'Term'] : defFirst ? ['Definition', 'Term'] : ['Term', 'Definition'];
   body.innerHTML = `
     <div class="study-progress"><span>${st.i + 1} / ${st.deck.length}</span><span>✓ ${st.know.length} · Still learning ${st.learning.length}</span></div>
     <div class="bar"><span style="width:${(st.i / st.deck.length) * 100}%"></span></div>
@@ -1008,6 +1011,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261110j"></script>
+<script src="site.js?v=20261110k"></script>
 </body>
 </html>
