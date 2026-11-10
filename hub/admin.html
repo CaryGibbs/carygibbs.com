@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261109z">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261109z">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261109z">
-  <link rel="manifest" href="manifest.webmanifest?v=20261109z">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261109z">
-  <script src="icons.js?v=20261109z"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110a">
+  <script src="icons.js?v=20261110a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -582,8 +582,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261109z">
-  <link rel="stylesheet" href="stats.css?v=20261109z">
+  <link rel="stylesheet" href="ui.css?v=20261110a">
+  <link rel="stylesheet" href="stats.css?v=20261110a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -797,7 +797,7 @@
               <input type="text" id="kp-research-topic" placeholder="e.g. GCSE Geography — Antarctica and climate change" style="flex:1;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.92rem;">
               <button class="kp-gen-btn" data-action="research-keypoints-panel" id="btn-research-kp"><i data-icon="search"></i> Research &amp; generate</button>
             </div>
-            <p style="font-size:0.78rem;color:var(--color-text-muted);">AI will write GCSE-level key points from its own knowledge. Be specific — include subject and topic name.</p>
+            <p style="font-size:0.78rem;color:var(--color-text-muted);">AI will write key points at the subject's level (GCSE if not set) from its own knowledge. Be specific — include subject and topic name.</p>
           </div>
 
           <div id="kp-gen-status-panel" class="kp-gen-status" style="margin-top:var(--space-sm);"></div>
@@ -1282,27 +1282,27 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261109z';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261109z';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261109z';
-import { openDeleteAccount } from './account.js?v=20261109z';
-import { addDocumentButton } from './doc-text.js?v=20261109z';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261109z';
-import { showPlusUpsell } from './plus.js?v=20261109z';
+import { auth, db, storage } from './firebase-config.js?v=20261110a';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261110a';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261110a';
+import { openDeleteAccount } from './account.js?v=20261110a';
+import { addDocumentButton } from './doc-text.js?v=20261110a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261110a';
+import { showPlusUpsell } from './plus.js?v=20261110a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261109z';
-import { mountShell } from './shell.js?v=20261109z';
-import { openInviteDialog, signupLink } from './invite.js?v=20261109z';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261109z';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261109z';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261109z';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261109z';
-import { dueEntries } from './srs.js?v=20261109z';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261109z';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261110a';
+import { mountShell } from './shell.js?v=20261110a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261110a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261110a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks } from './ai.js?v=20261110a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261110a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110a';
+import { dueEntries } from './srs.js?v=20261110a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261110a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1318,7 +1318,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261109z';
+import { saveEmailIndex } from './email-index.js?v=20261110a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1978,7 +1978,7 @@ function subjectCard(id, data) {
 
 function openSubject(id, data) {
   if (!data) { getDoc(doc(db, subjectsPath(), id)).then(s => openSubject(id, s.data())); return; }
-  selectedSubject = { id, name: data.name, emoji: data.emoji || '📚' };
+  selectedSubject = { id, name: data.name, emoji: data.emoji || '📚', level: data.level || '', examBoard: data.examBoard || '' };
   selectedTopic = null;
   document.getElementById('topics-panel-title').textContent = `${data.emoji||'📚'} ${data.name} — Topics`;
   showPanel('topics');
@@ -2293,7 +2293,7 @@ async function generateKeyPoints(contentText, statusId, listId) {
   if (!contentText) { showToast('Paste some content first', 'error'); return; }
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Generating…';
-  const prompt = notesPromptFromText(contentText);
+  const prompt = notesPromptFromText(contentText, 'auto', aiContext());
   try {
     // Long documents need a longer reply; the Worker allows up to 16,000
     const resp = await aiFetch(prompt, 16000);
@@ -2318,7 +2318,8 @@ async function researchKeyPoints(topic, statusId, listId) {
   if (!aiAllowed()) return;
   const statusEl = document.getElementById(statusId);
   statusEl.textContent = 'Researching…';
-  const prompt = notesPromptResearch(topic);
+  const lvl = selectedSubject?.level;
+  const prompt = notesPromptResearch(lvl && !topic.toLowerCase().includes(lvl.toLowerCase()) ? `${lvl} ${topic}` : topic);
   try {
     const resp = await aiFetch(prompt, 16000);
     const data = await resp.json();
@@ -2513,8 +2514,13 @@ function tfBalanceText(qs) {
   return ` · True/False: ${t} true, ${f} false${lopsided ? ' (uneven, consider deleting some or regenerating)' : ''}`;
 }
 
+// e.g. "A level AQA Economics: Micro 1", so prompts write at the subject's level
+function aiContext() {
+  const s = selectedSubject || {};
+  return [s.level, s.examBoard, s.name].filter(Boolean).join(' ') + (s.name && selectedTopic?.name ? ': ' + selectedTopic.name : '');
+}
 function buildQuestionPrompt(contentText, qty) {
-  return questionsPrompt(contentText, qty);
+  return questionsPrompt(contentText, qty, undefined, aiContext());
 }
 
 // Show post-gen action bar after key points are generated
@@ -2670,7 +2676,7 @@ async function runGenerate() {
   statusEl.className = 'gen-status generating';
   statusEl.innerHTML = `<span class="dots">Generating ${qty} questions</span>`;
 
-  const prompt = questionsPrompt(content, qty, types);
+  const prompt = questionsPrompt(content, qty, types, aiContext());
 
   try {
     const response = await aiFetch(prompt, 16000);
@@ -3873,6 +3879,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261109z"></script>
+<script src="site.js?v=20261110a"></script>
 </body>
 </html>

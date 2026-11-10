@@ -9,10 +9,10 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261109z';
-import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261109z';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261109z';
-import { logEvent } from './log.js?v=20261109z';
+import { db } from './firebase-config.js?v=20261110a';
+import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261110a';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261110a';
+import { logEvent } from './log.js?v=20261110a';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -25,9 +25,18 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 // context: e.g. "GCSE AQA Chemistry: Atomic structure" (helps the level)
 const NOTES_JSON = `Return ONLY a JSON array of groups, no markdown, no backticks, no preamble. Use between 3 and 12 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name about the SUBJECT (e.g. "Atoms and Elements", "Balancing Equations"), never about the document (not "Revision Checklist Format" or "Row 3"). Keep each explanation under 30 words.
 [{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits: 2 for easting, 2 for northing"},{"term":"Easting","explanation":"The horizontal value, read first"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map distance and real-world distance"}]}]`;
+// The level to write for, read from the context ("A level AQA Economics: …").
+// Defaults to GCSE, as before.
+export function levelOf(context = '') {
+  const c = String(context);
+  if (/\bAS[ -][Ll]evel\b/.test(c)) return 'AS level';
+  if (/\bA[ -][Ll]evel\b/.test(c)) return 'A level';
+  return 'GCSE';
+}
 const IGNORE_LAYOUT = `Ignore everything about how the document is laid out or used, and never make notes about it: tables and columns, row numbers, tick boxes, confidence or traffic-light columns, smiley faces, page headers and footers, logos, instructions to the student (e.g. "tick when revised"), and messages like "Good luck".`;
 export function notesPromptFromText(text, kind = 'auto', context = '') {
-  const teach = `For every item a student must know or be able to do, write the actual knowledge they need, as revision notes: definitions, facts, processes, rules, formulas, worked examples, equations and named examples, at the level the document is for (GCSE unless it says otherwise, e.g. Year 9 or A level). Turn "be able to state / describe / explain X" into what X actually is. Use the document's sections or headings as the groups. Be accurate and only include what is on the specification for that item; if you're not sure of a detail, keep it general.`;
+  const lvl = levelOf(context);
+  const teach = `For every item a student must know or be able to do, write the actual knowledge they need, as revision notes: definitions, facts, processes, rules, formulas, worked examples, equations and named examples, at the level the document is for (${lvl} unless it says otherwise). Turn "be able to state / describe / explain X" into what X actually is. Use the document's sections or headings as the groups. Be accurate and only include what is on the specification for that item; if you're not sure of a detail, keep it general.`;
   const extract = `Extract all key points from the content and organise them into logical sub-topic groups. Do not add anything not in the content, and do not omit anything. Cover every concept, definition, process, fact, example, and term mentioned. Where the content describes a diagram, graph or table of SUBJECT information, turn what it shows into key points too.`;
   const how = kind === 'teach' ? teach
     : kind === 'extract' ? extract
@@ -49,7 +58,8 @@ ${String(text).substring(0, 80000)}`;
 }
 
 export function notesPromptResearch(topic) {
-  return `You are an expert GCSE teacher. Write comprehensive key points for the following GCSE topic, organised into named sub-topic groups. Include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student needs for their exam.
+  const lvl = levelOf(topic);
+  return `You are an expert ${lvl} teacher. Write comprehensive key points for the following ${lvl} topic, organised into named sub-topic groups. Include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student needs for their exam.
 
 IMPORTANT: You MUST return between 3 and 10 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name (e.g. "Grid References", "Scale & Distance", "Contour Lines"). Do NOT use an empty string as a group name. Keep each explanation under 30 words.
 If the topic below lists several sub-topics or bullet points, use them as the groups.
@@ -68,9 +78,12 @@ export const QUESTION_TYPES = [
   { id: 'short', label: 'Written answer',  schema: '{"type":"short","question":"...","markScheme":"Key points: 1) ... 2) ..."}' },
 ];
 
-export function questionsPrompt(content, qty, types = QUESTION_TYPES.map(t => t.id)) {
+// context: e.g. "A level AQA Economics: Micro 1" sets the level and subject
+export function questionsPrompt(content, qty, types = QUESTION_TYPES.map(t => t.id), context = '') {
   const schemas = QUESTION_TYPES.filter(t => types.includes(t.id)).map(t => t.schema).join('\n');
-  return `You are a GCSE revision question writer. Generate up to ${qty} high-quality questions based on the revision content below. If the content does not support ${qty} distinct, non-repetitive questions, generate fewer — quality over quantity. Spread questions evenly across ALL the content, covering early and late sections equally. Never repeat the same fact in two different questions.
+  const lvl = levelOf(context);
+  const higher = /A level|AS level/.test(lvl) ? ` Pitch questions at ${lvl} standard, testing understanding and application, not just recall.` : '';
+  return `You are a ${lvl} revision question writer${context ? ` for ${context}` : ''}.${higher} Generate up to ${qty} high-quality questions based on the revision content below. If the content does not support ${qty} distinct, non-repetitive questions, generate fewer — quality over quantity. Spread questions evenly across ALL the content, covering early and late sections equally. Never repeat the same fact in two different questions.
 Use these types in roughly equal proportions from: ${types.join(', ')}.
 
 For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
@@ -367,7 +380,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
         if (got.length) setBusyText(`Writing questions ${got.length + 1} to ${got.length + want} of up to ${st.qty}…`);
         const done = [...saved, ...got.map(textOf)].slice(-200);
         const avoid = done.length ? `\n\nQuestions already written. Do NOT repeat these or test the same facts again; cover different points:\n${done.map(t => '- ' + t).join('\n')}` : '';
-        const batch = tfFix(await ask(questionsPrompt(content + avoid, want, st.types), 16000)).filter(q => QUESTION_TYPES.some(t => t.id === q?.type));
+        const batch = tfFix(await ask(questionsPrompt(content + avoid, want, st.types, st.aiTopic), 16000)).filter(q => QUESTION_TYPES.some(t => t.id === q?.type));
         got.push(...batch);
         if (batch.length < want * 0.5) break;   // the notes have run out of new questions
       }
