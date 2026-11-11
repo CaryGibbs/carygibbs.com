@@ -64,5 +64,6 @@ export function plusPillHtml(profile, { short = false } = {}) {
   const roles = new Set([...(profile?.roles || []), profile?.role].filter(Boolean));
   if (roles.has('admin')) return '';
   if (profile?.tier === 'plus' || profile?.plan === 'plus') return `<a class="plus-pill have" href="plus.html" title="You have Lobe Limpet Plus">✨ Plus</a>`;
+  if (profile?._familyPlus === true) return `<a class="plus-pill have" href="plus.html" title="You have Lobe Limpet Plus through your parent">✨ Plus</a>`;
   return `<a class="plus-pill" href="plus.html" title="See what's in Plus">✨ <span class="long">Upgrade to </span>Plus</a>`;
 }

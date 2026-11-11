@@ -2,10 +2,10 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261111j';
+import { auth, db } from './firebase-config.js?v=20261111k';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261111j';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261111k';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -104,6 +104,20 @@ function showPreviewBanner(student) {
   document.head.appendChild(style);
 }
 
+// plusFrom must be one of the student's own parents, and that parent must have Plus
+export function familyPlusFrom(profile) {
+  const from = profile?.plusFrom;
+  return typeof from === 'string' && from && (profile.parentUid === from || (profile.guardianIds || []).includes(from)) ? from : null;
+}
+export async function withFamilyPlus(profile) {
+  const from = !isPlusTier(profile) && familyPlusFrom(profile);
+  if (from) {
+    const p = await getDoc(doc(db, 'users', from)).catch(() => null);
+    profile._familyPlus = !!p?.exists?.() && coversFamily(p.data());
+  }
+  return profile;
+}
+
 export function requireAuth(callback) {
   // If the account hasn't loaded after 15 seconds (a stalled connection, e.g.
   // after the computer slept), offer Try again instead of "Loading…" forever
@@ -133,6 +147,7 @@ export function requireAuth(callback) {
         }
       }
 
+      await withFamilyPlus(profile);
       if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
       callback(user, profile);
     } catch(e) {
@@ -160,7 +175,12 @@ export function hasRole(profile, role) { return rolesOf(profile).has(role); }
 // Plus is stored in profile.tier. (It used to be profile.plan, which is also
 // where the study plan lives, so a few accounts may still have plan 'plus'.)
 export function isPlusTier(profile) { return profile?.tier === 'plus' || profile?.plan === 'plus'; }
-export function planOf(profile) { return isPlusTier(profile) ? 'plus' : 'free'; }
+// A student covered by a parent's Plus: plusFrom names the parent, checked
+// when the page loads (withFamilyPlus) and by the security rules
+// Whose Plus covers their children: Plus, or an admin
+export function coversFamily(profile) { return isPlusTier(profile) || rolesOf(profile).has('admin'); }
+export function hasFamilyPlus(profile) { return profile?._familyPlus === true; }
+export function planOf(profile) { return isPlusTier(profile) || hasFamilyPlus(profile) ? 'plus' : 'free'; }
 export function hasPlus(profile) { return planOf(profile) === 'plus' || hasRole(profile, 'admin'); }
 export function isStudent(profile) { return hasRole(profile, 'student'); }
 // The adult views a person can switch between, in a fixed order

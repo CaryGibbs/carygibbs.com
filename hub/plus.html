@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free and Plus · Lobe Limpet</title>
   <meta name="description" content="What's free in Lobe Limpet and what Plus adds: create revision notes, questions and flashcards with AI.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111j">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111j">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111j">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111k">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111k">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111k">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261111j">
+  <link rel="stylesheet" href="site.css?v=20261111k">
 </head>
 <body>
 <div id="site-header"></div>
@@ -81,14 +81,15 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261111j"></script>
+<script src="site.js?v=20261111k"></script>
 <script type="module">
 // Signed in: ask for Plus with one tap (admins see it on their home page and
 // switch Plus on in Users). Signed out: sign in first, or email.
-import { auth, db } from './firebase-config.js?v=20261111j';
+import { auth, db } from './firebase-config.js?v=20261111k';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261111j';
+import { logEvent } from './log.js?v=20261111k';
+import { withFamilyPlus } from './auth.js?v=20261111k';
 const $ = id => document.getElementById(id);
 onAuthStateChanged(auth, async user => {
   if (!user) { $('plus-intro').innerHTML = 'Plus is in early access. <a href="login.html">Sign in</a>, then come back here to ask for it.'; return; }
@@ -97,6 +98,9 @@ onAuthStateChanged(auth, async user => {
     getDoc(doc(db, 'plusRequests', user.uid)).then(d => d.exists() ? d.data() : null).catch(() => null),
   ]);
   const roles = new Set([...(me.roles || []), me.role].filter(Boolean));
+  // A student covered by a parent's Plus (plusFrom, checked like the rules do)
+  await withFamilyPlus(me);
+  if (me._familyPlus) { $('plus-intro').textContent = "You've got Plus through your parent. Enjoy!"; $('plus-email').hidden = true; return; }
   if (me.tier === 'plus' || me.plan === 'plus' || roles.has('admin')) { $('plus-intro').textContent = "You've got Plus. Enjoy!"; $('plus-email').hidden = true; return; }
   if (req?.status === 'pending') { $('plus-intro').textContent = "Thanks, you've asked for Plus. We'll switch it on soon."; $('plus-email').hidden = true; return; }
   $('plus-intro').textContent = "Plus is in early access. Ask here and we'll switch it on for your account.";

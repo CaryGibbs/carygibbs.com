@@ -143,7 +143,14 @@ export default {
       } catch (e) { console.warn('Usage check skipped:', e.message); svc = null; }
     }
     const isAdmin = !!user && (user.uid === OWNER_UID || rolesOf(who).has('admin'));
-    const isPlus = isAdmin || who?.tier === 'plus' || who?.plan === 'plus';
+    // A student is covered by a parent's Plus: plusFrom names that parent
+    // (it must be one of their parents, and that parent must have Plus)
+    let familyPlus = false;
+    if (who && svc && !(who.tier === 'plus' || who.plan === 'plus') && familyOf(who)) {
+      familyPlus = await fsGet(svc, `users/${who.plusFrom}`).then(isPlusRecord).catch(() => false);
+    }
+    if (who) who._familyPlus = familyPlus;   // (shown in usage as "plus (family)")
+    const isPlus = isAdmin || who?.tier === 'plus' || who?.plan === 'plus' || familyPlus;
     if (task.needsPlus && user) {
       const allowed = who ? isPlus : await hasPlus(user, token);
       if (!allowed) return fail(403, 'AI generation is part of Lobe Limpet Plus');
@@ -231,16 +238,34 @@ async function verifyFirebaseToken(token) {
   return { uid: claims.sub, email: claims.email || '' };
 }
 
+/* ── Plus through a parent: plusFrom must be one of the student's parents ── */
+function familyOf(who) {
+  const from = who?.plusFrom;
+  return !!from && typeof from === 'string' && (who.parentUid === from || (who.guardianIds || []).includes(from));
+}
+// (an admin's children are covered too)
+const isPlusRecord = d => !!d && (d.tier === 'plus' || d.plan === 'plus' || rolesOf(d).has('admin'));
+
 /* ── Plus or admin? Read the user's own record (their token lets them) ── */
 async function hasPlus(user, token) {
   if (user.uid === OWNER_UID) return true;
-  const r = await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${user.uid}`,
-    { headers: { Authorization: `Bearer ${token}` } });
-  if (!r.ok) return false;
-  const f = (await r.json()).fields || {};
+  const read = async uid => {
+    const r = await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${uid}`,
+      { headers: { Authorization: `Bearer ${token}` } });
+    return r.ok ? ((await r.json()).fields || {}) : null;
+  };
+  const f = await read(user.uid);
+  if (!f) return false;
   const roles = (f.roles?.arrayValue?.values || []).map(v => v.stringValue);
   if (f.role?.stringValue) roles.push(f.role.stringValue);
-  return f.tier?.stringValue === 'plus' || f.plan?.stringValue === 'plus' || roles.includes('admin');
+  if (f.tier?.stringValue === 'plus' || f.plan?.stringValue === 'plus' || roles.includes('admin')) return true;
+  // Covered by a parent's Plus (students can read their parents' records)
+  const from = f.plusFrom?.stringValue;
+  const guardians = (f.guardianIds?.arrayValue?.values || []).map(v => v.stringValue);
+  if (!from || !(f.parentUid?.stringValue === from || guardians.includes(from))) return false;
+  const p = await read(from).catch(() => null);
+  const pRoles = (p?.roles?.arrayValue?.values || []).map(v => v.stringValue).concat(p?.role?.stringValue || []);
+  return !!p && (p.tier?.stringValue === 'plus' || p.plan?.stringValue === 'plus' || pRoles.includes('admin'));
 }
 
 /* ── Does a link load? ── */
@@ -469,7 +494,7 @@ async function recordUsage(tok, user, who, day, task, model, input, output) {
     update: { name, fields: {
       uid: { stringValue: user.uid }, day: { stringValue: day },
       name: { stringValue: String(who?.name || '').slice(0, 80) }, email: { stringValue: String(who?.email || user.email || '').slice(0, 120) },
-      plan: { stringValue: who?.tier === 'plus' || who?.plan === 'plus' ? 'plus' : 'free' },
+      plan: { stringValue: who?.tier === 'plus' || who?.plan === 'plus' ? 'plus' : who?._familyPlus ? 'plus (family)' : 'free' },
       lastAt: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 90 * 86400000)),
     } },
     updateMask: { fieldPaths: ['uid', 'day', 'name', 'email', 'plan', 'lastAt', 'expireAt'] },
