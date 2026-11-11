@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110p">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110p">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110p">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110p">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110q">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110q">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110q">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110q">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110p">
-  <script src="icons.js?v=20261110p"></script>
-  <link rel="stylesheet" href="stats.css?v=20261110p">
+  <link rel="stylesheet" href="theme.css?v=20261110q">
+  <script src="icons.js?v=20261110q"></script>
+  <link rel="stylesheet" href="stats.css?v=20261110q">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -172,7 +172,7 @@
       .progress-xp { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110p">
+  <link rel="stylesheet" href="ui.css?v=20261110q">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -415,20 +415,20 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110p';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261110p';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261110p';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261110p';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261110p';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261110p';
-import { logEvent } from './log.js?v=20261110p';
-import { openInviteDialog } from './invite.js?v=20261110p';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110p';
-import { dueEntries, scheduledCount } from './srs.js?v=20261110p';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261110p';
-import { openPlanCalendar } from './plan-view.js?v=20261110p';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261110p';
-import { openDeleteAccount } from './account.js?v=20261110p';
+import { auth, db } from './firebase-config.js?v=20261110q';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261110q';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261110q';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261110q';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261110q';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261110q';
+import { logEvent } from './log.js?v=20261110q';
+import { openInviteDialog } from './invite.js?v=20261110q';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110q';
+import { dueEntries, scheduledCount } from './srs.js?v=20261110q';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261110q';
+import { openPlanCalendar } from './plan-view.js?v=20261110q';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261110q';
+import { openDeleteAccount } from './account.js?v=20261110q';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -1225,6 +1225,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261110p"></script>
+<script src="site.js?v=20261110q"></script>
 </body>
 </html>

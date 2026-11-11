@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110p">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110p">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110p">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110p">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110q">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110q">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110q">
+  <link rel="manifest" href="manifest.webmanifest?v=20261110q">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110p">
-  <script src="icons.js?v=20261110p"></script>
+  <link rel="stylesheet" href="theme.css?v=20261110q">
+  <script src="icons.js?v=20261110q"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -60,8 +60,11 @@
     .auth-footer { text-align:center; margin-top:var(--space-lg); font-size:0.8rem; color:var(--color-text-faint); font-family:var(--font-ui); animation:fadeIn 0.6s 0.3s ease both; }
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
-  </style>
-  <link rel="stylesheet" href="ui.css?v=20261110p">
+    .pw-tools { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .pw-btn { background: none; border: 1px solid var(--color-border); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; }
+  .pw-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
+</style>
+  <link rel="stylesheet" href="ui.css?v=20261110q">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -92,6 +95,7 @@
       <div class="form-group">
         <label>Password</label>
         <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        <div class="pw-tools"><button type="button" class="pw-btn" data-pw-show="login-password">Show</button></div>
       </div>
       <button class="btn btn-primary btn-submit" id="btn-login" onclick="handleLogin()">Sign in</button>
       <div class="divider">or</div>
@@ -125,7 +129,11 @@
       <div class="form-group">
         <label>Password</label>
         <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
-        <p class="form-hint">Minimum 8 characters</p>
+        <div class="pw-tools">
+          <button type="button" class="pw-btn" id="pw-suggest">✨ Suggest a password</button>
+          <button type="button" class="pw-btn" data-pw-show="signup-password">Show</button>
+        </div>
+        <p class="form-hint" id="pw-hint">Minimum 8 characters</p>
       </div>
       <div class="form-group" id="school-group" style="display:none;">
         <label>School</label>
@@ -160,12 +168,26 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261110p';
-  import { redirectByRole } from './auth.js?v=20261110p';
-  import { logEvent } from './log.js?v=20261110p';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261110p';
-  import { findClass } from './join-class.js?v=20261110p';
-  import { saveEmailIndex } from './email-index.js?v=20261110p';
+  import { auth, db } from './firebase-config.js?v=20261110q';
+  import { redirectByRole, generatePassword } from './auth.js?v=20261110q';
+  // Password helpers: show/hide, and a memorable suggested password for new accounts
+  document.querySelectorAll('[data-pw-show]').forEach(b => b.addEventListener('click', () => {
+    const f = document.getElementById(b.dataset.pwShow);
+    const show = f.type === 'password';
+    f.type = show ? 'text' : 'password'; b.textContent = show ? 'Hide' : 'Show';
+  }));
+  document.getElementById('pw-suggest')?.addEventListener('click', () => {
+    const f = document.getElementById('signup-password');
+    f.value = generatePassword() + '!';
+    f.type = 'text';
+    const sb = document.querySelector('[data-pw-show="signup-password"]'); if (sb) sb.textContent = 'Hide';
+    document.getElementById('pw-hint').textContent = 'Write this down or let your browser save it: you\'ll need it to sign in.';
+    f.focus(); f.select();
+  });
+  import { logEvent } from './log.js?v=20261110q';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261110q';
+  import { findClass } from './join-class.js?v=20261110q';
+  import { saveEmailIndex } from './email-index.js?v=20261110q';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
