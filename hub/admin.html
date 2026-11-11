@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111f">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111f">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111f">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111f">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111g">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111g">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111f">
-  <script src="icons.js?v=20261111f"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111g">
+  <script src="icons.js?v=20261111g"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -592,8 +592,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111f">
-  <link rel="stylesheet" href="stats.css?v=20261111f">
+  <link rel="stylesheet" href="ui.css?v=20261111g">
+  <link rel="stylesheet" href="stats.css?v=20261111g">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1322,27 +1322,28 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111f';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111f';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111f';
-import { openDeleteAccount } from './account.js?v=20261111f';
-import { addDocumentButton } from './doc-text.js?v=20261111f';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111f';
-import { showPlusUpsell } from './plus.js?v=20261111f';
+import { auth, db, storage } from './firebase-config.js?v=20261111g';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111g';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111g';
+import { openDeleteAccount } from './account.js?v=20261111g';
+import { addDocumentButton } from './doc-text.js?v=20261111g';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111g';
+import { showPlusUpsell } from './plus.js?v=20261111g';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111f';
-import { mountShell } from './shell.js?v=20261111f';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111f';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111f';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111f';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111f';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111f';
-import { dueEntries } from './srs.js?v=20261111f';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111f';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111g';
+import { mountShell } from './shell.js?v=20261111g';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111g';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111g';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111g';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111g';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111g';
+import { dueEntries } from './srs.js?v=20261111g';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111g';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111g';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1358,8 +1359,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111f';
-import { inOrder } from './order.js?v=20261111f';
+import { saveEmailIndex } from './email-index.js?v=20261111g';
+import { inOrder } from './order.js?v=20261111g';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1841,6 +1842,7 @@ document.addEventListener('click', e => {
   if (nav)    { showPanel(nav); return; }
   if (action === 'view-as') { openViewAs(t.dataset.uid, t.dataset.name || usersCache?.find?.(u => u.id === t.dataset.uid)?.name || ''); return; }
   if (action === 'student-progress') { openStudentProgress(t.dataset.uid); return; }
+  if (action === 'student-tidy') { tidyStudentProgress(t.dataset.uid, t); return; }
   if (action === 'delete-user') { openDeleteAccount({ uid: t.dataset.uid, name: t.dataset.name, onDone: () => { showToast('Account deleted', 'success'); loadUsers(); } }); return; }
   if (action === 'edit-roles') { openRolesEditor(t.dataset.uid); return; }
   if (action === 'save-roles') { saveRoles(t.dataset.uid); return; }
@@ -3593,12 +3595,53 @@ function openStudentProgress(uid) {
       <div class="st-title"><i data-icon="clipboard-list"></i> Recent quizzes</div>
       <div class="as-recent">${sessions.slice(0, 15).map(x => `<div><span>${esc(x.topic || x.subject || 'Quiz')}${x.subject && x.topic && x.subject !== x.topic ? ` <span class="as-sub" style="display:inline">· ${esc(x.subject)}</span>` : ''}</span><span class="as-num">${x.pct ?? '—'}% · ${asAgo(x.date)}</span></div>`).join('') || '<span class="as-sub">No quizzes yet.</span>'}</div>
     </section>
+    ${asTidyHtml(u)}
     <div style="display:flex;justify-content:flex-end;gap:8px;">
       <button class="btn btn-secondary" data-close="modal-student">Close</button>
       <button class="btn btn-primary" data-action="view-as" data-uid="${esc(u.id)}" data-name="${esc(u.name || '')}"><i data-icon="eye"></i> View as ${esc((u.name || '').split(' ')[0] || 'student')}</button>
     </div>`;
   renderStats(u, { goalLimit: 4 });
   openModal('modal-student');
+}
+
+/* Remove from progress: clears a stray subject (test content, a deleted
+   pack) from a student's quiz history, reviews and study time. */
+function asTidyHtml(u) {
+  const subs = progressSubjects(u);
+  if (!subs.length) return '';
+  return `<section class="st-section">
+    <div class="st-title"><i data-icon="trash-2"></i> Remove from progress</div>
+    <p class="as-sub" style="margin:0 0 8px;">For test or deleted content. Removes the subject's quiz scores, reviews and study time from this student's progress. XP, level and badges stay. The questions themselves aren't touched.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <select id="as-tidy-subject" style="max-width:280px;padding:7px 10px;border:1px solid var(--border, #ccc);border-radius:8px;font:inherit;">
+        ${subs.map(x => `<option value="${esc(x.name)}">${esc(x.name)} (${x.quizzes} quiz${x.quizzes === 1 ? '' : 'zes'})</option>`).join('')}
+      </select>
+      <button class="btn btn-danger btn-sm" data-action="student-tidy" data-uid="${esc(u.id)}"><i data-icon="trash-2"></i> Remove</button>
+    </div>
+  </section>`;
+}
+async function tidyStudentProgress(uid, btn) {
+  const u = asState.students.find(x => x.id === uid);
+  const name = document.getElementById('as-tidy-subject')?.value;
+  if (!u || !name) return;
+  const m = progressMatches(u, { subjectName: name });
+  if (!m.any) { showToast('Nothing to remove for that subject', 'info'); return; }
+  if (!confirm(`Remove "${name}" from ${u.name || 'this student'}'s progress?\n\n${m.quizzes} quiz${m.quizzes === 1 ? '' : 'zes'}, ${m.srsKeys.length} review question${m.srsKeys.length === 1 ? '' : 's'} and ${m.studyPaths.length} day${m.studyPaths.length === 1 ? '' : 's'} of study time. This can't be undone.`)) return;
+  btn.disabled = true;
+  try {
+    const r = await forgetProgress(uid, { subjectName: name });
+    const fresh = await getDoc(doc(db, 'users', uid));
+    if (fresh.exists()) {
+      const f = { ...u, ...fresh.data() };
+      if (!('study' in fresh.data())) delete f.study;
+      Object.assign(u, f, { wk: asWeek(f), due: dueEntries(f).length, streak: currentStreak(f) });
+    }
+    logEvent('admin.forget_progress', { target: u.name || u.email || '', targetId: uid,
+      detail: `${name}: ${r?.quizzes || 0} quizzes, ${r?.reviews || 0} reviews, ${r?.studyDays || 0} study days` });
+    showToast(`Removed "${name}" from ${(u.name || 'their').split(' ')[0]}'s progress`, 'success');
+    renderAllStudents();
+    openStudentProgress(uid);
+  } catch (e) { showToast('Could not remove: ' + e.message, 'error'); btn.disabled = false; }
 }
 
 /* ── COPY, MOVE TO MY PACKS, MAKE OFFICIAL ──────────────────
@@ -4087,6 +4130,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111f"></script>
+<script src="site.js?v=20261111g"></script>
 </body>
 </html>

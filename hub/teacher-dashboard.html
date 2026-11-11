@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111f">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111f">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111f">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111f">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111g">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111g">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111f">
-  <script src="icons.js?v=20261111f"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111g">
+  <script src="icons.js?v=20261111g"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -288,7 +288,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111f">
+  <link rel="stylesheet" href="ui.css?v=20261111g">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -488,19 +488,19 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261111f';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261111f';
-  import { mountShell } from './shell.js?v=20261111f';
-  import { byOrder } from './order.js?v=20261111f';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261111f';
-  import { logEvent } from './log.js?v=20261111f';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261111f';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111f';
-  import { app as firebaseApp } from './firebase-config.js?v=20261111f';
+  import { auth, db } from './firebase-config.js?v=20261111g';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261111g';
+  import { mountShell } from './shell.js?v=20261111g';
+  import { byOrder } from './order.js?v=20261111g';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261111g';
+  import { logEvent } from './log.js?v=20261111g';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261111g';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111g';
+  import { app as firebaseApp } from './firebase-config.js?v=20261111g';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111f';
+  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111g';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -1211,6 +1211,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261111f"></script>
+<script src="site.js?v=20261111g"></script>
 </body>
 </html>

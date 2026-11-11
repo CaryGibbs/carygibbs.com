@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111f">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111f">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111f">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111f">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111g">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111g">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111f">
-  <script src="icons.js?v=20261111f"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111g">
+  <script src="icons.js?v=20261111g"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -216,18 +216,19 @@
 </div>
 
 <script type="module">
-import { db, storage } from './firebase-config.js?v=20261111f';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261111f';
-import { askClaude, jsonOf } from './ai.js?v=20261111f';
-import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261111f';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261111f';
-import { flatPackIds } from './packs.js?v=20261111f';
-import { logEvent } from './log.js?v=20261111f';
-import { byOrder } from './order.js?v=20261111f';
-import { startStudyTimer } from './study-timer.js?v=20261111f';
+import { db, storage } from './firebase-config.js?v=20261111g';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261111g';
+import { askClaude, jsonOf } from './ai.js?v=20261111g';
+import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261111g';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261111g';
+import { flatPackIds } from './packs.js?v=20261111g';
+import { logEvent } from './log.js?v=20261111g';
+import { byOrder } from './order.js?v=20261111g';
+import { startStudyTimer } from './study-timer.js?v=20261111g';
+import { forgetProgress } from './progress-tidy.js?v=20261111g';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
   questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
-  cardComplete, shortName, copyCards } from './cards-core.js?v=20261111f';
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261111g';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -584,13 +585,20 @@ async function saveSet() {
 }
 
 async function deleteSet(s) {
-  if (!confirm(`Delete "${s.name}" and its ${s.cards.length} cards? This can't be undone.`)) return;
+  if (!confirm(`Delete "${s.name}" and its ${s.cards.length} cards? Its quiz scores and reviews are removed from your progress too. This can't be undone.`)) return;
   try {
     for (const cid of s.sharedWith || []) {
       const c = myClasses.find(x => x.cid === cid);
       if (c) await deleteDoc(doc(db, 'users', c.tid, 'classes', cid, 'sharedSets', `${me.uid}_${s.id}`)).catch(() => {});
     }
     await deleteTopic(s.subjectId, s.id);
+    // Take it off the Progress page as well (quiz history, reviews)
+    await forgetProgress(me.uid, { packId, topicId: s.id }).catch(e => console.warn('Progress tidy', e));
+    // Last set in its subject: remove the subject and its study time too
+    if (!sets.some(x => x.subjectId === s.subjectId && x.id !== s.id)) {
+      await deleteDoc(doc(db, `content/${packId}/subjects/${s.subjectId}`)).catch(() => {});
+      await forgetProgress(me.uid, { packId, subjectId: s.subjectId }).catch(e => console.warn('Progress tidy', e));
+    }
     logEvent('cards.delete', { target: s.name, targetId: s.id, detail: `${s.cards.length} cards` });
     showToast('Set deleted', 'success');
     await loadSets();
@@ -1013,6 +1021,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261111f"></script>
+<script src="site.js?v=20261111g"></script>
 </body>
 </html>
