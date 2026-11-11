@@ -46,7 +46,7 @@
   if (!head && !foot) {
     var css = document.createElement('style');
     css.textContent =
-      '.ll-slimfoot{margin:40px auto 24px;padding:16px;text-align:center;font-family:var(--font-ui,Inter,system-ui,sans-serif);font-size:0.82rem;color:var(--color-text-faint,#888);}' +
+      '.ll-slimfoot{position:relative;z-index:1;margin:40px auto 24px;padding:16px;text-align:center;font-family:var(--font-ui,Inter,system-ui,sans-serif);font-size:0.82rem;color:var(--color-text-faint,#888);}' +
       '.ll-slimfoot a{color:var(--color-text-muted,#666);text-decoration:none;margin:0 8px;}' +
       '.ll-slimfoot a:hover{color:var(--color-primary,#ff7a59);text-decoration:underline;}' +
       '.ll-slimfoot .ll-tag{display:block;margin-top:6px;}';
@@ -55,8 +55,11 @@
       if (document.querySelector('.ll-slimfoot')) return;
       var el = document.createElement('footer');
       el.className = 'll-slimfoot';
+      // On the sign-in page, Home is the website's front page; in the app it's
+      // the person's own home (hub, or their parent/teacher/admin page)
       var home = 'login.html';
       try { home = localStorage.getItem('ll_home') || 'login.html'; } catch (e) {}
+      if (page === 'login.html') home = './';
       el.innerHTML = '<a href="' + home + '"><strong>Home</strong></a>·<a href="plus.html">Free &amp; Plus</a>·<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
         '<span class="ll-tag">© ' + YEAR + ' Lobe Limpet · ' + TAGLINE + '</span>';
       (document.querySelector('main.main') || document.body).appendChild(el);
@@ -77,7 +80,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261111a'),
+        import('./firebase-config.js?v=20261111b'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
