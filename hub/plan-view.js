@@ -7,10 +7,11 @@
 // Parent changes are saved as plan.overrides.<day> on the student.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111e';
+import { byOrder } from './order.js?v=20261111f';
+import { db } from './firebase-config.js?v=20261111f';
 import { doc, updateDoc, deleteField, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261111e';
-import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261111e';
+import { logEvent } from './log.js?v=20261111f';
+import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261111f';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -52,7 +53,7 @@ export async function packSubjects(packId) {
   if (subjectCache[packId]) return subjectCache[packId];
   const snap = await getDocs(collection(db, `content/${packId}/subjects`)).catch(() => null);
   const list = []; snap?.forEach(d => list.push({ id: d.id, ...d.data() }));
-  list.sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || (a.name || '').localeCompare(b.name || ''));
+  list.sort(byOrder);
   return (subjectCache[packId] = list);
 }
 

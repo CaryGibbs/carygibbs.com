@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111e">
-  <script src="icons.js?v=20261111e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111f">
+  <script src="icons.js?v=20261111f"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -415,6 +415,11 @@
     .plus-note strong { color: #b97700; }
     .plus-switch { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .plus-switch input { width: auto; margin: 0; }
+    .move-btns { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0.55; }
+    .item-card:hover .move-btns { opacity: 1; }
+    .move-btns .icon-btn { width: 26px; height: 26px; }
+    .move-btns .icon-btn[disabled] { opacity: 0.25; cursor: default; }
+    .order-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.82rem; color: var(--color-text-muted); margin: 0 0 var(--space-md); }
     .lim-input { width: 180px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; font: inherit; background: var(--color-surface); color: var(--color-text); }
     .users-table { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: 0.88rem; }
     .users-table th { text-align: left; padding: 8px 12px; color: var(--color-text-muted); border-bottom: 2px solid var(--color-border); font-weight: 600; }
@@ -587,8 +592,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111e">
-  <link rel="stylesheet" href="stats.css?v=20261111e">
+  <link rel="stylesheet" href="ui.css?v=20261111f">
+  <link rel="stylesheet" href="stats.css?v=20261111f">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1317,27 +1322,27 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111e';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111e';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111e';
-import { openDeleteAccount } from './account.js?v=20261111e';
-import { addDocumentButton } from './doc-text.js?v=20261111e';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111e';
-import { showPlusUpsell } from './plus.js?v=20261111e';
+import { auth, db, storage } from './firebase-config.js?v=20261111f';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111f';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111f';
+import { openDeleteAccount } from './account.js?v=20261111f';
+import { addDocumentButton } from './doc-text.js?v=20261111f';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111f';
+import { showPlusUpsell } from './plus.js?v=20261111f';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111e';
-import { mountShell } from './shell.js?v=20261111e';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111e';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111e';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111e';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111e';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111e';
-import { dueEntries } from './srs.js?v=20261111e';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111e';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111f';
+import { mountShell } from './shell.js?v=20261111f';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111f';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111f';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111f';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111f';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111f';
+import { dueEntries } from './srs.js?v=20261111f';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111f';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1353,7 +1358,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111e';
+import { saveEmailIndex } from './email-index.js?v=20261111f';
+import { inOrder } from './order.js?v=20261111f';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2055,21 +2061,65 @@ async function saveGroup() {
 /* ── SUBJECTS ────────────────────────────────────────────── */
 function subjectsPath() { return `content/${selectedGroup.id}/subjects`; }
 
+/* ── Order of subjects and topics ──────────────────────────
+   Arrows on each card move it; every item then gets order = its position,
+   which students see too. "Sort by name" puts them in natural name order
+   (Micro 2 before Micro 10). See order.js. */
+const orderedItems = { subjects: [], topics: [] };
+function moveButtons(kind, i, n) {
+  if (n < 2) return '';
+  return `<div class="move-btns">
+    <button class="icon-btn" data-move="${kind}" data-from="${i}" data-dir="-1" title="Move earlier" aria-label="Move earlier" ${i === 0 ? 'disabled' : ''}><i data-icon="arrow-left"></i></button>
+    <button class="icon-btn" data-move="${kind}" data-from="${i}" data-dir="1" title="Move later" aria-label="Move later" ${i === n - 1 ? 'disabled' : ''}><i data-icon="arrow-right"></i></button>
+  </div>`;
+}
+function orderBar(gridId, kind, n) {
+  const grid = document.getElementById(gridId);
+  grid.previousElementSibling?.classList?.contains('order-bar') && grid.previousElementSibling.remove();
+  if (n < 2) return;
+  grid.insertAdjacentHTML('beforebegin', `<div class="order-bar"><span>Students see these in this order. Use the arrows on each card to move one, or</span>
+    <button class="btn btn-secondary" data-sort-name="${kind}" style="padding:5px 12px;font-size:0.8rem;"><i data-icon="list"></i> Sort by name (1, 2, … 10)</button></div>`);
+}
+async function saveOrder(kind, list) {
+  const path = kind === 'subjects' ? subjectsPath() : topicsPath();
+  await Promise.all(list.map((x, i) => x.order === i ? null : updateDoc(doc(db, path, x.id), { order: i }).then(() => { x.order = i; })));
+  logEvent(kind === 'subjects' ? 'content.subject' : 'content.topic', { target: `${selectedGroup?.name || ''}${kind === 'topics' ? ' › ' + (selectedSubject?.name || '') : ''}`, detail: 'Changed the order' });
+}
+document.addEventListener('click', async e => {
+  const mv = e.target.closest('[data-move]'), sn = e.target.closest('[data-sort-name]');
+  if (!mv && !sn) return;
+  e.stopPropagation();
+  const kind = (mv || sn).dataset.move || sn.dataset.sortName;
+  const list = [...orderedItems[kind]];
+  if (mv) {
+    const from = +mv.dataset.from, to = from + +mv.dataset.dir;
+    if (to < 0 || to >= list.length) return;
+    [list[from], list[to]] = [list[to], list[from]];
+  } else {
+    const c = new Intl.Collator('en-GB', { numeric: true, sensitivity: 'base' });
+    list.sort((a, b) => c.compare(a.name || '', b.name || ''));
+  }
+  try { await saveOrder(kind, list); } catch (err) { showToast('Could not save the order: ' + err.message, 'error'); }
+  kind === 'subjects' ? loadSubjects() : loadTopics();
+}, true);
+
 async function loadSubjects() {
   updateBreadcrumb();
   const grid = document.getElementById('subjects-grid');
   grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
-  const snap = await getDocs(query(collection(db, subjectsPath()), orderBy('order','asc'))).catch(() =>
-    getDocs(collection(db, subjectsPath())));
+  const list = inOrder(await getDocs(collection(db, subjectsPath())).catch(() => null));
+  orderedItems.subjects = list;
   grid.innerHTML = '';
-  snap.forEach(d => grid.appendChild(subjectCard(d.id, d.data())));
+  list.forEach((x, i) => grid.appendChild(subjectCard(x.id, x, i, list.length)));
   grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-subject">＋ New subject</div>`);
+  orderBar('subjects-grid', 'subjects', list.length);
 }
 
-function subjectCard(id, data) {
+function subjectCard(id, data, i = 0, n = 1) {
   const div = document.createElement('div');
   div.className = 'item-card';
   div.innerHTML = `
+    ${moveButtons('subjects', i, n)}
     <div class="item-card-actions">
       <button class="icon-btn icon-btn-edit" data-action="edit-subject" data-id="${id}" title="Edit"><i data-icon="pencil"></i></button>
       <button class="icon-btn icon-btn-del" data-action="del-subject" data-id="${id}" data-name="${esc(data.name)}" title="Delete"><i data-icon="trash-2"></i></button>
@@ -2078,7 +2128,7 @@ function subjectCard(id, data) {
     <div class="item-card-name">${esc(data.name)}</div>
     <div class="item-card-meta">Click to view topics</div>`;
   div.addEventListener('click', e => {
-    if (e.target.closest('[data-action="edit-subject"],[data-action="del-subject"]')) return;
+    if (e.target.closest('[data-action="edit-subject"],[data-action="del-subject"],[data-move]')) return;
     openSubject(id, data);
   });
   return div;
@@ -2227,23 +2277,22 @@ async function loadTopics() {
   updateBreadcrumb();
   const grid = document.getElementById('topics-grid');
   grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
-  const snap = await getDocs(collection(db, topicsPath())).catch(() => ({ forEach: ()=>{} }));
-  grid.innerHTML = '';
+  const list = inOrder(await getDocs(collection(db, topicsPath())).catch(() => null));
+  orderedItems.topics = list;
   const counts = {};
   // Count questions per topic
-  const countPromises = [];
-  snap.forEach(d => {
-    countPromises.push(qCountOf(topicsPath() + '/' + d.id + '/questions').then(n => { counts[d.id] = n; }));
-  });
-  await Promise.all(countPromises);
-  snap.forEach(d => grid.appendChild(topicCard(d.id, d.data(), counts[d.id] || 0)));
+  await Promise.all(list.map(t => qCountOf(topicsPath() + '/' + t.id + '/questions').then(n => { counts[t.id] = n; })));
+  grid.innerHTML = '';
+  list.forEach((t, i) => grid.appendChild(topicCard(t.id, t, counts[t.id] || 0, i, list.length)));
   grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-topic">＋ New topic</div>`);
+  orderBar('topics-grid', 'topics', list.length);
 }
 
-function topicCard(id, data, qCount) {
+function topicCard(id, data, qCount, i = 0, n = 1) {
   const div = document.createElement('div');
   div.className = 'item-card';
   div.innerHTML = `
+    ${moveButtons('topics', i, n)}
     <div class="item-card-actions">
       <button class="icon-btn icon-btn-edit" data-action="edit-topic" data-id="${id}" title="Edit"><i data-icon="pencil"></i></button>
       <button class="icon-btn icon-btn-del" data-action="del-topic" data-id="${id}" data-name="${esc(data.name)}" title="Delete"><i data-icon="trash-2"></i></button>
@@ -2252,7 +2301,7 @@ function topicCard(id, data, qCount) {
     <div class="item-card-name">${esc(data.name)}</div>
     <div class="item-card-meta"><span class="count-chip">${qCount}</span> questions</div>`;
   div.addEventListener('click', e => {
-    if (e.target.closest('[data-action="edit-topic"],[data-action="del-topic"]')) return;
+    if (e.target.closest('[data-action="edit-topic"],[data-action="del-topic"],[data-move]')) return;
     openTopic(id, data);
   });
   return div;
@@ -2308,7 +2357,7 @@ async function saveTopic() {
       showToast('Topic updated', 'success');
       editingItem = null;
     } else {
-      const ref = await addDoc(collection(db, topicsPath()), { name, keyPoints: [], createdAt: serverTimestamp() });
+      const ref = await addDoc(collection(db, topicsPath()), { name, keyPoints: [], order: (orderedItems.topics || []).length, createdAt: serverTimestamp() });
       logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: 'Created' });
       closeModal('modal-topic');
       editingItem = null;
@@ -4038,6 +4087,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111e"></script>
+<script src="site.js?v=20261111f"></script>
 </body>
 </html>

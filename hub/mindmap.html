@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Learn</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111e">
-  <script src="icons.js?v=20261111e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111f">
+  <script src="icons.js?v=20261111f"></script>
   <style>
     body { height: 100vh; height: 100dvh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
 
@@ -307,8 +307,8 @@
     }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
   </style>
-  <link rel="stylesheet" href="learn.css?v=20261111e">
-  <link rel="stylesheet" href="ui.css?v=20261111e">
+  <link rel="stylesheet" href="learn.css?v=20261111f">
+  <link rel="stylesheet" href="ui.css?v=20261111f">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -405,12 +405,13 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111e';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111e';
-import { awardXp } from './gamification.js?v=20261111e';
-import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261111e';
-import { startStudyTimer } from './study-timer.js?v=20261111e';
-import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers, cardQuestion, ensureCardQuestions } from './card-length.js?v=20261111e';
+import { auth, db } from './firebase-config.js?v=20261111f';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111f';
+import { awardXp } from './gamification.js?v=20261111f';
+import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261111f';
+import { startStudyTimer } from './study-timer.js?v=20261111f';
+import { inOrder } from './order.js?v=20261111f';
+import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers, cardQuestion, ensureCardQuestions } from './card-length.js?v=20261111f';
 import {
   collection, getDocs, doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -589,8 +590,7 @@ async function loadData() {
       // Whole subject mode
       const subSnap  = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}`));
       const topSnap  = await getDocs(collection(db, `content/${groupId}/subjects/${subjectId}/topics`));
-      const topicList = [];
-      topSnap.forEach(d => topicList.push({ id: d.id, ...d.data() }));
+      const topicList = inOrder(topSnap);
 
       const topicsWithQ = await Promise.all(topicList.map(async t => {
         // Questions are only used when a topic has no key points (saves reads)
