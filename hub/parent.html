@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110q">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110q">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110q">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110q">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110q">
-  <script src="icons.js?v=20261110q"></script>
-  <link rel="stylesheet" href="stats.css?v=20261110q">
+  <link rel="stylesheet" href="theme.css?v=20261111a">
+  <script src="icons.js?v=20261111a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261111a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -171,8 +171,15 @@
       .modal.progress-modal { padding: var(--space-lg) var(--space-md); }
       .progress-xp { display: none; }
     }
+    .link-offer { background: var(--color-primary-glow); border: 1px solid var(--color-primary); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.9rem; }
+    .link-offer p { margin: 6px 0 10px; color: var(--color-text-muted); line-height: 1.5; }
+    .pending-links { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--space-lg); }
+    .pending-link { display: flex; align-items: center; gap: 12px; background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: var(--radius-card); padding: 12px 16px; }
+    .pending-link > span { font-size: 1.3rem; }
+    .pending-link div { flex: 1; }
+    .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261110q">
+  <link rel="stylesheet" href="ui.css?v=20261111a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -227,6 +234,7 @@
     </div>
     <h2 class="family-heading">My Family</h2>
     <div class="children-count" id="children-count">Loading…</div>
+    <div id="pending-links"></div>
     <div class="children-grid" id="children-grid"></div>
   </section>
   </div>
@@ -242,10 +250,12 @@
     <div class="error-msg" id="add-error"></div>
     <div class="form-group"><label>Student's name</label><input type="text" id="child-name" placeholder="e.g. Emily"></div>
     <div class="form-group"><label>Email address</label><input type="email" id="child-email" placeholder="emily@example.com"></div>
+    <p class="form-hint" style="margin:-6px 0 12px;">Already has a Lobe Limpet account? Enter their email and leave the password empty: we'll ask them to link with you.</p>
+    <div id="link-offer"></div>
     <div class="form-group">
       <label>Password</label>
       <div class="password-row">
-        <input type="text" id="child-password" placeholder="Set a password">
+        <input type="text" id="child-password" placeholder="Set a password (new accounts only)">
         <button class="btn-generate" onclick="generatePw()"><i data-icon="sparkles"></i> Generate</button>
       </div>
       <div class="password-reveal" id="pw-reveal">
@@ -415,20 +425,21 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110q';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261110q';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261110q';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261110q';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261110q';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261110q';
-import { logEvent } from './log.js?v=20261110q';
-import { openInviteDialog } from './invite.js?v=20261110q';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261110q';
-import { dueEntries, scheduledCount } from './srs.js?v=20261110q';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261110q';
-import { openPlanCalendar } from './plan-view.js?v=20261110q';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261110q';
-import { openDeleteAccount } from './account.js?v=20261110q';
+import { auth, db } from './firebase-config.js?v=20261111a';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111a';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111a';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111a';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111a';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261111a';
+import { logEvent } from './log.js?v=20261111a';
+import { openInviteDialog } from './invite.js?v=20261111a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111a';
+import { dueEntries, scheduledCount } from './srs.js?v=20261111a';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111a';
+import { openPlanCalendar } from './plan-view.js?v=20261111a';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111a';
+import { openDeleteAccount } from './account.js?v=20261111a';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111a';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -471,7 +482,7 @@ requireAuth((user, profile) => {
   homeName = (profile.name || '').split(' ')[0] || '';
   showSection();
   // Groups first, so child cards show group names rather than ids
-  loadGroups().finally(loadChildren);
+  loadGroups().finally(() => { loadChildren(); loadPendingLinks(); });
 });
 
 window._doSignOut = () => handleSignOut();
@@ -586,10 +597,12 @@ function renderHome() {
   const att = document.getElementById('home-attention');
   const act = document.getElementById('home-activity');
   const wk = document.getElementById('home-students');
+  const waitingHtml = pendingLinks.filter(l => l.status === 'pending' && !childrenData[l.studentUid])
+    .map(l => `<div class="att-item"><span class="att-emoji">⏳</span><div class="att-text">Waiting for ${esc(l.studentName || l.studentEmail)} to accept your link request<small>They'll see it next time they open Lobe Limpet.</small></div></div>`).join('');
   if (!kids.length) {
     document.getElementById('home-sub').textContent = 'Add a student to get started.';
     tiles.innerHTML = '';
-    att.innerHTML = `<div class="home-empty">No students yet. <a href="#" onclick="openAddModal();return false;">Add your first student</a> and their progress will show here.</div>`;
+    att.innerHTML = waitingHtml || `<div class="home-empty">No students yet. <a href="#" onclick="openAddModal();return false;">Add your first student</a> and their progress will show here.</div>`;
     act.innerHTML = '<div class="home-empty">Nothing yet.</div>';
     wk.innerHTML = '';
     return;
@@ -639,9 +652,9 @@ function renderHome() {
     if (st.current >= 3 && st.current >= st.best) items.push({ p: 5, emoji: '🏆', text: `${esc(k.first)} is on a ${st.current}-day personal best`, sub: 'Worth a well done!', act: btn('Message', `openNotifyModal('${k.uid}')`) });
   });
   items.sort((a, b) => a.p - b.p);
-  att.innerHTML = items.length
+  att.innerHTML = waitingHtml + (items.length
     ? items.slice(0, 6).map(i => `<div class="att-item"><span class="att-emoji">${i.emoji}</span><div class="att-text">${i.text}${i.sub ? `<small>${i.sub}</small>` : ''}</div>${i.act}</div>`).join('')
-    : '<div class="home-empty">✅ All good: nothing needs you right now.</div>';
+    : (waitingHtml ? '' : '<div class="home-empty">✅ All good: nothing needs you right now.</div>'));
 
   // ── Recent activity (last 7 days) ──
   const events = [];
@@ -784,6 +797,7 @@ function getCheckedGroupIds(containerId) {
 
 /* ── Add child ───────────────────────────────────────────── */
 window._openAddModal = function() {
+  const lo = document.getElementById('link-offer'); if (lo) lo.innerHTML = '';
   document.getElementById('child-name').value = '';
   document.getElementById('child-email').value = '';
   document.getElementById('child-password').value = '';
@@ -812,8 +826,14 @@ window._addChild = async function() {
   const groupIds = getCheckedGroupIds('add-group-list');
   if (!name)               { showErr('add-error', "Please enter the student's name."); return; }
   if (!email)              { showErr('add-error', 'Please enter an email address.'); return; }
-  if (password.length < 8) { showErr('add-error', 'Password must be at least 8 characters.'); return; }
   const btn = document.getElementById('btn-add-child');
+  document.getElementById('link-offer').innerHTML = '';
+  // Does this email already have an account? Then ask the student to link instead
+  btn.classList.add('loading');
+  const existing = await findByEmail(email).catch(() => null);
+  btn.classList.remove('loading');
+  if (existing) { offerLink(existing, name); return; }
+  if (password.length < 8) { showErr('add-error', 'Password must be at least 8 characters.'); return; }
   btn.classList.add('loading');
   try {
     // Create via REST API to avoid displacing parent's auth session
@@ -850,6 +870,49 @@ window._addChild = async function() {
     showErr('add-error', friendlyError(e.code) || e.message);
   } finally { btn.classList.remove('loading'); }
 };
+
+/* ── Linking a student who already has an account ─────────── */
+let pendingLinks = [];
+function offerLink(other, typedName) {
+  const box = document.getElementById('link-offer');
+  document.getElementById('add-error').classList.remove('visible');
+  const roles = other.roles || [];
+  if (other.id === parentUid) { showErr('add-error', "That's your own email address."); return; }
+  if (childrenData[other.id]) { showErr('add-error', `${other.name || 'That student'} is already in your list.`); return; }
+  if (!roles.includes('student')) { showErr('add-error', 'That email belongs to a parent or teacher account, not a student. Use a different email for the student.'); return; }
+  const waiting = pendingLinks.find(l => l.studentUid === other.id && l.status === 'pending');
+  box.innerHTML = `<div class="link-offer">
+    <strong>${esc(other.name || typedName || 'This student')} already has a Lobe Limpet account.</strong>
+    <p>${waiting ? "You've already asked them. They'll appear in your list once they accept." : "Send them a request to link with you. Once they accept in their hub, you'll see their progress here and can set up packs and plans. They keep everything they've done so far."}</p>
+    ${waiting ? '' : '<button class="btn btn-primary" id="btn-send-link"><i data-icon="send"></i> Send link request</button>'}
+  </div>`;
+  const b = document.getElementById('btn-send-link');
+  if (b) b.onclick = async () => {
+    b.disabled = true;
+    try {
+      await sendLinkRequest({ parentUid, parentName: shellProfile?.name || '', parentEmail: shellProfile?.email || '', student: other, typedName: typedName || other.name });
+      document.getElementById('modal-add').classList.remove('open');
+      showToast(`Request sent. ${typedName || other.name || 'They'} will see it next time they open Lobe Limpet.`, 'success');
+      loadPendingLinks();
+    } catch (e) { b.disabled = false; showErr('add-error', 'Could not send the request: ' + e.message); }
+  };
+}
+async function loadPendingLinks() {
+  pendingLinks = (await myLinkRequests(parentUid)).filter(l => l.status === 'pending' || l.status === 'declined');
+  const box = document.getElementById('pending-links');
+  const shown = pendingLinks.filter(l => !childrenData[l.studentUid]);
+  box.innerHTML = shown.length ? `<div class="pending-links">${shown.map(l => `<div class="pending-link">
+      <span>${l.status === 'declined' ? '✋' : '⏳'}</span>
+      <div><strong>${esc(l.studentName || l.studentEmail)}</strong><small>${l.status === 'declined' ? 'Declined your link request' : `Link request sent ${agoText(l.at)}: waiting for them to accept in their hub`}</small></div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.8rem" data-cancel-link="${esc(l.id)}">${l.status === 'declined' ? 'Dismiss' : 'Cancel'}</button>
+    </div>`).join('')}</div>` : '';
+  box.querySelectorAll('[data-cancel-link]').forEach(b => b.onclick = async () => {
+    const l = pendingLinks.find(x => x.id === b.dataset.cancelLink); if (!l) return;
+    b.disabled = true;
+    try { await cancelLinkRequest(l); loadPendingLinks(); } catch (e) { b.disabled = false; showToast('Could not cancel: ' + e.message, 'error'); }
+  });
+  renderHome();
+}
 
 /* ── Day-by-day plan (parents can change any day) ─────────── */
 window.openPlanFor = (uid) => {
@@ -1021,6 +1084,18 @@ window._shareStudent = async function() {
 window._confirmRemoveChild = async function() {
   const child = childrenData[managingChildId];
   const others = guardiansOf(child).filter(id => id !== parentUid);
+  // A student who linked with you (their own account) is only ever unlinked
+  if (child.parentUid !== parentUid && !others.length) {
+    if (!confirm(`Remove ${child.name} from your list? Their account and progress stay with them; you just stop seeing it.`)) return;
+    await updateDoc(doc(db, 'users', managingChildId), { guardianIds: arrayRemove(parentUid) }).catch(() => {});
+    await deleteDoc(doc(db, 'users', parentUid, 'children', managingChildId));
+    const l = (await myLinkRequests(parentUid)).find(x => x.studentUid === managingChildId);
+    if (l) await cancelLinkRequest(l).catch(() => {});
+    logEvent('student.unlink', { target: child.name, targetId: managingChildId, detail: 'Removed a linked student from their list' });
+    document.getElementById('modal-manage').classList.remove('open');
+    showToast(`${child.name} removed from your list.`, 'info');
+    return;
+  }
   if (others.length) {
     // Shared: just unlink this parent; the account and progress stay
     if (!confirm(`Remove ${child.name} from your list? The other parent keeps access and nothing is deleted.`)) return;
@@ -1225,6 +1300,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261110q"></script>
+<script src="site.js?v=20261111a"></script>
 </body>
 </html>

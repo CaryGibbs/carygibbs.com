@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110q">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110q">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110q">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110q">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110q">
-  <script src="icons.js?v=20261110q"></script>
-  <link rel="stylesheet" href="stats.css?v=20261110q">
+  <link rel="stylesheet" href="theme.css?v=20261111a">
+  <script src="icons.js?v=20261111a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261111a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -154,7 +154,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261110q">
+  <link rel="stylesheet" href="ui.css?v=20261111a">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -225,6 +225,12 @@
     <div class="sessions-list" id="sessions-list"></div>
   </div>
 
+  <!-- Parents and teachers who can see my progress -->
+  <div class="section" id="people-section" hidden>
+    <div class="section-title"><i data-icon="users"></i> Who can see your progress</div>
+    <div id="people-list"></div>
+  </div>
+
   <!-- Delete account (not shown while an adult is previewing) -->
   <div class="section" id="delete-section">
     <div class="section-title"><i data-icon="trash-2"></i> Your account</div>
@@ -241,14 +247,15 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261110q';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261110q';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261110q';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261110q';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261110q';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261110q';
-import { openDeleteAccount } from './account.js?v=20261110q';
-import { plusPillHtml } from './plus.js?v=20261110q';
+import { auth, db } from './firebase-config.js?v=20261111a';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261111a';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261111a';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261111a';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261111a';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261111a';
+import { openDeleteAccount } from './account.js?v=20261111a';
+import { plusPillHtml } from './plus.js?v=20261111a';
+import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261111a';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
@@ -296,11 +303,40 @@ function renderThemePicker(user, profile) {
   });
 }
 
+// Parents and teachers linked to this account. Parents who linked by a
+// request the student accepted can be removed here; others are shown only.
+async function showPeople(user, profile) {
+  const esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const ids = [...new Set([profile.parentUid, ...(profile.guardianIds || [])].filter(Boolean))];
+  const tids = [...new Set(profile.teacherIds || [])];
+  if (!ids.length && !tids.length) return;
+  const links = (await linksForStudent(user.uid).catch(() => [])).filter(l => l.status === 'accepted');
+  const nameOf = async id => (await getDoc(doc(db, 'users', id)).catch(() => null))?.data() || {};
+  const rows = await Promise.all([
+    ...ids.map(async id => ({ id, kind: 'Parent', p: await nameOf(id), link: links.find(l => l.by === id && id !== profile.parentUid) })),
+    ...tids.map(async id => ({ id, kind: 'Teacher', p: await nameOf(id) })),
+  ]);
+  document.getElementById('people-section').hidden = false;
+  const box = document.getElementById('people-list');
+  box.innerHTML = rows.map(r => `<div class="person-row" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--color-border);">
+      <div style="flex:1;"><strong>${esc(r.p.name || r.p.email || 'Someone')}</strong><div style="font-size:0.82rem;color:var(--color-text-muted);">${r.kind}${r.p.email ? ' · ' + esc(r.p.email) : ''}</div></div>
+      ${r.link ? `<button class="btn btn-ghost" style="padding:6px 12px;font-size:0.8rem;" data-unlink="${esc(r.link.id)}">Remove</button>` : ''}
+    </div>`).join('') + `<p class="card-length-help" style="margin-top:10px;">Teachers come from the classes you've joined. A parent who set up your account can't be removed here.</p>`;
+  box.querySelectorAll('[data-unlink]').forEach(b => b.onclick = async () => {
+    const link = links.find(l => l.id === b.dataset.unlink);
+    if (!link || !confirm(`Remove ${link.byName || 'this parent'}? They'll no longer see your progress.`)) return;
+    b.disabled = true;
+    try { await removeLinkedParent(user.uid, link); b.closest('.person-row').remove(); }
+    catch (e) { b.disabled = false; alert('Could not remove: ' + e.message); }
+  });
+}
+
 requireAuth(async (user, profile) => {
   if (!isPreview()) document.getElementById('plus-link').innerHTML = plusPillHtml(profile);
   if (!isStudent(profile)) { location.href = 'hub.html'; return; }
   if (isPreview()) document.getElementById('delete-section').hidden = true;
   else document.getElementById('btn-delete-account').onclick = () => openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true });
+  if (!isPreview()) showPeople(user, profile);
 
   // Apply theme
   if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
@@ -409,6 +445,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261110q"></script>
+<script src="site.js?v=20261111a"></script>
 </body>
 </html>

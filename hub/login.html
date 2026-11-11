@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261110q">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261110q">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261110q">
-  <link rel="manifest" href="manifest.webmanifest?v=20261110q">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261110q">
-  <script src="icons.js?v=20261110q"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111a">
+  <script src="icons.js?v=20261111a"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -64,7 +64,7 @@
   .pw-btn { background: none; border: 1px solid var(--color-border); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; }
   .pw-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261110q">
+  <link rel="stylesheet" href="ui.css?v=20261111a">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -168,8 +168,8 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261110q';
-  import { redirectByRole, generatePassword } from './auth.js?v=20261110q';
+  import { auth, db } from './firebase-config.js?v=20261111a';
+  import { redirectByRole, generatePassword } from './auth.js?v=20261111a';
   // Password helpers: show/hide, and a memorable suggested password for new accounts
   document.querySelectorAll('[data-pw-show]').forEach(b => b.addEventListener('click', () => {
     const f = document.getElementById(b.dataset.pwShow);
@@ -184,10 +184,10 @@
     document.getElementById('pw-hint').textContent = 'Write this down or let your browser save it: you\'ll need it to sign in.';
     f.focus(); f.select();
   });
-  import { logEvent } from './log.js?v=20261110q';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261110q';
-  import { findClass } from './join-class.js?v=20261110q';
-  import { saveEmailIndex } from './email-index.js?v=20261110q';
+  import { logEvent } from './log.js?v=20261111a';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261111a';
+  import { findClass } from './join-class.js?v=20261111a';
+  import { saveEmailIndex } from './email-index.js?v=20261111a';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut

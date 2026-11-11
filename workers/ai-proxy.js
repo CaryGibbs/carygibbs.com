@@ -14,7 +14,7 @@
 //   (generation may include page pictures, to read scanned PDFs and diagrams)
 //   action 'checkLinks'  checking resource links load        any signed-in user
 //   action 'deleteAccount'  delete a user's account and data  yourself, a student's
-//                       only parent, or an admin (only the owner can delete admins)
+//                       only parent (the one who made the account), or an admin (only the owner can delete admins)
 //   action 'logSignedOut'   log a failed sign-in or password reset  anyone (no sign-in),
 //                       at most 30 a day from one internet address
 //   action 'storageSweep'   delete pictures nothing uses any more    admins only
@@ -370,7 +370,10 @@ async function deleteAccount(env, caller, uid, checkOnly) {
   // ── Who may do this? ──
   if (caller.uid !== uid) {
     const guardians = [target?.parentUid, ...(target?.guardianIds || [])].filter(Boolean);
-    const onlyParent = guardians.length && guardians.every(g => g === caller.uid);
+    // Only the parent who made the account (parentUid), with no other parent
+    // linked. A parent linked to a student's own account (guardianIds only)
+    // can unlink but never delete it.
+    const onlyParent = target?.parentUid === caller.uid && guardians.every(g => g === caller.uid);
     const isStudentOnly = tRoles.size === 1 && tRoles.has('student');
     if (callerAdmin) {
       if (tRoles.has('admin') && caller.uid !== OWNER_UID) throw oops(403, 'Only the owner can delete an admin');

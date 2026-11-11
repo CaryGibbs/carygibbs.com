@@ -28,6 +28,8 @@ rules_version = '2';
 //   of that student's parents or teachers (not just the id in packIds).
 //   aiUsage: written by the AI Worker; admins and the person read it.
 //   plusRequests: a person asks for Plus; admins read, switch on, clear.
+//   parentLinks: a parent asks to link with a student's existing account;
+//   the student accepts (becoming a guardian link) or declines.
 //   Library reports: any signed-in user can report; admins read and clear.
 //   Settings: any signed-in user can read; admins write.
 //
@@ -99,6 +101,22 @@ service cloud.firestore {
         return was.hasAll(now)
           || (now == was.union([j.get('teacherUid', '')].toSet()) && inClass(j));
       }
+      // A student answering a parent's link request (parent-link.js), checked
+      // against the request named in lastParentLink: accepting a pending one
+      // adds that parent to guardianIds; removing an accepted one takes them
+      // off again (never a parent who made the account, parentUid)
+      function parentLinkOK() {
+        let id = newData().get('lastParentLink', '');
+        let path = /databases/$(database)/documents/parentLinks/$(id);
+        let was = resource.data.get('guardianIds', []).toSet();
+        let now = newData().get('guardianIds', []).toSet();
+        return id != '' && exists(path)
+          && get(path).data.studentUid == me()
+          && changedKeys().hasOnly(['guardianIds', 'lastParentLink'])
+          && ((get(path).data.status == 'pending' && now == was.union([get(path).data.by].toSet()))
+              || (get(path).data.status == 'accepted' && now == was.difference([get(path).data.by].toSet())
+                  && get(path).data.by != resource.data.get('parentUid', '')));
+      }
       // Signing yourself up: no admin (unless invited), no paid plan, no parent links
       function selfCreateOK() {
         return (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
@@ -154,6 +172,7 @@ service cloud.firestore {
         isOwner()
         || (isAdmin() && uid != ownerUid() && !adminChanges())
         || (me() == uid && selfUpdateOK())
+        || (me() == uid && parentLinkOK())
         || (guardianOf(resource.data) && guardianUpdateOK())
         || (teacherOf(resource.data) && changedKeys().hasOnly(['classes', 'classPacks', 'teacherIds', 'packIds']))
         || inviteGuardianOK());
@@ -168,7 +187,7 @@ service cloud.firestore {
         function guardianOfId(id) { return exists(/databases/$(database)/documents/users/$(id)) && guardianOf(userDoc(id)); }
         allow read: if signedIn() && (me() == uid || isAdmin());
         allow create, update: if signedIn() && (me() == uid || me() == sid || isAdmin() || guardianOfId(sid));
-        allow delete: if signedIn() && (me() == uid || isAdmin());
+        allow delete: if signedIn() && (me() == uid || me() == sid || isAdmin());
       }
 
       // A teacher's classes. Looked up by join code before sign-up, so a
@@ -320,6 +339,34 @@ service cloud.firestore {
     }
     // Rate limits for signed-out logging (Worker only)
     match /rateLimits/{id} { allow read, write: if false; }
+
+    // ── Parent link requests (parent-link.js) ─────────────
+    // Id {parentUid}_{studentUid}. A parent asks to link with a student
+    // account that already exists (not one already theirs); the student
+    // accepts or declines, and can later remove a parent linked this way.
+    match /parentLinks/{id} {
+      function stu() { return userDoc(request.resource.data.studentUid); }
+      allow get, list: if signedIn() && (resource.data.by == me() || resource.data.studentUid == me() || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.by == me()
+        && id == me() + '_' + request.resource.data.studentUid
+        && request.resource.data.status == 'pending'
+        && (hasRole(userDoc(me()), 'parent') || hasRole(userDoc(me()), 'admin'))
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.studentUid))
+        && hasRole(stu(), 'student')
+        && stu().get('parentUid', '') != me() && !(me() in stu().get('guardianIds', []));
+      allow update: if signedIn() && (
+        // the student answers, or removes a parent they linked
+        (resource.data.studentUid == me() && changedKeys().hasOnly(['status', 'decidedAt'])
+          && ((resource.data.status == 'pending' && request.resource.data.status in ['accepted', 'declined'])
+              || (resource.data.status == 'accepted' && request.resource.data.status == 'removed')))
+        // the parent cancels, or asks again after a no
+        || (resource.data.by == me() && request.resource.data.by == me()
+          && request.resource.data.studentUid == resource.data.studentUid
+          && (request.resource.data.status == 'cancelled'
+              || (request.resource.data.status == 'pending' && resource.data.status != 'accepted'))));
+      allow delete: if isAdmin();
+    }
 
     // ── Asking for Plus ───────────────────────────────────
     // One request per person (id = their uid); admins switch Plus on in Users
