@@ -19,8 +19,10 @@
 //                       at most 30 a day from one internet address
 //   action 'storageSweep'   delete pictures nothing uses any more    admins only
 //                       (also runs on a schedule if a Cron Trigger is set)
-// AI use is counted per person per day (aiUsage/{uid}_{day}) and capped by the
-// daily token allowance in settings/aiLimits (free and Plus; admins unlimited).
+// AI use is counted per person per day (aiUsage/{uid}_{day}) and per month
+// (aiUsageMonth/{uid}_{YYYY-MM}), capped by the daily and monthly token
+// allowances in settings/aiLimits (free, plus, freeMonth, plusMonth; personal
+// users.aiLimit / users.aiLimitMonth; admins unlimited).
 // Only the models below can be used, and each task has a size limit.
 //
 // Settings (Cloudflare → Workers → this Worker → Settings → Variables):
@@ -54,7 +56,13 @@ const MAX_IMAGE_B64 = 5 * 1024 * 1024;   // per picture (base64 characters)
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const BUCKET = 'clasp-revision.firebasestorage.app';
 // Daily AI allowance in tokens (prompt + reply), unless settings/aiLimits says otherwise
-const LIMIT_DEFAULTS = { free: 150000, plus: 2000000 };
+const LIMIT_DEFAULTS = { free: 50000, plus: 200000, freeMonth: 150000, plusMonth: 400000 };
+const londonMonth = (d = new Date()) => londonDay(d).slice(0, 7);
+// "1 December": when this month's allowance starts again
+const nextMonthText = (d = new Date()) => {
+  const [y, m] = londonMonth(d).split('-').map(Number);
+  return new Date(Date.UTC(m === 12 ? y + 1 : y, m % 12, 1)).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+};
 const SIGNED_OUT_ACTIONS = ['account.signin_fail', 'account.reset'];
 const SIGNED_OUT_PER_DAY = 30;
 const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
@@ -132,13 +140,14 @@ export default {
     const task = TASKS[taskName];
     if (!task) return fail(400, 'Unknown task');
     // Who they are (plan, roles) and what they've used today
-    let who = null, used = null, limits = null, svc = null;
-    const day = londonDay();
+    let who = null, used = null, usedMonth = null, limits = null, svc = null;
+    const day = londonDay(), month = londonMonth();
     if (user && env.FIREBASE_SERVICE_ACCOUNT) {
       try {
         svc = await serviceToken(env);
-        [who, used, limits] = await Promise.all([
-          fsGet(svc, `users/${user.uid}`), fsGet(svc, `aiUsage/${user.uid}_${day}`), fsGet(svc, 'settings/aiLimits'),
+        [who, used, usedMonth, limits] = await Promise.all([
+          fsGet(svc, `users/${user.uid}`), fsGet(svc, `aiUsage/${user.uid}_${day}`),
+          fsGet(svc, `aiUsageMonth/${user.uid}_${month}`), fsGet(svc, 'settings/aiLimits'),
         ]);
       } catch (e) { console.warn('Usage check skipped:', e.message); svc = null; }
     }
@@ -160,6 +169,10 @@ export default {
       const cap = Number(who.aiLimit) > 0 ? Number(who.aiLimit) : Number(isPlus ? lim.plus : lim.free);
       if (cap > 0 && (used?.tokens || 0) >= cap) {
         return fail(429, "You've used today's AI allowance. It resets at midnight. If you need more, ask Lobe Limpet to raise your limit.");
+      }
+      const capMonth = Number(who.aiLimitMonth) > 0 ? Number(who.aiLimitMonth) : Number(isPlus ? lim.plusMonth : lim.freeMonth);
+      if (capMonth > 0 && (usedMonth?.tokens || 0) >= capMonth) {
+        return fail(429, `You've used this month's AI allowance. It starts again on ${nextMonthText()}. If you need more, ask Lobe Limpet to raise your limit.`);
       }
     }
     const model = MODELS.includes(body.model) ? body.model : 'claude-sonnet-4-5';
@@ -490,7 +503,18 @@ async function recordUsage(tok, user, who, day, task, model, input, output) {
   const path = `aiUsage/${user.uid}_${day}`;
   const name = `${DOCS}/${path}`;
   const inc = (fieldPath, n) => ({ fieldPath, increment: { integerValue: String(n) } });
-  await fsCommit(tok, [{
+  const month = day.slice(0, 7);
+  // This month's running total (checked against the monthly allowance)
+  const monthWrite = {
+    update: { name: `${DOCS}/aiUsageMonth/${user.uid}_${month}`, fields: {
+      uid: { stringValue: user.uid }, month: { stringValue: month },
+      name: { stringValue: String(who?.name || '').slice(0, 80) },
+      lastAt: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 400 * 86400000)),
+    } },
+    updateMask: { fieldPaths: ['uid', 'month', 'name', 'lastAt', 'expireAt'] },
+    updateTransforms: [inc('tokens', input + output), inc('inputTokens', input), inc('outputTokens', output), inc('requests', 1), inc(`models.${bt(model)}`, input + output)],
+  };
+  await fsCommit(tok, [monthWrite, {
     update: { name, fields: {
       uid: { stringValue: user.uid }, day: { stringValue: day },
       name: { stringValue: String(who?.name || '').slice(0, 80) }, email: { stringValue: String(who?.email || user.email || '').slice(0, 120) },

@@ -395,6 +395,11 @@ service cloud.firestore {
       allow write: if false;
     }
     // Rate limits for signed-out logging (Worker only)
+    match /aiUsageMonth/{id} {
+      allow get: if signedIn() && (isAdmin() || resource.data.uid == me());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
     match /rateLimits/{id} { allow read, write: if false; }
 
     // ── Parent link requests (parent-link.js) ─────────────

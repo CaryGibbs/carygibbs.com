@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111p">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111p">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111p">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111p">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111q">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111q">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111q">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111q">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111p">
-  <script src="icons.js?v=20261111p"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111q">
+  <script src="icons.js?v=20261111q"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -508,6 +508,9 @@
   .pack-link-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
   .pack-link-btn:disabled { opacity: 0.6; cursor: default; }
   .lim-cost { font-size: 0.8rem; color: var(--color-text-muted); margin: 6px 0 0; }
+  .lim-cost.warn { color: var(--color-danger); font-weight: 600; }
+  .lim-pair { display: flex; flex-wrap: wrap; gap: 10px; }
+  .lim-pair label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); flex: 1; min-width: 130px; }
   .pl-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
   .pl-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-button); font-size: 0.88rem; }
   .pl-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -598,8 +601,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111p">
-  <link rel="stylesheet" href="stats.css?v=20261111p">
+  <link rel="stylesheet" href="ui.css?v=20261111q">
+  <link rel="stylesheet" href="stats.css?v=20261111q">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -960,24 +963,32 @@
         <div class="ai-settings-head">
           <div>
             <h3>AI usage and daily limits</h3>
-            <p>Each person's AI use is counted every day (UK time). When someone reaches their daily allowance, AI stops for them until midnight. Admins have no limit. A token is roughly ¾ of a word, counting both what's sent and the reply.</p>
+            <p>Each person's AI use is counted every day (UK time). When someone reaches their daily allowance, AI stops for them until midnight; at their monthly allowance, until the 1st of next month. Monthly counting started on 11 November 2026. Admins have no limit. A token is roughly ¾ of a word, counting both what's sent and the reply.</p>
             <p class="lim-cost" id="lim-guide"></p>
           </div>
         </div>
-        <div class="ai-field"><label for="lim-free">Free accounts: tokens a day</label><p>Learning notes, cheat sheets and marking written answers.</p><input type="number" id="lim-free" min="0" step="10000" class="lim-input"><p class="lim-cost" id="lim-free-cost"></p></div>
-        <div class="ai-field"><label for="lim-plus">Plus accounts: tokens a day</label><p>Also covers creating notes, questions and flashcards with AI.</p><input type="number" id="lim-plus" min="0" step="100000" class="lim-input"><p class="lim-cost" id="lim-plus-cost"></p></div>
+        <div class="ai-field"><label>Free accounts</label><p>Learning notes, cheat sheets and marking written answers.</p>
+          <div class="lim-pair"><label>Tokens a day <input type="number" id="lim-free" min="0" step="10000" class="lim-input"></label>
+            <label>Tokens a month <input type="number" id="lim-free-month" min="0" step="10000" class="lim-input"></label></div>
+          <p class="lim-cost" id="lim-free-cost"></p></div>
+        <div class="ai-field"><label>Plus accounts</label><p>Also covers creating notes, questions and flashcards with AI.</p>
+          <div class="lim-pair"><label>Tokens a day <input type="number" id="lim-plus" min="0" step="10000" class="lim-input"></label>
+            <label>Tokens a month <input type="number" id="lim-plus-month" min="0" step="50000" class="lim-input"></label>
+            <label>Plus price, £ a year <input type="number" id="lim-plus-price" min="0" step="1" class="lim-input"></label></div>
+          <p class="lim-cost" id="lim-plus-cost"></p></div>
         <div class="ai-settings-actions">
           <button class="btn btn-primary" id="btn-save-limits"><i data-icon="save"></i> Save limits</button>
           <span class="ai-status" id="limits-status"></span>
         </div>
         <div class="ai-field" style="margin-top:18px;">
           <label>Personal limits</label>
-          <p>A different daily allowance for one person, instead of their Free or Plus amount. Useful to give a heavy user more, or to rein someone in.</p>
+          <p>A different allowance for one person, instead of their Free or Plus amounts. Useful to give a heavy user more, or to rein someone in. Leave the monthly box empty to keep the normal monthly amount.</p>
           <div id="personal-limits" class="pl-list"></div>
           <div class="pl-add">
             <input type="text" id="pl-person" list="pl-people" placeholder="Name or email" class="lim-input" style="flex:2;min-width:180px;">
             <datalist id="pl-people"></datalist>
-            <input type="number" id="pl-tokens" min="10000" step="10000" placeholder="Tokens a day" class="lim-input" style="flex:1;min-width:120px;">
+            <input type="number" id="pl-tokens" min="10000" step="10000" placeholder="Tokens a day" class="lim-input" style="flex:1;min-width:110px;">
+            <input type="number" id="pl-tokens-month" min="0" step="50000" placeholder="A month (optional)" class="lim-input" style="flex:1;min-width:130px;">
             <button class="btn btn-secondary" id="btn-pl-save"><i data-icon="save"></i> Set limit</button>
           </div>
           <p class="lim-cost" id="pl-cost"></p>
@@ -1359,32 +1370,32 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111p';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111p';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111p';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111p';
-import { syncFamilyPlus } from './family-plus.js?v=20261111p';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111p';
-import { openDeleteAccount } from './account.js?v=20261111p';
-import { addDocumentButton } from './doc-text.js?v=20261111p';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111p';
-import { showPlusUpsell } from './plus.js?v=20261111p';
+import { auth, db, storage } from './firebase-config.js?v=20261111q';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111q';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111q';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111q';
+import { syncFamilyPlus } from './family-plus.js?v=20261111q';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111q';
+import { openDeleteAccount } from './account.js?v=20261111q';
+import { addDocumentButton } from './doc-text.js?v=20261111q';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111q';
+import { showPlusUpsell } from './plus.js?v=20261111q';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111p';
-import { mountShell } from './shell.js?v=20261111p';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111p';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111p';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111p';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111p';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111p';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111p';
-import { dueEntries } from './srs.js?v=20261111p';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111p';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111p';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111q';
+import { mountShell } from './shell.js?v=20261111q';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111q';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111q';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111q';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111q';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111q';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111q';
+import { dueEntries } from './srs.js?v=20261111q';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111q';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111q';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1400,8 +1411,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111p';
-import { inOrder } from './order.js?v=20261111p';
+import { saveEmailIndex } from './email-index.js?v=20261111q';
+import { inOrder } from './order.js?v=20261111q';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1768,7 +1779,7 @@ document.getElementById('btn-test-ai').onclick = async () => {
 /* ── AI usage and limits ─────────────────────────────────────
    The Worker counts tokens per person per day in aiUsage/{uid}_{day}
    and enforces settings/aiLimits (see workers/ai-proxy.js). */
-const LIMIT_DEFAULTS = { free: 150000, plus: 2000000 };
+const LIMIT_DEFAULTS = { free: 50000, plus: 200000, freeMonth: 150000, plusMonth: 400000, plusPriceYear: 36 };
 const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 const fmtTok = n => n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1000 ? `${Math.round(n / 1000)}k` : String(n || 0);
 /* ── Personal AI limits (users.aiLimit; the Worker uses it instead of the
@@ -1783,17 +1794,19 @@ async function renderPersonalLimits() {
   } else plUsers = usersCache;
   document.getElementById('pl-people').innerHTML = plUsers.filter(u => !rolesOf(u).has('admin'))
     .map(u => `<option value="${esc(plLabel(u))}"></option>`).join('');
-  const set = plUsers.filter(u => Number(u.aiLimit) > 0).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const set = plUsers.filter(u => Number(u.aiLimit) > 0 || Number(u.aiLimitMonth) > 0).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   box.innerHTML = set.length ? set.map(u => `<div class="pl-row">
       <span><strong>${esc(u.name || u.email || 'Someone')}</strong> <span class="muted">${esc(u.email || '')}</span></span>
-      <span>${fmtTok(Number(u.aiLimit))} a day</span>
+      <span>${[Number(u.aiLimit) > 0 ? `${fmtTok(Number(u.aiLimit))} a day` : '', Number(u.aiLimitMonth) > 0 ? `${fmtTok(Number(u.aiLimitMonth))} a month` : ''].filter(Boolean).join(', ')}</span>
       <span><button class="pack-link-btn" data-pl-edit="${esc(u.id)}">Change</button> <button class="pack-link-btn" data-pl-clear="${esc(u.id)}">Remove</button></span>
     </div>`).join('') : '<p class="ai-status">No personal limits. Everyone has the Free or Plus allowance.</p>';
 }
 function plPick(uid) {
   const u = plUsers.find(x => x.id === uid); if (!u) return;
   document.getElementById('pl-person').value = plLabel(u);
-  const t = document.getElementById('pl-tokens'); t.value = Number(u.aiLimit) || ''; t.focus();
+  const t = document.getElementById('pl-tokens'); t.value = Number(u.aiLimit) || '';
+  document.getElementById('pl-tokens-month').value = Number(u.aiLimitMonth) || '';
+  t.focus(); renderLimitCosts();
 }
 document.addEventListener('click', async e => {
   const ed = e.target.closest('[data-pl-edit]'); if (ed) { plPick(ed.dataset.plEdit); return; }
@@ -1801,8 +1814,8 @@ document.addEventListener('click', async e => {
   const u = plUsers.find(x => x.id === cl.dataset.plClear); if (!u) return;
   cl.disabled = true;
   try {
-    await updateDoc(doc(db, 'users', u.id), { aiLimit: deleteField() });
-    delete u.aiLimit;
+    await updateDoc(doc(db, 'users', u.id), { aiLimit: deleteField(), aiLimitMonth: deleteField() });
+    delete u.aiLimit; delete u.aiLimitMonth;
     logEvent('admin.settings', { target: u.name || u.email || '', targetId: u.id, detail: 'Personal AI limit removed' });
     showToast(`${u.name || 'Their'} limit removed: back to the normal allowance`, 'success');
     renderAiLimits();
@@ -1811,17 +1824,20 @@ document.addEventListener('click', async e => {
 document.getElementById('btn-pl-save').onclick = async () => {
   const typed = document.getElementById('pl-person').value.trim().toLowerCase();
   const tokens = Math.round(Number(document.getElementById('pl-tokens').value) || 0);
+  const tokensMonth = Math.round(Number(document.getElementById('pl-tokens-month').value) || 0);
   const u = plUsers.find(x => plLabel(x).toLowerCase() === typed) || plUsers.find(x => (x.email || '').toLowerCase() === typed)
     || (() => { const m = plUsers.filter(x => (x.name || '').toLowerCase() === typed); return m.length === 1 ? m[0] : null; })();
   if (!u) { showToast('Pick someone from the list (start typing their name or email).', 'error'); return; }
   if (rolesOf(u).has('admin')) { showToast('Admins have no limit.', 'error'); return; }
   if (tokens < 10000) { showToast('Enter at least 10,000 tokens a day.', 'error'); return; }
+  if (tokensMonth && tokensMonth < tokens) { showToast('The monthly amount should be at least the daily one.', 'error'); return; }
   try {
-    await updateDoc(doc(db, 'users', u.id), { aiLimit: tokens });
-    u.aiLimit = tokens;
-    logEvent('admin.settings', { target: u.name || u.email || '', targetId: u.id, detail: `Personal AI limit ${fmtTok(tokens)} tokens a day` });
-    showToast(`${u.name || 'Their'} limit set to ${fmtTok(tokens)} tokens a day`, 'success');
-    document.getElementById('pl-person').value = ''; document.getElementById('pl-tokens').value = '';
+    await updateDoc(doc(db, 'users', u.id), { aiLimit: tokens, aiLimitMonth: tokensMonth || deleteField() });
+    u.aiLimit = tokens; if (tokensMonth) u.aiLimitMonth = tokensMonth; else delete u.aiLimitMonth;
+    const what = `${fmtTok(tokens)} a day${tokensMonth ? `, ${fmtTok(tokensMonth)} a month` : ''}`;
+    logEvent('admin.settings', { target: u.name || u.email || '', targetId: u.id, detail: `Personal AI limit ${what}` });
+    showToast(`${u.name || 'Their'} limit set to ${what}`, 'success');
+    document.getElementById('pl-person').value = ''; document.getElementById('pl-tokens').value = ''; document.getElementById('pl-tokens-month').value = ''; renderLimitCosts();
     renderAiLimits();
   } catch (err) { showToast('Could not save: ' + err.message, 'error'); }
 };
@@ -1858,24 +1874,32 @@ const fmtGbp = v => v < 0.01 ? 'under 1p' : v < 1 ? `${Math.round(v * 100)}p` : 
 const modelName = m => (MODELS.find(x => x.id === m)?.name || m).replace('Claude ', '');
 let aiModels = { generation: FALLBACK_MODEL, learning: FALLBACK_MODEL, marking: FALLBACK_MODEL };
 // Most a day's allowance could cost if it were all spent on the dearest model the account can use
-function dayCostText(tokens, plus) {
-  if (!tokens) return '';
+// Worst case per person: a day's and a month's allowance all spent on the
+// dearest model the account can use (a month can't be more than 30 full days)
+function dayCostText(tokens, plus, monthTokens = 0, el = null) {
+  if (!tokens && !monthTokens) return '';
   const models = plus ? [aiModels.generation, aiModels.learning, aiModels.marking] : [aiModels.learning, aiModels.marking];
   const dear = models.reduce((a, b) => gbpPerMillion(b) > gbpPerMillion(a) ? b : a);
-  const max = tokens / 1e6 * gbpPerMillion(dear);
-  return `Most it could cost: about ${fmtGbp(max)} a day per person (${fmtGbp(max * 30)} a month) if used in full every day on ${modelName(dear)}. Most people use a small fraction.`;
+  const rate = gbpPerMillion(dear) / 1e6;
+  const day = tokens * rate;
+  const monthTok = monthTokens ? (tokens ? Math.min(monthTokens, tokens * 31) : monthTokens) : tokens * 31;
+  const month = monthTok * rate;
+  const fee = plus ? (Number(document.getElementById('lim-plus-price')?.value) || 0) / 12 : 0;
+  const share = fee ? ` That's ${Math.round(month / fee * 100)}% of the ${fmtGbp(fee)} a month Plus fee.` : '';
+  if (el) el.classList.toggle('warn', !!fee && month > fee * 0.5);
+  return `Most it could cost one person: about ${fmtGbp(day)} a day and ${fmtGbp(month)} a month, if they used it all on ${modelName(dear)}.${share} Most people use a small fraction.`;
 }
 function renderLimitCosts() {
-  const f = Number(document.getElementById('lim-free').value) || 0, p = Number(document.getElementById('lim-plus').value) || 0;
-  document.getElementById('lim-free-cost').textContent = dayCostText(f, false);
-  document.getElementById('lim-plus-cost').textContent = dayCostText(p, true);
-  const t = Number(document.getElementById('pl-tokens').value) || 0;
-  document.getElementById('pl-cost').textContent = t ? dayCostText(t, true) : '';
+  const v = id => Number(document.getElementById(id).value) || 0;
+  document.getElementById('lim-free-cost').textContent = dayCostText(v('lim-free'), false, v('lim-free-month'), document.getElementById('lim-free-cost'));
+  document.getElementById('lim-plus-cost').textContent = dayCostText(v('lim-plus'), true, v('lim-plus-month'), document.getElementById('lim-plus-cost'));
+  const t = v('pl-tokens'), tm = v('pl-tokens-month');
+  document.getElementById('pl-cost').textContent = t || tm ? dayCostText(t, true, tm, document.getElementById('pl-cost')) : '';
   document.getElementById('lim-guide').textContent = `Rough guide (your current models): 100,000 tokens costs about ${fmtGbp(0.1 * gbpPerMillion(aiModels.generation))} on ${modelName(aiModels.generation)} (writing content), `
     + `${fmtGbp(0.1 * gbpPerMillion(aiModels.learning))} on ${modelName(aiModels.learning)} (learning notes) and ${fmtGbp(0.1 * gbpPerMillion(aiModels.marking))} on ${modelName(aiModels.marking)} (marking). `
     + `Making 30 questions for a topic uses about 20,000 tokens; marking one written answer about 1,000. Prices are approximate.`;
 }
-['lim-free', 'lim-plus', 'pl-tokens'].forEach(id => document.getElementById(id).addEventListener('input', renderLimitCosts));
+['lim-free', 'lim-plus', 'lim-free-month', 'lim-plus-month', 'lim-plus-price', 'pl-tokens', 'pl-tokens-month'].forEach(id => document.getElementById(id).addEventListener('input', renderLimitCosts));
 // Estimated cost of one usage record, from the tokens per model and its input/output split
 function usageCost(r) {
   const total = r.tokens || 0; if (!total) return 0;
@@ -1891,6 +1915,9 @@ async function renderAiLimits() {
   const lim = { ...LIMIT_DEFAULTS, ...(snap?.exists() ? snap.data() : {}) };
   document.getElementById('lim-free').value = lim.free;
   document.getElementById('lim-plus').value = lim.plus;
+  document.getElementById('lim-free-month').value = lim.freeMonth;
+  document.getElementById('lim-plus-month').value = lim.plusMonth;
+  document.getElementById('lim-plus-price').value = lim.plusPriceYear;
   renderLimitCosts();
   document.getElementById('limits-status').textContent = snap?.exists() ? `Saved ${new Date(lim.updatedAt || Date.now()).toLocaleDateString('en-GB')}` : 'Using defaults';
   await renderPersonalLimits().catch(e => console.warn('Personal limits:', e.message));
@@ -1900,6 +1927,8 @@ async function renderAiLimits() {
     const days = [...Array(7)].map((_, i) => londonDay(new Date(Date.now() - i * 86400000)));
     const q = query(collection(db, 'aiUsage'), where('day', '>=', days[6]));
     const rows = []; (await getDocs(q)).forEach(d => rows.push(d.data()));
+    const month = days[0].slice(0, 7), monthUse = {};
+    (await getDocs(query(collection(db, 'aiUsageMonth'), where('month', '==', month))).catch(() => null))?.forEach(d => { monthUse[d.data().uid] = d.data(); });
     if (!rows.length) { box.innerHTML = '<p class="ai-status" style="margin-top:12px;">No AI use recorded yet (counting starts once the updated Worker is live).</p>'; return; }
     const people = {};
     rows.forEach(r => {
@@ -1911,23 +1940,26 @@ async function renderAiLimits() {
     const total = list.reduce((a, [, p]) => a + p.week, 0), today = list.reduce((a, [, p]) => a + p.today, 0);
     const costWeek = list.reduce((a, [, p]) => a + p.cost, 0);
     const capOf = (uid, p) => { const u = plUsers.find(x => x.id === uid); if (u && rolesOf(u).has('admin')) return 0; return Number(u?.aiLimit) || (/^plus/.test(p.plan || '') ? lim.plus : lim.free); };
-    const ownLimit = uid => Number(plUsers.find(x => x.id === uid)?.aiLimit) > 0;
+    const capMonthOf = (uid, p) => { const u = plUsers.find(x => x.id === uid); if (u && rolesOf(u).has('admin')) return 0; return Number(u?.aiLimitMonth) || (/^plus/.test(p.plan || '') ? lim.plusMonth : lim.freeMonth); };
+    const monthCell = (uid, p) => { const m = monthUse[uid]; const used = m?.tokens || 0; const cap = capMonthOf(uid, p); const pct = cap ? Math.round(used / cap * 100) : 0;
+      return `<td${pct >= 100 ? ' style="color:var(--color-danger);font-weight:700;"' : ''}>${m ? fmtTok(used) : '<span class="muted">from now</span>'}${m && cap ? ` <span class="muted">(${pct}% of ${fmtTok(cap)}, ${fmtGbp(usageCost(m))})</span>` : ''}</td>`; };
+    const ownLimit = uid => { const u = plUsers.find(x => x.id === uid); return Number(u?.aiLimit) > 0 || Number(u?.aiLimitMonth) > 0; };
     const isAdminUid = uid => { const u = plUsers.find(x => x.id === uid); return !!u && rolesOf(u).has('admin'); };
     box.innerHTML = `<h4 style="margin:16px 0 6px;font-size:0.9rem;">Last 7 days: ${fmtTok(total)} tokens, about ${fmtGbp(costWeek)} (${fmtTok(today)} today)</h4>
-      <table class="users-table"><thead><tr><th>Person</th><th>Plan</th><th>Today</th><th>7 days</th><th>Cost (7 days)</th><th>Requests</th><th></th></tr></thead><tbody>
+      <table class="users-table"><thead><tr><th>Person</th><th>Plan</th><th>Today</th><th>This month</th><th>7 days</th><th>Cost (7 days)</th><th>Requests</th><th></th></tr></thead><tbody>
       ${list.map(([uid, p]) => { const cap = capOf(uid, p); const pct = cap ? Math.round(p.today / cap * 100) : 0;
         return `<tr><td>${esc(p.name)}${ownLimit(uid) ? ' <span class="badge badge-primary" title="Has a personal limit">Own limit</span>' : ''}</td><td>${/^plus/.test(p.plan || '') ? `<span class="badge badge-warning">${p.plan === 'plus (family)' ? 'Plus (family)' : 'Plus'}</span>` : 'Free'}</td>
         <td${pct >= 100 ? ' style="color:var(--color-danger);font-weight:700;"' : ''}>${fmtTok(p.today)}${cap ? ` <span class="muted">(${pct}% of ${fmtTok(cap)})</span>` : ' <span class="muted">(no limit)</span>'}</td>
-        <td>${fmtTok(p.week)}</td><td>${fmtGbp(p.cost)}</td><td>${p.req}</td><td>${isAdminUid(uid) ? '' : `<button class="pack-link-btn" data-pl-edit="${esc(uid)}">Set limit</button>`}</td></tr>`; }).join('')}
+        ${monthCell(uid, p)}<td>${fmtTok(p.week)}</td><td>${fmtGbp(p.cost)}</td><td>${p.req}</td><td>${isAdminUid(uid) ? '' : `<button class="pack-link-btn" data-pl-edit="${esc(uid)}">Set limit</button>`}</td></tr>`; }).join('')}
       </tbody></table>`;
   } catch (e) { box.innerHTML = `<p class="ai-status">Couldn't load usage: ${esc(e.message)}</p>`; }
 }
 document.getElementById('btn-save-limits').onclick = async () => {
-  const free = Math.max(0, Math.round(Number(document.getElementById('lim-free').value) || 0));
-  const plus = Math.max(0, Math.round(Number(document.getElementById('lim-plus').value) || 0));
+  const num = id => Math.max(0, Math.round(Number(document.getElementById(id).value) || 0));
+  const free = num('lim-free'), plus = num('lim-plus'), freeMonth = num('lim-free-month'), plusMonth = num('lim-plus-month'), plusPriceYear = num('lim-plus-price');
   try {
-    await setDoc(doc(db, 'settings', 'aiLimits'), { free, plus, updatedAt: Date.now() });
-    logEvent('admin.settings', { target: 'AI limits', detail: `Free ${fmtTok(free)}, Plus ${fmtTok(plus)} tokens a day` });
+    await setDoc(doc(db, 'settings', 'aiLimits'), { free, plus, freeMonth, plusMonth, plusPriceYear, updatedAt: Date.now() });
+    logEvent('admin.settings', { target: 'AI limits', detail: `Free ${fmtTok(free)} a day / ${fmtTok(freeMonth)} a month, Plus ${fmtTok(plus)} a day / ${fmtTok(plusMonth)} a month` });
     showToast('Limits saved', 'success'); renderAiLimits();
   } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
 };
@@ -4380,6 +4412,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111p"></script>
+<script src="site.js?v=20261111q"></script>
 </body>
 </html>
