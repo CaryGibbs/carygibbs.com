@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111o">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111o">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111o">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111o">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111n">
-  <script src="icons.js?v=20261111n"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111o">
+  <script src="icons.js?v=20261111o"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -507,6 +507,11 @@
   .pack-link-btn { background: none; border: 1px solid var(--color-border); border-radius: 999px; padding: 4px 10px; font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; display: inline-flex; gap: 5px; align-items: center; }
   .pack-link-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
   .pack-link-btn:disabled { opacity: 0.6; cursor: default; }
+  .pl-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+  .pl-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-button); font-size: 0.88rem; }
+  .pl-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .pl-switch { display: flex; gap: 10px; align-items: center; font-weight: 600; font-size: 0.92rem; cursor: pointer; }
+  .pl-switch input { width: 18px; height: 18px; accent-color: var(--color-primary); }
   .official-copy { margin-top: var(--space-xl); }
   .official-copy-head { font-family: var(--font-ui); font-weight: 700; font-size: 1rem; }
   .official-copy-sub { font-size: 0.85rem; color: var(--color-text-muted); margin: 4px 0 var(--space-md); }
@@ -592,8 +597,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111n">
-  <link rel="stylesheet" href="stats.css?v=20261111n">
+  <link rel="stylesheet" href="ui.css?v=20261111o">
+  <link rel="stylesheet" href="stats.css?v=20261111o">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -963,7 +968,29 @@
           <button class="btn btn-primary" id="btn-save-limits"><i data-icon="save"></i> Save limits</button>
           <span class="ai-status" id="limits-status"></span>
         </div>
+        <div class="ai-field" style="margin-top:18px;">
+          <label>Personal limits</label>
+          <p>A different daily allowance for one person, instead of their Free or Plus amount. Useful to give a heavy user more, or to rein someone in.</p>
+          <div id="personal-limits" class="pl-list"></div>
+          <div class="pl-add">
+            <input type="text" id="pl-person" list="pl-people" placeholder="Name or email" class="lim-input" style="flex:2;min-width:180px;">
+            <datalist id="pl-people"></datalist>
+            <input type="number" id="pl-tokens" min="10000" step="10000" placeholder="Tokens a day" class="lim-input" style="flex:1;min-width:120px;">
+            <button class="btn btn-secondary" id="btn-pl-save"><i data-icon="save"></i> Set limit</button>
+          </div>
+        </div>
         <div id="ai-usage"></div>
+      </div>
+
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
+        <div class="ai-settings-head">
+          <div>
+            <h3>Sign-ups</h3>
+            <p>Who can create an account on the sign-in page. Parents and teachers can always add students themselves.</p>
+          </div>
+        </div>
+        <label class="pl-switch"><input type="checkbox" id="set-student-self"> Students aged 13 or over can create their own accounts</label>
+        <p class="ai-status" id="signup-status" style="margin-top:8px;"></p>
       </div>
 
       <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
@@ -1329,32 +1356,32 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111n';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111n';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111n';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111n';
-import { syncFamilyPlus } from './family-plus.js?v=20261111n';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111n';
-import { openDeleteAccount } from './account.js?v=20261111n';
-import { addDocumentButton } from './doc-text.js?v=20261111n';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111n';
-import { showPlusUpsell } from './plus.js?v=20261111n';
+import { auth, db, storage } from './firebase-config.js?v=20261111o';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111o';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111o';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111o';
+import { syncFamilyPlus } from './family-plus.js?v=20261111o';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111o';
+import { openDeleteAccount } from './account.js?v=20261111o';
+import { addDocumentButton } from './doc-text.js?v=20261111o';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111o';
+import { showPlusUpsell } from './plus.js?v=20261111o';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111n';
-import { mountShell } from './shell.js?v=20261111n';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111n';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111n';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111n';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111n';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111n';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111n';
-import { dueEntries } from './srs.js?v=20261111n';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111n';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111n';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111o';
+import { mountShell } from './shell.js?v=20261111o';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111o';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111o';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111o';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111o';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111o';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111o';
+import { dueEntries } from './srs.js?v=20261111o';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111o';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111o';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1370,8 +1397,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111n';
-import { inOrder } from './order.js?v=20261111n';
+import { saveEmailIndex } from './email-index.js?v=20261111o';
+import { inOrder } from './order.js?v=20261111o';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1741,12 +1768,87 @@ document.getElementById('btn-test-ai').onclick = async () => {
 const LIMIT_DEFAULTS = { free: 150000, plus: 2000000 };
 const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 const fmtTok = n => n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1000 ? `${Math.round(n / 1000)}k` : String(n || 0);
+/* ── Personal AI limits (users.aiLimit; the Worker uses it instead of the
+   Free or Plus allowance) ─────────────────────────────────────────── */
+let plUsers = [];
+const plLabel = u => `${u.name || 'No name'}${u.email ? ` (${u.email})` : ''}`;
+async function renderPersonalLimits() {
+  const box = document.getElementById('personal-limits');
+  if (!usersCache?.length) {
+    const snap = await getDocs(collection(db, 'users')).catch(() => null);
+    plUsers = []; snap?.forEach(d => plUsers.push({ id: d.id, ...d.data() }));
+  } else plUsers = usersCache;
+  document.getElementById('pl-people').innerHTML = plUsers.filter(u => !rolesOf(u).has('admin'))
+    .map(u => `<option value="${esc(plLabel(u))}"></option>`).join('');
+  const set = plUsers.filter(u => Number(u.aiLimit) > 0).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  box.innerHTML = set.length ? set.map(u => `<div class="pl-row">
+      <span><strong>${esc(u.name || u.email || 'Someone')}</strong> <span class="muted">${esc(u.email || '')}</span></span>
+      <span>${fmtTok(Number(u.aiLimit))} a day</span>
+      <span><button class="pack-link-btn" data-pl-edit="${esc(u.id)}">Change</button> <button class="pack-link-btn" data-pl-clear="${esc(u.id)}">Remove</button></span>
+    </div>`).join('') : '<p class="ai-status">No personal limits. Everyone has the Free or Plus allowance.</p>';
+}
+function plPick(uid) {
+  const u = plUsers.find(x => x.id === uid); if (!u) return;
+  document.getElementById('pl-person').value = plLabel(u);
+  const t = document.getElementById('pl-tokens'); t.value = Number(u.aiLimit) || ''; t.focus();
+}
+document.addEventListener('click', async e => {
+  const ed = e.target.closest('[data-pl-edit]'); if (ed) { plPick(ed.dataset.plEdit); return; }
+  const cl = e.target.closest('[data-pl-clear]'); if (!cl) return;
+  const u = plUsers.find(x => x.id === cl.dataset.plClear); if (!u) return;
+  cl.disabled = true;
+  try {
+    await updateDoc(doc(db, 'users', u.id), { aiLimit: deleteField() });
+    delete u.aiLimit;
+    logEvent('admin.settings', { target: u.name || u.email || '', targetId: u.id, detail: 'Personal AI limit removed' });
+    showToast(`${u.name || 'Their'} limit removed: back to the normal allowance`, 'success');
+    renderAiLimits();
+  } catch (err) { cl.disabled = false; showToast('Could not remove: ' + err.message, 'error'); }
+});
+document.getElementById('btn-pl-save').onclick = async () => {
+  const typed = document.getElementById('pl-person').value.trim().toLowerCase();
+  const tokens = Math.round(Number(document.getElementById('pl-tokens').value) || 0);
+  const u = plUsers.find(x => plLabel(x).toLowerCase() === typed) || plUsers.find(x => (x.email || '').toLowerCase() === typed)
+    || (() => { const m = plUsers.filter(x => (x.name || '').toLowerCase() === typed); return m.length === 1 ? m[0] : null; })();
+  if (!u) { showToast('Pick someone from the list (start typing their name or email).', 'error'); return; }
+  if (rolesOf(u).has('admin')) { showToast('Admins have no limit.', 'error'); return; }
+  if (tokens < 10000) { showToast('Enter at least 10,000 tokens a day.', 'error'); return; }
+  try {
+    await updateDoc(doc(db, 'users', u.id), { aiLimit: tokens });
+    u.aiLimit = tokens;
+    logEvent('admin.settings', { target: u.name || u.email || '', targetId: u.id, detail: `Personal AI limit ${fmtTok(tokens)} tokens a day` });
+    showToast(`${u.name || 'Their'} limit set to ${fmtTok(tokens)} tokens a day`, 'success');
+    document.getElementById('pl-person').value = ''; document.getElementById('pl-tokens').value = '';
+    renderAiLimits();
+  } catch (err) { showToast('Could not save: ' + err.message, 'error'); }
+};
+
+/* ── Sign-ups: can students create their own accounts? (settings/signup;
+   login.html hides the Student option and the rules refuse it when off) ── */
+async function renderSignupSettings() {
+  const box = document.getElementById('set-student-self'), st = document.getElementById('signup-status');
+  const snap = await getDoc(doc(db, 'settings', 'signup')).catch(() => null);
+  box.checked = !(snap?.exists() && snap.data().studentSelf === false);
+  st.textContent = box.checked ? 'On: students can sign up on the sign-in page.' : "Off: students' accounts are made by a parent or teacher.";
+}
+document.getElementById('set-student-self').onchange = async e => {
+  const on = e.target.checked;
+  e.target.disabled = true;
+  try {
+    await setDoc(doc(db, 'settings', 'signup'), { studentSelf: on, updatedAt: Date.now() }, { merge: true });
+    logEvent('admin.settings', { target: 'Sign-ups', detail: on ? 'Students can create their own accounts' : 'Only parents and teachers create student accounts' });
+    showToast(on ? 'Students can sign up themselves again' : 'Student sign-up switched off', 'success');
+  } catch (err) { e.target.checked = !on; showToast('Could not save: ' + err.message, 'error'); }
+  finally { e.target.disabled = false; renderSignupSettings(); }
+};
+
 async function renderAiLimits() {
   const snap = await getDoc(doc(db, 'settings', 'aiLimits')).catch(() => null);
   const lim = { ...LIMIT_DEFAULTS, ...(snap?.exists() ? snap.data() : {}) };
   document.getElementById('lim-free').value = lim.free;
   document.getElementById('lim-plus').value = lim.plus;
   document.getElementById('limits-status').textContent = snap?.exists() ? `Saved ${new Date(lim.updatedAt || Date.now()).toLocaleDateString('en-GB')}` : 'Using defaults';
+  await renderPersonalLimits().catch(e => console.warn('Personal limits:', e.message));
   const box = document.getElementById('ai-usage');
   box.innerHTML = '<p class="ai-status">Loading usage…</p>';
   try {
@@ -1762,13 +1864,15 @@ async function renderAiLimits() {
     });
     const list = Object.entries(people).sort((a, b) => b[1].week - a[1].week);
     const total = list.reduce((a, [, p]) => a + p.week, 0), today = list.reduce((a, [, p]) => a + p.today, 0);
-    const capOf = (uid, p) => { const u = usersCache?.find?.(x => x.id === uid); if (u && rolesOf(u).has('admin')) return 0; return Number(u?.aiLimit) || (p.plan === 'plus' ? lim.plus : lim.free); };
+    const capOf = (uid, p) => { const u = plUsers.find(x => x.id === uid); if (u && rolesOf(u).has('admin')) return 0; return Number(u?.aiLimit) || (/^plus/.test(p.plan || '') ? lim.plus : lim.free); };
+    const ownLimit = uid => Number(plUsers.find(x => x.id === uid)?.aiLimit) > 0;
+    const isAdminUid = uid => { const u = plUsers.find(x => x.id === uid); return !!u && rolesOf(u).has('admin'); };
     box.innerHTML = `<h4 style="margin:16px 0 6px;font-size:0.9rem;">Last 7 days: ${fmtTok(total)} tokens (${fmtTok(today)} today)</h4>
-      <table class="users-table"><thead><tr><th>Person</th><th>Plan</th><th>Today</th><th>7 days</th><th>Requests</th></tr></thead><tbody>
+      <table class="users-table"><thead><tr><th>Person</th><th>Plan</th><th>Today</th><th>7 days</th><th>Requests</th><th></th></tr></thead><tbody>
       ${list.map(([uid, p]) => { const cap = capOf(uid, p); const pct = cap ? Math.round(p.today / cap * 100) : 0;
-        return `<tr><td>${esc(p.name)}</td><td>${p.plan === 'plus' ? '<span class="badge badge-warning">Plus</span>' : 'Free'}</td>
+        return `<tr><td>${esc(p.name)}${ownLimit(uid) ? ' <span class="badge badge-primary" title="Has a personal limit">Own limit</span>' : ''}</td><td>${/^plus/.test(p.plan || '') ? `<span class="badge badge-warning">${p.plan === 'plus (family)' ? 'Plus (family)' : 'Plus'}</span>` : 'Free'}</td>
         <td${pct >= 100 ? ' style="color:var(--color-danger);font-weight:700;"' : ''}>${fmtTok(p.today)}${cap ? ` <span class="muted">(${pct}% of ${fmtTok(cap)})</span>` : ' <span class="muted">(no limit)</span>'}</td>
-        <td>${fmtTok(p.week)}</td><td>${p.req}</td></tr>`; }).join('')}
+        <td>${fmtTok(p.week)}</td><td>${p.req}</td><td>${isAdminUid(uid) ? '' : `<button class="pack-link-btn" data-pl-edit="${esc(uid)}">Set limit</button>`}</td></tr>`; }).join('')}
       </tbody></table>`;
   } catch (e) { box.innerHTML = `<p class="ai-status">Couldn't load usage: ${esc(e.message)}</p>`; }
 }
@@ -1814,7 +1918,7 @@ function showPanel(name) {
   if (name === 'library')  { document.getElementById('preview-actions').style.display = 'none'; loadLibraryAdmin(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
-  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); }
+  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 
@@ -4230,6 +4334,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111n"></script>
+<script src="site.js?v=20261111o"></script>
 </body>
 </html>

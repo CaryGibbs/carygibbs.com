@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111o">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111o">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111o">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111o">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111n">
-  <script src="icons.js?v=20261111n"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111o">
+  <script src="icons.js?v=20261111o"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -64,7 +64,7 @@
   .pw-btn { background: none; border: 1px solid var(--color-border); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; }
   .pw-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111n">
+  <link rel="stylesheet" href="ui.css?v=20261111o">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -107,6 +107,8 @@
     <!-- SIGNUP -->
     <div class="form-panel" id="panel-signup">
       <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:var(--space-md);">I am a...</p>
+      <p id="student-signup-off" class="form-hint" hidden style="background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-button);padding:10px 12px;margin-bottom:var(--space-md);">
+        <strong>Students:</strong> please ask a parent or carer to create your account. They sign up as a parent, then add you from their page. Teachers can add students to their classes too.</p>
       <div class="signup-type-row">
         <div class="signup-type-btn selected" id="type-parent" onclick="selectType('parent')">
           <span class="role-icon"><i data-icon="users"></i></span>Parent
@@ -168,8 +170,8 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261111n';
-  import { redirectByRole, generatePassword } from './auth.js?v=20261111n';
+  import { auth, db } from './firebase-config.js?v=20261111o';
+  import { redirectByRole, generatePassword } from './auth.js?v=20261111o';
   // Password helpers: show/hide, and a memorable suggested password for new accounts
   document.querySelectorAll('[data-pw-show]').forEach(b => b.addEventListener('click', () => {
     const f = document.getElementById(b.dataset.pwShow);
@@ -184,10 +186,10 @@
     document.getElementById('pw-hint').textContent = 'Write this down or let your browser save it: you\'ll need it to sign in.';
     f.focus(); f.select();
   });
-  import { logEvent } from './log.js?v=20261111n';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261111n';
-  import { findClass } from './join-class.js?v=20261111n';
-  import { saveEmailIndex } from './email-index.js?v=20261111n';
+  import { logEvent } from './log.js?v=20261111o';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261111o';
+  import { findClass } from './join-class.js?v=20261111o';
+  import { saveEmailIndex } from './email-index.js?v=20261111o';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
@@ -270,7 +272,21 @@
     hideError();
   };
 
+  // Admin → Settings → Sign-ups can switch off students creating their own
+  // accounts (settings/signup.studentSelf; enforced in the rules too)
+  let studentSelf = true;
+  function applyStudentSignup() {
+    document.getElementById('type-student').hidden = !studentSelf;
+    document.getElementById('student-signup-off').hidden = studentSelf;
+    if (!studentSelf && signupType === 'student') window._selectType('parent');
+  }
+  getDoc(doc(db, 'settings', 'signup')).then(snap => {
+    studentSelf = !(snap.exists() && snap.data().studentSelf === false);
+    applyStudentSignup();
+  }).catch(() => {});
+
   window._selectType = function(type) {
+    if (type === 'student' && !studentSelf) type = 'parent';
     signupType = type;
     document.getElementById('type-parent').classList.toggle('selected', type==='parent');
     document.getElementById('type-student').classList.toggle('selected', type==='student');
@@ -319,6 +335,7 @@
     const school = (document.getElementById('signup-school')?.value || '').trim();
     if (signupType === 'teacher' && !school) { showError('Please enter your school name.'); return; }
     const age13 = document.getElementById('signup-age13').checked;
+    if (signupType === 'student' && !studentSelf) { showError('Students: please ask a parent or carer to create your account.'); return; }
     if (signupType === 'student' && !age13) { showError("Please confirm you're 13 or over. If you're under 13, a parent or carer needs to create your account."); return; }
 
     // Validate class code if provided
@@ -466,6 +483,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261111n"></script>
+<script src="site.js?v=20261111o"></script>
 </body>
 </html>

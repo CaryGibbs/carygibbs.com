@@ -123,8 +123,14 @@ service cloud.firestore {
                   && get(path).data.by != resource.data.get('parentUid', '')));
       }
       // Signing yourself up: no admin (unless invited), no paid plan, no parent links
+      // Admin → Settings can switch off students creating their own accounts
+      function studentSelfSignupOn() {
+        return !exists(/databases/$(database)/documents/settings/signup)
+          || get(/databases/$(database)/documents/settings/signup).data.get('studentSelf', true) != false;
+      }
       function selfCreateOK() {
-        return (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
+        return (!hasRole(newData(), 'student') || studentSelfSignupOn())
+          && (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
           && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
           && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit'])
           && teacherIdsCreateOK();
@@ -441,6 +447,10 @@ service cloud.firestore {
     match /settings/{id} {
       allow read: if signedIn();
       allow write: if isAdmin();
+    }
+    // Whether students may sign themselves up: read on the sign-in page, before sign-in
+    match /settings/signup {
+      allow get: if true;
     }
 
     // ── Activity log ──────────────────────────────────────

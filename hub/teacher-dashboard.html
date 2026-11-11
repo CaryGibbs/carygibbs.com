@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111o">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111o">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111o">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111o">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111n">
-  <script src="icons.js?v=20261111n"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111o">
+  <script src="icons.js?v=20261111o"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -288,7 +288,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111n">
+  <link rel="stylesheet" href="ui.css?v=20261111o">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -488,20 +488,21 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261111n';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261111n';
-  import { mountShell } from './shell.js?v=20261111n';
-  import { byOrder } from './order.js?v=20261111n';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261111n';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111n';
-  import { logEvent } from './log.js?v=20261111n';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261111n';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111n';
-  import { app as firebaseApp } from './firebase-config.js?v=20261111n';
+  import { auth, db } from './firebase-config.js?v=20261111o';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261111o';
+  import { mountShell } from './shell.js?v=20261111o';
+  import { byOrder } from './order.js?v=20261111o';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261111o';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111o';
+  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261111o';
+  import { logEvent } from './log.js?v=20261111o';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261111o';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111o';
+  import { app as firebaseApp } from './firebase-config.js?v=20261111o';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111n';
+  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111o';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -800,14 +801,38 @@
             <div class="student-email">${esc(s.email)}</div>
           </div>
           <div class="student-row-actions">
+            <button class="btn btn-secondary" data-cards="${esc(uid)}" title="Flashcard sets they've made"><i data-icon="layers"></i> Flashcards</button>
             <button class="btn btn-secondary" data-view-as="${esc(uid)}" title="Open their hub in a new window"><i data-icon="eye"></i> View as</button>
             <button class="btn btn-ghost" data-remove="${esc(uid)}" title="Remove from this class">Remove</button>
           </div>
         </div>`;
     }).join('');
     list.querySelectorAll('[data-view-as]').forEach(b => b.onclick = () => openViewAs(b.dataset.viewAs));
+    list.querySelectorAll('[data-cards]').forEach(b => b.onclick = () => showStudentCards(b.dataset.cards));
     list.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => removeFromClass(b.dataset.remove));
     loadSharedSets(classId);
+  }
+
+  // A student's own flashcard sets (card-sets.js), read only
+  async function showStudentCards(uid) {
+    const name = activeClassStudents[uid]?.name || 'This student';
+    document.getElementById('modal-student-cards')?.remove();
+    document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay open" id="modal-student-cards"><div class="modal modal-wide">
+      <div class="modal-header"><h2>${esc(name)}'s flashcard sets</h2>
+        <button class="modal-close" aria-label="Close" data-close-cards><i data-icon="x"></i></button></div>
+      <div id="student-cards-body"><div class="empty-students">Loading…</div></div></div></div>`);
+    const box = document.getElementById('modal-student-cards');
+    const close = () => box.remove();
+    box.querySelector('[data-close-cards]').onclick = close;
+    box.addEventListener('click', e => { if (e.target === box) close(); });
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      const sets = await loadCardSets(snap.data() || {});
+      document.getElementById('student-cards-body').innerHTML = cardSetsHtml(sets, name.split(' ')[0])
+        + (sets.length ? '<p class="modal-note" style="margin-top:12px;">Tap a set to see its cards. Scores are from the quizzes they took on each set.</p>' : '');
+    } catch (e) {
+      document.getElementById('student-cards-body').innerHTML = `<div class="empty-students">Couldn't load their sets: ${esc(e.message)}</div>`;
+    }
   }
 
   // Flashcard sets students have shared with this class (made in cards.html)
@@ -1216,6 +1241,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261111n"></script>
+<script src="site.js?v=20261111o"></script>
 </body>
 </html>

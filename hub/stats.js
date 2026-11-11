@@ -3,7 +3,8 @@
 // Next goals, revision time, time by subject, badge collection.
 // ============================================================
 
-import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261111n';
+import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261111o';
+import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261111o';
 
 /* ── Markup ──────────────────────────────────────────────── */
 // Section ids (goals, time, subjects, badges) are the jump-link targets.
@@ -34,6 +35,11 @@ export function statsSectionsHtml() {
     <div class="subject-list" id="subject-list"></div>
   </section>
 
+  <section class="st-section" id="flashcards" hidden>
+    <div class="st-title"><i data-icon="layers"></i> Flashcard sets <small id="cardsets-count"></small></div>
+    <div id="cardsets-wrap"></div>
+  </section>
+
   <section class="st-section" id="badges">
     <div class="st-title"><i data-icon="award"></i> Badges <small id="badge-count"></small></div>
     <div id="badges-wrap"></div>
@@ -48,8 +54,22 @@ export function renderStats(profile, { goalLimit = 6 } = {}) {
   renderBadges(progress);
   renderTimeStats(sessions, studyEntries(profile));
   renderSubjectStats(sessions, studyEntries(profile));
+  renderCardSets(profile);
   const saved = new Set(profile.badges || []);
   return progress.filter(b => b.earned && !saved.has(b.id)).map(b => b.id);
+}
+
+/* ── The student's own flashcard sets (card-sets.js) ───────── */
+async function renderCardSets(profile) {
+  const sec = document.getElementById('flashcards');
+  if (!sec || !profile.myPackId) return;
+  try {
+    const sets = await loadCardSets(profile);
+    if (!sets.length) return;
+    document.getElementById('cardsets-count').textContent = `${sets.length} set${sets.length === 1 ? '' : 's'}`;
+    document.getElementById('cardsets-wrap').innerHTML = cardSetsHtml(sets, (profile.name || '').split(' ')[0]);
+    sec.hidden = false;
+  } catch (e) { console.warn('Flashcard sets not shown:', e.message); }
 }
 
 /* ── Goals ───────────────────────────────────────────────── */
@@ -431,7 +451,7 @@ async function onTopicToggle(e) {
     box.innerHTML = '<div class="tr-note">Loading…</div>';
     try {
       const [{ db }, fs] = await Promise.all([
-        import('./firebase-config.js?v=20261111n'),
+        import('./firebase-config.js?v=20261111o'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'),
       ]);
       await Promise.all(missed.map(async ([id]) => {
