@@ -3,7 +3,7 @@
 // Next goals, revision time, time by subject, badge collection.
 // ============================================================
 
-import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261111g';
+import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261111h';
 
 /* ── Markup ──────────────────────────────────────────────── */
 // Section ids (goals, time, subjects, badges) are the jump-link targets.
@@ -431,7 +431,7 @@ async function onTopicToggle(e) {
     box.innerHTML = '<div class="tr-note">Loading…</div>';
     try {
       const [{ db }, fs] = await Promise.all([
-        import('./firebase-config.js?v=20261111g'),
+        import('./firebase-config.js?v=20261111h'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'),
       ]);
       await Promise.all(missed.map(async ([id]) => {

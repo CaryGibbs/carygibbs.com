@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111g">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111g">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111g">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111g">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111h">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111h">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111h">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111h">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111g">
-  <script src="icons.js?v=20261111g"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111h">
+  <script src="icons.js?v=20261111h"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -592,8 +592,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111g">
-  <link rel="stylesheet" href="stats.css?v=20261111g">
+  <link rel="stylesheet" href="ui.css?v=20261111h">
+  <link rel="stylesheet" href="stats.css?v=20261111h">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -647,7 +647,7 @@
       </div>
       <!-- My packs only: the shared library -->
       <div id="library-browse" class="official-copy" hidden>
-        <div class="official-copy-head"><i data-icon="library"></i> The library</div>
+        <div class="official-copy-head"><i data-icon="library"></i> Community library</div>
         <p class="official-copy-sub">Packs shared by other parents and teachers, checked by Lobe Limpet before they appear. Make a copy to use one with your students; your copy is yours to change.</p>
         <input type="search" id="library-search" class="lib-search" placeholder="Search by name, subject, exam board or level">
         <div id="library-list" class="official-copy-list"></div>
@@ -862,8 +862,8 @@
     <div class="panel" id="panel-library">
       <div class="panel-header">
         <div>
-          <div class="panel-title">Library</div>
-          <div class="panel-subtitle">Packs parents and teachers have offered to share. Nothing appears in the library until you approve it. Approving publishes a frozen copy; the author's later edits need another review.</div>
+          <div class="panel-title">Community library</div>
+          <div class="panel-subtitle">Packs parents and teachers have offered to share. Nothing appears in the community library until you approve it. Approving publishes a frozen copy; the author's later edits need another review.</div>
         </div>
       </div>
       <div id="lib-admin"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
@@ -1273,7 +1273,7 @@
 <div class="modal-overlay" id="modal-library">
   <div class="modal" style="max-width:520px;">
     <div class="modal-header">
-      <div class="modal-title" id="lib-modal-title">Share to the library</div>
+      <div class="modal-title" id="lib-modal-title">Share to the community library</div>
       <button class="modal-close" data-close="modal-library" aria-label="Close"><i data-icon="x"></i></button>
     </div>
     <div id="lib-modal-body" class="lib-modal-body"></div>
@@ -1322,28 +1322,28 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111g';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111g';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111g';
-import { openDeleteAccount } from './account.js?v=20261111g';
-import { addDocumentButton } from './doc-text.js?v=20261111g';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111g';
-import { showPlusUpsell } from './plus.js?v=20261111g';
+import { auth, db, storage } from './firebase-config.js?v=20261111h';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111h';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111h';
+import { openDeleteAccount } from './account.js?v=20261111h';
+import { addDocumentButton } from './doc-text.js?v=20261111h';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111h';
+import { showPlusUpsell } from './plus.js?v=20261111h';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111g';
-import { mountShell } from './shell.js?v=20261111g';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111g';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111g';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111g';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111g';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111g';
-import { dueEntries } from './srs.js?v=20261111g';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111g';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111g';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111h';
+import { mountShell } from './shell.js?v=20261111h';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111h';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111h';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111h';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111h';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111h';
+import { dueEntries } from './srs.js?v=20261111h';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111h';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111h';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1359,8 +1359,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111g';
-import { inOrder } from './order.js?v=20261111g';
+import { saveEmailIndex } from './email-index.js?v=20261111h';
+import { inOrder } from './order.js?v=20261111h';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1504,7 +1504,7 @@ async function renderAdminHome() {
     const reqSub = r => [r.note ? `“${esc(r.note)}”` : '', esc(r.email || ''), r.at ? agoText(r.at) : ''].filter(Boolean).join(' · ');
     plusAsked.slice(0, 4).forEach(r => items.push({ p: -2, emoji: '✨', text: `${esc(r.name || r.email || 'Someone')} asked for Plus${(r.roles || []).length ? ` <span class="muted">(${esc(r.roles.join(', '))})</span>` : ''}`, sub: reqSub(r), action: smallBtn('Users', `location.hash='users'`, true) }));
     if (plusAsked.length > 4) items.push({ p: -2, emoji: '✨', text: `${plusAsked.length - 4} more ${plusAsked.length - 4 === 1 ? 'person has' : 'people have'} asked for Plus`, sub: plusAsked.slice(4, 8).map(r => esc(r.name || r.email || '')).join(', '), action: smallBtn('Users', `location.hash='users'`, true) });
-    if (libraryWaiting.length) items.push({ p: -1, emoji: '📚', text: `${libraryWaiting.length} pack${libraryWaiting.length === 1 ? '' : 's'} waiting for library review`, sub: libraryWaiting.slice(0, 3).map(p => esc(p.name || '')).join(', '), action: smallBtn('Review', `location.hash='library'`, true) });
+    if (libraryWaiting.length) items.push({ p: -1, emoji: '📚', text: `${libraryWaiting.length} pack${libraryWaiting.length === 1 ? '' : 's'} waiting for community library review`, sub: libraryWaiting.slice(0, 3).map(p => esc(p.name || '')).join(', '), action: smallBtn('Review', `location.hash='library'`, true) });
     const packless = students.filter(u => !(u.groupIds || []).length && !Object.values(u.classPacks || {}).some(l => (l || []).length));
     if (packless.length) items.push({ p: 3, emoji: '🎒', text: `${packless.length} student${packless.length === 1 ? ' has' : 's have'} no revision pack`, sub: packless.slice(0, 4).map(u => esc(u.name || u.email || '')).join(', ') + (packless.length > 4 ? '…' : ''), action: smallBtn('Users', `location.hash='users'`) });
     const noRole = users.filter(u => !rolesOf(u).size);
@@ -1813,7 +1813,7 @@ function updateBreadcrumb() {
   // Users and Settings: "Section › Page", like the parent pages
   if (currentPanel === 'home')     { bc.innerHTML = `<span>Admin</span>${sep}<span class="breadcrumb-current">Home</span>`; return; }
   if (currentPanel === 'users')    { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
-  if (currentPanel === 'library')  { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Library</span>`; return; }
+  if (currentPanel === 'library')  { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Community library</span>`; return; }
   if (currentPanel === 'students') { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">All students</span>`; return; }
   if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
@@ -3201,19 +3201,19 @@ function libStatusOf(d) {
 }
 function libraryStatusHtml(d) {
   const st = libStatusOf(d);
-  if (st === 'pending') return `<span class="lib-status wait"><i data-icon="clock"></i> Waiting for library review</span>`;
-  if (st === 'update')  return `<span class="lib-status wait"><i data-icon="clock"></i> In the library · update waiting for review</span>`;
-  if (st === 'live')    return `<span class="lib-status ok"><i data-icon="library"></i> In the library</span>${d.libraryNote ? `<span class="lib-status bad">${esc(d.libraryNote)}</span>` : ''}`;
-  if (st === 'rejected') return `<span class="lib-status bad">Not added to the library${d.libraryNote ? `: ${esc(d.libraryNote)}` : ''}</span>`;
-  if (st === 'removed') return `<span class="lib-status bad">Removed from the library${d.libraryNote ? `: ${esc(d.libraryNote)}` : ''}</span>`;
+  if (st === 'pending') return `<span class="lib-status wait"><i data-icon="clock"></i> Waiting for community library review</span>`;
+  if (st === 'update')  return `<span class="lib-status wait"><i data-icon="clock"></i> In the community library · update waiting for review</span>`;
+  if (st === 'live')    return `<span class="lib-status ok"><i data-icon="library"></i> In the community library</span>${d.libraryNote ? `<span class="lib-status bad">${esc(d.libraryNote)}</span>` : ''}`;
+  if (st === 'rejected') return `<span class="lib-status bad">Not added to the community library${d.libraryNote ? `: ${esc(d.libraryNote)}` : ''}</span>`;
+  if (st === 'removed') return `<span class="lib-status bad">Removed from the community library${d.libraryNote ? `: ${esc(d.libraryNote)}` : ''}</span>`;
   return '';
 }
 function libraryButtonHtml(id, d) {
   const st = libStatusOf(d);
   if (st === 'pending' || st === 'update') return `<button class="pack-link-btn" data-action="lib-withdraw" data-id="${id}"><i data-icon="x"></i> Withdraw</button>`;
-  if (st === 'live') return `<button class="pack-link-btn" data-action="lib-share" data-id="${id}" title="Send your latest version for review"><i data-icon="library"></i> Update library copy</button>
-    <button class="pack-link-btn" data-action="lib-unpublish" data-id="${id}"><i data-icon="trash-2"></i> Remove from library</button>`;
-  return `<button class="pack-link-btn" data-action="lib-share" data-id="${id}"><i data-icon="library"></i> Share to library</button>`;
+  if (st === 'live') return `<button class="pack-link-btn" data-action="lib-share" data-id="${id}" title="Send your latest version for review"><i data-icon="library"></i> Update community copy</button>
+    <button class="pack-link-btn" data-action="lib-unpublish" data-id="${id}"><i data-icon="trash-2"></i> Remove from community library</button>`;
+  return `<button class="pack-link-btn" data-action="lib-share" data-id="${id}"><i data-icon="library"></i> Share to community library</button>`;
 }
 
 // Reusable small dialog: title, body html, optional note, OK label → onOk(note)
@@ -3246,8 +3246,8 @@ async function openShareToLibrary(id) {
   const d = snap.data() || {};
   const again = !!d.libraryPackId;
   openLibModal({
-    title: again ? 'Update the library copy?' : 'Share to the library?',
-    body: `<p>${again ? 'Your latest version of' : 'A copy of'} <strong>${esc(d.name)}</strong> will be checked by Lobe Limpet${again ? ', then replace the copy in the library' : ' before it appears in the library'}. Other parents and teachers can then make their own copy of it. Your students and your pack aren't affected.</p>
+    title: again ? 'Update your community library copy?' : 'Share to the community library?',
+    body: `<p>${again ? 'Your latest version of' : 'A copy of'} <strong>${esc(d.name)}</strong> will be checked by Lobe Limpet${again ? ', then replace the copy in the community library' : ' before it appears in the community library'}. Other parents and teachers can then make their own copy of it. Your students and your pack aren't affected.</p>
       <p style="margin-top:8px;">Before you share, check that it:</p>
       <ul><li>contains no names or details of your students or anyone else</li>
       <li>is accurate and suitable for young people</li>
@@ -3259,7 +3259,7 @@ async function openShareToLibrary(id) {
       try {
         const upd = { libraryStatus: 'pending', libraryAuthor: libraryName, librarySubmittedAt: Date.now(), librarySubmitNote: note || deleteField() };
         await updateDoc(doc(db, 'content', id), upd);
-        logEvent('content.pack', { target: d.name, targetId: id, detail: again ? 'Sent a library update for review' : 'Shared to the library for review' });
+        logEvent('content.pack', { target: d.name, targetId: id, detail: again ? 'Sent a community library update for review' : 'Shared to the community library for review' });
         closeModal('modal-library');
         showToast('Sent for review. You\'ll see the result on the pack.', 'success');
         loadGroups();
@@ -3277,16 +3277,16 @@ async function withdrawFromLibrary(id) {
 async function authorRemoveFromLibrary(id) {
   const d = (await getDoc(doc(db, 'content', id))).data() || {};
   openLibModal({
-    title: 'Remove from the library?',
-    body: `<p>The library copy of <strong>${esc(d.name)}</strong> will be deleted. Copies other people have already made are theirs and stay as they are. Your own pack isn't affected.</p>`,
+    title: 'Remove from the community library?',
+    body: `<p>The community library copy of <strong>${esc(d.name)}</strong> will be deleted. Copies other people have already made are theirs and stay as they are. Your own pack isn't affected.</p>`,
     okLabel: 'Remove', danger: true,
     onOk: async () => {
       try {
         if (d.libraryPackId) await deletePackTree(d.libraryPackId).catch(e => console.warn(e));
         await updateDoc(doc(db, 'content', id), { libraryPackId: deleteField(), libraryStatus: deleteField() });
-        logEvent('content.pack', { target: d.name, targetId: id, detail: 'Removed from the library by its author' });
+        logEvent('content.pack', { target: d.name, targetId: id, detail: 'Removed from the community library by its author' });
         closeModal('modal-library');
-        showToast('Removed from the library', 'success');
+        showToast('Removed from the community library', 'success');
         loadGroups();
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
     },
@@ -3326,7 +3326,7 @@ function renderLibraryBrowse() {
         ${p.ownerUid !== currentAdminUid ? `<button class="pack-link-btn" data-action="lib-report" data-id="${esc(p.id)}" data-name="${esc(p.name)}" title="Tell Lobe Limpet about a mistake or a problem"><i data-icon="flag"></i> Report</button>` : ''}
       </span>
     </div>`).join('')
-    : `<div class="official-copy-sub">${libraryPacks.length ? 'No library packs match.' : 'Nothing in the library yet. Share one of your packs to be the first.'}</div>`;
+    : `<div class="official-copy-sub">${libraryPacks.length ? 'No community library packs match.' : 'Nothing in the community library yet. Share one of your packs to be the first.'}</div>`;
 }
 function openReportLibraryPack(id, name) {
   openLibModal({
@@ -3377,7 +3377,7 @@ async function loadLibraryAdmin() {
       <div class="lib-report"><strong>${esc(r.packName || '')}</strong> · ${esc(r.byName || 'someone')} · ${when(r.at)}<br>${esc(r.note || '')}
         <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
           ${liveList.some(p => p.id === r.packId) ? `<button class="btn btn-secondary btn-sm" data-action="lib-review" data-id="${esc(r.packId)}">Open pack</button>
-          <button class="btn btn-secondary btn-sm" data-action="lib-remove" data-id="${esc(r.packId)}">Remove from library</button>` : '<span class="as-sub">No longer in the library.</span>'}
+          <button class="btn btn-secondary btn-sm" data-action="lib-remove" data-id="${esc(r.packId)}">Remove from community library</button>` : '<span class="as-sub">No longer in the community library.</span>'}
           <button class="btn btn-ghost btn-sm" data-action="lib-dismiss-report" data-id="${esc(r.id)}">Dismiss</button>
         </div></div>`).join('');
     const liveRows = liveList.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'en-GB')).map(p => `
@@ -3393,9 +3393,9 @@ async function loadLibraryAdmin() {
     box.innerHTML = `
       <div class="lib-section"><h3><i data-icon="clock"></i> Waiting for review (${pending.size})</h3>${pendingRows || '<div class="as-sub">Nothing waiting.</div>'}</div>
       ${reports.length ? `<div class="lib-section"><h3><i data-icon="flag"></i> Reports (${reports.length})</h3>${reportRows}</div>` : ''}
-      <div class="lib-section"><h3><i data-icon="library"></i> In the library (${liveList.length})</h3>${liveRows || '<div class="as-sub">Nothing yet.</div>'}</div>`;
+      <div class="lib-section"><h3><i data-icon="library"></i> In the community library (${liveList.length})</h3>${liveRows || '<div class="as-sub">Nothing yet.</div>'}</div>`;
   } catch (e) {
-    box.innerHTML = `<div class="empty-state"><h3>Couldn't load the library</h3><p>${esc(e.message)}</p></div>`;
+    box.innerHTML = `<div class="empty-state"><h3>Couldn't load the community library</h3><p>${esc(e.message)}</p></div>`;
   }
 }
 
@@ -3409,8 +3409,8 @@ async function approveLibraryPack(id, btn) {
     await updateDoc(doc(db, 'content', r.id), { libraryInfo: r.info });
     await updateDoc(doc(db, 'content', id), { libraryStatus: 'approved', libraryPackId: r.id, libraryApprovedAt: Date.now(), libraryNote: deleteField() });
     if (old && old !== r.id) await deletePackTree(old).catch(e => console.warn('Old library copy not removed', e));
-    logEvent('content.pack', { target: d.name, targetId: r.id, detail: old ? 'Library update approved' : 'Approved for the library' });
-    showToast(`"${d.name}" is in the library`, 'success');
+    logEvent('content.pack', { target: d.name, targetId: r.id, detail: old ? 'Community library update approved' : 'Approved for the community library' });
+    showToast(`"${d.name}" is in the community library`, 'success');
     loadLibraryAdmin();
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
@@ -3421,7 +3421,7 @@ async function openRejectLibraryPack(id) {
   const d = (await getDoc(doc(db, 'content', id))).data() || {};
   openLibModal({
     title: 'Turn down this pack?',
-    body: `<p><strong>${esc(d.name)}</strong> won't be added${d.libraryPackId ? ' (the copy already in the library stays as it is)' : ''}. ${esc(d.libraryAuthor || 'The author')} will see your reason on the pack, so keep it kind and specific.</p>`,
+    body: `<p><strong>${esc(d.name)}</strong> won't be added${d.libraryPackId ? ' (the copy already in the community library stays as it is)' : ''}. ${esc(d.libraryAuthor || 'The author')} will see your reason on the pack, so keep it kind and specific.</p>`,
     note: '', noteLabel: 'Reason shown to the author', okLabel: 'Turn down', danger: true,
     onOk: async note => {
       if (!note) { showToast('Please give a reason', 'error'); return; }
@@ -3429,7 +3429,7 @@ async function openRejectLibraryPack(id) {
         await updateDoc(doc(db, 'content', id), d.libraryPackId
           ? { libraryStatus: 'approved', libraryNote: `Update not accepted: ${note.slice(0, 280)}` }
           : { libraryStatus: 'rejected', libraryNote: note.slice(0, 300) });
-        logEvent('content.pack', { target: d.name, targetId: id, detail: `Library: turned down (${note.slice(0, 80)})` });
+        logEvent('content.pack', { target: d.name, targetId: id, detail: `Community library: turned down (${note.slice(0, 80)})` });
         closeModal('modal-library');
         showToast('Turned down', 'success');
         loadLibraryAdmin();
@@ -3440,17 +3440,17 @@ async function openRejectLibraryPack(id) {
 async function openRemoveLibraryPack(libId) {
   const p = (await getDoc(doc(db, 'content', libId))).data() || {};
   openLibModal({
-    title: 'Remove from the library?',
-    body: `<p><strong>${esc(p.name)}</strong> will be taken out of the library. Copies people have already made stay with them. ${esc(p.authorName || 'The author')} will see your reason on their pack.</p>`,
+    title: 'Remove from the community library?',
+    body: `<p><strong>${esc(p.name)}</strong> will be taken out of the community library. Copies people have already made stay with them. ${esc(p.authorName || 'The author')} will see your reason on their pack.</p>`,
     note: '', noteLabel: 'Reason shown to the author', okLabel: 'Remove', danger: true,
     onOk: async note => {
       if (!note) { showToast('Please give a reason', 'error'); return; }
       try {
         await deletePackTree(libId);
         if (p.sourcePackId) await updateDoc(doc(db, 'content', p.sourcePackId), { libraryStatus: 'removed', libraryNote: note.slice(0, 300), libraryPackId: deleteField() }).catch(() => {});
-        logEvent('content.delete', { target: p.name, targetId: libId, detail: `Removed from the library (${note.slice(0, 80)})` });
+        logEvent('content.delete', { target: p.name, targetId: libId, detail: `Removed from the community library (${note.slice(0, 80)})` });
         closeModal('modal-library');
-        showToast('Removed from the library', 'success');
+        showToast('Removed from the community library', 'success');
         loadLibraryAdmin();
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
     },
@@ -4130,6 +4130,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111g"></script>
+<script src="site.js?v=20261111h"></script>
 </body>
 </html>
