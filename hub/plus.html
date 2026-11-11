@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free and Plus · Lobe Limpet</title>
   <meta name="description" content="What's free in Lobe Limpet and what Plus adds: create revision notes, questions and flashcards with AI.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111j">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261111i">
+  <link rel="stylesheet" href="site.css?v=20261111j">
 </head>
 <body>
 <div id="site-header"></div>
@@ -31,6 +31,7 @@
     <tr><td>Smart review: questions come back just before you'd forget them</td><td class="c"><span class="yes">✓</span><small>Unlimited</small></td><td class="c"><span class="yes">✓</span><small>Unlimited</small></td></tr>
     <tr><td>Subject maps, one-page cheat sheets and tap-to-learn notes</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Revision packs from parents, teachers and the community library</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Ready-made Lobe Limpet packs for GCSE and A level subjects</td><td class="c"><span class="meh">Sample</span><small>Free topics in each subject</small></td><td class="c"><span class="yes">✓</span><small>Every topic</small></td></tr>
 
     <tr class="group"><td colspan="3">Flashcards</td></tr>
     <tr><td>Make your own sets, import a list (including from other flashcard apps), reorder cards</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
@@ -49,7 +50,8 @@
     <tr class="group"><td colspan="3">For parents and teachers</td></tr>
     <tr><td>Add students, set up classes with a join code, see progress and send encouragement</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Make your own revision packs by hand (notes and questions), give them to your students</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
-    <tr><td>Copy ready-made packs, and share yours in the checked community library</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Copy packs from the checked community library, and share yours there</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Copy a ready-made Lobe Limpet pack into your own packs to change it</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Create with AI: notes and a full set of questions from your notes, a document or a topic name</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Upload PDFs and Word documents to build from</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Read scanned pages, photos, diagrams, graphs and tables with AI</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
@@ -79,14 +81,14 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261111i"></script>
+<script src="site.js?v=20261111j"></script>
 <script type="module">
 // Signed in: ask for Plus with one tap (admins see it on their home page and
 // switch Plus on in Users). Signed out: sign in first, or email.
-import { auth, db } from './firebase-config.js?v=20261111i';
+import { auth, db } from './firebase-config.js?v=20261111j';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261111i';
+import { logEvent } from './log.js?v=20261111j';
 const $ = id => document.getElementById(id);
 onAuthStateChanged(auth, async user => {
   if (!user) { $('plus-intro').innerHTML = 'Plus is in early access. <a href="login.html">Sign in</a>, then come back here to ask for it.'; return; }

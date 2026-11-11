@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111i">
-  <script src="icons.js?v=20261111i"></script>
-  <link rel="stylesheet" href="stats.css?v=20261111i">
+  <link rel="stylesheet" href="theme.css?v=20261111j">
+  <script src="icons.js?v=20261111j"></script>
+  <link rel="stylesheet" href="stats.css?v=20261111j">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -285,7 +285,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111i">
+  <link rel="stylesheet" href="ui.css?v=20261111j">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -369,20 +369,21 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111i';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261111i';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261111i';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261111i';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261111i';
-import { listPacks, samePackIds } from './packs.js?v=20261111i';
-import { plusPillHtml } from './plus.js?v=20261111i';
-import { inOrder } from './order.js?v=20261111i';
-import { videosOf } from './videos.js?v=20261111i';
-import { showLinkRequests } from './parent-link.js?v=20261111i';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261111i';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261111i';
-import { openPlanCalendar } from './plan-view.js?v=20261111i';
-import { logEvent } from './log.js?v=20261111i';
+import { auth, db } from './firebase-config.js?v=20261111j';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261111j';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261111j';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261111j';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261111j';
+import { listPacks, samePackIds } from './packs.js?v=20261111j';
+import { plusPillHtml } from './plus.js?v=20261111j';
+import { inOrder } from './order.js?v=20261111j';
+import { videosOf } from './videos.js?v=20261111j';
+import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261111j';
+import { showLinkRequests } from './parent-link.js?v=20261111j';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261111j';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261111j';
+import { openPlanCalendar } from './plan-view.js?v=20261111j';
+import { logEvent } from './log.js?v=20261111j';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -400,6 +401,8 @@ window._goMindmap = (params) => {
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
   location.href = url.toString();
 };
+
+window._lockedTopic = (name) => showTopicLocked(name);
 
 window._toggleTopics = (btn) => {
   btn.classList.toggle('open');
@@ -726,6 +729,7 @@ async function loadSubjects(user, groupId) {
     <div class="subjects-grid" id="subjects-grid"></div>`;
 
   const sgrid = document.getElementById('subjects-grid');
+  addAccessCss();
 
   // Official links set on the subject in admin (spec, past papers, Bitesize...)
   const resHtml = (list) => {
@@ -749,7 +753,17 @@ async function loadSubjects(user, groupId) {
       const vids = videosOf(t);
       return vids.length > 1 ? `<div class="topic-videos" hidden>${vids.map(v => `<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.label)} ↗</a>`).join('')}</div>` : '';
     };
-    const topicRowsHtml = topics.map(t => `
+    const lockedRowHtml = t => `
+      <div class="topic-row locked">
+        <span class="topic-row-name">${esc(t.name)}${plusTagHtml()}</span>
+        <div class="topic-row-actions">
+          <button class="topic-btn topic-btn-map" onclick="_lockedTopic(this.dataset.name)" data-name="${esc(t.name)}"><i data-icon="book-open"></i> Learn</button>
+          <button class="topic-btn topic-btn-quiz" onclick="_lockedTopic(this.dataset.name)" data-name="${esc(t.name)}"><i data-icon="zap"></i> Quiz</button>
+          ${watchHtml(t)}
+        </div>
+      </div>${watchListHtml(t)}`;
+    const lockedCount = topics.filter(t => topicLocked(t, hubProfile)).length;
+    const topicRowsHtml = topics.map(t => topicLocked(t, hubProfile) ? lockedRowHtml(t) : `
       <div class="topic-row">
         <span class="topic-row-name">${esc(t.name)}</span>
         <div class="topic-row-actions">
@@ -777,7 +791,7 @@ async function loadSubjects(user, groupId) {
         <div class="subject-emoji">${s.emoji || '📚'}</div>
         <div>
           <div class="subject-name">${esc(s.name)}</div>
-          <div class="subject-meta">${topicCount} topic${topicCount !== 1 ? 's' : ''}</div>
+          <div class="subject-meta">${topicCount} topic${topicCount !== 1 ? 's' : ''}${lockedCount ? ` · ${topicCount - lockedCount} free, ${lockedCount} with <a href="plus.html" style="color:inherit;">Plus</a>` : ''}</div>
         </div>
       </div>
       <div class="subject-actions">
@@ -872,6 +886,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261111i"></script>
+<script src="site.js?v=20261111j"></script>
 </body>
 </html>

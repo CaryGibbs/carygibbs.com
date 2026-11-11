@@ -304,6 +304,22 @@ service cloud.firestore {
         && (!changedKeys().hasAny(['libraryPackId']) || !('libraryPackId' in request.resource.data));
     }
 
+    function canWriteInPack(p) {
+      return isAdmin() || (ownsPack(packDoc(p)) && (!libraryPack(packDoc(p)) || request.method == 'delete'));
+    }
+    // Free sample topics: in a Lobe Limpet (official) pack, a topic marked
+    // plusOnly opens its questions and notes only to people with Plus (and
+    // admins). Everyone can still see the topic itself in the list.
+    function iHavePlus() {
+      let u = userDoc(me());
+      return u.get('tier', '') == 'plus' || u.get('plan', '') == 'plus';
+    }
+    function topicOpen(p, s, t) {
+      return !officialPack(packDoc(p))
+        || get(/databases/$(database)/documents/content/$(p)/subjects/$(s)/topics/$(t)).data.get('plusOnly', false) != true
+        || isAdmin() || iHavePlus();
+    }
+
     match /content/{p} {
       allow get: if canReadPack(resource.data, p);
       // Lists must ask for official packs or the caller's own (admins: all)
@@ -320,11 +336,33 @@ service cloud.firestore {
       allow update: if isAdmin() || ownerEditOK();
       allow delete: if isAdmin() || ownsPack(resource.data);
 
-      // Subjects, topics, questions and notes inside the pack
-      match /{rest=**} {
+      // Subjects, topics, questions and notes inside the pack. Spelled out
+      // level by level (not one {rest=**}) so a topic's questions and notes
+      // can need Plus: see topicOpen.
+      match /subjects/{s} {
         allow read: if canReadPack(packDoc(p), p);
-        allow write: if isAdmin()
-          || (ownsPack(packDoc(p)) && (!libraryPack(packDoc(p)) || request.method == 'delete'));
+        allow write: if canWriteInPack(p);
+
+        match /topics/{t} {
+          allow read: if canReadPack(packDoc(p), p);
+          allow write: if canWriteInPack(p);
+
+          // Questions, notes and anything else inside a topic
+          match /{sub}/{rest=**} {
+            allow read: if canReadPack(packDoc(p), p) && topicOpen(p, s, t);
+            allow write: if canWriteInPack(p);
+          }
+        }
+        // Anything else inside a subject
+        match /{other}/{rest=**} {
+          allow read: if other != 'topics' && canReadPack(packDoc(p), p);
+          allow write: if other != 'topics' && canWriteInPack(p);
+        }
+      }
+      // Anything else inside a pack
+      match /{other}/{rest=**} {
+        allow read: if other != 'subjects' && canReadPack(packDoc(p), p);
+        allow write: if other != 'subjects' && canWriteInPack(p);
       }
     }
     // Students can save AI-made cheat sheets, short answers and point notes

@@ -7,6 +7,7 @@
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 export const PLUS_FEATURES = [
+  'Every topic in the ready-made Lobe Limpet packs (each subject has free sample topics)',
   'Create notes and questions with AI, from your own notes, a document or just a topic name',
   'Make flashcards with AI, and fill in meanings for the terms you type',
   'Upload PDFs and Word documents to build revision from',

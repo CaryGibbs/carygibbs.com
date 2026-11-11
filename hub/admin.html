@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111i">
-  <script src="icons.js?v=20261111i"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111j">
+  <script src="icons.js?v=20261111j"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -592,8 +592,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111i">
-  <link rel="stylesheet" href="stats.css?v=20261111i">
+  <link rel="stylesheet" href="ui.css?v=20261111j">
+  <link rel="stylesheet" href="stats.css?v=20261111j">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1329,29 +1329,30 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111i';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111i';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111i';
-import { openDeleteAccount } from './account.js?v=20261111i';
-import { addDocumentButton } from './doc-text.js?v=20261111i';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111i';
-import { showPlusUpsell } from './plus.js?v=20261111i';
+import { auth, db, storage } from './firebase-config.js?v=20261111j';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111j';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111j';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111j';
+import { openDeleteAccount } from './account.js?v=20261111j';
+import { addDocumentButton } from './doc-text.js?v=20261111j';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111j';
+import { showPlusUpsell } from './plus.js?v=20261111j';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111i';
-import { mountShell } from './shell.js?v=20261111i';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111i';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111i';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111i';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111i';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111i';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111i';
-import { dueEntries } from './srs.js?v=20261111i';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111i';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111i';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111j';
+import { mountShell } from './shell.js?v=20261111j';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111j';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111j';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111j';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111j';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111j';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111j';
+import { dueEntries } from './srs.js?v=20261111j';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111j';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111j';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1367,8 +1368,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111i';
-import { inOrder } from './order.js?v=20261111i';
+import { saveEmailIndex } from './email-index.js?v=20261111j';
+import { inOrder } from './order.js?v=20261111j';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1865,6 +1866,8 @@ document.addEventListener('click', e => {
   else if (action === 'edit-group')         openGroupModal(t.dataset.id);
   else if (action === 'del-group')          confirmDelete('group', t.dataset.id, t.dataset.name);
   else if (action === 'copy-pack')          copyPackClicked(t);
+  else if (action === 'toggle-plus-topic')  togglePlusTopic(t);
+  else if (action === 'free-sample')        openFreeSample(t.dataset.id, t.dataset.name);
   else if (action === 'make-private')       confirmMakePrivate(t.dataset.id, t.dataset.name);
   else if (action === 'make-official')      confirmMakeOfficial(t.dataset.id, t.dataset.name);
   else if (action === 'lib-share')          openShareToLibrary(t.dataset.id);
@@ -2009,6 +2012,7 @@ function groupCard(id, data) {
     ${MINE ? libraryStatusHtml(data) : ''}
     <div class="pack-card-foot">
       <button class="pack-link-btn" data-action="copy-pack" data-id="${id}" data-name="${esc(data.name)}" title="Make a copy of this pack"><i data-icon="copy"></i> Make a copy</button>
+      ${!MINE && isOfficialPack(data) ? `<button class="pack-link-btn" data-action="free-sample" data-id="${id}" data-name="${esc(data.name)}" title="Choose which topics are free and which need Plus"><i data-icon="sparkles"></i> Free sample</button>` : ''}
       ${!MINE ? `<button class="pack-link-btn" data-action="make-private" data-id="${id}" data-name="${esc(data.name)}" title="Move into your own My packs, visible only to you and the students you give it to"><i data-icon="lock"></i> Move to My packs</button>` : ''}
       ${MINE ? libraryButtonHtml(id, data) : ''}
       ${MINE && iAmAdmin ? `<button class="pack-link-btn" data-action="make-official" data-id="${id}" data-name="${esc(data.name)}" title="Make this an official Lobe Limpet pack, available to every parent and teacher"><i data-icon="globe"></i> Make official</button>` : ''}
@@ -2023,7 +2027,8 @@ function groupCard(id, data) {
 function openGroup(id, data) {
   // If data not passed, look it up — for delegation-triggered case
   if (!data) { getDoc(doc(db,'content',id)).then(s => openGroup(id, s.data())); return; }
-  selectedGroup = { id, name: data.name };
+  // Topics can be marked Plus only in Lobe Limpet (official) packs, in Admin
+  selectedGroup = { id, name: data.name, lockable: !MINE && isOfficialPack(data) };
   selectedSubject = null; selectedTopic = null;
   document.getElementById('subjects-panel-title').textContent = data.name + ' — Subjects';
   showPanel('subjects');
@@ -2287,6 +2292,7 @@ function topicsPath() { return `content/${selectedGroup.id}/subjects/${selectedS
 async function loadTopics() {
   updateBreadcrumb();
   const grid = document.getElementById('topics-grid');
+  addAccessCss();
   grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>`;
   const list = inOrder(await getDocs(collection(db, topicsPath())).catch(() => null));
   orderedItems.topics = list;
@@ -2309,10 +2315,12 @@ function topicCard(id, data, qCount, i = 0, n = 1) {
       <button class="icon-btn icon-btn-del" data-action="del-topic" data-id="${id}" data-name="${esc(data.name)}" title="Delete"><i data-icon="trash-2"></i></button>
     </div>
     <div class="item-card-emoji"><i data-icon="file-text"></i></div>
-    <div class="item-card-name">${esc(data.name)}</div>
-    <div class="item-card-meta"><span class="count-chip">${qCount}</span> questions</div>`;
+    <div class="item-card-name">${esc(data.name)}${isPlusOnly(data) ? plusTagHtml('Plus only: people without Plus see it listed but can\'t use it') : ''}</div>
+    <div class="item-card-meta"><span class="count-chip">${qCount}</span> questions</div>
+    ${selectedGroup?.lockable ? `<button class="pack-link-btn" data-action="toggle-plus-topic" data-id="${id}" data-name="${esc(data.name)}" data-on="${isPlusOnly(data) ? 1 : 0}" style="margin-top:8px;"
+      title="${isPlusOnly(data) ? 'Make this a free sample topic' : 'Only people with Plus can learn and quiz this topic'}">${isPlusOnly(data) ? 'Make free' : 'Make Plus only'}</button>` : ''}`;
   div.addEventListener('click', e => {
-    if (e.target.closest('[data-action="edit-topic"],[data-action="del-topic"],[data-move]')) return;
+    if (e.target.closest('[data-action="edit-topic"],[data-action="del-topic"],[data-action="toggle-plus-topic"],[data-move]')) return;
     openTopic(id, data);
   });
   return div;
@@ -3677,8 +3685,9 @@ async function renderOfficialToCopy() {
   document.getElementById('official-copy-list').innerHTML = packs.map(p => `
     <div class="official-copy-row">
       <span><strong>${esc(p.name)}</strong>${p.description ? `<small>${esc(p.description)}</small>` : ''}</span>
-      <button class="pack-link-btn" data-action="copy-pack" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy</button>
+      <button class="pack-link-btn" data-action="copy-pack" data-official="1" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy${canAI ? '' : plusTagHtml()}</button>
     </div>`).join('');
+  addAccessCss();
 }
 
 // Fields that describe a pack's place (owner, library state), never copied
@@ -3703,7 +3712,10 @@ async function copyPack(srcId, { library = null } = {}) {
     writes.push([`${to}/subjects/${s.id}`, s.data()]);
     const topics = await getDocs(collection(db, `${from}/subjects/${s.id}/topics`));
     await Promise.all(topics.docs.map(async t => {
-      writes.push([`${to}/subjects/${s.id}/topics/${t.id}`, t.data()]);
+      // A copy in My packs or the library is its owner's: no Plus only marks
+      const td = { ...t.data() };
+      if (MINE || library) delete td.plusOnly;
+      writes.push([`${to}/subjects/${s.id}/topics/${t.id}`, td]);
       for (const sub of ['questions', 'notes']) {
         const items = await getDocs(collection(db, `${from}/subjects/${s.id}/topics/${t.id}/${sub}`)).catch(() => null);
         items?.forEach(q => writes.push([`${to}/subjects/${s.id}/topics/${t.id}/${sub}/${q.id}`, q.data()]));
@@ -3729,7 +3741,58 @@ async function copyPack(srcId, { library = null } = {}) {
   return { id: ref.id, name, items: writes.length, info };
 }
 
+/* ── FREE SAMPLE TOPICS (official packs) ─────────────────────
+   Topics marked plusOnly are listed for everyone but only people with
+   Plus can learn, quiz or review them (access.js; firestore.rules). */
+async function togglePlusTopic(btn) {
+  const on = btn.dataset.on !== '1';
+  btn.disabled = true;
+  try {
+    await updateDoc(doc(db, topicsPath(), btn.dataset.id), { plusOnly: on });
+    logEvent('content.topic', { target: btn.dataset.name, targetId: btn.dataset.id, detail: on ? 'Made Plus only' : 'Made a free sample' });
+    showToast(`"${btn.dataset.name}" is now ${on ? 'Plus only' : 'free'}`, 'success');
+    loadTopics();
+  } catch (e) { showToast('Could not change it: ' + e.message, 'error'); btn.disabled = false; }
+}
+
+async function openFreeSample(packId, name) {
+  setConfirmButton('Apply', false);
+  document.getElementById('confirm-title').textContent = 'Free sample topics';
+  const msg = document.getElementById('confirm-msg');
+  msg.innerHTML = `<p style="margin:0 0 10px;">In "${esc(name)}", the first topics of each subject (in their order) stay free. The rest become Plus only: everyone sees them listed, but only people with Plus can learn and quiz them.</p>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600;">Free topics in each subject
+      <input type="number" id="fs-count" min="0" max="50" value="2" style="width:70px;" class="form-input"></label>
+    <p style="margin:10px 0 0;font-size:0.85rem;color:var(--color-text-muted);">You can change single topics afterwards with Make free / Make Plus only. Set a large number to make everything free.</p>`;
+  confirmCallback = async () => {
+    const n = Math.max(0, parseInt(document.getElementById('fs-count').value, 10) || 0);
+    try {
+      const subjects = await getDocs(collection(db, `content/${packId}/subjects`));
+      let free = 0, plus = 0;
+      const ups = [];
+      for (const s of subjects.docs) {
+        const topics = inOrder(await getDocs(collection(db, `content/${packId}/subjects/${s.id}/topics`)));
+        topics.forEach((t, i) => {
+          const lock = i >= n;
+          lock ? plus++ : free++;
+          if ((t.plusOnly === true) !== lock) ups.push([`content/${packId}/subjects/${s.id}/topics/${t.id}`, lock]);
+        });
+      }
+      for (let i = 0; i < ups.length; i += 400) {
+        const batch = writeBatch(db);
+        ups.slice(i, i + 400).forEach(([path, lock]) => batch.update(doc(db, path), { plusOnly: lock }));
+        await batch.commit();
+      }
+      logEvent('content.pack', { target: name, targetId: packId, detail: `Free sample: ${n} per subject (${free} free, ${plus} Plus only)` });
+      closeModal('modal-confirm');
+      showToast(`"${name}": ${free} free topic${free === 1 ? '' : 's'}, ${plus} Plus only`, 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  };
+  openModal('modal-confirm');
+}
+
 async function copyPackClicked(btn) {
+  // Copying a Lobe Limpet pack is part of Plus (library packs and your own stay free)
+  if (MINE && btn.dataset.official && !canAI) { showPlusUpsell('Copying a Lobe Limpet pack'); return; }
   const label = btn.innerHTML;
   btn.disabled = true; btn.textContent = 'Copying…';
   try {
@@ -4149,6 +4212,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111i"></script>
+<script src="site.js?v=20261111j"></script>
 </body>
 </html>

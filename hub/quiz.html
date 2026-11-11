@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111i">
-  <script src="icons.js?v=20261111i"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111j">
+  <script src="icons.js?v=20261111j"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -318,7 +318,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111i">
+  <link rel="stylesheet" href="ui.css?v=20261111j">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -523,12 +523,13 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111i';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111i';
-import { askClaude, jsonOf } from './ai.js?v=20261111i';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261111i';
-import { logEvent } from './log.js?v=20261111i';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261111i';
+import { auth, db } from './firebase-config.js?v=20261111j';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111j';
+import { askClaude, jsonOf } from './ai.js?v=20261111j';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261111j';
+import { logEvent } from './log.js?v=20261111j';
+import { topicLocked, showTopicLocked } from './access.js?v=20261111j';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261111j';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -606,7 +607,9 @@ async function loadQuestions() {
     let allQs = [];
 
     if (topicId) {
-      // Single topic
+      // Single topic (a Plus only topic in a Lobe Limpet pack needs Plus)
+      const tSnap = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}/topics/${topicId}`)).catch(() => null);
+      if (topicLocked(tSnap?.data?.(), currentProfile)) return showLockedTopic(tSnap.data().name);
       const snap = await getDocs(collection(db,
         `content/${groupId}/subjects/${subjectId}/topics/${topicId}/questions`));
       snap.forEach(d => allQs.push({ id: d.id, ...d.data(), loc: { p: groupId, s: subjectId, t: topicId } }));
@@ -614,13 +617,14 @@ async function loadQuestions() {
       // Whole subject — gather from all topics
       const topicsSnap = await getDocs(collection(db,
         `content/${groupId}/subjects/${subjectId}/topics`));
+      // Plus only topics are left out for people without Plus
       const topicIds = [];
-      topicsSnap.forEach(d => topicIds.push(d.id));
+      topicsSnap.forEach(d => { if (!topicLocked(d.data(), currentProfile)) topicIds.push(d.id); });
 
       await Promise.all(topicIds.map(async tid => {
         const qSnap = await getDocs(collection(db,
-          `content/${groupId}/subjects/${subjectId}/topics/${tid}/questions`));
-        qSnap.forEach(d => allQs.push({ id: d.id, topicId: tid, ...d.data(), loc: { p: groupId, s: subjectId, t: tid } }));
+          `content/${groupId}/subjects/${subjectId}/topics/${tid}/questions`)).catch(() => null);
+        qSnap?.forEach(d => allQs.push({ id: d.id, topicId: tid, ...d.data(), loc: { p: groupId, s: subjectId, t: tid } }));
       }));
     }
 
@@ -654,11 +658,12 @@ async function loadReview() {
     const subjectNames = {};
     await Promise.all(Object.values(topics).map(async tp => {
       const [qSnap, sSnap] = await Promise.all([
-        getDocs(collection(db, `content/${groupId}/subjects/${tp.s}/topics/${tp.t}/questions`)),
+        // (a topic that has since become Plus only is skipped, not an error)
+        getDocs(collection(db, `content/${groupId}/subjects/${tp.s}/topics/${tp.t}/questions`)).catch(() => null),
         subjectNames[tp.s] ? null : getDoc(doc(db, `content/${groupId}/subjects/${tp.s}`)).catch(() => null),
       ]);
       if (sSnap?.exists?.()) subjectNames[tp.s] = sSnap.data().name;
-      qSnap.forEach(d => { if (tp.ids.has(d.id)) found[d.id] = { id: d.id, ...d.data(), loc: { p: groupId, s: tp.s, t: tp.t } }; });
+      qSnap?.forEach(d => { if (tp.ids.has(d.id)) found[d.id] = { id: d.id, ...d.data(), loc: { p: groupId, s: tp.s, t: tp.t } }; });
     }));
     reviewList = due.map(e => found[e.id]).filter(q => q && TYPE_INFO[q.type]);
     if (!reviewList.length) return showCaughtUp();
@@ -673,6 +678,13 @@ async function loadReview() {
     showToast('Could not load your review: ' + e.message, 'error');
     showCaughtUp();
   }
+}
+
+function showLockedTopic(name) {
+  document.getElementById('noq-title').textContent = 'This topic is part of Plus';
+  document.getElementById('noq-text').textContent = `"${name || 'This topic'}" is in Lobe Limpet Plus. The free topics in this subject are ready for you, or upgrade to unlock every topic.`;
+  showScreen('no-questions');
+  showTopicLocked(name);
 }
 
 function showCaughtUp() {

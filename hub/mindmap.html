@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Learn</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111i">
-  <script src="icons.js?v=20261111i"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111j">
+  <script src="icons.js?v=20261111j"></script>
   <style>
     body { height: 100vh; height: 100dvh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
 
@@ -307,8 +307,8 @@
     }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
   </style>
-  <link rel="stylesheet" href="learn.css?v=20261111i">
-  <link rel="stylesheet" href="ui.css?v=20261111i">
+  <link rel="stylesheet" href="learn.css?v=20261111j">
+  <link rel="stylesheet" href="ui.css?v=20261111j">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -406,14 +406,15 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111i';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111i';
-import { awardXp } from './gamification.js?v=20261111i';
-import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261111i';
-import { startStudyTimer } from './study-timer.js?v=20261111i';
-import { inOrder } from './order.js?v=20261111i';
-import { videosOf, watchStripHtml, WATCH_CSS } from './videos.js?v=20261111i';
-import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers, cardQuestion, ensureCardQuestions } from './card-length.js?v=20261111i';
+import { auth, db } from './firebase-config.js?v=20261111j';
+import { topicLocked, showTopicLocked } from './access.js?v=20261111j';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111j';
+import { awardXp } from './gamification.js?v=20261111j';
+import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261111j';
+import { startStudyTimer } from './study-timer.js?v=20261111j';
+import { inOrder } from './order.js?v=20261111j';
+import { videosOf, watchStripHtml, WATCH_CSS } from './videos.js?v=20261111j';
+import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers, cardQuestion, ensureCardQuestions } from './card-length.js?v=20261111j';
 import {
   collection, getDocs, doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -576,6 +577,15 @@ async function loadData() {
       const subSnap = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}`));
       const topSnap = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}/topics/${topicId}`));
       const topData = topSnap.exists() ? topSnap.data() : {};
+      // A Plus only topic in a Lobe Limpet pack needs Plus
+      if (topicLocked(topData, _currentProfile)) {
+        document.getElementById('loading-wrap').innerHTML = `<div style="text-align:center;padding:40px 16px;max-width:420px;margin:0 auto;">
+          <h2 style="font-family:var(--font-heading);margin-bottom:8px;">This topic is part of Plus</h2>
+          <p style="color:var(--color-text-muted);margin-bottom:16px;">The free topics in this subject are ready to learn, or upgrade to unlock every topic.</p>
+          <a class="btn btn-primary" href="plus.html">See Plus</a> <a class="btn btn-secondary" href="hub.html">Back to my subjects</a></div>`;
+        showTopicLocked(topData.name || topicName);
+        return;
+      }
       // Questions are only used when a topic has no key points (saves reads)
       const qs = [];
       if (!(topData.keyPoints || []).length) {
@@ -592,7 +602,8 @@ async function loadData() {
       // Whole subject mode
       const subSnap  = await getDoc(doc(db, `content/${groupId}/subjects/${subjectId}`));
       const topSnap  = await getDocs(collection(db, `content/${groupId}/subjects/${subjectId}/topics`));
-      const topicList = inOrder(topSnap);
+      // Plus only topics are left out for people without Plus
+      const topicList = inOrder(topSnap).filter(t => !topicLocked(t, _currentProfile));
 
       const topicsWithQ = await Promise.all(topicList.map(async t => {
         // Questions are only used when a topic has no key points (saves reads)
