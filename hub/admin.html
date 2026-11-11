@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111t">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111t">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111t">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111t">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111u">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111u">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111u">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111u">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111t">
-  <script src="icons.js?v=20261111t"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111u">
+  <script src="icons.js?v=20261111u"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -601,8 +601,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111t">
-  <link rel="stylesheet" href="stats.css?v=20261111t">
+  <link rel="stylesheet" href="ui.css?v=20261111u">
+  <link rel="stylesheet" href="stats.css?v=20261111u">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1370,32 +1370,32 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111t';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111t';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111t';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111t';
-import { syncFamilyPlus } from './family-plus.js?v=20261111t';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111t';
-import { openDeleteAccount } from './account.js?v=20261111t';
-import { addDocumentButton } from './doc-text.js?v=20261111t';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111t';
-import { showPlusUpsell } from './plus.js?v=20261111t';
+import { auth, db, storage } from './firebase-config.js?v=20261111u';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111u';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111u';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111u';
+import { syncFamilyPlus } from './family-plus.js?v=20261111u';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111u';
+import { openDeleteAccount } from './account.js?v=20261111u';
+import { addDocumentButton } from './doc-text.js?v=20261111u';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111u';
+import { showPlusUpsell } from './plus.js?v=20261111u';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111t';
-import { mountShell } from './shell.js?v=20261111t';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111t';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111t';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111t';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111t';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111t';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111t';
-import { dueEntries } from './srs.js?v=20261111t';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111t';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111t';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111u';
+import { mountShell } from './shell.js?v=20261111u';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111u';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111u';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111u';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111u';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111u';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111u';
+import { dueEntries } from './srs.js?v=20261111u';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111u';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111u';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1411,8 +1411,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111t';
-import { inOrder } from './order.js?v=20261111t';
+import { saveEmailIndex } from './email-index.js?v=20261111u';
+import { inOrder } from './order.js?v=20261111u';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1804,8 +1804,8 @@ async function renderPersonalLimits() {
 function plPick(uid) {
   const u = plUsers.find(x => x.id === uid); if (!u) return;
   document.getElementById('pl-person').value = plLabel(u);
-  const t = document.getElementById('pl-tokens'); t.value = fmtTok(u.aiLimit);
-  document.getElementById('pl-tokens-month').value = fmtTok(u.aiLimitMonth);
+  const t = document.getElementById('pl-tokens'); t.value = tokBox(u.aiLimit);
+  document.getElementById('pl-tokens-month').value = tokBox(u.aiLimitMonth);
   t.focus(); renderLimitCosts();
 }
 document.addEventListener('click', async e => {
@@ -1891,8 +1891,8 @@ function dayCostText(tokens, plus, monthTokens = 0, el = null) {
 }
 // Token boxes show thousands with commas (50,000); read them without
 function tokNum(v) { return Number(String(v ?? '').replace(/[^\d.]/g, '')) || 0; }
-function fmtTok(v) { const n = tokNum(v); return n ? n.toLocaleString('en-GB') : ''; }
-document.querySelectorAll('input[data-tokens]').forEach(el => el.addEventListener('blur', () => { el.value = fmtTok(el.value); }));
+function tokBox(v) { const n = tokNum(v); return n ? n.toLocaleString('en-GB') : ''; }
+document.querySelectorAll('input[data-tokens]').forEach(el => el.addEventListener('blur', () => { el.value = tokBox(el.value); }));
 function renderLimitCosts() {
   const v = id => tokNum(document.getElementById(id).value);
   document.getElementById('lim-free-cost').textContent = dayCostText(v('lim-free'), false, v('lim-free-month'), document.getElementById('lim-free-cost'));
@@ -1917,10 +1917,10 @@ async function renderAiLimits() {
   aiModels = { generation: st.generation || FALLBACK_MODEL, learning: st.learning || FALLBACK_MODEL, marking: st.marking || FALLBACK_MODEL };
   const snap = await getDoc(doc(db, 'settings', 'aiLimits')).catch(() => null);
   const lim = { ...LIMIT_DEFAULTS, ...(snap?.exists() ? snap.data() : {}) };
-  document.getElementById('lim-free').value = fmtTok(lim.free);
-  document.getElementById('lim-plus').value = fmtTok(lim.plus);
-  document.getElementById('lim-free-month').value = fmtTok(lim.freeMonth);
-  document.getElementById('lim-plus-month').value = fmtTok(lim.plusMonth);
+  document.getElementById('lim-free').value = tokBox(lim.free);
+  document.getElementById('lim-plus').value = tokBox(lim.plus);
+  document.getElementById('lim-free-month').value = tokBox(lim.freeMonth);
+  document.getElementById('lim-plus-month').value = tokBox(lim.plusMonth);
   document.getElementById('lim-plus-price').value = lim.plusPriceYear;
   renderLimitCosts();
   document.getElementById('limits-status').textContent = snap?.exists() ? `Saved ${new Date(lim.updatedAt || Date.now()).toLocaleDateString('en-GB')}` : 'Using defaults';
@@ -4416,6 +4416,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111t"></script>
+<script src="site.js?v=20261111u"></script>
 </body>
 </html>
