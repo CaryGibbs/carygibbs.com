@@ -12,7 +12,7 @@
 // student's own flashcard pack, myPackId).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111o';
+import { db } from './firebase-config.js?v=20261111p';
 import {
   collection, getDocs, getDoc, doc, query, where, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";

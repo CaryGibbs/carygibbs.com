@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111o">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111o">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111o">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111o">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111p">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111p">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111p">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111p">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111o">
-  <script src="icons.js?v=20261111o"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111p">
+  <script src="icons.js?v=20261111p"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -507,6 +507,7 @@
   .pack-link-btn { background: none; border: 1px solid var(--color-border); border-radius: 999px; padding: 4px 10px; font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; display: inline-flex; gap: 5px; align-items: center; }
   .pack-link-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
   .pack-link-btn:disabled { opacity: 0.6; cursor: default; }
+  .lim-cost { font-size: 0.8rem; color: var(--color-text-muted); margin: 6px 0 0; }
   .pl-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
   .pl-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-button); font-size: 0.88rem; }
   .pl-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -597,8 +598,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111o">
-  <link rel="stylesheet" href="stats.css?v=20261111o">
+  <link rel="stylesheet" href="ui.css?v=20261111p">
+  <link rel="stylesheet" href="stats.css?v=20261111p">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -960,10 +961,11 @@
           <div>
             <h3>AI usage and daily limits</h3>
             <p>Each person's AI use is counted every day (UK time). When someone reaches their daily allowance, AI stops for them until midnight. Admins have no limit. A token is roughly ¾ of a word, counting both what's sent and the reply.</p>
+            <p class="lim-cost" id="lim-guide"></p>
           </div>
         </div>
-        <div class="ai-field"><label for="lim-free">Free accounts: tokens a day</label><p>Learning notes, cheat sheets and marking written answers.</p><input type="number" id="lim-free" min="0" step="10000" class="lim-input"></div>
-        <div class="ai-field"><label for="lim-plus">Plus accounts: tokens a day</label><p>Also covers creating notes, questions and flashcards with AI.</p><input type="number" id="lim-plus" min="0" step="100000" class="lim-input"></div>
+        <div class="ai-field"><label for="lim-free">Free accounts: tokens a day</label><p>Learning notes, cheat sheets and marking written answers.</p><input type="number" id="lim-free" min="0" step="10000" class="lim-input"><p class="lim-cost" id="lim-free-cost"></p></div>
+        <div class="ai-field"><label for="lim-plus">Plus accounts: tokens a day</label><p>Also covers creating notes, questions and flashcards with AI.</p><input type="number" id="lim-plus" min="0" step="100000" class="lim-input"><p class="lim-cost" id="lim-plus-cost"></p></div>
         <div class="ai-settings-actions">
           <button class="btn btn-primary" id="btn-save-limits"><i data-icon="save"></i> Save limits</button>
           <span class="ai-status" id="limits-status"></span>
@@ -978,6 +980,7 @@
             <input type="number" id="pl-tokens" min="10000" step="10000" placeholder="Tokens a day" class="lim-input" style="flex:1;min-width:120px;">
             <button class="btn btn-secondary" id="btn-pl-save"><i data-icon="save"></i> Set limit</button>
           </div>
+          <p class="lim-cost" id="pl-cost"></p>
         </div>
         <div id="ai-usage"></div>
       </div>
@@ -1356,32 +1359,32 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111o';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111o';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111o';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111o';
-import { syncFamilyPlus } from './family-plus.js?v=20261111o';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111o';
-import { openDeleteAccount } from './account.js?v=20261111o';
-import { addDocumentButton } from './doc-text.js?v=20261111o';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111o';
-import { showPlusUpsell } from './plus.js?v=20261111o';
+import { auth, db, storage } from './firebase-config.js?v=20261111p';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111p';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111p';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111p';
+import { syncFamilyPlus } from './family-plus.js?v=20261111p';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111p';
+import { openDeleteAccount } from './account.js?v=20261111p';
+import { addDocumentButton } from './doc-text.js?v=20261111p';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111p';
+import { showPlusUpsell } from './plus.js?v=20261111p';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111o';
-import { mountShell } from './shell.js?v=20261111o';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111o';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111o';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111o';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111o';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111o';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111o';
-import { dueEntries } from './srs.js?v=20261111o';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111o';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111o';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111p';
+import { mountShell } from './shell.js?v=20261111p';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111p';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111p';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111p';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111p';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111p';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111p';
+import { dueEntries } from './srs.js?v=20261111p';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111p';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111p';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1397,8 +1400,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111o';
-import { inOrder } from './order.js?v=20261111o';
+import { saveEmailIndex } from './email-index.js?v=20261111p';
+import { inOrder } from './order.js?v=20261111p';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1842,11 +1845,53 @@ document.getElementById('set-student-self').onchange = async e => {
   finally { e.target.disabled = false; renderSignupSettings(); }
 };
 
+/* ── What tokens cost (approximate). API list prices in US dollars per
+   million tokens [input, output], checked 11 Nov 2026; Haiku 5.5's price
+   is for prompts under 100k tokens (all of the app's are). Update here if
+   Anthropic's prices change. ─────────────────────────────────────────── */
+const PRICES = { 'claude-opus-5-5': [4, 20], 'claude-sonnet-5-5': [2, 10], 'claude-haiku-5-5': [0.10, 0.50], 'claude-sonnet-4-5': [3, 15] };
+const USD_TO_GBP = 0.78;          // rough exchange rate
+const OUT_SHARE = 0.3;            // about 30% of the app's tokens are replies
+const priceOf = m => PRICES[m] || PRICES['claude-sonnet-4-5'];
+const gbpPerMillion = (m, out = OUT_SHARE) => { const [i, o] = priceOf(m); return ((1 - out) * i + out * o) * USD_TO_GBP; };
+const fmtGbp = v => v < 0.01 ? 'under 1p' : v < 1 ? `${Math.round(v * 100)}p` : `£${v.toFixed(v < 10 ? 2 : 0)}`;
+const modelName = m => (MODELS.find(x => x.id === m)?.name || m).replace('Claude ', '');
+let aiModels = { generation: FALLBACK_MODEL, learning: FALLBACK_MODEL, marking: FALLBACK_MODEL };
+// Most a day's allowance could cost if it were all spent on the dearest model the account can use
+function dayCostText(tokens, plus) {
+  if (!tokens) return '';
+  const models = plus ? [aiModels.generation, aiModels.learning, aiModels.marking] : [aiModels.learning, aiModels.marking];
+  const dear = models.reduce((a, b) => gbpPerMillion(b) > gbpPerMillion(a) ? b : a);
+  const max = tokens / 1e6 * gbpPerMillion(dear);
+  return `Most it could cost: about ${fmtGbp(max)} a day per person (${fmtGbp(max * 30)} a month) if used in full every day on ${modelName(dear)}. Most people use a small fraction.`;
+}
+function renderLimitCosts() {
+  const f = Number(document.getElementById('lim-free').value) || 0, p = Number(document.getElementById('lim-plus').value) || 0;
+  document.getElementById('lim-free-cost').textContent = dayCostText(f, false);
+  document.getElementById('lim-plus-cost').textContent = dayCostText(p, true);
+  const t = Number(document.getElementById('pl-tokens').value) || 0;
+  document.getElementById('pl-cost').textContent = t ? dayCostText(t, true) : '';
+  document.getElementById('lim-guide').textContent = `Rough guide (your current models): 100,000 tokens costs about ${fmtGbp(0.1 * gbpPerMillion(aiModels.generation))} on ${modelName(aiModels.generation)} (writing content), `
+    + `${fmtGbp(0.1 * gbpPerMillion(aiModels.learning))} on ${modelName(aiModels.learning)} (learning notes) and ${fmtGbp(0.1 * gbpPerMillion(aiModels.marking))} on ${modelName(aiModels.marking)} (marking). `
+    + `Making 30 questions for a topic uses about 20,000 tokens; marking one written answer about 1,000. Prices are approximate.`;
+}
+['lim-free', 'lim-plus', 'pl-tokens'].forEach(id => document.getElementById(id).addEventListener('input', renderLimitCosts));
+// Estimated cost of one usage record, from the tokens per model and its input/output split
+function usageCost(r) {
+  const total = r.tokens || 0; if (!total) return 0;
+  const out = total ? (r.outputTokens || 0) / total : OUT_SHARE;
+  const models = r.models && Object.keys(r.models).length ? r.models : { [FALLBACK_MODEL]: total };
+  return Object.entries(models).reduce((a, [m, n]) => a + (n || 0) / 1e6 * gbpPerMillion(m, out), 0);
+}
+
 async function renderAiLimits() {
+  const st = await loadAiSettings(true).catch(() => ({}));
+  aiModels = { generation: st.generation || FALLBACK_MODEL, learning: st.learning || FALLBACK_MODEL, marking: st.marking || FALLBACK_MODEL };
   const snap = await getDoc(doc(db, 'settings', 'aiLimits')).catch(() => null);
   const lim = { ...LIMIT_DEFAULTS, ...(snap?.exists() ? snap.data() : {}) };
   document.getElementById('lim-free').value = lim.free;
   document.getElementById('lim-plus').value = lim.plus;
+  renderLimitCosts();
   document.getElementById('limits-status').textContent = snap?.exists() ? `Saved ${new Date(lim.updatedAt || Date.now()).toLocaleDateString('en-GB')}` : 'Using defaults';
   await renderPersonalLimits().catch(e => console.warn('Personal limits:', e.message));
   const box = document.getElementById('ai-usage');
@@ -1858,21 +1903,22 @@ async function renderAiLimits() {
     if (!rows.length) { box.innerHTML = '<p class="ai-status" style="margin-top:12px;">No AI use recorded yet (counting starts once the updated Worker is live).</p>'; return; }
     const people = {};
     rows.forEach(r => {
-      const p = people[r.uid] = people[r.uid] || { name: r.name || r.email || 'Someone', plan: r.plan, today: 0, week: 0, req: 0 };
-      p.week += r.tokens || 0; p.req += r.requests || 0;
+      const p = people[r.uid] = people[r.uid] || { name: r.name || r.email || 'Someone', plan: r.plan, today: 0, week: 0, req: 0, cost: 0 };
+      p.week += r.tokens || 0; p.req += r.requests || 0; p.cost += usageCost(r);
       if (r.day === days[0]) p.today += r.tokens || 0;
     });
     const list = Object.entries(people).sort((a, b) => b[1].week - a[1].week);
     const total = list.reduce((a, [, p]) => a + p.week, 0), today = list.reduce((a, [, p]) => a + p.today, 0);
+    const costWeek = list.reduce((a, [, p]) => a + p.cost, 0);
     const capOf = (uid, p) => { const u = plUsers.find(x => x.id === uid); if (u && rolesOf(u).has('admin')) return 0; return Number(u?.aiLimit) || (/^plus/.test(p.plan || '') ? lim.plus : lim.free); };
     const ownLimit = uid => Number(plUsers.find(x => x.id === uid)?.aiLimit) > 0;
     const isAdminUid = uid => { const u = plUsers.find(x => x.id === uid); return !!u && rolesOf(u).has('admin'); };
-    box.innerHTML = `<h4 style="margin:16px 0 6px;font-size:0.9rem;">Last 7 days: ${fmtTok(total)} tokens (${fmtTok(today)} today)</h4>
-      <table class="users-table"><thead><tr><th>Person</th><th>Plan</th><th>Today</th><th>7 days</th><th>Requests</th><th></th></tr></thead><tbody>
+    box.innerHTML = `<h4 style="margin:16px 0 6px;font-size:0.9rem;">Last 7 days: ${fmtTok(total)} tokens, about ${fmtGbp(costWeek)} (${fmtTok(today)} today)</h4>
+      <table class="users-table"><thead><tr><th>Person</th><th>Plan</th><th>Today</th><th>7 days</th><th>Cost (7 days)</th><th>Requests</th><th></th></tr></thead><tbody>
       ${list.map(([uid, p]) => { const cap = capOf(uid, p); const pct = cap ? Math.round(p.today / cap * 100) : 0;
         return `<tr><td>${esc(p.name)}${ownLimit(uid) ? ' <span class="badge badge-primary" title="Has a personal limit">Own limit</span>' : ''}</td><td>${/^plus/.test(p.plan || '') ? `<span class="badge badge-warning">${p.plan === 'plus (family)' ? 'Plus (family)' : 'Plus'}</span>` : 'Free'}</td>
         <td${pct >= 100 ? ' style="color:var(--color-danger);font-weight:700;"' : ''}>${fmtTok(p.today)}${cap ? ` <span class="muted">(${pct}% of ${fmtTok(cap)})</span>` : ' <span class="muted">(no limit)</span>'}</td>
-        <td>${fmtTok(p.week)}</td><td>${p.req}</td><td>${isAdminUid(uid) ? '' : `<button class="pack-link-btn" data-pl-edit="${esc(uid)}">Set limit</button>`}</td></tr>`; }).join('')}
+        <td>${fmtTok(p.week)}</td><td>${fmtGbp(p.cost)}</td><td>${p.req}</td><td>${isAdminUid(uid) ? '' : `<button class="pack-link-btn" data-pl-edit="${esc(uid)}">Set limit</button>`}</td></tr>`; }).join('')}
       </tbody></table>`;
   } catch (e) { box.innerHTML = `<p class="ai-status">Couldn't load usage: ${esc(e.message)}</p>`; }
 }
@@ -4334,6 +4380,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111o"></script>
+<script src="site.js?v=20261111p"></script>
 </body>
 </html>
