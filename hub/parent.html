@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111c">
-  <script src="icons.js?v=20261111c"></script>
-  <link rel="stylesheet" href="stats.css?v=20261111c">
+  <link rel="stylesheet" href="theme.css?v=20261111d">
+  <script src="icons.js?v=20261111d"></script>
+  <link rel="stylesheet" href="stats.css?v=20261111d">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -30,11 +30,14 @@
 
     /* ── Child cards ─────────────────────────────────────── */
     .plan-exams { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-    .plan-exam-row { display: grid; grid-template-columns: 1fr 140px 140px auto; gap: 6px; align-items: end; }
+    .plan-exam-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px 8px; align-items: end; padding: 10px; border: 1px solid var(--color-border); border-radius: 10px; margin-bottom: 8px; }
+    .plan-exam-row > div:first-child { grid-column: 1 / -1; }
+    .plan-exam-row.bad { border-color: var(--color-danger); }
+    .plan-exam-row input { width: 100%; box-sizing: border-box; }
     .plan-exam-row label { font-size: 0.72rem; color: var(--color-text-muted); font-weight: 600; display: block; margin-bottom: 2px; }
     .plan-exam-row input { padding: 8px 10px; font-size: 0.9rem; }
     .plan-exam-row .btn { padding: 8px 10px; }
-    @media (max-width: 600px) { .plan-exam-row { grid-template-columns: 1fr 1fr; } .plan-exam-row > div:first-child { grid-column: 1 / -1; } }
+    @media (max-width: 600px) { .plan-exam-row { grid-template-columns: 1fr 1fr; } }
     .plan-week { background: var(--color-surface-2); border-radius: var(--radius-card); padding: 14px 16px; margin-bottom: var(--space-md); }
     .plan-week-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-family: var(--font-ui); font-size: 0.85rem; margin-bottom: 10px; }
     .plan-week-head strong { font-family: var(--font-heading); }
@@ -179,7 +182,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111c">
+  <link rel="stylesheet" href="ui.css?v=20261111d">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -425,21 +428,21 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111c';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111c';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111c';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111c';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111c';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261111c';
-import { logEvent } from './log.js?v=20261111c';
-import { openInviteDialog } from './invite.js?v=20261111c';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111c';
-import { dueEntries, scheduledCount } from './srs.js?v=20261111c';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111c';
-import { openPlanCalendar } from './plan-view.js?v=20261111c';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111c';
-import { openDeleteAccount } from './account.js?v=20261111c';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111c';
+import { auth, db } from './firebase-config.js?v=20261111d';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111d';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111d';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111d';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111d';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261111d';
+import { logEvent } from './log.js?v=20261111d';
+import { openInviteDialog } from './invite.js?v=20261111d';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111d';
+import { dueEntries, scheduledCount } from './srs.js?v=20261111d';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111d';
+import { openPlanCalendar } from './plan-view.js?v=20261111d';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111d';
+import { openDeleteAccount } from './account.js?v=20261111d';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111d';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -919,7 +922,7 @@ window.openPlanFor = (uid) => {
   const child = childrenData[uid];
   if (!child) return;
   openPlanCalendar(child, { uid, name: (child.name || '').split(' ')[0], editable: true,
-    onChange: p => { childrenData[uid].plan = p.plan; renderChildren(); } });
+    onChange: p => { childrenData[uid].plan = p.plan; liveStats[uid] = { ...(liveStats[uid] || {}), plan: p.plan }; renderChildren(); } });
 };
 
 /* ── Study plan week (in the Progress window) ─────────────── */
@@ -941,14 +944,17 @@ function renderPlanWeek(profile) {
 
 /* ── Study plan editor (in Manage student) ────────────────── */
 let managePlan = { mode: 'auto', exams: [] };
+// Read the exam rows straight from the screen (each row carries its exam's id)
 function readPlanEditor() {
   managePlan.mode = document.getElementById('manage-plan-mode').value;
-  document.querySelectorAll('#manage-exams .plan-exam-row').forEach((row, i) => {
-    const e = managePlan.exams[i]; if (!e) return;
-    e.name = row.querySelector('[data-f="name"]').value;
-    e.start = row.querySelector('[data-f="start"]').value;
-    e.end = row.querySelector('[data-f="end"]').value || null;
-  });
+  const byId = Object.fromEntries((managePlan.exams || []).map(e => [e.id, e]));
+  managePlan.exams = [...document.querySelectorAll('#manage-exams .plan-exam-row')].map(row => ({
+    ...(byId[row.dataset.id] || {}),
+    id: row.dataset.id || ('e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5)),
+    name: row.querySelector('[data-f="name"]').value.trim(),
+    start: row.querySelector('[data-f="start"]').value,
+    end: row.querySelector('[data-f="end"]').value || null,
+  }));
 }
 function renderPlanEditor() {
   const sel = document.getElementById('manage-plan-mode');
@@ -961,7 +967,7 @@ function renderPlanEditor() {
   };
   sel.onchange = hint; hint();
   const box = document.getElementById('manage-exams');
-  box.innerHTML = managePlan.exams.map((e, i) => `<div class="plan-exam-row">
+  box.innerHTML = managePlan.exams.map((e, i) => `<div class="plan-exam-row" data-id="${esc(e.id || '')}">
       <div><label>Exams</label><input data-f="name" value="${esc(e.name || '')}" placeholder="e.g. November progress exams"></div>
       <div><label>First exam</label><input type="date" data-f="start" value="${esc(e.start || '')}"></div>
       <div><label>Last exam (optional)</label><input type="date" data-f="end" value="${esc(e.end || '')}"></div>
@@ -1014,6 +1020,15 @@ window._saveChild = async function() {
   try {
     const cardLength = document.getElementById('manage-card-length').value;
     readPlanEditor();
+    // An exam with a name or last date but no first date can't be planned: say so rather than dropping it
+    const rows = [...document.querySelectorAll('#manage-exams .plan-exam-row')];
+    rows.forEach(r => r.classList.remove('bad'));
+    const badIdx = managePlan.exams.findIndex(e => !e.start && (e.name || e.end));
+    if (badIdx >= 0) {
+      rows[badIdx]?.classList.add('bad'); rows[badIdx]?.scrollIntoView({ block: 'center' });
+      showErr('manage-error', `Add the first exam date for "${managePlan.exams[badIdx].name || 'these exams'}", or remove that row.`);
+      btn.classList.remove('loading'); return;
+    }
     const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null })) };
     if (managePlan.overrides) plan.overrides = managePlan.overrides;   // keep day-by-day changes
     const was = { ...(childrenData[managingChildId] || {}) };
@@ -1023,16 +1038,22 @@ window._saveChild = async function() {
     });
     const planText = p => `${p?.mode || 'auto'}${(p?.exams || []).length ? ' · ' + p.exams.map(e => `${e.name} ${e.start}${e.end ? '–' + e.end : ''}`).join('; ') : ''}`;
     if (planText(was.plan) !== planText(plan)) logEvent('plan.change', { target: name, targetId: managingChildId, detail: planText(plan) });
-    const changed = [was.name !== name && 'name', was.theme !== manageTheme && 'theme', JSON.stringify(was.groupIds || []) !== JSON.stringify(groupIds) && 'packs', (was.cardLength || 'full') !== cardLength && 'card length'].filter(Boolean);
+    const changed = [was.name !== name && 'name', was.theme !== manageTheme && 'theme', JSON.stringify([...(was.groupIds || [])].sort()) !== JSON.stringify([...groupIds].sort()) && 'packs', (was.cardLength || 'full') !== cardLength && 'card length'].filter(Boolean);
     if (changed.length) logEvent('student.edit', { target: name, targetId: managingChildId, detail: 'Changed ' + changed.join(', ') });
-    childrenData[managingChildId].cardLength = cardLength;
-    childrenData[managingChildId].plan = plan;
+    // Remember what was saved, so the list doesn't redraw from the copy read when the page opened
+    const saved = { name, theme: manageTheme, groupIds, cardLength, plan };
+    liveStats[managingChildId] = { ...(liveStats[managingChildId] || {}), ...saved };
+    Object.assign(childrenData[managingChildId], saved);
     renderChildren();
     await updateDoc(doc(db, 'users', parentUid, 'children', managingChildId), {
       name, theme: manageTheme, groupIds
     });
     document.getElementById('modal-manage').classList.remove('open');
-    showToast('Changes saved.', 'success');
+    // Confirm from the server what the study plan now says
+    const check = (await getDoc(doc(db, 'users', managingChildId)).catch(() => null))?.data()?.plan;
+    const n = (check?.exams || []).length;
+    const first = n ? check.exams.map(e => e.start).sort()[0] : null;
+    showToast(`Saved. ${name.split(' ')[0]}'s plan: ${n ? `${n} set${n === 1 ? '' : 's'} of exams, the first on ${new Date(first + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : 'no exams set'}.`, 'success');
   } catch(e) { showErr('manage-error', 'Failed to save. Please try again.'); }
   finally { btn.classList.remove('loading'); }
 };
@@ -1304,6 +1325,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111c"></script>
+<script src="site.js?v=20261111d"></script>
 </body>
 </html>
