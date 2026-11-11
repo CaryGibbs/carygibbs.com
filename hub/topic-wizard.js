@@ -9,10 +9,10 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111r';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose } from './ai.js?v=20261111r';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261111r';
-import { logEvent } from './log.js?v=20261111r';
+import { db } from './firebase-config.js?v=20261111s';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose } from './ai.js?v=20261111s';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261111s';
+import { logEvent } from './log.js?v=20261111s';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -23,7 +23,8 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 // kind: 'auto' (AI decides), 'extract' (notes/textbook: use what it says),
 //       'teach' (checklist/spec/objectives: write what each point means)
 // context: e.g. "GCSE AQA Chemistry: Atomic structure" (helps the level)
-const NOTES_JSON = `Return ONLY a JSON array of groups, no markdown, no backticks, no preamble. Use between 3 and 12 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name about the SUBJECT (e.g. "Atoms and Elements", "Balancing Equations"), never about the document (not "Revision Checklist Format" or "Row 3"). Keep each explanation under 30 words.
+const NOTES_JSON = `Leave out exam admin (marks, timings, word counts, assessment objectives, how many questions or tasks, how the paper is laid out): teach the subject itself. Exam technique is fine as advice on how to do it well, without numbers.
+Return ONLY a JSON array of groups, no markdown, no backticks, no preamble. Use between 3 and 12 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name about the SUBJECT (e.g. "Atoms and Elements", "Balancing Equations"), never about the document (not "Revision Checklist Format" or "Row 3"). Keep each explanation under 30 words.
 [{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits: 2 for easting, 2 for northing"},{"term":"Easting","explanation":"The horizontal value, read first"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map distance and real-world distance"}]}]`;
 // The level to write for, read from the context ("A level AQA Economics: …").
 // Defaults to GCSE, as before.
@@ -62,6 +63,7 @@ export function notesPromptResearch(topic) {
   return `You are an expert ${lvl} teacher. Write comprehensive key points for the following ${lvl} topic, organised into named sub-topic groups. Include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student needs for their exam.
 
 IMPORTANT: You MUST return between 3 and 10 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name (e.g. "Grid References", "Scale & Distance", "Contour Lines"). Do NOT use an empty string as a group name. Keep each explanation under 30 words.
+Leave out exam admin (marks, timings, word counts, assessment objectives, how many questions or tasks, how the paper is laid out): teach the subject itself. Exam technique is fine as advice on how to do it well, without numbers.
 If the topic below lists several sub-topics or bullet points, use them as the groups.
 
 Topic: ${topic}
@@ -84,6 +86,7 @@ export function questionsPrompt(content, qty, types = QUESTION_TYPES.map(t => t.
   const lvl = levelOf(context);
   const higher = /A level|AS level/.test(lvl) ? ` Pitch questions at ${lvl} standard, testing understanding and application, not just recall.` : '';
   return `You are a ${lvl} revision question writer${context ? ` for ${context}` : ''}.${higher} Generate up to ${qty} high-quality questions based on the revision content below. If the content does not support ${qty} distinct, non-repetitive questions, generate fewer — quality over quantity. Spread questions evenly across ALL the content, covering early and late sections equally. Never repeat the same fact in two different questions.
+Do NOT ask about exam admin (marks, timings, word counts, assessment objectives, how many questions or tasks there are, how the paper is laid out), even if the content mentions it. Every question must test the subject or skill itself.
 If the content is about a skill (e.g. descriptive or narrative writing, analysing a text, essay technique) rather than facts, still write questions: test the techniques, terms, features, structures and when and why to use them, with short examples you make up.
 Use these types in roughly equal proportions from: ${types.join(', ')}.
 
