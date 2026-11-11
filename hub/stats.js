@@ -3,7 +3,7 @@
 // Next goals, revision time, time by subject, badge collection.
 // ============================================================
 
-import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261111d';
+import { BADGE_FAMILIES, TIERS, badgeProgress, studyEntries } from './gamification.js?v=20261111e';
 
 /* ── Markup ──────────────────────────────────────────────── */
 // Section ids (goals, time, subjects, badges) are the jump-link targets.
@@ -99,17 +99,91 @@ function renderGoals(progress, limit) {
 }
 
 /* ── Badges ──────────────────────────────────────────────── */
+// How each badge is counted, in plain words: the unit for "6 of 10 …"
+// and a tip on how to get there. Keys are the metrics in gamification.js.
+const BADGE_HOW = {
+  quizzes:        { unit: ['quiz', 'quizzes'],              tip: 'Finish any quiz. Every quiz counts, whatever your score.' },
+  studyDays:      { unit: ['day', 'days'],                  tip: 'Do a quiz or some learning on as many different days as you can. The days don\'t have to be in a row.' },
+  streak:         { unit: ['day in a row', 'days in a row'], tip: 'Revise every day without a gap. A quiz, a review or a few minutes of learning all count. This uses your best ever streak.' },
+  totalMins:      { unit: ['minute', 'minutes'],            tip: 'All your revision time adds up: quizzes, learning, maps, cheat sheets and flashcards.' },
+  bestWeekMins:   { unit: ['minute', 'minutes'],            tip: 'Revise for this long in a single week (Monday to Sunday). Your best week counts.' },
+  improvedTopics: { unit: ['topic', 'topics'],              tip: 'Quiz a topic again and beat the score you got the first time.' },
+  bestLeap:       { unit: ['point', 'points'],              tip: 'Go back to a topic you found hard and beat your first score by this many percentage points.' },
+  masteredTopics: { unit: ['topic', 'topics'],              tip: 'Score 80% or more on a topic quiz. Each different topic counts once.' },
+  highScores:     { unit: ['quiz', 'quizzes'],              tip: 'Score 80% or more on a quiz.' },
+  perfectScores:  { unit: ['quiz', 'quizzes'],              tip: 'Get every question right in a quiz.' },
+  subjects:       { unit: ['subject', 'subjects'],          tip: 'Revise more than one subject. Each different subject counts once.' },
+  writtenQuizzes: { unit: ['quiz', 'quizzes'],              tip: 'Choose "Written answer" questions when you start a quiz, then finish the quiz.' },
+  writtenHigh:    { unit: ['quiz', 'quizzes'],              tip: 'Score 80% or more on a quiz that includes written answers.' },
+  typesTried:     { unit: ['question type', 'question types'], tip: 'Try every kind of question: multiple choice, true or false, match the pairs, fill the gap and written answers.' },
+  fullMixQuizzes: { unit: ['quiz', 'quizzes'],              tip: 'Pick all five question types when you start a quiz, then finish it.' },
+  mindmaps:       { unit: ['map', 'maps'],                  tip: 'Open the subject map for a topic (the Learn button) and explore it.' },
+  studyMins:      { unit: ['minute', 'minutes'],            tip: 'Time spent learning, not quizzing: subject maps, tap-to-learn notes, cheat sheets and flashcards.' },
+  pointsLearned:  { unit: ['point', 'points'],              tip: 'Tap a key point on a subject map to learn about it, then mark it as learnt.' },
+  topicsLearned:  { unit: ['topic', 'topics'],              tip: 'Learn every key point in a topic on its subject map.' },
+  cheatSheets:    { unit: ['cheat sheet', 'cheat sheets'],  tip: 'Open the one-page cheat sheet for a topic.' },
+  reviews:        { unit: ['review', 'reviews'],            tip: 'Do "Review today" in your hub when questions are due.' },
+  repairsDone:    { unit: ['time', 'times'],                tip: 'If you lose a streak, revise for an hour the next day to win it back.' },
+  goalsHit:       { unit: ['day', 'days'],                  tip: 'Reach your daily study goal (shown in your hub under Goals).' },
+  examRun:        { unit: ['day in a row', 'days in a row'], tip: 'During an exam push, hit your daily goal every day for a week.' },
+  shieldsUsed:    { unit: ['time', 'times'],                tip: 'You earn a streak shield for every 7 days in a row (you can hold 2). If you then miss a day, a shield keeps your streak going.' },
+  longTerm:       { unit: ['question', 'questions'],        tip: 'Keep getting the same questions right in "Review today" over several weeks.' },
+  level:          { unit: ['level', 'levels'],              tip: 'Earn XP from quizzes, reviews and study time to level up.' },
+};
+const unitOf = (b, n) => { const u = BADGE_HOW[b.metric]?.unit || ['', '']; return n === 1 ? u[0] : u[1]; };
+const amountText = (b, n) => b.metric === 'level' ? `level ${n}` : `${n} ${unitOf(b, n)}`;
+
+let badgeList = [];   // the latest badgeProgress(), for the detail card
+
 function badgeCard(b) {
   const tier = TIERS[b.tier];
-  return `<div class="badge-card ${b.earned ? 'earned' : 'locked'}" style="--tier-colour:${tier.colour}" title="${esc(b.desc)}">
+  return `<button type="button" class="badge-card ${b.earned ? 'earned' : 'locked'}" style="--tier-colour:${tier.colour}" data-badge="${esc(b.id)}" aria-label="${esc(b.name)}: ${esc(b.desc)}${b.earned ? ' (earned)' : ''}. Tap for details">
     <div class="badge-icon">${b.icon}</div>
     <div class="badge-tier">${tier.name}</div>
     <div class="badge-name">${esc(b.name)}</div>
     <div class="badge-desc">${esc(b.desc)}</div>
-  </div>`;
+    ${b.earned ? '' : `<div class="badge-mini" title="${b.value} of ${b.target}"><i style="width:${Math.max(3, b.pct)}%"></i></div>`}
+  </button>`;
+}
+
+// Tap a badge: what it's for, how to get it, how close you are, and what's next
+function openBadge(id) {
+  const b = badgeList.find(x => x.id === id); if (!b) return;
+  const tier = TIERS[b.tier];
+  const fam = BADGE_FAMILIES.find(f => f.id === b.family);
+  const how = BADGE_HOW[b.metric] || {};
+  const next = badgeList.filter(x => x.family === b.family && !x.earned && x.id !== b.id)
+    .sort((x, y) => x.target - y.target)[0];
+  const left = b.target - b.value;
+  document.getElementById('badge-detail')?.remove();
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="bd-overlay" id="badge-detail" role="dialog" aria-modal="true" aria-labelledby="bd-name">
+      <div class="bd-box" style="--tier-colour:${tier.colour}">
+        <button class="bd-close" aria-label="Close">✕</button>
+        <div class="bd-icon ${b.earned ? '' : 'locked'}">${b.icon}</div>
+        <div class="bd-tier">${tier.name}${fam ? ` · ${esc(fam.name)}` : ''}</div>
+        <h3 id="bd-name">${esc(b.name)}</h3>
+        <p class="bd-desc">${esc(b.desc)}</p>
+        ${b.earned
+          ? `<p class="bd-earned">🎉 Earned!</p>`
+          : `<div class="bd-bar"><i style="width:${Math.max(2, b.pct)}%"></i></div>
+             <p class="bd-progress"><strong>${b.metric === 'level' ? `Level ${b.value} of ${b.target}` : `${b.value} of ${amountText(b, b.target)}`}</strong>${left > 0 ? ` · ${b.metric === 'level' ? `${left} more level${left === 1 ? '' : 's'}` : `${amountText(b, left)} to go`}` : ''}</p>`}
+        ${how.tip ? `<div class="bd-how"><strong>How to earn it</strong><p>${esc(how.tip)}</p></div>` : ''}
+        ${b.earned && next ? `<div class="bd-next"><span>Next to aim for</span><button type="button" data-badge="${esc(next.id)}">${next.icon} ${esc(next.name)} <small>${esc(next.desc)} · ${next.pct}% there</small></button></div>` : ''}
+      </div>
+    </div>`);
+  const o = document.getElementById('badge-detail');
+  const close = () => o.remove();
+  o.addEventListener('click', e => {
+    if (e.target === o || e.target.closest('.bd-close')) return close();
+    const nb = e.target.closest('[data-badge]'); if (nb) openBadge(nb.dataset.badge);
+  });
+  document.addEventListener('keydown', function esc_(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc_); } });
+  o.querySelector('.bd-close').focus();
 }
 
 function renderBadges(progress) {
+  badgeList = progress;
   const earned = progress.filter(b => b.earned).sort((a, b) => b.tier - a.tier);
   const locked = progress.filter(b => !b.earned);
   document.getElementById('badge-count').textContent = `${earned.length} / ${progress.length} earned`;
@@ -129,7 +203,12 @@ function renderBadges(progress) {
     });
     html += `</div>`;
   }
-  document.getElementById('badges-wrap').innerHTML = html;
+  document.getElementById('badges-wrap').innerHTML = `<p class="badge-hint">Tap any badge to see how to earn it.</p>` + html;
+  const wrap = document.getElementById('badges-wrap');
+  if (!wrap.dataset.wired) {
+    wrap.dataset.wired = '1';
+    wrap.addEventListener('click', e => { const c = e.target.closest('[data-badge]'); if (c) openBadge(c.dataset.badge); });
+  }
 
   const t = document.getElementById('locked-toggle');
   if (t) {
@@ -352,7 +431,7 @@ async function onTopicToggle(e) {
     box.innerHTML = '<div class="tr-note">Loading…</div>';
     try {
       const [{ db }, fs] = await Promise.all([
-        import('./firebase-config.js?v=20261111d'),
+        import('./firebase-config.js?v=20261111e'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'),
       ]);
       await Promise.all(missed.map(async ([id]) => {

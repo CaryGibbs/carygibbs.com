@@ -28,7 +28,33 @@
 }
 .badge-card.earned { border-color: var(--color-primary); }
 .badge-card.earned:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
-.badge-card.locked { opacity: 0.35; filter: grayscale(1); }
+.badge-card.locked { opacity: 0.6; }
+.badge-card.locked .badge-icon { filter: grayscale(1); opacity: 0.7; }
+button.badge-card { font: inherit; color: inherit; text-align: center; cursor: pointer; width: 100%; }
+button.badge-card:hover, button.badge-card:focus-visible { opacity: 1; transform: translateY(-2px); outline: none; box-shadow: 0 0 0 2px var(--tier-colour, var(--color-primary)); }
+.badge-mini { height: 4px; border-radius: 999px; background: var(--color-border); margin-top: 6px; overflow: hidden; }
+.badge-mini i { display: block; height: 100%; background: var(--tier-colour, var(--color-primary)); }
+.badge-hint { font-size: 0.82rem; color: var(--color-text-muted); margin: 0 0 var(--space-sm); }
+.bd-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(10,12,20,0.5); display: flex; align-items: flex-start; justify-content: center; padding: 12vh 16px 16px; overflow-y: auto; }
+.bd-box { position: relative; background: var(--color-surface); color: var(--color-text); border-radius: 18px; padding: 24px 22px 20px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border-top: 5px solid var(--tier-colour); }
+.bd-close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); cursor: pointer; font-size: 0.9rem; }
+.bd-icon { font-size: 3rem; line-height: 1; margin-bottom: 8px; }
+.bd-icon.locked { filter: grayscale(1); opacity: 0.6; }
+.bd-tier { font-family: var(--font-ui); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--tier-colour); }
+.bd-box h3 { font-family: var(--font-heading); font-size: 1.25rem; margin: 4px 0 6px; }
+.bd-desc { color: var(--color-text-muted); margin: 0 0 14px; }
+.bd-earned { font-weight: 700; color: var(--color-success, #12b886); margin: 0 0 12px; }
+.bd-bar { height: 10px; border-radius: 999px; background: var(--color-border); overflow: hidden; margin: 0 0 6px; }
+.bd-bar i { display: block; height: 100%; background: var(--tier-colour); border-radius: 999px; }
+.bd-progress { font-size: 0.88rem; color: var(--color-text-muted); margin: 0 0 14px; }
+.bd-progress strong { color: var(--color-text); }
+.bd-how { text-align: left; background: var(--color-surface-2, rgba(127,127,127,0.08)); border-radius: 12px; padding: 12px 14px; }
+.bd-how strong { font-family: var(--font-ui); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); }
+.bd-how p { margin: 4px 0 0; font-size: 0.92rem; line-height: 1.5; }
+.bd-next { margin-top: 14px; text-align: left; }
+.bd-next span { display: block; font-family: var(--font-ui); font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted); margin-bottom: 6px; }
+.bd-next button { width: 100%; text-align: left; font: inherit; font-weight: 700; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text); cursor: pointer; }
+.bd-next button small { display: block; font-weight: 400; color: var(--color-text-muted); margin-top: 2px; }
 .badge-icon { font-size: 1.8rem; margin-bottom: 6px; }
 .badge-name { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; color: var(--color-text); margin-bottom: 3px; }
 .badge-desc { font-size: 0.7rem; color: var(--color-text-muted); line-height: 1.4; }
