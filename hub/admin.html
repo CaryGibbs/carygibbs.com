@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111h">
-  <script src="icons.js?v=20261111h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111i">
+  <script src="icons.js?v=20261111i"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -592,8 +592,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111h">
-  <link rel="stylesheet" href="stats.css?v=20261111h">
+  <link rel="stylesheet" href="ui.css?v=20261111i">
+  <link rel="stylesheet" href="stats.css?v=20261111i">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -692,11 +692,13 @@
         <div class="ts-stats">
           <div class="ts-stat"><b id="ts-notes">–</b><span>notes</span></div>
           <div class="ts-stat"><b id="ts-qs">–</b><span>questions</span></div>
+          <div class="ts-stat"><b id="ts-vids">–</b><span>videos</span></div>
         </div>
         <div class="ts-actions">
           <button class="btn btn-primary" data-action="create-with-ai"><i data-icon="sparkles"></i> Create with AI</button>
           <button class="btn btn-secondary" data-action="new-question-manual"><i data-icon="plus"></i> Add a question myself</button>
           <button class="btn btn-secondary" data-action="edit-notes"><i data-icon="pencil"></i> Edit notes</button>
+          <button class="btn btn-secondary" data-action="topic-videos"><i data-icon="play"></i> Videos</button>
         </div>
         <p class="ts-hint" id="ts-hint"></p>
       </div>
@@ -1112,6 +1114,11 @@
       <input type="text" id="topic-name-input" placeholder="e.g. The Water Cycle" maxlength="80">
     </div>
     <p class="ts-hint" id="topic-modal-hint" style="margin-top:8px;">Next you'll add notes and questions, with AI or yourself.</p>
+    <div class="form-group" style="margin-top:var(--space-lg);">
+      <label>Videos <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-faint)">(optional, one per line: Label | link)</span></label>
+      <textarea id="topic-videos-input" rows="3" placeholder="Bicen Maths: Binomial expansion | https://www.youtube.com/watch?v=..." style="width:100%;min-height:70px;resize:vertical;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.85rem;"></textarea>
+      <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">Students see these as "Watch" links on the topic and in Learn. Up to 8; they open on the video site.</p>
+    </div>
     <div class="form-group" id="topic-modal-kp" hidden style="margin-top:var(--space-lg);">
       <label style="margin-bottom:var(--space-sm);display:block;">Key points <span style="font-weight:400;text-transform:none;">(for mindmaps)</span></label>
       <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
@@ -1322,28 +1329,29 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111h';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111h';
-import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111h';
-import { openDeleteAccount } from './account.js?v=20261111h';
-import { addDocumentButton } from './doc-text.js?v=20261111h';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111h';
-import { showPlusUpsell } from './plus.js?v=20261111h';
+import { auth, db, storage } from './firebase-config.js?v=20261111i';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111i';
+import { listPacks, flatPackIds, samePackIds } from './packs.js?v=20261111i';
+import { openDeleteAccount } from './account.js?v=20261111i';
+import { addDocumentButton } from './doc-text.js?v=20261111i';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111i';
+import { showPlusUpsell } from './plus.js?v=20261111i';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111h';
-import { mountShell } from './shell.js?v=20261111h';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111h';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111h';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111h';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111h';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111h';
-import { dueEntries } from './srs.js?v=20261111h';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111h';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111h';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111i';
+import { mountShell } from './shell.js?v=20261111i';
+import { openInviteDialog, signupLink } from './invite.js?v=20261111i';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111i';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111i';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111i';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111i';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111i';
+import { dueEntries } from './srs.js?v=20261111i';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111i';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111i';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1359,8 +1367,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111h';
-import { inOrder } from './order.js?v=20261111h';
+import { saveEmailIndex } from './email-index.js?v=20261111i';
+import { inOrder } from './order.js?v=20261111i';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1905,6 +1913,7 @@ document.addEventListener('click', e => {
   else if (action === 'new-question-manual') openQuestionModal();
   else if (action === 'create-with-ai')      openCreateWithAI();
   else if (action === 'edit-notes')          switchQTab('keypoints');
+  else if (action === 'topic-videos')        { if (selectedTopic) openTopicModal(selectedTopic.id, { focusVideos: true }); }
   else if (action === 'save-manual-question') saveManualQuestion();
   else if (action === 'del-question')        confirmDelete('question', t.dataset.id, 'this question');
   else if (action === 'delete-all-questions') confirmDeleteAllQuestions();
@@ -2327,9 +2336,10 @@ function openTopic(id, data) {
   getDoc(doc(db, topicsPath(), id)).then(s => updateGenKpPreview(s.data()?.keyPoints || [])).catch(()=>{});
 }
 
-async function openTopicModal(id) {
+async function openTopicModal(id, { focusVideos = false } = {}) {
   editingItem = id ? { type:'topic', id } : null;
-  document.getElementById('modal-topic-title').textContent = id ? 'Rename topic' : 'New topic';
+  document.getElementById('modal-topic-title').textContent = id ? 'Edit topic' : 'New topic';
+  document.getElementById('topic-videos-input').value = '';
   document.getElementById('topic-modal-hint').hidden = !!id;
   document.getElementById('topic-name-input').value = '';
   document.getElementById('kp-gen-status').textContent = '';
@@ -2339,27 +2349,35 @@ async function openTopicModal(id) {
     if (snap.exists()) {
       document.getElementById('topic-name-input').value = snap.data().name || '';
       kps = snap.data().keyPoints || [];
+      document.getElementById('topic-videos-input').value = videoLines(snap.data().videos);
     }
   }
   renderKpList('kp-list', kps);
   openModal('modal-topic');
-  setTimeout(() => document.getElementById('topic-name-input').focus(), 50);
+  setTimeout(() => document.getElementById(focusVideos ? 'topic-videos-input' : 'topic-name-input').focus(), 50);
 }
 
 // The dialog only names the topic; notes and questions are added on the topic's page
 async function saveTopic() {
   const name = document.getElementById('topic-name-input').value.trim();
   if (!name) { showToast('Topic name is required', 'error'); return; }
+  const vp = parseVideoLines(document.getElementById('topic-videos-input').value);
+  if (vp.bad.length) { showToast(`Not a valid link: ${vp.bad[0].slice(0, 60)}`, 'error'); return; }
+  if (vp.tooMany) { showToast('Up to 8 videos per topic', 'error'); return; }
+  const videos = vp.list;
   try {
     if (editingItem) {
-      await updateDoc(doc(db, topicsPath(), editingItem.id), { name });
-      logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: 'Renamed' });
+      const before = (await getDoc(doc(db, topicsPath(), editingItem.id)).catch(() => null))?.data() || {};
+      await updateDoc(doc(db, topicsPath(), editingItem.id), { name, videos });
+      const changes = [before.name !== name ? 'Renamed' : '', videoLines(before.videos) !== videoLines(videos) ? `Videos (${videos.length})` : ''].filter(Boolean);
+      logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: changes.join(', ') || 'Saved' });
       closeModal('modal-topic');
+      if (selectedTopic?.id === editingItem.id) { selectedTopic.name = name; renderTopicStatus(); }
       await loadTopics();
       showToast('Topic updated', 'success');
       editingItem = null;
     } else {
-      const ref = await addDoc(collection(db, topicsPath()), { name, keyPoints: [], order: (orderedItems.topics || []).length, createdAt: serverTimestamp() });
+      const ref = await addDoc(collection(db, topicsPath()), { name, keyPoints: [], videos, order: (orderedItems.topics || []).length, createdAt: serverTimestamp() });
       logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: 'Created' });
       closeModal('modal-topic');
       editingItem = null;
@@ -2781,6 +2799,7 @@ async function renderTopicStatus() {
   const notes = kps.reduce((a, x) => a + (x && x.points ? x.points.length : 1), 0);
   document.getElementById('ts-notes').textContent = notes;
   document.getElementById('ts-qs').textContent = qCount;
+  document.getElementById('ts-vids').textContent = videosOf(tSnap?.data()).length;
   document.getElementById('ts-hint').textContent = !notes && !qCount
     ? 'This topic is empty. Create with AI builds notes and questions in three steps, or add your own.'
     : !qCount ? 'Next: make questions from these notes with Create with AI, or add them yourself.'
@@ -4130,6 +4149,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111h"></script>
+<script src="site.js?v=20261111i"></script>
 </body>
 </html>

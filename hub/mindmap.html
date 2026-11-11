@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Learn</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111h">
-  <script src="icons.js?v=20261111h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111i">
+  <script src="icons.js?v=20261111i"></script>
   <style>
     body { height: 100vh; height: 100dvh; background: var(--color-bg); overflow: hidden; display: flex; flex-direction: column; }
 
@@ -307,8 +307,8 @@
     }
     .empty-state h3 { font-family: var(--font-heading); margin-bottom: var(--space-sm); }
   </style>
-  <link rel="stylesheet" href="learn.css?v=20261111h">
-  <link rel="stylesheet" href="ui.css?v=20261111h">
+  <link rel="stylesheet" href="learn.css?v=20261111i">
+  <link rel="stylesheet" href="ui.css?v=20261111i">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -323,6 +323,7 @@
     <button class="view-btn" data-view="cheatsheet" onclick="switchView('cheatsheet')"><i data-icon="file-text"></i> Cheat sheet</button>
   </div>
 </nav>
+<div id="watch-strip" hidden></div>
 
 <!-- Loading -->
 <div id="loading-wrap" class="loading-wrap" style="flex:1;">
@@ -405,13 +406,14 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111h';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111h';
-import { awardXp } from './gamification.js?v=20261111h';
-import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261111h';
-import { startStudyTimer } from './study-timer.js?v=20261111h';
-import { inOrder } from './order.js?v=20261111h';
-import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers, cardQuestion, ensureCardQuestions } from './card-length.js?v=20261111h';
+import { auth, db } from './firebase-config.js?v=20261111i';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261111i';
+import { awardXp } from './gamification.js?v=20261111i';
+import { initLearn, openPoint, renderCheatSheet, flatPoints, isLearned, learnedCount, noteId, celebrate } from './learn.js?v=20261111i';
+import { startStudyTimer } from './study-timer.js?v=20261111i';
+import { inOrder } from './order.js?v=20261111i';
+import { videosOf, watchStripHtml, WATCH_CSS } from './videos.js?v=20261111i';
+import { LENGTHS, lengthOf, displayAnswer, ensureShortAnswers, cardQuestion, ensureCardQuestions } from './card-length.js?v=20261111i';
 import {
   collection, getDocs, doc, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -584,7 +586,7 @@ async function loadData() {
         id: subjectId,
         name: subSnap.exists() ? subSnap.data().name : subjectName,
         emoji: subSnap.exists() ? subSnap.data().emoji || '📚' : '📚',
-        topics: [{ id: topicId, name: topData.name || topicName, keyPoints: topData.keyPoints || [], questions: qs, shortAnswers: topData.shortAnswers || {} }]
+        topics: [{ id: topicId, name: topData.name || topicName, keyPoints: topData.keyPoints || [], questions: qs, shortAnswers: topData.shortAnswers || {}, videos: videosOf(topData) }]
       }];
     } else {
       // Whole subject mode
@@ -610,6 +612,15 @@ async function loadData() {
       }];
     }
 
+    // "Watch first" links for a single topic (set in the builder)
+    if (topicId) {
+      const ws = document.getElementById('watch-strip');
+      const html = watchStripHtml(subjects[0].topics[0].videos);
+      if (html) {
+        if (!document.getElementById('watch-css')) document.head.insertAdjacentHTML('beforeend', `<style id="watch-css">${WATCH_CSS}</style>`);
+        ws.outerHTML = html.replace('<div class="watch-strip"', '<div id="watch-strip" class="watch-strip"');
+      }
+    }
     buildFlashcards();
     document.getElementById('loading-wrap').style.display = 'none';
     initLearn({ groupId, subjectId, subjectName: subjects[0]?.name || subjectName, user: _currentUser, profile: _currentProfile });
@@ -1445,7 +1456,7 @@ function buildOutline() {
           <span class="outline-topic-count">${kps.length ? (isGroupedKps(kps) ? kps.reduce((a,g)=>a+(g.points||[]).length,0)+' pts' : kps.length+' pts') : qs.length+' Q'}</span>
           <span class="outline-topic-chevron">›</span>
         </div>
-        <div class="outline-keypoints">${pointsHtml}</div>`;
+        <div class="outline-keypoints">${outlineWatch(t)}${pointsHtml}</div>`;
       // Auto-open topic if single topic view
       if (topics.length === 1) topicEl.classList.add('open');
       topicsWrap.appendChild(topicEl);
@@ -1664,6 +1675,14 @@ function shuffle(arr) {
   return a;
 }
 
+// Video links inside a topic in Outline (whole-subject view; the strip covers single topics)
+function outlineWatch(t) {
+  if (topicId) return '';
+  const vids = videosOf(t);
+  if (!vids.length) return '';
+  if (!document.getElementById('watch-css')) document.head.insertAdjacentHTML('beforeend', `<style id="watch-css">${WATCH_CSS}</style>`);
+  return `<div class="outline-watch">${vids.map(v => `<a class="watch-link" href="${esc(v.url)}" target="_blank" rel="noopener">▶ ${esc(v.label)} ↗</a>`).join('')}</div>`;
+}
 function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }

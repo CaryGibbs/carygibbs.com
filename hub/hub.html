@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111h">
-  <script src="icons.js?v=20261111h"></script>
-  <link rel="stylesheet" href="stats.css?v=20261111h">
+  <link rel="stylesheet" href="theme.css?v=20261111i">
+  <script src="icons.js?v=20261111i"></script>
+  <link rel="stylesheet" href="stats.css?v=20261111i">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -130,6 +130,10 @@
     .topic-btn-quiz:hover { background: var(--color-primary); color: var(--color-on-primary); }
     .topic-btn-map { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-muted); }
     .topic-btn-map:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    .topic-btn-watch { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-muted); text-decoration: none; }
+    .topic-btn-watch:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .topic-videos { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 0 8px; }
+    .topic-videos a { font-size: 0.8rem; font-weight: 600; color: var(--color-primary); text-decoration: none; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--color-border); }
 
     /* ── Empty / loading states ──────────────────────────── */
     .empty-state {
@@ -281,7 +285,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111h">
+  <link rel="stylesheet" href="ui.css?v=20261111i">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -365,19 +369,20 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111h';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261111h';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261111h';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261111h';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261111h';
-import { listPacks, samePackIds } from './packs.js?v=20261111h';
-import { plusPillHtml } from './plus.js?v=20261111h';
-import { inOrder } from './order.js?v=20261111h';
-import { showLinkRequests } from './parent-link.js?v=20261111h';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261111h';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261111h';
-import { openPlanCalendar } from './plan-view.js?v=20261111h';
-import { logEvent } from './log.js?v=20261111h';
+import { auth, db } from './firebase-config.js?v=20261111i';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261111i';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261111i';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261111i';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261111i';
+import { listPacks, samePackIds } from './packs.js?v=20261111i';
+import { plusPillHtml } from './plus.js?v=20261111i';
+import { inOrder } from './order.js?v=20261111i';
+import { videosOf } from './videos.js?v=20261111i';
+import { showLinkRequests } from './parent-link.js?v=20261111i';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261111i';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261111i';
+import { openPlanCalendar } from './plan-view.js?v=20261111i';
+import { logEvent } from './log.js?v=20261111i';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -733,6 +738,17 @@ async function loadSubjects(user, groupId) {
     const topics = subjectTopics[s.id] || [];
     const topicCount = topics.length;
 
+    // Explainer videos set on the topic: one opens directly, several open a list
+    const watchHtml = t => {
+      const vids = videosOf(t);
+      if (!vids.length) return '';
+      if (vids.length === 1) return `<a class="topic-btn topic-btn-watch" href="${esc(vids[0].url)}" target="_blank" rel="noopener" title="${esc(vids[0].label)}">▶ Watch</a>`;
+      return `<button class="topic-btn topic-btn-watch" title="${vids.length} videos" onclick="const n=this.closest('.topic-row').nextElementSibling;n.hidden=!n.hidden">▶ Watch (${vids.length})</button>`;
+    };
+    const watchListHtml = t => {
+      const vids = videosOf(t);
+      return vids.length > 1 ? `<div class="topic-videos" hidden>${vids.map(v => `<a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.label)} ↗</a>`).join('')}</div>` : '';
+    };
     const topicRowsHtml = topics.map(t => `
       <div class="topic-row">
         <span class="topic-row-name">${esc(t.name)}</span>
@@ -749,8 +765,9 @@ async function loadSubjects(user, groupId) {
             onclick="goMindmap({groupId:'${groupId}',subjectId:'${s.id}',topicId:'${t.id}',topicName:'${esc(t.name)}',subjectName:'${esc(s.name)}',view:'cheatsheet'})">
             <i data-icon="file-text"></i> Cheat sheet
           </button>
+          ${watchHtml(t)}
         </div>
-      </div>`).join('');
+      </div>${watchListHtml(t)}`).join('');
 
     const card = document.createElement('div');
     card.className = 'subject-card';
@@ -855,6 +872,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261111h"></script>
+<script src="site.js?v=20261111i"></script>
 </body>
 </html>
