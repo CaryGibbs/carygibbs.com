@@ -9,10 +9,10 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111q';
-import { askClaude, textOf, parseJsonLoose } from './ai.js?v=20261111q';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261111q';
-import { logEvent } from './log.js?v=20261111q';
+import { db } from './firebase-config.js?v=20261111r';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose } from './ai.js?v=20261111r';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261111r';
+import { logEvent } from './log.js?v=20261111r';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -84,6 +84,7 @@ export function questionsPrompt(content, qty, types = QUESTION_TYPES.map(t => t.
   const lvl = levelOf(context);
   const higher = /A level|AS level/.test(lvl) ? ` Pitch questions at ${lvl} standard, testing understanding and application, not just recall.` : '';
   return `You are a ${lvl} revision question writer${context ? ` for ${context}` : ''}.${higher} Generate up to ${qty} high-quality questions based on the revision content below. If the content does not support ${qty} distinct, non-repetitive questions, generate fewer — quality over quantity. Spread questions evenly across ALL the content, covering early and late sections equally. Never repeat the same fact in two different questions.
+If the content is about a skill (e.g. descriptive or narrative writing, analysing a text, essay technique) rather than facts, still write questions: test the techniques, terms, features, structures and when and why to use them, with short examples you make up.
 Use these types in roughly equal proportions from: ${types.join(', ')}.
 
 For MCQ questions: make all options similar in length (avoid answer-length giveaways). 4 options per MCQ.
@@ -91,7 +92,7 @@ For True/False: make roughly HALF the answers true and HALF false (e.g. 5 of 10)
 For Fill-in-the-blank: use _____ (five underscores) for the gap.
 For Match pairs: include exactly 4 pairs, and make all 4 right-hand items different from each other (never two the same, e.g. two "Chemical change"), so each left item has only one possible match.
 
-Return ONLY a JSON array with no markdown, no preamble, no backticks. Each element must follow one of these schemas:
+Return ONLY a JSON array with no markdown, no preamble, no backticks: your reply must start with [ and end with ]. Each element must follow one of these schemas:
 ${schemas}
 
 Revision content:
@@ -111,12 +112,19 @@ const pointCount = kps => (kps || []).reduce((a, g) => a + (g && g.points ? g.po
 const asGroups = kps => !kps?.length ? [] : ('group' in (kps[0] || {}) ? kps : [{ group: 'Notes', points: kps }]);
 const tfFix = qs => { (qs || []).forEach(q => { if (q && q.type === 'tf' && typeof q.answer !== 'boolean') q.answer = String(q.answer).trim().toLowerCase() === 'true'; }); return qs; };
 
-async function ask(prompt, maxTokens) {
-  const data = await askClaude('generation', prompt, maxTokens);
-  const parsed = parseJsonLoose(textOf(data));
-  if (!Array.isArray(parsed) || !parsed.length) throw new Error('Nothing came back. Please try again.');
-  return parsed;
+// Asks for a list. If the reply has no usable list, it's written to the
+// browser console and asked once more before giving up.
+async function ask(prompt, maxTokens, isItem) {
+  for (let attempt = 1; ; attempt++) {
+    const data = await askClaude('generation', prompt, maxTokens);
+    const text = textOf(data);
+    const list = findArrayLoose(text, isItem);
+    if (list.length) return list;
+    console.warn(`Create with AI: no list in the reply (try ${attempt}, stop: ${data.stop_reason || '?'})`, text.slice(0, 4000));
+    if (attempt >= 2) throw new Error('Nothing came back. Please try again.');
+  }
 }
+const isQuestion = q => q && QUESTION_TYPES.some(t => t.id === q.type);
 
 /* ── The wizard ──────────────────────────────────────────── */
 // opts: { topic: {id, name}, topicPath, subject: {name, examBoard, level}, onDone }
@@ -380,7 +388,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
         if (got.length) setBusyText(`Writing questions ${got.length + 1} to ${got.length + want} of up to ${st.qty}…`);
         const done = [...saved, ...got.map(textOf)].slice(-200);
         const avoid = done.length ? `\n\nQuestions already written. Do NOT repeat these or test the same facts again; cover different points:\n${done.map(t => '- ' + t).join('\n')}` : '';
-        const batch = tfFix(await ask(questionsPrompt(content + avoid, want, st.types, st.aiTopic), 16000)).filter(q => QUESTION_TYPES.some(t => t.id === q?.type));
+        const batch = tfFix(await ask(questionsPrompt(content + avoid, want, st.types, st.aiTopic), 16000, isQuestion)).filter(q => QUESTION_TYPES.some(t => t.id === q?.type));
         got.push(...batch);
         if (batch.length < want * 0.5) break;   // the notes have run out of new questions
       }

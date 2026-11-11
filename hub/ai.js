@@ -6,7 +6,7 @@
 // app has always used, so nothing breaks.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261111q';
+import { db, auth } from './firebase-config.js?v=20261111r';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -104,6 +104,29 @@ export function textOf(data) {
 // Parse a JSON object or array from a response, tolerating code fences
 export function jsonOf(data) {
   return parseJsonLoose(textOf(data));
+}
+
+// Find a list of items in AI text. Copes with a comment or an example
+// before the list, and a list wrapped in an object ({"questions":[...]}).
+// Returns [] if there's no list of objects anywhere.
+// isItem (optional) says what a wanted item looks like.
+export function findArrayLoose(text, isItem = x => x && typeof x === 'object') {
+  const listOf = v => {
+    if (Array.isArray(v)) return v.some(isItem) ? v : null;
+    if (v && typeof v === 'object') for (const k of Object.keys(v)) { const a = listOf(v[k]); if (a && a.length) return a; }
+    return null;
+  };
+  const s = String(text || '');
+  try { const a = listOf(parseJsonLoose(s)); if (a && a.length) return a; } catch (e) { /* look further in */ }
+  // Try from each later '[' in turn (skipping anything before it)
+  let from = 0, tries = 0;
+  while (tries++ < 50) {
+    const i = s.indexOf('[', from);
+    if (i < 0) break;
+    try { const a = listOf(parseJsonLoose(s.slice(i))); if (a && a.length) return a; } catch (e) { /* next */ }
+    from = i + 1;
+  }
+  return [];
 }
 
 // Parse JSON from AI text. Copes with code fences, text around the JSON,
