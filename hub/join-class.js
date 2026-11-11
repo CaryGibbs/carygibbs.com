@@ -5,9 +5,9 @@
 // revision packs, and adds them to the teacher's class list.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111m';
+import { db } from './firebase-config.js?v=20261111n';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { flatPackIds } from './packs.js?v=20261111m';
+import { flatPackIds } from './packs.js?v=20261111n';
 
 export function cleanCode(code) {
   return String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');

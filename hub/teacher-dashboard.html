@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111n">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111n">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111n">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111n">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111m">
-  <script src="icons.js?v=20261111m"></script>
+  <link rel="stylesheet" href="theme.css?v=20261111n">
+  <script src="icons.js?v=20261111n"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -288,7 +288,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111m">
+  <link rel="stylesheet" href="ui.css?v=20261111n">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -488,20 +488,20 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261111m';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261111m';
-  import { mountShell } from './shell.js?v=20261111m';
-  import { byOrder } from './order.js?v=20261111m';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261111m';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111m';
-  import { logEvent } from './log.js?v=20261111m';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261111m';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111m';
-  import { app as firebaseApp } from './firebase-config.js?v=20261111m';
+  import { auth, db } from './firebase-config.js?v=20261111n';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261111n';
+  import { mountShell } from './shell.js?v=20261111n';
+  import { byOrder } from './order.js?v=20261111n';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261111n';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111n';
+  import { logEvent } from './log.js?v=20261111n';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261111n';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111n';
+  import { app as firebaseApp } from './firebase-config.js?v=20261111n';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111m';
+  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111n';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -959,6 +959,7 @@
     list.innerHTML = (all.length
       ? pickerHtml({ mine: all.filter(p => p.mine), official: all.filter(p => !p.mine), item: option })
       : '<div class="empty-students">No revision packs exist yet.</div>')
+      + `<p class="form-hint" style="margin-top:10px;">Can't find your exam board or subject? <a href="contact.html">Tell us</a> and we'll add it, or make your own pack.</p>`
       + `<a class="pack-make" href="admin.html?mine=teacher"><i data-icon="plus"></i> Make your own pack</a>`;
     wirePicker(list);
     openModal('modal-packs');
@@ -1215,6 +1216,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261111m"></script>
+<script src="site.js?v=20261111n"></script>
 </body>
 </html>

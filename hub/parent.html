@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111n">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111n">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111n">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111n">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111m">
-  <script src="icons.js?v=20261111m"></script>
-  <link rel="stylesheet" href="stats.css?v=20261111m">
+  <link rel="stylesheet" href="theme.css?v=20261111n">
+  <script src="icons.js?v=20261111n"></script>
+  <link rel="stylesheet" href="stats.css?v=20261111n">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -182,7 +182,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111m">
+  <link rel="stylesheet" href="ui.css?v=20261111n">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -253,14 +253,15 @@
     <div class="error-msg" id="add-error"></div>
     <div class="form-group"><label>Student's name</label><input type="text" id="child-name" placeholder="e.g. Emily"></div>
     <div class="form-group"><label>Email address</label><input type="email" id="child-email" placeholder="emily@example.com"></div>
-    <p class="form-hint" style="margin:-6px 0 12px;">Already has a Lobe Limpet account? Enter their email and leave the password empty: we'll ask them to link with you.</p>
+    <p class="form-hint" style="margin:-6px 0 12px;">If they already have a Lobe Limpet account, we'll spot it from their email and ask them to link with you.</p>
     <div id="link-offer"></div>
     <div class="form-group">
       <label>Password</label>
       <div class="password-row">
-        <input type="text" id="child-password" placeholder="Set a password (new accounts only)">
+        <input type="text" id="child-password" placeholder="Optional">
         <button class="btn-generate" onclick="generatePw()"><i data-icon="sparkles"></i> Generate</button>
       </div>
+      <div class="form-hint">Leave it blank and we'll email them a link to choose their own password. Or set one (or Generate) and give it to them.</div>
       <div class="password-reveal" id="pw-reveal">
         <div><div class="pw-value" id="pw-value"></div><div class="pw-note">Share this with the student and keep a copy somewhere safe.</div></div>
       </div>
@@ -272,6 +273,7 @@
     </div>
     <div class="form-group">
       <label>Revision packs</label>
+      <div class="form-hint" style="margin-bottom:8px;">Not sure yet? Leave this empty and add packs later from Manage student.</div>
       <div class="group-check-list" id="add-group-list">
         <div style="color:var(--color-text-muted);font-size:0.85rem;">Loading packs…</div>
       </div>
@@ -428,23 +430,23 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111m';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111m';
-import { syncMyChildPlus } from './family-plus.js?v=20261111m';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111m';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111m';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111m';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261111m';
-import { logEvent } from './log.js?v=20261111m';
-import { openInviteDialog } from './invite.js?v=20261111m';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111m';
-import { dueEntries, scheduledCount } from './srs.js?v=20261111m';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111m';
-import { openPlanCalendar } from './plan-view.js?v=20261111m';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111m';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111m';
-import { openDeleteAccount } from './account.js?v=20261111m';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111m';
+import { auth, db } from './firebase-config.js?v=20261111n';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111n';
+import { syncMyChildPlus } from './family-plus.js?v=20261111n';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111n';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111n';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111n';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261111n';
+import { logEvent } from './log.js?v=20261111n';
+import { openInviteDialog } from './invite.js?v=20261111n';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111n';
+import { dueEntries, scheduledCount } from './srs.js?v=20261111n';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111n';
+import { openPlanCalendar } from './plan-view.js?v=20261111n';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111n';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111n';
+import { openDeleteAccount } from './account.js?v=20261111n';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111n';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -790,6 +792,7 @@ function renderGroupChecks(containerId, selectedIds = []) {
   // Grouped by level and subject, with a filter bar when the list is long (pack-picker.js)
   wrap.innerHTML = pickerHtml({ mine: allGroups.filter(g => g.mine), official: allGroups.filter(g => !g.mine), item })
     + (hidden ? `<div class="group-check-desc">Also has ${hidden} pack${hidden > 1 ? 's' : ''} chosen by someone else, which stay${hidden > 1 ? '' : 's'} as ${hidden > 1 ? 'they are' : 'it is'}.</div>` : '')
+    + `<div class="group-check-desc">Can't find their exam board or subject? <a href="contact.html">Tell us</a> and we'll add it. Meanwhile you can make your own pack.</div>`
     + makeOwn;
   wirePicker(wrap);
 }
@@ -840,13 +843,16 @@ window._addChild = async function() {
   const existing = await findByEmail(email).catch(() => null);
   btn.classList.remove('loading');
   if (existing) { offerLink(existing, name); return; }
-  if (password.length < 8) { showErr('add-error', 'Password must be at least 8 characters.'); return; }
+  // No password: make a random one and email them a link to choose their own
+  const ownPassword = !password;
+  if (!ownPassword && password.length < 8) { showErr('add-error', 'Password must be at least 8 characters, or leave it blank.'); return; }
+  const pw = ownPassword ? generatePassword() + generatePassword() : password;
   btn.classList.add('loading');
   try {
     // Create via REST API to avoid displacing parent's auth session
     const signupRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, returnSecureToken: true })
+      body: JSON.stringify({ email, password: pw, returnSecureToken: true })
     });
     const signupData = await signupRes.json();
     if (signupData.error) throw new Error(signupData.error.message);
@@ -871,12 +877,38 @@ window._addChild = async function() {
       name, email, theme: selectedTheme, createdAt: Date.now(), groupIds,
       streak: 0, sessions: []
     });
+    let emailed = false;
+    if (ownPassword) {
+      const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestType: 'PASSWORD_RESET', email, continueUrl: 'https://carygibbs.com/hub/login.html' })
+      }).catch(() => null);
+      emailed = !!r?.ok;
+    }
     document.getElementById('modal-add').classList.remove('open');
-    showToast(`${name}'s account created!`, 'success');
+    showAddedDone(name, email, ownPassword ? (emailed ? 'emailed' : 'email-failed') : 'password');
   } catch(e) {
     showErr('add-error', friendlyError(e.code) || e.message);
   } finally { btn.classList.remove('loading'); }
 };
+
+// After adding a student: what happens next, in plain words
+function showAddedDone(name, email, how) {
+  const first = name.split(' ')[0] || name;
+  const msg = how === 'emailed'
+    ? `<p>We've emailed <strong>${esc(email)}</strong> a link for ${esc(first)} to choose a password. The email may say "reset your password": that's the one. If it hasn't arrived in a few minutes, check the spam folder.</p>`
+    : how === 'email-failed'
+    ? `<p>The account is ready, but the email to <strong>${esc(email)}</strong> didn't send. ${esc(first)} can go to the sign-in page, tap "Forgot password?" and enter that email to choose a password.</p>`
+    : `<p>Give ${esc(first)} the password you set, with their email <strong>${esc(email)}</strong>.</p>`;
+  document.getElementById('added-done')?.remove();
+  document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay open" id="added-done"><div class="modal">
+    <div class="modal-header"><h2>${esc(first)}'s account is ready</h2>
+      <button class="modal-close" onclick="document.getElementById('added-done').remove()" aria-label="Close"><i data-icon="x"></i></button></div>
+    ${msg}
+    <p>Then ${esc(first)} signs in at <strong>carygibbs.com/hub</strong>. You'll see their progress here as they revise.</p>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="document.getElementById('added-done').remove()">Done</button></div>
+  </div></div>`);
+}
 
 /* ── Linking a student who already has an account ─────────── */
 let pendingLinks = [];
@@ -1329,6 +1361,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111m"></script>
+<script src="site.js?v=20261111n"></script>
 </body>
 </html>
