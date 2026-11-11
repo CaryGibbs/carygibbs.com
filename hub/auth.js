@@ -2,10 +2,10 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261111b';
+import { auth, db } from './firebase-config.js?v=20261111c';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261111b';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261111c';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -157,7 +157,10 @@ export function hasRole(profile, role) { return rolesOf(profile).has(role); }
 
 // Plans: 'free' (default) or 'plus'. Nothing is locked yet; this lets any
 // feature be switched to Plus later with one check: hasPlus(profile).
-export function planOf(profile) { return profile?.plan === 'plus' ? 'plus' : 'free'; }
+// Plus is stored in profile.tier. (It used to be profile.plan, which is also
+// where the study plan lives, so a few accounts may still have plan 'plus'.)
+export function isPlusTier(profile) { return profile?.tier === 'plus' || profile?.plan === 'plus'; }
+export function planOf(profile) { return isPlusTier(profile) ? 'plus' : 'free'; }
 export function hasPlus(profile) { return planOf(profile) === 'plus' || hasRole(profile, 'admin'); }
 export function isStudent(profile) { return hasRole(profile, 'student'); }
 // The adult views a person can switch between, in a fixed order

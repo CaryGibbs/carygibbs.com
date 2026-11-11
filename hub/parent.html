@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261111c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111b">
-  <script src="icons.js?v=20261111b"></script>
-  <link rel="stylesheet" href="stats.css?v=20261111b">
+  <link rel="stylesheet" href="theme.css?v=20261111c">
+  <script src="icons.js?v=20261111c"></script>
+  <link rel="stylesheet" href="stats.css?v=20261111c">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -179,7 +179,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111b">
+  <link rel="stylesheet" href="ui.css?v=20261111c">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -425,21 +425,21 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111b';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111b';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111b';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111b';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111b';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261111b';
-import { logEvent } from './log.js?v=20261111b';
-import { openInviteDialog } from './invite.js?v=20261111b';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111b';
-import { dueEntries, scheduledCount } from './srs.js?v=20261111b';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111b';
-import { openPlanCalendar } from './plan-view.js?v=20261111b';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111b';
-import { openDeleteAccount } from './account.js?v=20261111b';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111b';
+import { auth, db } from './firebase-config.js?v=20261111c';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111c';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111c';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111c';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111c';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261111c';
+import { logEvent } from './log.js?v=20261111c';
+import { openInviteDialog } from './invite.js?v=20261111c';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111c';
+import { dueEntries, scheduledCount } from './srs.js?v=20261111c';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111c';
+import { openPlanCalendar } from './plan-view.js?v=20261111c';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111c';
+import { openDeleteAccount } from './account.js?v=20261111c';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111c';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -986,8 +986,11 @@ window._openManageModal = function(uid) {
   manageTheme = child.theme || 'edge';
   renderThemeGrid('manage-theme-grid', manageTheme, t => { manageTheme = t; });
   document.getElementById('manage-card-length').value = child.cardLength || 'full';
-  managePlan = JSON.parse(JSON.stringify(child.plan || { mode: 'auto', exams: [] }));
-  managePlan.exams = managePlan.exams || [];
+  // child.plan should be { mode, exams, overrides }; anything else (an old Plus
+  // value saved in the same field) starts a fresh plan instead of breaking the window
+  const plan0 = child.plan && typeof child.plan === 'object' ? child.plan : { mode: 'auto', exams: [] };
+  managePlan = JSON.parse(JSON.stringify(plan0));
+  managePlan.exams = Array.isArray(managePlan.exams) ? managePlan.exams : [];
   renderPlanEditor();
   document.getElementById('btn-day-plan').onclick = () => openPlanFor(uid);
   document.getElementById('share-email').value = '';
@@ -1012,6 +1015,7 @@ window._saveChild = async function() {
     const cardLength = document.getElementById('manage-card-length').value;
     readPlanEditor();
     const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null })) };
+    if (managePlan.overrides) plan.overrides = managePlan.overrides;   // keep day-by-day changes
     const was = { ...(childrenData[managingChildId] || {}) };
     await updateDoc(doc(db, 'users', managingChildId), {
       name, theme: manageTheme, groupIds, packIds, cardLength, plan,
@@ -1300,6 +1304,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111b"></script>
+<script src="site.js?v=20261111c"></script>
 </body>
 </html>

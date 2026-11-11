@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111b';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261111b';
-import { themeColour } from './themes.js?v=20261111b';
+import { db } from './firebase-config.js?v=20261111c';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261111c';
+import { themeColour } from './themes.js?v=20261111c';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openDeleteAccount } from './account.js?v=20261111b';
-import { plusPillHtml } from './plus.js?v=20261111b';
+import { openDeleteAccount } from './account.js?v=20261111c';
+import { plusPillHtml } from './plus.js?v=20261111c';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -111,7 +111,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     <nav class="sidebar-nav">${navHtml}
     </nav>
     <div class="sidebar-footer">
-      ${profile?.plan !== 'plus' && !viewsOf(profile).includes('admin') ? `<a class="nav-item" href="plus.html" style="color:#e0643f;font-weight:700;"><span class="nav-icon"><i data-icon="sparkles"></i></span><span>Upgrade to Plus</span></a>` : ''}
+      ${profile?.tier !== 'plus' && profile?.plan !== 'plus' && !viewsOf(profile).includes('admin') ? `<a class="nav-item" href="plus.html" style="color:#e0643f;font-weight:700;"><span class="nav-icon"><i data-icon="sparkles"></i></span><span>Upgrade to Plus</span></a>` : ''}
       <div class="sidebar-account">
         <span class="sidebar-avatar">${esc(initials)}</span>
         <span class="sidebar-account-text"><strong>${esc(profile.name || 'Account')}</strong><small>${esc(accountRole)} · ${esc(profile.email || '')}</small></span>

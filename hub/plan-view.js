@@ -7,10 +7,10 @@
 // Parent changes are saved as plan.overrides.<day> on the student.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111b';
+import { db } from './firebase-config.js?v=20261111c';
 import { doc, updateDoc, deleteField, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261111b';
-import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261111b';
+import { logEvent } from './log.js?v=20261111c';
+import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261111c';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -117,7 +117,9 @@ export async function openPlanCalendar(profile, opts = {}) {
   };
 
   async function save(day, key, value) {
-    const plan = profile.plan = profile.plan || { mode: 'auto', exams: [] };
+    // A plan that isn't a proper object (e.g. an old Plus value) is replaced whole
+    const wasObject = !!profile.plan && typeof profile.plan === 'object';
+    const plan = profile.plan = wasObject ? profile.plan : { mode: 'auto', exams: [] };
     const ov = { ...((plan.overrides || {})[day] || {}) };
     if (value) ov[key] = value; else delete ov[key];
     if (key === 'level' && value === 'rest') delete ov.subjectId;
@@ -125,7 +127,9 @@ export async function openPlanCalendar(profile, opts = {}) {
     if (Object.keys(ov).length) plan.overrides[day] = ov; else delete plan.overrides[day];
     draw();
     try {
-      await updateDoc(doc(db, 'users', opts.uid), { [`plan.overrides.${day}`]: Object.keys(ov).length ? ov : deleteField() });
+      await updateDoc(doc(db, 'users', opts.uid), wasObject
+        ? { [`plan.overrides.${day}`]: Object.keys(ov).length ? ov : deleteField() }
+        : { plan });
       const lv = { rest: 'Rest day', relaxed: 'Relaxed', steady: 'Steady', push: 'Exam push', final: 'Final days' };
       logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: `${day}: ${key === 'level' ? (value ? lv[value] || value : 'level back to Auto') : value ? 'subject ' + (subjects.find(x => x.id === value)?.name || value) : 'subject back to Auto'}` });
       opts.onChange && opts.onChange(profile);
@@ -135,9 +139,10 @@ export async function openPlanCalendar(profile, opts = {}) {
     if (!confirm('Put every future day back to Auto?')) return;
     const today = new Date(); const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const keep = Object.fromEntries(Object.entries(profile.plan?.overrides || {}).filter(([d]) => d < key));
+    if (!profile.plan || typeof profile.plan !== 'object') profile.plan = { mode: 'auto', exams: [] };
     profile.plan.overrides = keep;
     draw();
-    try { await updateDoc(doc(db, 'users', opts.uid), { 'plan.overrides': keep }); logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: 'All future days back to Auto' }); opts.onChange && opts.onChange(profile); }
+    try { await updateDoc(doc(db, 'users', opts.uid), { plan: profile.plan }); logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: 'All future days back to Auto' }); opts.onChange && opts.onChange(profile); }
     catch (e) { alert('Could not save. Please try again.'); }
   }
   draw();

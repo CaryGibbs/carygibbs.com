@@ -143,7 +143,7 @@ export default {
       } catch (e) { console.warn('Usage check skipped:', e.message); svc = null; }
     }
     const isAdmin = !!user && (user.uid === OWNER_UID || rolesOf(who).has('admin'));
-    const isPlus = isAdmin || who?.plan === 'plus';
+    const isPlus = isAdmin || who?.tier === 'plus' || who?.plan === 'plus';
     if (task.needsPlus && user) {
       const allowed = who ? isPlus : await hasPlus(user, token);
       if (!allowed) return fail(403, 'AI generation is part of Lobe Limpet Plus');
@@ -240,7 +240,7 @@ async function hasPlus(user, token) {
   const f = (await r.json()).fields || {};
   const roles = (f.roles?.arrayValue?.values || []).map(v => v.stringValue);
   if (f.role?.stringValue) roles.push(f.role.stringValue);
-  return f.plan?.stringValue === 'plus' || roles.includes('admin');
+  return f.tier?.stringValue === 'plus' || f.plan?.stringValue === 'plus' || roles.includes('admin');
 }
 
 /* ── Does a link load? ── */
@@ -469,7 +469,7 @@ async function recordUsage(tok, user, who, day, task, model, input, output) {
     update: { name, fields: {
       uid: { stringValue: user.uid }, day: { stringValue: day },
       name: { stringValue: String(who?.name || '').slice(0, 80) }, email: { stringValue: String(who?.email || user.email || '').slice(0, 120) },
-      plan: { stringValue: who?.plan === 'plus' ? 'plus' : 'free' },
+      plan: { stringValue: who?.tier === 'plus' || who?.plan === 'plus' ? 'plus' : 'free' },
       lastAt: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 90 * 86400000)),
     } },
     updateMask: { fieldPaths: ['uid', 'day', 'name', 'email', 'plan', 'lastAt', 'expireAt'] },

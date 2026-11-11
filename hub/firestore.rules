@@ -80,7 +80,12 @@ service cloud.firestore {
       function gainsAdmin() { return hasRole(newData(), 'admin') && !hasRole(resource.data, 'admin'); }
       function adminChanges() { return hasRole(newData(), 'admin') != hasRole(resource.data, 'admin'); }
       // "plan" holds the study plan; only the value 'plus' (paid) is protected
-      function gainsPlus() { return newData().get('plan', null) == 'plus' && resource.data.get('plan', null) != 'plus'; }
+      // Plus is stored in "tier" (it used to be "plan", which also holds the
+      // study plan, so both are protected); only admins can switch it on
+      function gainsPlus() {
+        return (newData().get('tier', null) == 'plus' && resource.data.get('tier', null) != 'plus')
+          || (newData().get('plan', null) == 'plus' && resource.data.get('plan', null) != 'plus');
+      }
 
       // A class you've joined: you're on that class's student list
       function inClass(j) {
@@ -120,7 +125,7 @@ service cloud.firestore {
       // Signing yourself up: no admin (unless invited), no paid plan, no parent links
       function selfCreateOK() {
         return (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
-          && newData().get('plan', null) != 'plus'
+          && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
           && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit'])
           && teacherIdsCreateOK();
       }
@@ -128,7 +133,7 @@ service cloud.firestore {
       function studentCreateOK() {
         return newData().get('role', '') == 'student'
           && newData().get('roles', ['student']) == ['student']
-          && newData().get('plan', null) != 'plus'
+          && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
           && ((newData().get('parentUid', '') == me() && hasRole(userDoc(me()), 'parent'))
               || (newData().get('teacherUid', '') == me() && newData().get('teacherIds', []) == [me()]
                   && hasRole(userDoc(me()), 'teacher')));
