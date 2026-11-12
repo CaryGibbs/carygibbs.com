@@ -209,3 +209,26 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .aud-plus { background: var(--sand); border-radius: 12px; padding: 10px 14px; font-size: 0.92rem; color: var(--deep); margin-bottom: 16px; }
 .aud-plus .plus-mark { margin-right: 6px; }
 @media (max-width: 700px) { .aud-list { grid-template-columns: 1fr; } .aud-panel { padding: 20px; } .aud-tab { padding: 8px 14px; font-size: 0.92rem; } }
+
+/* ── Parent-first home page (Nov 2026) ───── */
+.aud-links { margin-top: 10px; font-size: 0.92rem; color: var(--muted); }
+.aud-links a { color: var(--deep); font-weight: 700; }
+.steps-note { text-align: center; color: var(--muted); margin-top: 16px; font-size: 0.97rem; }
+.grid3.two { grid-template-columns: 1fr 1fr; }
+.icon { font-size: 1.4rem; }
+.ticks { list-style: none; margin-top: 6px; }
+.ticks li { position: relative; padding-left: 26px; margin-bottom: 8px; color: var(--muted); }
+.ticks li::before { content: '✓'; position: absolute; left: 0; color: #0d8a7c; font-weight: 800; }
+.snap { display: grid; gap: 10px; justify-items: center; }
+.sheet { width: 88%; background: #fffdf7; border: 1px solid #e8dcc4; border-radius: 6px; padding: 14px; box-shadow: 0 10px 26px rgba(18,58,74,0.12); transform: rotate(-3deg); }
+.sheet-top { font-size: 0.8rem; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
+.sheet-row { display: grid; grid-template-columns: 5.5em 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 7px; font-size: 0.78rem; }
+.sheet-row i { height: 7px; border-radius: 4px; background: #e6ddcb; }
+.sheet-row i.s { width: 60%; }
+.snap-arrow { font-size: 1.4rem; line-height: 1; }
+.snap .mock-card { width: 100%; }
+.snap .chip.streak { bottom: -14px; left: -10px; }
+@media (max-width: 860px) { .grid3.two { grid-template-columns: 1fr; } }
+.price-cards { margin-bottom: 24px; }
+.price, .prose .price { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 2rem; color: var(--deep); margin: 4px 0 8px; }
+.price small { font-size: 0.95rem; color: var(--muted); font-weight: 600; }

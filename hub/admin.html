@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112g">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112g">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112g">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112g">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112h">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112h">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112h">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112h">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112g">
-  <script src="icons.js?v=20261112g"></script>
+  <link rel="stylesheet" href="theme.css?v=20261112h">
+  <script src="icons.js?v=20261112h"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -613,9 +613,10 @@
     .log-f { flex: 1 1 140px; }
     .log-f:first-child { flex-basis: 100%; }
   }
+  .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261112g">
-  <link rel="stylesheet" href="stats.css?v=20261112g">
+  <link rel="stylesheet" href="ui.css?v=20261112h">
+  <link rel="stylesheet" href="stats.css?v=20261112h">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1388,33 +1389,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261112g';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261112g';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261112g';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261112g';
-import { syncFamilyPlus } from './family-plus.js?v=20261112g';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112g';
-import { openDeleteAccount } from './account.js?v=20261112g';
-import { addDocumentButton } from './doc-text.js?v=20261112g';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261112g';
-import { showPlusUpsell } from './plus.js?v=20261112g';
-import { offerGivePack } from './first-steps.js?v=20261112g';
+import { auth, db, storage } from './firebase-config.js?v=20261112h';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261112h';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261112h';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261112h';
+import { syncFamilyPlus } from './family-plus.js?v=20261112h';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112h';
+import { openDeleteAccount } from './account.js?v=20261112h';
+import { addDocumentButton } from './doc-text.js?v=20261112h';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261112h';
+import { showPlusUpsell } from './plus.js?v=20261112h';
+import { offerGivePack } from './first-steps.js?v=20261112h';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261112g';
-import { mountShell } from './shell.js?v=20261112g';
-import { openInviteDialog, signupLink } from './invite.js?v=20261112g';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261112g';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261112g';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261112g';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261112g';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112g';
-import { dueEntries } from './srs.js?v=20261112g';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261112g';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261112g';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261112h';
+import { mountShell } from './shell.js?v=20261112h';
+import { openInviteDialog, signupLink } from './invite.js?v=20261112h';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261112h';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261112h';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261112h';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261112h';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112h';
+import { dueEntries } from './srs.js?v=20261112h';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261112h';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261112h';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1430,8 +1431,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261112g';
-import { inOrder } from './order.js?v=20261112g';
+import { saveEmailIndex } from './email-index.js?v=20261112h';
+import { inOrder } from './order.js?v=20261112h';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1463,6 +1464,7 @@ let currentQType    = 'mcq';
    AI generation needs Plus (hasPlus: admins always count as Plus). */
 const MINE = (() => { const m = new URLSearchParams(location.search).get('mine'); return ['parent', 'teacher'].includes(m) ? m : null; })();
 let canAI = true;
+let plusNow = true;     // Plus itself (copying a Lobe Limpet pack needs real Plus, not the free try)
 let iAmAdmin = false;   // an admin in My packs can also make a pack official
 // Plus features are shown to everyone; using one without Plus explains and offers an upgrade
 function aiAllowed(feature = 'Creating with AI') { if (!canAI) showPlusUpsell(feature); return canAI; }
@@ -1471,7 +1473,8 @@ const PLUS_BUTTONS = '[data-action="create-with-ai"],[data-qtab="generate"],[dat
 
 function startMine(user, profile) {
   currentAdminUid = user.uid;
-  canAI = hasPlus(profile);
+  canAI = canUseAI(profile);
+  plusNow = hasPlus(profile);
   iAmAdmin = hasRole(profile, 'admin');
   const parts = (profile.name || '').trim().split(/\s+/);
   libraryName = `${parts[0] || 'A'}${parts.length > 1 ? ' ' + parts[parts.length - 1][0] + '.' : ''} (${MINE})`;
@@ -1482,7 +1485,8 @@ function startMine(user, profile) {
   const backLabel = MINE === 'teacher' ? 'My classes' : 'My students';
   document.querySelector('#panel-groups .panel-title').textContent = 'My packs';
   document.querySelector('#panel-groups .panel-subtitle').innerHTML =
-    `Build revision for your own ${MINE === 'teacher' ? 'classes' : 'students'}. Packs are private: only you and the students you give them to can see them. Assign them in <a href="${back}">${backLabel}</a>.`;
+    `Build revision for your own ${MINE === 'teacher' ? 'classes' : 'students'}. Packs are private: only you and the students you give them to can see them. Assign them in <a href="${back}">${backLabel}</a>.` +
+    (onAiTrial(profile) ? `<span class="trial-note">✨ <strong>Free try:</strong> create with AI from about ${trialSheetsText(profile)} of class notes, then it's part of <a href="plus.html">Plus</a>.</span>` : '');
   mountShell(user, profile, { view: MINE, active: 'packs' });
   loadGroups();
   showPanel('groups');
@@ -4055,7 +4059,7 @@ async function renderOfficialToCopy() {
   list.innerHTML = pickerHtml({ official: packs, officialTitle: '', item: p => `
     <div class="official-copy-row">
       <span><strong>${esc(p.name)}</strong>${boardTagHtml(p)}${p.description ? `<small>${esc(p.description)}</small>` : ''}</span>
-      <button class="pack-link-btn" data-action="copy-pack" data-official="1" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy${canAI ? '' : plusTagHtml()}</button>
+      <button class="pack-link-btn" data-action="copy-pack" data-official="1" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy${plusNow ? '' : plusTagHtml()}</button>
     </div>` });
   wirePicker(list);
   addAccessCss();
@@ -4163,7 +4167,7 @@ async function openFreeSample(packId, name) {
 
 async function copyPackClicked(btn) {
   // Copying a Lobe Limpet pack is part of Plus (library packs and your own stay free)
-  if (MINE && btn.dataset.official && !canAI) { showPlusUpsell('Copying a Lobe Limpet pack'); return; }
+  if (MINE && btn.dataset.official && !plusNow) { showPlusUpsell('Copying a Lobe Limpet pack'); return; }
   const label = btn.innerHTML;
   btn.disabled = true; btn.textContent = 'Copying…';
   try {
@@ -4587,6 +4591,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261112g"></script>
+<script src="site.js?v=20261112h"></script>
 </body>
 </html>

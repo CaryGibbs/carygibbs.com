@@ -10,9 +10,9 @@
 //   offerGivePack(...)   after making content: "Give this pack to Jacob?"
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112g';
-import { updateStudentPacks } from './packs.js?v=20261112g';
-import { logEvent } from './log.js?v=20261112g';
+import { db } from './firebase-config.js?v=20261112h';
+import { updateStudentPacks } from './packs.js?v=20261112h';
+import { logEvent } from './log.js?v=20261112h';
 import {
   doc, getDoc, getDocs, updateDoc, collection, getCountFromServer,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -117,7 +117,7 @@ export function firstStepsHtml({ title, lead, doneLead = 'Your child can start r
       <li class="fs-step${s.done ? ' is-done' : ''}${s === next ? ' is-next' : ''}" data-step="${s.id}">
         <span class="fs-tick" aria-hidden="true">${s.done ? '✓' : i + 1}</span>
         <div class="fs-body">
-          <div class="fs-title">${esc(s.title)}${s.optional ? ' <span class="fs-opt">optional</span>' : ''}${s.plus && !s.done ? ' <span class="fs-plus">✨ Plus</span>' : ''}${s.done ? '<span class="sr-only"> (done)</span>' : ''}</div>
+          <div class="fs-title">${esc(s.title)}${s.optional ? ' <span class="fs-opt">optional</span>' : ''}${s.trial && !s.done ? ' <span class="fs-plus">✨ Free try</span>' : s.plus && !s.done ? ' <span class="fs-plus">✨ Plus</span>' : ''}${s.done ? '<span class="sr-only"> (done)</span>' : ''}</div>
           ${s.done && s.doneText ? `<div class="fs-text">${s.doneText}</div>` : !s.done ? `<div class="fs-text">${s.text}</div>` : ''}
           ${!s.done && (s.actions || []).length ? `<div class="fs-acts">${s.actions.map((a, k) => `<button class="btn ${a.primary ? 'btn-primary' : 'btn-secondary'}" data-fs-step="${s.id}" data-fs-act="${k}">${a.label}</button>`).join('')}
             ${s.skip ? `<button class="fs-skip" data-fs-skip="${s.id}">${esc(s.skip)}</button>` : ''}</div>` : ''}

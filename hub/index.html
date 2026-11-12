@@ -10,18 +10,18 @@
       if (/[?&](invite|signup)=/.test(q)) location.replace('login.html' + q + location.hash);
     })();
   </script>
-  <title>Lobe Limpet — Knowledge that sticks.</title>
-  <meta name="description" content="Free revision that sticks, for GCSE, A level and any subject you add: quick quizzes, flashcards, AI-marked written answers, subject maps and spaced review, with streaks and badges to keep you going.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112g">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112g">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112g">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112g">
+  <title>Lobe Limpet: turn your child's revision sheets into quizzes</title>
+  <meta name="description" content="Take a photo of the worksheet or notes school sent home, and Lobe Limpet turns exactly that into notes and quick quizzes. See how revision is going, without nagging. KS3, GCSE and A level. Free to start, no adverts.">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112h">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112h">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112h">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112h">
   <meta name="theme-color" content="#123a4a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261112g">
+  <link rel="stylesheet" href="site.css?v=20261112h">
 </head>
 <body>
 
@@ -30,28 +30,32 @@
 <div class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="eyebrow">Revision made easy</span>
-      <h1>Revision that <em>sticks</em>, like a limpet.</h1>
-      <p class="lede">Bite-size quizzes, flashcards, subject maps and cheat sheets for GCSE, A level and anything else you're learning. Written answers marked by AI, progress you can see, and streaks and badges that keep you coming back. Smart review brings topics back just before you forget them.</p>
+      <span class="eyebrow">For parents · KS3, GCSE and A level</span>
+      <h1>Snap their revision sheet. Get quizzes from <em>exactly that</em>.</h1>
+      <p class="lede">Take a photo of the worksheet or notes school sent home. Lobe Limpet turns it into notes and quick quizzes your child can do in ten minutes a day, and shows you how it's going. It works alongside school revision, not instead of it.</p>
       <div class="ctas">
-        <a class="btn btn-coral" href="login.html?signup=student" id="hero-btn">Start revising, free</a>
-        <a class="btn btn-ghost" href="#parents">For parents</a>
-        <a class="btn btn-ghost" href="#teachers">For teachers</a>
+        <a class="btn btn-coral" href="login.html?signup=parent" id="hero-btn">Start free as a parent</a>
       </div>
-      <p class="small-print" id="hero-note">Free to start. No card needed. No adverts.</p>
+      <p class="small-print" id="hero-note">Free to start, no card needed, no adverts. Your first 2 worksheets are on us.</p>
+      <p class="aud-links">Not a parent? <a href="students.html">I'm a student</a> · <a href="teachers.html">I'm a teacher</a></p>
     </div>
 
-    <div class="mock" aria-hidden="true">
-      <div class="mock-card">
-        <div class="mock-top"><span>Chemistry · Rates of reaction</span><span>6 / 10</span></div>
-        <div class="bar"><i></i></div>
-        <p class="q">Which change would make the reaction go faster?</p>
-        <div class="opt">Using larger marble chips</div>
-        <div class="opt right">Raising the temperature</div>
-        <div class="opt">Diluting the acid</div>
-        <div class="opt">Removing the catalyst</div>
+    <div class="mock snap" aria-hidden="true">
+      <div class="sheet">
+        <div class="sheet-top">📷 Year 9 RS worksheet</div>
+        <div class="sheet-row"><b>Marriage</b><i></i><i class="s"></i></div>
+        <div class="sheet-row"><b>Divorce</b><i class="s"></i><i></i></div>
+        <div class="sheet-row"><b>Family</b><i></i><i class="s"></i></div>
       </div>
-      <div class="chip xp">⭐ +20 XP</div>
+      <div class="snap-arrow">✨</div>
+      <div class="mock-card">
+        <div class="mock-top"><span>Religious Studies · Marriage</span><span>3 / 10</span></div>
+        <div class="bar"><i></i></div>
+        <p class="q">Why do Catholics see marriage as a sacrament?</p>
+        <div class="opt">It's a legal contract</div>
+        <div class="opt right">It's a sign of God's grace</div>
+        <div class="opt">It can be ended easily</div>
+      </div>
       <div class="chip streak">🔥 7-day streak</div>
     </div>
   </div>
@@ -60,181 +64,52 @@
 <section>
   <div class="wrap">
     <div class="sec-head">
-      <h2>Learn it. Test it. Keep it.</h2>
-      <p>Everything you need to go from "I've read it" to "I know it".</p>
+      <h2>How it works</h2>
+      <p>From the sheet in their school bag to revision they'll actually do.</p>
     </div>
-    <div class="grid3">
-      <div class="card">
-        <div class="icon i-sea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg></div>
-        <h3>Learn it first</h3>
-        <p>Subject maps, flashcards and one-page cheat sheets show the whole topic at a glance, so you know what matters before you're tested.</p>
-      </div>
-      <div class="card">
-        <div class="icon i-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></div>
-        <h3>Test yourself</h3>
-        <p>Ten-question quizzes mixing multiple choice, true or false, gap fills, matching and written answers, with instant, helpful marking.</p>
-      </div>
-      <div class="card">
-        <div class="icon i-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></div>
-        <h3>Remember it</h3>
-        <p>Smart review brings back the questions you're starting to forget, so knowledge sticks right through to exam day.</p>
-      </div>
+    <div class="steps">
+      <div class="step"><b>1</b><h3>Snap the sheet</h3><p>Take a photo or upload a worksheet, class notes or a revision guide. Tables, scans and diagrams are fine.</p></div>
+      <div class="step"><b>2</b><h3>We make the revision</h3><p>Clear notes and quiz questions from exactly what school set, ready in minutes. Check and change anything you like.</p></div>
+      <div class="step"><b>3</b><h3>They revise, you see it</h3><p>Ten-minute quizzes, streaks and badges keep them going. You see time, scores and weakest topics, without nagging.</p></div>
     </div>
-  </div>
-</section>
-
-<section style="padding-top:0" id="why">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2>Why Lobe Limpet?</h2>
-      <p>The things you won't find together anywhere else, most of them free.</p>
-    </div>
-    <div class="usp-grid">
-      <div class="usp"><div class="e">✍️</div><h3>Written answers marked by AI</h3><p>Explain it in your own words and get a mark with feedback on what you included and missed. No need to match the answer word for word.</p><span class="tag">Free</span></div>
-      <div class="usp"><div class="e">🃏</div><h3>Flashcards that test you properly</h3><p>Every card you make turns into five kinds of quiz question and goes into your daily review. Add pictures, import a list, share with your class.</p><span class="tag">Free</span></div>
-      <div class="usp"><div class="e">📈</div><h3>Progress you can actually see</h3><p>Recent score and trend for every subject, weakest topics first, and the questions you miss most, so you know exactly what to revise next.</p><span class="tag">Free</span></div>
-      <div class="usp"><div class="e">🏅</div><h3>Rewards that build a habit</h3><p>XP, levels, 80+ badges and daily streaks, with streak shields and a way to win a lost streak back, so one missed day doesn't undo the effort.</p><span class="tag">Free</span></div>
-      <div class="usp"><div class="e">🔁</div><h3>Smart review, no limits</h3><p>Questions come back just before you'd forget them. Review as much as you like: it's not rationed or locked behind a paywall.</p><span class="tag">Free</span></div>
-      <div class="usp"><div class="e">🗺️</div><h3>Learn it before you're tested</h3><p>Subject maps, one-page cheat sheets and tap-to-learn notes explain each point in plain words, then the quiz checks it went in.</p><span class="tag">Free</span></div>
-      <div class="usp"><div class="e">👪</div><h3>Parents and teachers in the loop</h3><p>Set up revision, see progress and trends, send encouragement, and set study plans with daily goals, rest days and an exam push.</p><span class="tag">Free</span></div>
-      <div class="usp"><div class="e">✨</div><h3>Any subject, any level</h3><p>Ready for GCSE and A level, and just as good for KS3, the 11+, a language or a work exam. Write your own revision for free, or upload notes, a PDF or a photo and let AI build it.</p><span class="tag plus">AI with Plus</span></div>
-    </div>
-  </div>
-</section>
-
-<section style="padding-top:0" id="flashcards">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2>More than a flashcard app</h2>
-      <p>Make your own cards just like you would anywhere else, then get far more out of them.</p>
-    </div>
-    <div class="compare-wrap">
-      <table class="compare">
-        <thead><tr><th>What you get</th><th class="c us">Lobe Limpet</th><th class="c">Typical flashcard apps (free plan)</th></tr></thead>
-        <tbody>
-          <tr><td>Make your own cards, and paste in a list from notes, a spreadsheet or another app</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
-          <tr><td>Pictures on cards (diagrams, maps, photos), including "what's this?" picture cards</td><td class="c"><span class="yes">✓</span> Free</td><td class="c"><span class="meh">Often paid</span></td></tr>
-          <tr><td>Each card becomes multiple choice, true or false, type the term, match the pairs and a written answer</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="meh">Some modes limited</span></td></tr>
-          <tr><td>Written answers marked by AI, so your own wording counts</td><td class="c"><span class="yes">✓</span> Free</td><td class="c"><span class="no">✗</span><small>Usually exact match</small></td></tr>
-          <tr><td>Spaced review that brings cards back before you forget them</td><td class="c"><span class="yes">✓</span> Unlimited</td><td class="c"><span class="meh">Often limited or paid</span></td></tr>
-          <tr><td>Flashcard time counts towards streaks, badges and daily goals</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td></tr>
-          <tr><td>Share a set with your class, with the teacher able to take anything unsuitable down</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="meh">Public sharing</span></td></tr>
-          <tr><td>Parents and teachers can see the sets and the progress</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td></tr>
-          <tr><td>Adverts</td><td class="c"><span class="yes">None</span></td><td class="c"><span class="meh">Often</span></td></tr>
-          <tr><td>Make cards from your notes with AI</td><td class="c"><span class="plus-mark">Plus</span></td><td class="c"><span class="meh">Often paid</span></td></tr>
-        </tbody>
-      </table>
-    </div>
+    <p class="steps-note">No worksheet? Pick a ready-made pack for their GCSE or A level subjects instead.</p>
   </div>
 </section>
 
 <section style="padding-top:0">
   <div class="wrap">
-    <div class="steps">
-      <div class="step"><b>1</b><h3>Pick your packs</h3><p>Choose a revision pack for each subject, or have a parent or teacher set them up for you.</p></div>
-      <div class="step"><b>2</b><h3>Little and often</h3><p>Ten minutes a day beats a night of cramming. Your streak keeps count.</p></div>
-      <div class="step"><b>3</b><h3>Watch it grow</h3><p>Earn XP, level up and collect badges as your topics turn from red to green.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="who" id="who" style="padding-top:0">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2>Made for everyone helping with revision</h2>
-      <p>One app, three views. See what it does for you.</p>
-    </div>
-    <div class="aud-tabs" role="tablist" aria-label="Who are you?">
-      <button class="aud-tab on" role="tab" aria-selected="true" aria-controls="aud-student" id="tab-student" data-aud="student">🎒 Students</button>
-      <button class="aud-tab" role="tab" aria-selected="false" aria-controls="aud-parent" id="tab-parent" data-aud="parent">🏡 Parents</button>
-      <button class="aud-tab" role="tab" aria-selected="false" aria-controls="aud-teacher" id="tab-teacher" data-aud="teacher">🏫 Teachers</button>
-    </div>
-
-    <div class="aud-panel" id="aud-student" role="tabpanel" aria-labelledby="tab-student">
-      <div class="aud-head"><h3>Revise in ten minutes a day, and actually remember it</h3><p>Everything you need is free, with no adverts.</p></div>
-      <ul class="aud-list">
-        <li><span>⚡</span><div><strong>Quick quizzes that fit a spare ten minutes</strong>Multiple choice, true or false, fill the gap, match the pairs and written answers, so it never gets samey.</div></li>
-        <li><span>✍️</span><div><strong>Explain it your way</strong>Written answers are marked by AI with feedback, so you practise what exams really ask, not just spotting the right option.</div></li>
-        <li><span>🃏</span><div><strong>Your own flashcards, made smarter</strong>Type them, paste them in or bring them from Quizlet. Add pictures. Every card becomes quiz questions and goes into your review.</div></li>
-        <li><span>📈</span><div><strong>See yourself getting better</strong>Scores going up, your weakest topics first and the questions you keep missing, so you know exactly what to do next.</div></li>
-        <li><span>🔥</span><div><strong>Streaks, badges and levels</strong>80+ badges to collect, and streak shields so one off day doesn't wipe out your effort.</div></li>
-        <li><span>🔁</span><div><strong>Remember it on exam day</strong>Smart review brings questions back just before you'd forget them.</div></li>
-      </ul>
-      <p class="aud-plus"><span class="plus-mark">Plus</span> Turn your class notes or a photo of a worksheet into flashcards with AI.</p>
-      <a class="btn btn-coral" href="login.html?signup=student">Start revising, free</a>
-    </div>
-
-    <div class="aud-panel" id="aud-parent" role="tabpanel" aria-labelledby="tab-parent" hidden>
-      <div class="aud-head"><h3>Know how revision is really going, without nagging</h3><p>Set it up once, then see progress at a glance.</p></div>
-      <ul class="aud-list">
-        <li><span>👀</span><div><strong>See what they're actually doing</strong>Time spent, quizzes taken and scores this week, with a trend for every subject and their weakest topics first.</div></li>
-        <li><span>📚</span><div><strong>Revision that matches their exams</strong>Use ready-made packs or the checked community library, or add their own subjects, topics and questions for their exam board.</div></li>
-        <li><span>🗓️</span><div><strong>A study plan that fits the calendar</strong>Daily goals that build towards exam dates, rest days when they need a break, and an exam push when it counts.</div></li>
-        <li><span>💬</span><div><strong>Encourage, don't nag</strong>Send a message they'll see in their hub. Streaks and badges do the motivating for you.</div></li>
-        <li><span>👪</span><div><strong>Share it with the other parent</strong>Invite another parent or carer to see the same progress.</div></li>
-        <li><span>🔒</span><div><strong>Safe and private</strong>No adverts. You create accounts for under-13s, and you can delete their data at any time.</div></li>
-      </ul>
-      <p class="aud-plus"><span class="plus-mark">Plus</span> Upload a revision guide, school notes or a photo, and AI writes the notes and quiz questions in minutes.</p>
-      <a class="btn btn-coral" href="login.html?signup=parent">I'm a parent: start free</a>
-    </div>
-
-    <div class="aud-panel" id="aud-teacher" role="tabpanel" aria-labelledby="tab-teacher" hidden>
-      <div class="aud-head"><h3>Retrieval practice for your classes, with the marking done</h3><p>Set up a class in minutes and see where the gaps are.</p></div>
-      <ul class="aud-list">
-        <li><span>🔑</span><div><strong>Classes in minutes</strong>Share a join code, choose the revision packs, and every student in the class gets them.</div></li>
-        <li><span>🧭</span><div><strong>See the gaps at a glance</strong>A colour-coded grid of every student against every topic, with flags for who needs a nudge.</div></li>
-        <li><span>✍️</span><div><strong>Written answers marked for you</strong>AI marks short answers against the key points and gives each student feedback.</div></li>
-        <li><span>🔁</span><div><strong>Spaced retrieval built in</strong>Questions come back for each student just before they'd forget them, with no extra planning.</div></li>
-        <li><span>📝</span><div><strong>Your content, your way</strong>Write your own packs, or copy and adapt checked packs from the community library, made by parents and teachers. Share yours with other teachers.</div></li>
-        <li><span>🃏</span><div><strong>Students teach each other</strong>Students can share flashcard sets with the class, and you can take down anything unsuitable.</div></li>
-      </ul>
-      <p class="aud-plus"><span class="plus-mark">Plus</span> Turn your scheme of work, slides as PDF or a specification into notes and a full question bank with AI.</p>
-      <a class="btn btn-coral" href="login.html?signup=teacher">I'm a teacher: start free</a>
-    </div>
-  </div>
-</section>
-<script>
-// Audience switcher: Students / Parents / Teachers (also opened by #parents, #teachers links)
-(function () {
-  var tabs = document.querySelectorAll('.aud-tab');
-  function show(aud) {
-    tabs.forEach(function (t) { var on = t.dataset.aud === aud; t.classList.toggle('on', on); t.setAttribute('aria-selected', on); });
-    document.querySelectorAll('.aud-panel').forEach(function (p) { p.hidden = p.id !== 'aud-' + aud; });
-  }
-  tabs.forEach(function (t) { t.addEventListener('click', function () { show(t.dataset.aud); }); });
-  var fromHash = function () { var h = location.hash.replace('#', ''); if (h === 'parents' || h === 'teachers') { show(h.slice(0, -1)); document.getElementById('who').scrollIntoView(); } };
-  window.addEventListener('hashchange', fromHash); fromHash();
-})();
-</script>
-
-<section style="padding-top:0" id="plans">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2>Free, with Plus when you want it</h2>
-      <p>Everything students need to revise is free. Plus adds AI to save hours of setting up.</p>
-    </div>
-    <div class="grid3" style="grid-template-columns:1fr 1fr;">
+    <div class="grid3 two">
       <div class="card">
-        <h3>Free</h3>
-        <p>Quizzes with all five question types and AI-marked written answers, smart review, flashcards with pictures, subject maps and cheat sheets, progress trends, badges and streaks, study plans, and packs made by hand for your students or classes.</p>
+        <div class="icon i-sea">👀</div>
+        <h3>What you see</h3>
+        <ul class="ticks">
+          <li>Time spent, quizzes taken and scores this week</li>
+          <li>A trend for every subject, weakest topics first</li>
+          <li>A study plan to exam day, with rest days built in</li>
+        </ul>
       </div>
       <div class="card">
-        <h3>Plus <span class="plus-mark">✨</span></h3>
-        <p>Create notes, questions and flashcards with AI from your own notes, a document, a photo or just a topic name. Read scanned pages and diagrams. Suggested exam board links. A bigger daily AI allowance.</p>
+        <div class="icon i-coral">🎒</div>
+        <h3>What they get</h3>
+        <ul class="ticks">
+          <li>Quick quizzes, with written answers marked by AI</li>
+          <li>Smart review that brings topics back before they forget</li>
+          <li>Streaks, badges and levels that make it a habit</li>
+        </ul>
       </div>
     </div>
-    <p style="text-align:center;margin-top:18px;"><a class="btn btn-ghost" href="plus.html">Compare Free and Plus in full</a></p>
+    <p style="text-align:center;margin-top:20px;"><a class="btn btn-ghost" href="features.html">See all the features</a></p>
   </div>
 </section>
 
 <section style="padding-top:0">
   <div class="wrap">
     <div class="trust">
-      <span>Packs built around exam specifications</span>
-      <span>GCSE, A level and any subject you add</span>
-      <span>Free to start, no adverts</span>
+      <span>No adverts</span>
+      <span>You set up and control your child's account</span>
+      <span>Matches UK exam boards</span>
       <span>Works on phone, tablet and laptop</span>
-      <span>Made by a parent, tested by teachers and real students</span>
+      <span>Made in the UK by a parent</span>
     </div>
   </div>
 </section>
@@ -242,21 +117,21 @@
 <section style="padding-top:0">
   <div class="wrap">
     <div class="final">
-      <h2>Ready to make it stick?</h2>
-      <p>Set up takes a minute. Your first quiz takes five.</p>
-      <a class="btn btn-coral" href="login.html?signup=student" id="final-btn">Start revising, free</a>
+      <h2>Got a revision sheet to hand?</h2>
+      <p>Setting up takes a minute. Your first two worksheets are free to turn into quizzes, and everything else is free to start. <a href="plus.html">See pricing</a>.</p>
+      <a class="btn btn-coral" href="login.html?signup=parent" id="final-btn">Start free as a parent</a>
     </div>
   </div>
 </section>
 
 <div id="site-footer"></div>
 
-<script src="site.js?v=20261112g"></script>
+<script src="site.js?v=20261112h"></script>
 <script>
   // Signed-in visitors still see this page; the buttons take them to their dashboard.
   document.addEventListener('ll-signed-in', function () {
     ['hero-btn', 'final-btn'].forEach(function (id) {
-      var b = document.getElementById(id); b.textContent = 'Carry on revising'; b.href = 'login.html';
+      var b = document.getElementById(id); b.textContent = 'Go to my account'; b.href = 'login.html';
     });
     document.getElementById('hero-note').textContent = "You're signed in. Pick up where you left off.";
   });

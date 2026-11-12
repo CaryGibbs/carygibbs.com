@@ -8,7 +8,9 @@
 // use this Worker, and the API key behind it, from outside the app.
 //
 // What each person may do is decided here, not in the browser:
-//   task 'generation'  writing questions, key points, links   Plus or admin only
+//   task 'generation'  writing questions, key points, links   Plus or admin only,
+//                      plus a one-off free try for parents and teachers
+//                      (aiTrial/{uid}, settings/aiLimits.trial tokens)
 //   task 'learning'    learning notes, cheat sheets, cards    any signed-in user
 //   task 'marking'     marking written quiz answers           any signed-in user
 //   (generation may include page pictures, to read scanned PDFs and diagrams)
@@ -57,6 +59,10 @@ const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const BUCKET = 'clasp-revision.firebasestorage.app';
 // Daily AI allowance in tokens (prompt + reply), unless settings/aiLimits says otherwise
 const LIMIT_DEFAULTS = { free: 50000, plus: 200000, freeMonth: 150000, plusMonth: 400000 };
+// Free try of AI building for parents and teachers without Plus: tokens, once
+// per account (about two worksheets turned into notes and questions)
+const TRIAL_DEFAULT = 60000;
+const TRIAL_USED_UP = "You've used your free try of creating with AI. Lobe Limpet Plus lets you keep turning class notes into revision.";
 const londonMonth = (d = new Date()) => londonDay(d).slice(0, 7);
 // "1 December": when this month's allowance starts again
 const nextMonthText = (d = new Date()) => {
@@ -160,9 +166,18 @@ export default {
     }
     if (who) who._familyPlus = familyPlus;   // (shown in usage as "plus (family)")
     const isPlus = isAdmin || who?.tier === 'plus' || who?.plan === 'plus' || familyPlus;
+    let onTrial = false;
     if (task.needsPlus && user) {
       const allowed = who ? isPlus : await hasPlus(user, token);
-      if (!allowed) return fail(403, 'AI generation is part of Lobe Limpet Plus');
+      if (!allowed) {
+        // Parents and teachers get a one-off free try (counted here, not in the browser)
+        const r = rolesOf(who);
+        if (!(svc && who && (r.has('parent') || r.has('teacher')))) return fail(403, 'AI generation is part of Lobe Limpet Plus');
+        const trial = await fsGet(svc, `aiTrial/${user.uid}`).catch(() => null);
+        const cap = Number(limits?.trial ?? TRIAL_DEFAULT);
+        if (!(cap > 0) || (trial?.tokens || 0) >= cap) return fail(403, TRIAL_USED_UP);
+        onTrial = true;
+      }
     }
     if (user && who && !isAdmin) {
       const lim = { ...LIMIT_DEFAULTS, ...(limits || {}) };
@@ -215,6 +230,7 @@ export default {
         const input = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
         const output = u.output_tokens || 0;
         ctx.waitUntil(recordUsage(svc, user, who, day, taskName, model, input, output).catch(e => console.warn('Usage not saved:', e.message)));
+        if (onTrial) ctx.waitUntil(recordTrial(svc, user, who, input + output).catch(e => console.warn('Trial not saved:', e.message)));
       } catch (e) { /* reply wasn't JSON: nothing to count */ }
     }
     return new Response(text, { status: upstream.status, headers: { ...cors, 'Content-Type': 'application/json' } });
@@ -526,6 +542,21 @@ async function recordUsage(tok, user, who, day, task, model, input, output) {
       inc('tokens', input + output), inc('inputTokens', input), inc('outputTokens', output), inc('requests', 1),
       inc(`tasks.${bt(task)}`, 1), inc(`models.${bt(model)}`, input + output),
     ],
+  }]);
+}
+
+/* ── Free try: running total in aiTrial/{uid} (only this Worker can write it),
+   copied to users/{uid}.aiTrialUsed so the app can show what's left ── */
+async function recordTrial(tok, user, who, tokens) {
+  const inc = (fieldPath, n) => ({ fieldPath, increment: { integerValue: String(n) } });
+  await fsCommit(tok, [{
+    update: { name: `${DOCS}/aiTrial/${user.uid}`, fields: {
+      uid: { stringValue: user.uid }, name: { stringValue: String(who?.name || '').slice(0, 80) }, lastAt: tsv(new Date()),
+    } },
+    updateMask: { fieldPaths: ['uid', 'name', 'lastAt'] },
+    updateTransforms: [inc('tokens', tokens), inc('requests', 1)],
+  }, {
+    transform: { document: `${DOCS}/users/${user.uid}`, fieldTransforms: [inc('aiTrialUsed', tokens)] },
   }]);
 }
 

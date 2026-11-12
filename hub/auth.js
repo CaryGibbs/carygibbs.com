@@ -2,10 +2,10 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261112g';
+import { auth, db } from './firebase-config.js?v=20261112h';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261112g';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261112h';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -183,6 +183,24 @@ export function hasFamilyPlus(profile) { return profile?._familyPlus === true; }
 export function planOf(profile) { return isPlusTier(profile) || hasFamilyPlus(profile) ? 'plus' : 'free'; }
 export function hasPlus(profile) { return planOf(profile) === 'plus' || hasRole(profile, 'admin'); }
 export function isStudent(profile) { return hasRole(profile, 'student'); }
+// Free try of creating with AI for parents and teachers without Plus. The AI
+// Worker counts and enforces it (aiTrial/{uid}); users.aiTrialUsed is its copy,
+// for showing what's left. About 30k tokens turns one worksheet into notes and questions.
+export const AI_TRIAL_TOKENS = 60000;
+const TOKENS_PER_SHEET = 30000;
+export function aiTrialLeft(profile) {
+  if (!profile || hasPlus(profile)) return 0;
+  const r = rolesOf(profile);
+  if (!(r.has('parent') || r.has('teacher'))) return 0;
+  return Math.max(0, AI_TRIAL_TOKENS - (Number(profile.aiTrialUsed) || 0));
+}
+export function onAiTrial(profile) { return aiTrialLeft(profile) > 0; }
+export function canUseAI(profile) { return hasPlus(profile) || onAiTrial(profile); }
+// "2 worksheets" / "1 worksheet" left on the free try
+export function trialSheetsText(profile) {
+  const n = Math.max(1, Math.ceil(aiTrialLeft(profile) / TOKENS_PER_SHEET));
+  return `${n} worksheet${n === 1 ? '' : 's'}`;
+}
 // The adult views a person can switch between, in a fixed order
 export function viewsOf(profile) {
   const r = rolesOf(profile);

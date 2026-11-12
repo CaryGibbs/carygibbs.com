@@ -25,9 +25,11 @@
   if (head) {
     head.outerHTML = '<header><div class="wrap nav">' + BRAND +
       '<div class="nav-right"><nav class="nav-links" aria-label="Main">' +
-      '<a href="about.html"' + cur('about.html') + '>About</a>' +
-      '<a href="help.html"' + cur('help.html') + '>Help</a>' +
-      '<a href="contact.html"' + cur('contact.html') + '>Contact</a></nav>' +
+      '<a href="features.html"' + cur('features.html') + '>Features</a>' +
+      '<a href="students.html"' + cur('students.html') + '>Students</a>' +
+      '<a href="teachers.html"' + cur('teachers.html') + '>Teachers</a>' +
+      '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
+      '<a href="help.html"' + cur('help.html') + '>Help</a></nav>' +
       '<a class="btn btn-deep" href="login.html" id="nav-btn">Sign in</a></div></div></header>';
   }
 
@@ -35,9 +37,9 @@
   var foot = document.getElementById('site-footer');
   if (foot) {
     foot.outerHTML = '<footer class="site-foot"><div class="wrap"><div class="foot-grid">' +
-      '<div>' + BRAND + '<p class="foot-blurb">Quizzes, subject maps and smart review for revision.</p></div>' +
-      '<div><h4>Lobe Limpet</h4><ul><li><a href="./">Home</a></li><li><a href="about.html">About</a></li><li><a href="login.html">Sign in</a></li><li><a href="login.html?signup=student">Create an account</a></li></ul></div>' +
-      '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li></ul></div>' +
+      '<div>' + BRAND + '<p class="foot-blurb">Turn school revision sheets into notes and quizzes that stick.</p></div>' +
+      '<div><h4>Lobe Limpet</h4><ul><li><a href="./">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li></ul></div>' +
+      '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li><li><a href="about.html">About</a></li><li><a href="login.html">Sign in</a></li></ul></div>' +
       '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy</a></li><li><a href="terms.html">Terms</a></li></ul></div>' +
       '</div><div class="foot-base"><span>© ' + YEAR + ' Lobe Limpet</span><span>Made in the UK</span></div></div></footer>';
   }
@@ -60,7 +62,7 @@
       var home = 'login.html';
       try { home = localStorage.getItem('ll_home') || 'login.html'; } catch (e) {}
       if (page === 'login.html') home = './';
-      el.innerHTML = '<a href="' + home + '"><strong>Home</strong></a>·<a href="plus.html">Free &amp; Plus</a>·<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
+      el.innerHTML = '<a href="' + home + '"><strong>Home</strong></a>·<a href="plus.html">Pricing</a>·<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
         '<span class="ll-tag">© ' + YEAR + ' Lobe Limpet · ' + TAGLINE + '</span>';
       (document.querySelector('main.main') || document.body).appendChild(el);
     };
@@ -80,7 +82,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261112g'),
+        import('./firebase-config.js?v=20261112h'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -96,7 +98,7 @@
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261112g';
+  pwa.src = 'pwa.js?v=20261112h';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

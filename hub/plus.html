@@ -3,23 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Free and Plus · Lobe Limpet</title>
-  <meta name="description" content="What's free in Lobe Limpet and what Plus adds: create revision notes, questions and flashcards with AI.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112g">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112g">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112g">
+  <title>Pricing · Lobe Limpet</title>
+  <meta name="description" content="Lobe Limpet pricing: free to start with no adverts, and Plus to keep turning your own notes and worksheets into revision with AI.">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112h">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112h">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112h">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261112g">
+  <link rel="stylesheet" href="site.css?v=20261112h">
 </head>
 <body>
 <div id="site-header"></div>
-<div class="page-hero"><div class="wrap"><h1>Free and Plus</h1><p>Everything students need to revise is free. Plus adds AI to save hours of setting up.</p></div></div>
+<div class="page-hero"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns your own notes and worksheets into revision.</p></div></div>
 <main class="wrap"><div class="prose" style="max-width:860px;">
 
-<p>Lobe Limpet is free to use, with no adverts: students revise, and parents and teachers can write their own notes, questions and flashcards by hand. Plus adds AI that turns your own material into revision in minutes.</p>
+<div class="grid3 two price-cards">
+  <div class="card"><h3>Free</h3><p class="price">£0</p><p>Revise with no adverts and no time limit. Parents and teachers can write their own notes and questions by hand, and <strong>turn their first 2 worksheets into revision with AI, free</strong>.</p></div>
+  <div class="card"><h3>Plus <span class="plus-mark">✨</span></h3><p class="price">£36 <small>a year</small></p><p>Keep turning class notes, worksheets and documents into notes and quiz questions with AI, plus every topic in the ready-made packs. One Plus covers your children too.</p></div>
+</div>
 
 <div class="compare-wrap">
 <table class="compare">
@@ -52,9 +55,9 @@
     <tr><td>Make your own revision packs by hand (notes and questions), give them to your students</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Copy packs from the checked community library, and share yours there</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Copy a ready-made Lobe Limpet pack into your own packs to change it</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
-    <tr><td>Create with AI: notes and a full set of questions from your notes, a document or a topic name</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
-    <tr><td>Upload PDFs and Word documents to build from</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
-    <tr><td>Read scanned pages, photos, diagrams, graphs and tables with AI</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Create with AI: notes and a full set of questions from your notes, a document or a topic name</td><td class="c"><span class="meh">Free try</span><small>First 2 worksheets</small></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Upload PDFs and Word documents to build from</td><td class="c"><span class="meh">Free try</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Read scanned pages, photos, diagrams, graphs and tables with AI</td><td class="c"><span class="meh">Free try</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Suggested links to official exam board pages</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
 
     <tr class="group"><td colspan="3">Everything else</td></tr>
@@ -81,15 +84,15 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261112g"></script>
+<script src="site.js?v=20261112h"></script>
 <script type="module">
 // Signed in: ask for Plus with one tap (admins see it on their home page and
 // switch Plus on in Users). Signed out: sign in first, or email.
-import { auth, db } from './firebase-config.js?v=20261112g';
+import { auth, db } from './firebase-config.js?v=20261112h';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261112g';
-import { withFamilyPlus } from './auth.js?v=20261112g';
+import { logEvent } from './log.js?v=20261112h';
+import { withFamilyPlus } from './auth.js?v=20261112h';
 const $ = id => document.getElementById(id);
 onAuthStateChanged(auth, async user => {
   if (!user) { $('plus-intro').innerHTML = 'Plus is in early access. <a href="login.html">Sign in</a>, then come back here to ask for it.'; return; }
