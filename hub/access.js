@@ -8,8 +8,8 @@
 // made it, so they and their students use all of it.
 // ============================================================
 
-import { hasPlus } from './auth.js?v=20261112l';
-import { showPlusUpsell } from './plus.js?v=20261112l';
+import { hasPlus } from './auth.js?v=20261112m';
+import { showPlusUpsell } from './plus.js?v=20261112m';
 
 export const isPlusOnly = topic => topic?.plusOnly === true;
 // Locked for this person: a Plus only topic and they don't have Plus
