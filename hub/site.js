@@ -30,7 +30,25 @@
       '<a href="teachers.html"' + cur('teachers.html') + '>Teachers</a>' +
       '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
       '<a href="help.html"' + cur('help.html') + '>Help</a></nav>' +
-      '<a class="btn btn-deep" href="login.html" id="nav-btn">Sign in</a></div></div></header>';
+      '<a class="btn btn-deep" href="login.html" id="nav-btn">Sign in</a>' +
+      '<button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>' +
+      '</div></div>' +
+      // Phone menu (the links above are hidden on narrow screens)
+      '<nav class="nav-menu" id="nav-menu" aria-label="Menu" hidden>' +
+      '<a href="./"' + cur('index.html') + '>For parents</a>' +
+      '<a href="students.html"' + cur('students.html') + '>For students</a>' +
+      '<a href="teachers.html"' + cur('teachers.html') + '>For teachers</a>' +
+      '<a href="features.html"' + cur('features.html') + '>Features</a>' +
+      '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
+      '<a href="help.html"' + cur('help.html') + '>Help</a>' +
+      '<a href="contact.html"' + cur('contact.html') + '>Contact</a>' +
+      '</nav></header>';
+    var tog = document.getElementById('nav-toggle'), menu = document.getElementById('nav-menu');
+    var setOpen = function (open) { menu.hidden = !open; tog.setAttribute('aria-expanded', open); tog.classList.toggle('open', open); };
+    tog.addEventListener('click', function () { setOpen(menu.hidden); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+    document.addEventListener('click', function (e) { if (!menu.hidden && !e.target.closest('header')) setOpen(false); });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
   }
 
   // ── Full footer (public pages) ──────────────────────────
@@ -82,7 +100,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261112h'),
+        import('./firebase-config.js?v=20261112i'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -98,7 +116,7 @@
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261112h';
+  pwa.src = 'pwa.js?v=20261112i';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

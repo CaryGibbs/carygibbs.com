@@ -232,3 +232,17 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .price-cards { margin-bottom: 24px; }
 .price, .prose .price { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 2rem; color: var(--deep); margin: 4px 0 8px; }
 .price small { font-size: 0.95rem; color: var(--muted); font-weight: 600; }
+
+/* ── Phone menu ─────────────────────────── */
+.nav-toggle { display: none; width: 42px; height: 42px; border: 0; border-radius: 12px; background: rgba(255,255,255,0.7); cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.nav-toggle span { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--deep); transition: transform .2s ease, opacity .2s ease; }
+.nav-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.nav-menu { display: flex; flex-direction: column; padding: 6px 20px 14px; border-top: 1px solid rgba(18,58,74,0.08); }
+.nav-menu[hidden] { display: none; }
+.nav-menu a { text-decoration: none; font-weight: 600; color: var(--deep); padding: 12px 0; border-bottom: 1px solid rgba(18,58,74,0.06); }
+.nav-menu a:last-child { border-bottom: 0; }
+.nav-menu a[aria-current] { color: var(--coral-dark); }
+@media (max-width: 860px) { .nav-toggle { display: inline-flex; } .nav-right { gap: 10px; } }
+@media (min-width: 861px) { .nav-menu { display: none !important; } }
