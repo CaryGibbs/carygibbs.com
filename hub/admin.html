@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112a">
-  <script src="icons.js?v=20261112a"></script>
+  <link rel="stylesheet" href="theme.css?v=20261112b">
+  <script src="icons.js?v=20261112b"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -614,8 +614,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261112a">
-  <link rel="stylesheet" href="stats.css?v=20261112a">
+  <link rel="stylesheet" href="ui.css?v=20261112b">
+  <link rel="stylesheet" href="stats.css?v=20261112b">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1388,33 +1388,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261112a';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261112a';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261112a';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261112a';
-import { syncFamilyPlus } from './family-plus.js?v=20261112a';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112a';
-import { openDeleteAccount } from './account.js?v=20261112a';
-import { addDocumentButton } from './doc-text.js?v=20261112a';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261112a';
-import { showPlusUpsell } from './plus.js?v=20261112a';
-import { offerGivePack } from './first-steps.js?v=20261112a';
+import { auth, db, storage } from './firebase-config.js?v=20261112b';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261112b';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261112b';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261112b';
+import { syncFamilyPlus } from './family-plus.js?v=20261112b';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112b';
+import { openDeleteAccount } from './account.js?v=20261112b';
+import { addDocumentButton } from './doc-text.js?v=20261112b';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261112b';
+import { showPlusUpsell } from './plus.js?v=20261112b';
+import { offerGivePack } from './first-steps.js?v=20261112b';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261112a';
-import { mountShell } from './shell.js?v=20261112a';
-import { openInviteDialog, signupLink } from './invite.js?v=20261112a';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261112a';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261112a';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261112a';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261112a';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112a';
-import { dueEntries } from './srs.js?v=20261112a';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261112a';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261112a';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261112b';
+import { mountShell } from './shell.js?v=20261112b';
+import { openInviteDialog, signupLink } from './invite.js?v=20261112b';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261112b';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261112b';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261112b';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261112b';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112b';
+import { dueEntries } from './srs.js?v=20261112b';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261112b';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261112b';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1430,8 +1430,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261112a';
-import { inOrder } from './order.js?v=20261112a';
+import { saveEmailIndex } from './email-index.js?v=20261112b';
+import { inOrder } from './order.js?v=20261112b';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4587,6 +4587,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261112a"></script>
+<script src="site.js?v=20261112b"></script>
 </body>
 </html>

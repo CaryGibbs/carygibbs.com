@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112a">
-  <script src="icons.js?v=20261112a"></script>
-  <link rel="stylesheet" href="stats.css?v=20261112a">
+  <link rel="stylesheet" href="theme.css?v=20261112b">
+  <script src="icons.js?v=20261112b"></script>
+  <link rel="stylesheet" href="stats.css?v=20261112b">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -285,7 +285,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261112a">
+  <link rel="stylesheet" href="ui.css?v=20261112b">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -369,21 +369,21 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261112a';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261112a';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261112a';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261112a';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261112a';
-import { listPacks, samePackIds } from './packs.js?v=20261112a';
-import { plusPillHtml } from './plus.js?v=20261112a';
-import { inOrder } from './order.js?v=20261112a';
-import { videosOf } from './videos.js?v=20261112a';
-import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261112a';
-import { showLinkRequests } from './parent-link.js?v=20261112a';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261112a';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261112a';
-import { openPlanCalendar } from './plan-view.js?v=20261112a';
-import { logEvent } from './log.js?v=20261112a';
+import { auth, db } from './firebase-config.js?v=20261112b';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261112b';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261112b';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261112b';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261112b';
+import { listPacks, samePackIds } from './packs.js?v=20261112b';
+import { plusPillHtml } from './plus.js?v=20261112b';
+import { inOrder } from './order.js?v=20261112b';
+import { videosOf } from './videos.js?v=20261112b';
+import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261112b';
+import { showLinkRequests } from './parent-link.js?v=20261112b';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261112b';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261112b';
+import { openPlanCalendar } from './plan-view.js?v=20261112b';
+import { logEvent } from './log.js?v=20261112b';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -886,6 +886,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261112a"></script>
+<script src="site.js?v=20261112b"></script>
 </body>
 </html>
