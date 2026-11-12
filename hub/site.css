@@ -276,3 +276,7 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .stage-tag { display: inline-block; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--deep); background: var(--sea); padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
 .stages .card:nth-child(2) .stage-tag { background: #fff1cc; }
 .stages .card:nth-child(3) .stage-tag { background: #ffe7df; }
+.grid3.stages.four { grid-template-columns: repeat(4, 1fr); }
+.stages .card:nth-child(4) .stage-tag { background: #e6e9ff; }
+@media (max-width: 1000px) { .grid3.stages.four { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .grid3.stages.four { grid-template-columns: 1fr; } }
