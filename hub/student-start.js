@@ -13,12 +13,12 @@
 // Lobe Limpet (official) packs can be read by anyone signed in.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112f';
-import { listPacks, flatPackIds } from './packs.js?v=20261112f';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112f';
-import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS } from './first-steps.js?v=20261112f';
-import { studyEntries } from './gamification.js?v=20261112f';
-import { logEvent } from './log.js?v=20261112f';
+import { db } from './firebase-config.js?v=20261112g';
+import { listPacks, flatPackIds } from './packs.js?v=20261112g';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112g';
+import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261112g';
+import { studyEntries } from './gamification.js?v=20261112g';
+import { logEvent } from './log.js?v=20261112g';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -174,12 +174,14 @@ export function studentSteps(profile = {}, actions = {}, cardSets = null) {
       text: 'Type or import your own cards (Quizlet exports work); each card becomes quiz questions.',
       done: cardSets === null ? false : cardSets > 0, doneText: `${cardSets} flashcard set${cardSets === 1 ? '' : 's'} made.`,
       actions: [{ label: '🃏 My flashcards', act: actions.cards }] },
+    appStep(profile, 'student'),
   ];
 }
 // Puts the checklist in `el`. preview: an adult viewing as the student (nothing is saved)
 export function mountStudentStart(el, { uid, profile, source = '', actions = {}, preview = false, toast = () => {}, cardSets = null }) {
   if (!el) return;
   addStudentStartCss();
+  if (!preview) noteAppInstalled(uid, profile);
   const fs = firstStepsState(profile);
   if (fs.hidden) { el.innerHTML = ''; return; }
   const steps = studentSteps(profile, actions, cardSets);
@@ -203,6 +205,11 @@ export function mountStudentStart(el, { uid, profile, source = '', actions = {},
       if (!preview) await saveFirstSteps(uid, profile, { hidden: true });
       el.innerHTML = '';
       if (!allDone) toast('Hidden. You can bring it back from your Profile.', 'info');
+    },
+    skip: async id => {
+      if (!preview) await saveFirstSteps(uid, profile, { skipped: [...new Set([...fs.skipped, id])] });
+      else profile.firstSteps = { ...fs, skipped: [...new Set([...fs.skipped, id])] };
+      mountStudentStart(el, { uid, profile, source, actions, preview, toast, cardSets });
     },
   });
 }

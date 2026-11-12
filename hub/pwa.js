@@ -108,6 +108,7 @@
   function shouldOffer() {
     if (HOME_PAGES.indexOf(page) < 0 || isStandalone) return false;
     try { if (page === 'hub.html' && sessionStorage.getItem('clasp_viewAs')) return false; } catch (e) {}
+    if (document.querySelector('[data-step="app"]:not(.is-done)')) return false; // the Getting started checklist is already offering it
     var snoozed = +get(KEY_SNOOZE) || 0;
     if (snoozed && Date.now() - snoozed < SNOOZE_DAYS * 86400000) return false;
     return true;

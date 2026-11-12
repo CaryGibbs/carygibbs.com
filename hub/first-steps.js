@@ -10,9 +10,9 @@
 //   offerGivePack(...)   after making content: "Give this pack to Jacob?"
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112f';
-import { updateStudentPacks } from './packs.js?v=20261112f';
-import { logEvent } from './log.js?v=20261112f';
+import { db } from './firebase-config.js?v=20261112g';
+import { updateStudentPacks } from './packs.js?v=20261112g';
+import { logEvent } from './log.js?v=20261112g';
 import {
   doc, getDoc, getDocs, updateDoc, collection, getCountFromServer,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -65,6 +65,32 @@ export async function saveFirstSteps(uid, profile, changes) {
 // ?firststeps=1 in the address ("Getting started" link) shows it again
 export function askedToShow() {
   try { return new URLSearchParams(location.search).get('firststeps') === '1'; } catch (e) { return false; }
+}
+
+/* ── "Add to your home screen" step (all three checklists) ─ */
+// Done when they've opened Lobe Limpet from the home screen on any device
+// (remembered on their record as appInstalled), or skipped it.
+// The Show me button uses pwa.js (loaded by site.js).
+export const runningAsApp = () => {
+  try { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; }
+};
+export function noteAppInstalled(uid, profile) {
+  if (!uid || !profile || profile.appInstalled || !runningAsApp()) return;
+  profile.appInstalled = true;
+  updateDoc(doc(db, 'users', uid), { appInstalled: true }).catch(() => {});
+}
+export function appStep(profile = {}, who = 'student') {
+  const fs = firstStepsState(profile);
+  return { id: 'app', optional: true, title: 'Add Lobe Limpet to your home screen',
+    text: who === 'student'
+      ? 'Open it like an app, full screen, in one tap. Takes ten seconds.'
+      : who === 'parent'
+        ? 'Open it like an app from your phone, and help your child add it to theirs: revision is one tap away.'
+        : 'Open it like an app from your phone, and suggest students add it to theirs.',
+    done: !!profile.appInstalled || runningAsApp() || fs.skipped.includes('app'),
+    doneText: profile.appInstalled || runningAsApp() ? 'On your home screen.' : 'Skipped.',
+    actions: [{ label: '📲 Show me how', act: () => window.llInstall ? window.llInstall.open() : (location.href = 'help.html#phone') }],
+    skip: 'Skip' };
 }
 
 /* ── The checklist ───────────────────────────────────────── */

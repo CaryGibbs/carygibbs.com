@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112f">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112f">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112f">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112f">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112g">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112g">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112f">
-  <script src="icons.js?v=20261112f"></script>
+  <link rel="stylesheet" href="theme.css?v=20261112g">
+  <script src="icons.js?v=20261112g"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -288,7 +288,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261112f">
+  <link rel="stylesheet" href="ui.css?v=20261112g">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -488,23 +488,23 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261112f';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus } from './auth.js?v=20261112f';
-  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS } from './first-steps.js?v=20261112f';
-  import { showPlusUpsell } from './plus.js?v=20261112f';
-  import { mountShell } from './shell.js?v=20261112f';
-  import { byOrder } from './order.js?v=20261112f';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261112f';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112f';
-  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261112f';
-  import { logEvent } from './log.js?v=20261112f';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261112f';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261112f';
-  import { app as firebaseApp } from './firebase-config.js?v=20261112f';
+  import { auth, db } from './firebase-config.js?v=20261112g';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus } from './auth.js?v=20261112g';
+  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261112g';
+  import { showPlusUpsell } from './plus.js?v=20261112g';
+  import { mountShell } from './shell.js?v=20261112g';
+  import { byOrder } from './order.js?v=20261112g';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261112g';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112g';
+  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261112g';
+  import { logEvent } from './log.js?v=20261112g';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261112g';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261112g';
+  import { app as firebaseApp } from './firebase-config.js?v=20261112g';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261112f';
+  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261112g';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -611,15 +611,17 @@
       { id: 'join', title: 'Share the join code', text: 'Students sign up with the code (or you can add them yourself), then their progress shows here.',
         done: classIds.length > 0 && !noKids, doneText: 'Students have joined.',
         actions: first ? [{ label: `Join code for ${name(noKids || first)}`, primary: true, act: () => openStudentsModal(noKids || first) }] : [] },
+      appStep(teacherProfile || {}, 'teacher'),
     ];
   }
   function mountTeacherSteps(box) {
     if (!teacherProfile) return;
+    noteAppInstalled(teacherUid, teacherProfile);
     const fs = firstStepsState(teacherProfile);
     if (fs.hidden) return;
     const classIds = Object.keys(classesData);
     const steps = teacherSteps(classIds);
-    const allDone = steps.every(x => x.done);
+    const allDone = steps.filter(x => !x.optional).every(x => x.done);
     if (allDone && !fs.doneAt && ownStats) { saveFirstSteps(teacherUid, teacherProfile, { doneAt: Date.now() }); logEvent('account.getting_started', { detail: 'Teacher' }); }
     box.insertAdjacentHTML('afterbegin', `<div id="first-steps">${firstStepsHtml({ title: 'Set up revision for your classes',
       lead: 'Retrieval practice for your classes, from your own material or a ready-made pack. Here\'s how to get going:',
@@ -1320,6 +1322,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261112f"></script>
+<script src="site.js?v=20261112g"></script>
 </body>
 </html>

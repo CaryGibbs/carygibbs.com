@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112f">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112f">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112f">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112f">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112g">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112g">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112f">
-  <script src="icons.js?v=20261112f"></script>
-  <link rel="stylesheet" href="stats.css?v=20261112f">
+  <link rel="stylesheet" href="theme.css?v=20261112g">
+  <script src="icons.js?v=20261112g"></script>
+  <link rel="stylesheet" href="stats.css?v=20261112g">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -182,7 +182,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261112f">
+  <link rel="stylesheet" href="ui.css?v=20261112g">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -432,25 +432,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261112f';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus } from './auth.js?v=20261112f';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS } from './first-steps.js?v=20261112f';
-import { showPlusUpsell } from './plus.js?v=20261112f';
-import { syncMyChildPlus } from './family-plus.js?v=20261112f';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261112f';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261112f';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261112f';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261112f';
-import { logEvent } from './log.js?v=20261112f';
-import { openInviteDialog } from './invite.js?v=20261112f';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112f';
-import { dueEntries, scheduledCount } from './srs.js?v=20261112f';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261112f';
-import { openPlanCalendar } from './plan-view.js?v=20261112f';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261112f';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112f';
-import { openDeleteAccount } from './account.js?v=20261112f';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261112f';
+import { auth, db } from './firebase-config.js?v=20261112g';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus } from './auth.js?v=20261112g';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261112g';
+import { showPlusUpsell } from './plus.js?v=20261112g';
+import { syncMyChildPlus } from './family-plus.js?v=20261112g';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261112g';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261112g';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261112g';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261112g';
+import { logEvent } from './log.js?v=20261112g';
+import { openInviteDialog } from './invite.js?v=20261112g';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112g';
+import { dueEntries, scheduledCount } from './srs.js?v=20261112g';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261112g';
+import { openPlanCalendar } from './plan-view.js?v=20261112g';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261112g';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112g';
+import { openDeleteAccount } from './account.js?v=20261112g';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261112g';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -593,12 +593,14 @@ function parentSteps(kids) {
       text: 'Add their exam or test dates, and the daily goal steps up as the exams get closer.',
       done: kids.some(k => (k.plan?.exams || []).length), doneText: 'Exam dates set.',
       actions: first ? [{ label: 'Add exam dates', act: () => openManageAt(first.uid, 'exams') }] : [] },
+    appStep(shellProfile || {}, 'parent'),
   ];
 }
 function renderFirstSteps(kids) {
   const big = document.getElementById('first-steps');
   const mini = document.getElementById('first-steps-mini');
   if (!big || !shellProfile) return;
+  noteAppInstalled(parentUid, shellProfile);
   const fs = firstStepsState(shellProfile);
   if (fs.hidden) { big.innerHTML = ''; mini.innerHTML = ''; return; }
   const steps = parentSteps(kids);
@@ -1482,6 +1484,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261112f"></script>
+<script src="site.js?v=20261112g"></script>
 </body>
 </html>
