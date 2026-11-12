@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112i';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261112i';
-import { themeColour } from './themes.js?v=20261112i';
+import { db } from './firebase-config.js?v=20261112j';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261112j';
+import { themeColour } from './themes.js?v=20261112j';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openDeleteAccount } from './account.js?v=20261112i';
-import { plusPillHtml } from './plus.js?v=20261112i';
+import { openDeleteAccount } from './account.js?v=20261112j';
+import { plusPillHtml } from './plus.js?v=20261112j';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
