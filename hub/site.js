@@ -25,9 +25,10 @@
   if (head) {
     head.outerHTML = '<header><div class="wrap nav">' + BRAND +
       '<div class="nav-right"><nav class="nav-links" aria-label="Main">' +
-      '<a href="features.html"' + cur('features.html') + '>Features</a>' +
+      '<a href="./"' + cur('index.html') + '>Parents</a>' +
       '<a href="students.html"' + cur('students.html') + '>Students</a>' +
       '<a href="teachers.html"' + cur('teachers.html') + '>Teachers</a>' +
+      '<a href="features.html"' + cur('features.html') + '>Features</a>' +
       '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
       '<a href="help.html"' + cur('help.html') + '>Help</a></nav>' +
       '<a class="btn btn-deep" href="login.html" id="nav-btn">Sign in</a>' +
@@ -100,7 +101,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261112j'),
+        import('./firebase-config.js?v=20261112k'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -116,7 +117,7 @@
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261112j';
+  pwa.src = 'pwa.js?v=20261112k';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

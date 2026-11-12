@@ -273,3 +273,6 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .gap-mock .r { background: #ffe0d8; color: #b8401f; } .gap-mock .n { background: #f1f4f5; color: #9aaab0; }
 .nudge { display: block; font-size: 0.7rem; color: var(--coral-dark); font-weight: 700; }
 @media (max-width: 480px) { .pm-row { grid-template-columns: 1fr 64px 58px; gap: 8px; font-size: 0.86rem; } .spark { width: 64px; } .pm-tiles b { font-size: 1.1rem; } }
+.stage-tag { display: inline-block; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--deep); background: var(--sea); padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+.stages .card:nth-child(2) .stage-tag { background: #fff1cc; }
+.stages .card:nth-child(3) .stage-tag { background: #ffe7df; }

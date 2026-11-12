@@ -10,9 +10,9 @@
 //   offerGivePack(...)   after making content: "Give this pack to Jacob?"
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112j';
-import { updateStudentPacks } from './packs.js?v=20261112j';
-import { logEvent } from './log.js?v=20261112j';
+import { db } from './firebase-config.js?v=20261112k';
+import { updateStudentPacks } from './packs.js?v=20261112k';
+import { logEvent } from './log.js?v=20261112k';
 import {
   doc, getDoc, getDocs, updateDoc, collection, getCountFromServer,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
