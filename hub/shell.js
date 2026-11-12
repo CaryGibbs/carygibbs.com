@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111u';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261111u';
-import { themeColour } from './themes.js?v=20261111u';
+import { db } from './firebase-config.js?v=20261112a';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261112a';
+import { themeColour } from './themes.js?v=20261112a';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openDeleteAccount } from './account.js?v=20261111u';
-import { plusPillHtml } from './plus.js?v=20261111u';
+import { openDeleteAccount } from './account.js?v=20261112a';
+import { plusPillHtml } from './plus.js?v=20261112a';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -72,6 +72,7 @@ export function mountShell(user, profile, { view, active } = {}) {
         <span class="nav-icon"><i data-icon="users"></i></span><span>My students</span>
       </a>
       ${myPacksLink('parent', active)}
+      <a class="nav-item" href="parent.html?firststeps=1#home"><span class="nav-icon"><i data-icon="list-checks"></i></span><span>Getting started</span></a>
       <div id="shell-children"></div>`,
     teacher: `
       <div class="nav-section-label">Teaching</div>
@@ -81,7 +82,8 @@ export function mountShell(user, profile, { view, active } = {}) {
       <a class="nav-item${active === 'classes' ? ' active' : ''}" href="teacher-dashboard.html#classes" data-ph="classes">
         <span class="nav-icon"><i data-icon="school"></i></span><span>My classes</span>
       </a>
-      ${myPacksLink('teacher', active)}`,
+      ${myPacksLink('teacher', active)}
+      <a class="nav-item" href="teacher-dashboard.html?firststeps=1#home"><span class="nav-icon"><i data-icon="list-checks"></i></span><span>Getting started</span></a>`,
     admin: `
       ${adminLink('home', 'house', 'Home')}
       <div class="nav-section-label">Content</div>

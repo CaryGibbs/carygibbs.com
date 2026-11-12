@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111u">
-  <script src="icons.js?v=20261111u"></script>
+  <link rel="stylesheet" href="theme.css?v=20261112a">
+  <script src="icons.js?v=20261112a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -499,6 +499,19 @@
   .ts-stat span { font-size: 0.78rem; color: var(--color-text-muted); }
   .ts-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .ts-hint { flex-basis: 100%; margin: 0; font-size: 0.85rem; color: var(--color-text-muted); }
+  .ts-callout { flex-basis: 100%; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: var(--radius-button); background: var(--color-primary-glow); border: 1px solid var(--color-primary); }
+  .ts-callout[hidden] { display: none; }
+  .ts-callout > div { flex: 1; min-width: 200px; }
+  .ts-callout strong { display: block; font-family: var(--font-ui); }
+  .ts-callout span:not(.ts-callout-ic) { font-size: 0.85rem; color: var(--color-text-muted); }
+  .ts-callout-ic { font-size: 1.5rem; }
+  .notes-ready { display: inline-block; margin-top: 6px; font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--color-primary-glow); color: var(--color-primary); }
+  /* "Turn class notes into revision" quick start */
+  .cn-field { margin-bottom: 14px; }
+  .cn-field > label { display: block; font-family: var(--font-ui); font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; }
+  .cn-field select, .cn-field input { width: 100%; }
+  .cn-field input { margin-top: 6px; }
+  .cn-lead { margin: 0 0 16px; color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.5; }
   .plus-note { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 var(--space-md); padding: 10px 14px; border-radius: var(--radius-button); background: var(--color-primary-glow); color: var(--color-text); font-size: 0.86rem; line-height: 1.45; }
   .plus-note i { color: var(--color-primary); flex-shrink: 0; margin-top: 2px; }
   .pack-badge { display: inline-block; margin-top: 8px; font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); }
@@ -601,8 +614,8 @@
     .log-f:first-child { flex-basis: 100%; }
   }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261111u">
-  <link rel="stylesheet" href="stats.css?v=20261111u">
+  <link rel="stylesheet" href="ui.css?v=20261112a">
+  <link rel="stylesheet" href="stats.css?v=20261112a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -710,6 +723,11 @@
           <button class="btn btn-secondary" data-action="topic-videos"><i data-icon="play"></i> Videos</button>
         </div>
         <p class="ts-hint" id="ts-hint"></p>
+        <div class="ts-callout" id="ts-callout" hidden>
+          <span class="ts-callout-ic" aria-hidden="true">📝</span>
+          <div><strong>Notes ready, no questions yet</strong><span>Students can read the notes in Learn, but there's nothing to quiz on until questions are made.</span></div>
+          <button class="btn btn-primary" data-action="make-questions"><i data-icon="sparkles"></i> Make questions</button>
+        </div>
       </div>
 
       <div class="tab-bar">
@@ -1370,32 +1388,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261111u';
-import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261111u';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261111u';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261111u';
-import { syncFamilyPlus } from './family-plus.js?v=20261111u';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111u';
-import { openDeleteAccount } from './account.js?v=20261111u';
-import { addDocumentButton } from './doc-text.js?v=20261111u';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261111u';
-import { showPlusUpsell } from './plus.js?v=20261111u';
+import { auth, db, storage } from './firebase-config.js?v=20261112a';
+import { requireRole, requireAuth, hasRole, hasPlus, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261112a';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261112a';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261112a';
+import { syncFamilyPlus } from './family-plus.js?v=20261112a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112a';
+import { openDeleteAccount } from './account.js?v=20261112a';
+import { addDocumentButton } from './doc-text.js?v=20261112a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261112a';
+import { showPlusUpsell } from './plus.js?v=20261112a';
+import { offerGivePack } from './first-steps.js?v=20261112a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261111u';
-import { mountShell } from './shell.js?v=20261111u';
-import { openInviteDialog, signupLink } from './invite.js?v=20261111u';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261111u';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261111u';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261111u';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261111u';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111u';
-import { dueEntries } from './srs.js?v=20261111u';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261111u';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261111u';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261112a';
+import { mountShell } from './shell.js?v=20261112a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261112a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261112a';
+import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261112a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261112a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261112a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112a';
+import { dueEntries } from './srs.js?v=20261112a';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261112a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261112a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1411,8 +1430,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261111u';
-import { inOrder } from './order.js?v=20261111u';
+import { saveEmailIndex } from './email-index.js?v=20261112a';
+import { inOrder } from './order.js?v=20261112a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1467,6 +1486,8 @@ function startMine(user, profile) {
   mountShell(user, profile, { view: MINE, active: 'packs' });
   loadGroups();
   showPanel('groups');
+  // From the Getting started checklist or a Home warning
+  startFromLink();
 }
 
 /* ── Auth guard ──────────────────────────────────────────── */
@@ -2103,6 +2124,7 @@ document.addEventListener('click', e => {
 
   else if (action === 'new-question-manual') openQuestionModal();
   else if (action === 'create-with-ai')      openCreateWithAI();
+  else if (action === 'make-questions')      openCreateWithAI({ start: 'questions' });
   else if (action === 'edit-notes')          switchQTab('keypoints');
   else if (action === 'topic-videos')        { if (selectedTopic) openTopicModal(selectedTopic.id, { focusVideos: true }); }
   else if (action === 'save-manual-question') saveManualQuestion();
@@ -2514,6 +2536,7 @@ function topicCard(id, data, qCount, i = 0, n = 1) {
     <div class="item-card-emoji"><i data-icon="file-text"></i></div>
     <div class="item-card-name">${esc(data.name)}${isPlusOnly(data) ? plusTagHtml('Plus only: people without Plus see it listed but can\'t use it') : ''}</div>
     <div class="item-card-meta"><span class="count-chip">${qCount}</span> questions</div>
+    ${!qCount && (data.keyPoints || []).length ? `<span class="notes-ready" title="This topic has notes; open it and tap Make questions">Notes ready · no questions yet</span>` : ''}
     ${selectedGroup?.lockable ? `<button class="pack-link-btn" data-action="toggle-plus-topic" data-id="${id}" data-name="${esc(data.name)}" data-on="${isPlusOnly(data) ? 1 : 0}" style="margin-top:8px;"
       title="${isPlusOnly(data) ? 'Make this a free sample topic' : 'Only people with Plus can learn and quiz this topic'}">${isPlusOnly(data) ? 'Make free' : 'Make Plus only'}</button>` : ''}`;
   div.addEventListener('click', e => {
@@ -3005,21 +3028,169 @@ async function renderTopicStatus() {
   document.getElementById('ts-notes').textContent = notes;
   document.getElementById('ts-qs').textContent = qCount;
   document.getElementById('ts-vids').textContent = videosOf(tSnap?.data()).length;
+  document.getElementById('ts-callout').hidden = !(notes && !qCount);
   document.getElementById('ts-hint').textContent = !notes && !qCount
-    ? 'This topic is empty. Create with AI builds notes and questions in three steps, or add your own.'
-    : !qCount ? 'Next: make questions from these notes with Create with AI, or add them yourself.'
+    ? 'This topic is empty. Create with AI turns a photo or file of class notes into notes and quiz questions, or add your own.'
+    : !qCount ? 'Make questions from these notes with AI, or add them yourself.'
     : !notes ? 'Add notes too, so students can learn the topic before they quiz.'
     : 'Students can learn from the notes and quiz on the questions.';
 }
-async function openCreateWithAI() {
+async function openCreateWithAI({ start = '' } = {}) {
   if (!selectedTopic || !aiAllowed('Create with AI')) return;
   const sSnap = await getDoc(doc(db, subjectsPath(), selectedSubject.id)).catch(() => null);
   const sd = sSnap?.data() || {};
+  const pack = selectedGroup ? { id: selectedGroup.id, name: selectedGroup.name } : null;
   openTopicWizard({
-    topic: selectedTopic, topicPath: `${topicsPath()}/${selectedTopic.id}`,
+    topic: selectedTopic, topicPath: `${topicsPath()}/${selectedTopic.id}`, start,
     subject: { name: selectedSubject.name, examBoard: sd.examBoard || '', level: sd.level || '' },
-    onDone: () => { loadExistingQuestions(); getDoc(doc(db, topicsPath(), selectedTopic.id)).then(s => updateGenKpPreview(s.data()?.keyPoints || [])).catch(() => {}); },
+    onDone: (saved = {}) => {
+      loadExistingQuestions(); getDoc(doc(db, topicsPath(), selectedTopic.id)).then(s => updateGenKpPreview(s.data()?.keyPoints || [])).catch(() => {});
+      // A parent's or teacher's pack now has questions: offer to give it to someone
+      if (MINE && saved.questions && pack) offerGivePack({ role: MINE, uid: currentAdminUid, pack, toast: showToast });
+    },
   });
+}
+
+/* ── Opening My packs with something to do ───────────────────
+   admin.html?mine=parent&start=… (from the parent's Getting started):
+     start=newpack            the New pack dialog
+     start=classnotes         "Turn class notes into revision": choose or make a
+                              pack, subject and topic, then Create with AI
+     pack=<id>&start=questions  the first topic in that pack with notes but no
+                              questions, opened at Create with AI's questions step
+     pack=<id>                that pack */
+function goToTopic(pack, subject, topic) {
+  openGroup(pack.id, pack.data);
+  openSubject(subject.id, subject.data);
+  openTopic(topic.id, topic.data);
+}
+async function startFromLink() {
+  const q = new URLSearchParams(location.search);
+  const start = q.get('start'), packId = q.get('pack');
+  if (!start && !packId) return;
+  try { history.replaceState(null, '', `admin.html?mine=${MINE}`); } catch (e) {}
+  if (start === 'newpack') { openGroupModal(); return; }
+  if (start === 'classnotes') { openClassNotesStart(packId); return; }
+  if (!packId) return;
+  const pSnap = await getDoc(doc(db, 'content', packId)).catch(() => null);
+  if (!pSnap?.exists()) return;
+  const pack = { id: packId, data: pSnap.data() };
+  if (start === 'questions') {
+    const subs = inOrder(await getDocs(collection(db, `content/${packId}/subjects`)).catch(() => null));
+    for (const s of subs) {
+      const ts = inOrder(await getDocs(collection(db, `content/${packId}/subjects/${s.id}/topics`)).catch(() => null));
+      for (const t of ts) {
+        const notes = (t.keyPoints || []).length;
+        if (!notes || await qCountOf(`content/${packId}/subjects/${s.id}/topics/${t.id}/questions`)) continue;
+        goToTopic(pack, { id: s.id, data: s }, { id: t.id, data: t });
+        openCreateWithAI({ start: 'questions' });
+        return;
+      }
+    }
+    openClassNotesStart(packId);   // no topic with notes only: add class notes instead
+    return;
+  }
+  openGroup(packId, pack.data);
+}
+
+// "Turn class notes into revision": pick (or make) where it goes, then Create with AI
+async function openClassNotesStart(packId = '') {
+  if (!aiAllowed('Turning class notes into revision')) return;
+  document.getElementById('cn-start')?.remove();
+  const packs = [];
+  (await getDocs(query(collection(db, 'content'), where('ownerUid', '==', currentAdminUid))).catch(() => null))
+    ?.forEach(d => { if (d.data().visibility !== 'library') packs.push({ id: d.id, ...d.data() }); });
+  const t = x => x?.toMillis?.() || 0;
+  packs.sort((a, b) => t(a.createdAt) - t(b.createdAt));
+  const NEW = '__new';
+  const opt = (v, label, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(label)}</option>`;
+  document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay open" id="cn-start" role="dialog" aria-modal="true" aria-labelledby="cn-title"><div class="modal" style="max-width:480px">
+    <div class="modal-header"><h2 id="cn-title">📷 Turn class notes into revision</h2><button class="modal-close" data-cn="close" aria-label="Close">✕</button></div>
+    <p class="cn-lead">First, where should it go? Then take a photo or upload the sheet, and we'll make notes and quiz questions from exactly that.</p>
+    <div class="cn-field"><label for="cn-pack">Pack</label>
+      <select id="cn-pack">${packs.map(p => opt(p.id, p.name || 'Untitled pack', p.id === packId)).join('')}${opt(NEW, '＋ A new pack', !packs.length)}</select>
+      <input id="cn-pack-new" placeholder="e.g. Year 9 revision" hidden></div>
+    <div class="cn-field"><label for="cn-subj">Subject</label>
+      <select id="cn-subj"></select>
+      <input id="cn-subj-new" placeholder="e.g. Religious Studies" hidden></div>
+    <div class="cn-field"><label for="cn-topic">Topic</label>
+      <select id="cn-topic"></select>
+      <input id="cn-topic-new" placeholder="e.g. Marriage and the family" hidden>
+      <div class="form-hint" id="cn-topic-hint" style="font-size:0.78rem;color:var(--color-text-muted);margin-top:6px"></div></div>
+    <div class="error-msg" id="cn-err"></div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn btn-secondary" data-cn="close">Cancel</button>
+      <button class="btn btn-primary" id="cn-go">Next: add the notes →</button></div>
+  </div></div>`);
+  const box = document.getElementById('cn-start');
+  const $ = id => document.getElementById(id);
+  box.querySelectorAll('[data-cn="close"]').forEach(b => b.onclick = () => box.remove());
+  const showNew = (sel, input) => { input.hidden = sel.value !== NEW; if (!input.hidden) setTimeout(() => input.focus(), 30); };
+  let subs = [], topics = [];
+  async function fillTopics() {
+    showNew($('cn-subj'), $('cn-subj-new'));
+    topics = [];
+    const sid = $('cn-subj').value;
+    if ($('cn-pack').value !== NEW && sid && sid !== NEW) {
+      const tl = inOrder(await getDocs(collection(db, `content/${$('cn-pack').value}/subjects/${sid}/topics`)).catch(() => null));
+      await Promise.all(tl.map(async x => { x.q = await qCountOf(`content/${$('cn-pack').value}/subjects/${sid}/topics/${x.id}/questions`); }));
+      topics = tl;
+    }
+    const label = x => `${x.name}${x.q ? ` (${x.q} questions)` : (x.keyPoints || []).length ? ' (notes, no questions)' : ' (empty)'}`;
+    // Suggest the first empty topic: that's usually where new notes go
+    const first = topics.find(x => !x.q && !(x.keyPoints || []).length);
+    $('cn-topic').innerHTML = topics.map(x => opt(x.id, label(x), first && x.id === first.id)).join('') + opt(NEW, '＋ A new topic', !first);
+    $('cn-topic-hint').textContent = topics.length ? 'Notes for a topic that already has some are added to them.' : '';
+    showNew($('cn-topic'), $('cn-topic-new'));
+  }
+  async function fillSubjects() {
+    showNew($('cn-pack'), $('cn-pack-new'));
+    subs = [];
+    if ($('cn-pack').value !== NEW) subs = inOrder(await getDocs(collection(db, `content/${$('cn-pack').value}/subjects`)).catch(() => null));
+    $('cn-subj').innerHTML = subs.map((x, i) => opt(x.id, `${x.emoji || '📚'} ${x.name}`, i === 0)).join('') + opt(NEW, '＋ A new subject', !subs.length);
+    await fillTopics();
+  }
+  $('cn-pack').onchange = fillSubjects;
+  $('cn-subj').onchange = fillTopics;
+  $('cn-topic').onchange = () => showNew($('cn-topic'), $('cn-topic-new'));
+  await fillSubjects();
+  $('cn-go').onclick = async () => {
+    const err = $('cn-err'); err.classList.remove('visible');
+    const need = (sel, input, what) => sel.value === NEW && !input.value.trim() ? what : '';
+    const missing = need($('cn-pack'), $('cn-pack-new'), 'a name for the pack') || need($('cn-subj'), $('cn-subj-new'), 'the subject') || need($('cn-topic'), $('cn-topic-new'), 'the topic');
+    if (missing) { err.textContent = `Add ${missing}.`; err.classList.add('visible'); return; }
+    const go = $('cn-go'); go.disabled = true; go.classList.add('loading');
+    try {
+      let pack;
+      if ($('cn-pack').value === NEW) {
+        const data = { name: $('cn-pack-new').value.trim(), description: '', ownerUid: currentAdminUid, visibility: 'private', createdAt: serverTimestamp() };
+        const ref = await addDoc(collection(db, 'content'), data);
+        logEvent('content.pack', { target: data.name, targetId: ref.id, detail: 'Created (class notes)' });
+        pack = { id: ref.id, data };
+      } else pack = { id: $('cn-pack').value, data: packs.find(p => p.id === $('cn-pack').value) };
+      let subject;
+      if ($('cn-subj').value === NEW) {
+        const data = { name: $('cn-subj-new').value.trim(), emoji: '📚', resources: [], examBoard: '', level: '', order: subs.length, createdAt: serverTimestamp() };
+        const ref = await addDoc(collection(db, `content/${pack.id}/subjects`), data);
+        logEvent('content.subject', { target: `${pack.data.name} › ${data.name}`, detail: 'Created (class notes)' });
+        subject = { id: ref.id, data };
+      } else subject = { id: $('cn-subj').value, data: subs.find(x => x.id === $('cn-subj').value) };
+      let topic;
+      if ($('cn-topic').value === NEW) {
+        const data = { name: $('cn-topic-new').value.trim(), keyPoints: [], videos: [], order: topics.length, createdAt: serverTimestamp() };
+        const ref = await addDoc(collection(db, `content/${pack.id}/subjects/${subject.id}/topics`), data);
+        logEvent('content.topic', { target: `${subject.data.name} › ${data.name}`, detail: 'Created (class notes)' });
+        topic = { id: ref.id, data };
+      } else topic = { id: $('cn-topic').value, data: topics.find(x => x.id === $('cn-topic').value) };
+      box.remove();
+      loadGroups();
+      goToTopic(pack, subject, topic);
+      openCreateWithAI();
+    } catch (e) {
+      go.disabled = false; go.classList.remove('loading');
+      err.textContent = 'Could not set that up: ' + e.message; err.classList.add('visible');
+    }
+  };
 }
 
 /* ── AI GENERATION ───────────────────────────────────────── */
@@ -4416,6 +4587,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111u"></script>
+<script src="site.js?v=20261112a"></script>
 </body>
 </html>

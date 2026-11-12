@@ -9,10 +9,10 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261111u';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose } from './ai.js?v=20261111u';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261111u';
-import { logEvent } from './log.js?v=20261111u';
+import { db } from './firebase-config.js?v=20261112a';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose } from './ai.js?v=20261112a';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261112a';
+import { logEvent } from './log.js?v=20261112a';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -130,13 +130,16 @@ async function ask(prompt, maxTokens, isItem) {
 const isQuestion = q => q && QUESTION_TYPES.some(t => t.id === q.type);
 
 /* ── The wizard ──────────────────────────────────────────── */
-// opts: { topic: {id, name}, topicPath, subject: {name, examBoard, level}, onDone }
-export async function openTopicWizard({ topic, topicPath, subject = {}, onDone = null }) {
+// opts: { topic: {id, name}, topicPath, subject: {name, examBoard, level}, onDone, start }
+// start: 'questions' opens straight at step 3, using the notes already saved
+// onDone({ notes, questions }) runs after each save, with what was saved
+export async function openTopicWizard({ topic, topicPath, subject = {}, onDone = null, start = '' }) {
   injectStyle();
   document.getElementById('tw')?.remove();
   const snap = await getDoc(doc(db, topicPath)).catch(() => null);
   const st = {
-    step: 1, source: null, text: '', note: '', kind: 'auto',
+    step: 1, source: 'upload', text: '', note: '', kind: 'auto', files: 0,
+    notesSaved: 0, questionsSaved: 0,
     current: asGroups(snap?.data()?.keyPoints || []),
     notes: [], merge: 'add', questions: [], busy: false,
     qty: 20, qtyChosen: false, types: QUESTION_TYPES.map(t => t.id),
@@ -149,14 +152,19 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
           <div><div class="tw-kicker">✨ Create with AI</div><h2 id="tw-title">${esc(topic.name)}</h2></div>
           <button class="tw-x" aria-label="Close">✕</button>
         </div>
-        <ol class="tw-steps"><li data-s="1">Content</li><li data-s="2">Notes</li><li data-s="3">Questions</li></ol>
+        <ol class="tw-steps"><li data-s="1">Your material</li><li data-s="2">Check the notes</li><li data-s="3">Quiz questions</li></ol>
         <div class="tw-body" id="tw-body"></div>
         <div class="tw-foot" id="tw-foot"></div>
       </div>
     </div>`);
   const box = document.getElementById('tw');
   const close = () => { box.remove(); };
-  box.querySelector('.tw-x').onclick = () => { if (!st.busy || confirm('Stop and close? Anything not saved yet will be lost.')) close(); };
+  // Leaving with notes saved but no questions: say where to make them later
+  const leave = () => {
+    close();
+    if (st.notesSaved && !st.questionsSaved) window.showToast?.('Notes saved. To make quiz questions later, open the topic and tap Make questions.', 'success');
+  };
+  box.querySelector('.tw-x').onclick = () => { if (!st.busy || confirm('Stop and close? Anything not saved yet will be lost.')) leave(); };
   const body = () => document.getElementById('tw-body');
   const foot = () => document.getElementById('tw-foot');
   const msg = (t, err = false) => { const m = document.getElementById('tw-msg'); if (m) { m.textContent = t; m.className = 'tw-msg' + (err ? ' err' : ''); } };
@@ -176,30 +184,47 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     ({ 1: step1, 2: step2, 3: step3 })[st.step]();
   }
 
-  /* Step 1: where's the content? */
+  /* Step 1: where's the content? A photo or file of class notes comes first */
   function step1() {
     const have = pointCount(st.current);
-    const choices = [
-      ['upload', '📄', 'Upload a file', 'A PDF, Word document or photo of notes'],
-      ['paste', '📋', 'Paste text', 'Copy in your own notes or a textbook passage'],
+    const others = [
+      ['paste', '📋', 'Paste text', 'Your own notes or a textbook passage'],
       ['ai', '✨', 'Let AI write them', 'Just from the topic name'],
-      ...(have ? [['existing', '🗒️', 'Use my current notes', `Skip to making questions from the ${notesWord(have)} already here`]] : []),
+      ...(have ? [['existing', '🗒️', 'Use my current notes', `Make questions from the ${notesWord(have)} already here`]] : []),
     ];
     body().innerHTML = `
-      <h3 class="tw-h">Where are the notes coming from?</h3>
-      <div class="tw-choices">${choices.map(([id, icon, t, d]) => `
+      <h3 class="tw-h">What should this topic be built from?</h3>
+      <button class="tw-choice tw-hero${st.source === 'upload' ? ' on' : ''}" data-src="upload">
+        <span class="tw-ic">📷</span>
+        <span><strong>A photo or file of class notes</strong>
+        <small>A worksheet, revision sheet, class notes or textbook page. Take a photo, or upload a PDF or Word file. We'll turn exactly that into notes and quiz questions.</small></span>
+      </button>
+      <div id="tw-src-upload"></div>
+      <p class="tw-or">Or</p>
+      <div class="tw-choices tw-choices-sm">${others.map(([id, icon, t, d]) => `
         <button class="tw-choice${st.source === id ? ' on' : ''}" data-src="${id}"><span class="tw-ic">${icon}</span><strong>${t}</strong><small>${d}</small></button>`).join('')}
       </div>
       <div id="tw-src"></div>
       <div class="tw-msg" id="tw-msg"></div>`;
-    body().querySelectorAll('[data-src]').forEach(b => b.onclick = () => { st.source = b.dataset.src; step1(); });
-    const src = document.getElementById('tw-src');
+    body().querySelectorAll('[data-src]').forEach(b => b.onclick = () => {
+      if (st.source === 'upload' || st.source === 'paste') st.text = (document.getElementById('tw-text')?.value || st.text);
+      st.source = b.dataset.src; step1();
+    });
+    const src = document.getElementById(st.source === 'upload' ? 'tw-src-upload' : 'tw-src');
     if (st.source === 'upload') {
       src.innerHTML = `
-        <label class="tw-file"><input type="file" id="tw-file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/png,image/jpeg,image/webp"><span>Choose a file</span></label>
-        <label class="tw-check"><input type="checkbox" id="tw-pics"> Also read pictures and diagrams (for scans, photos and diagrams; slower)</label>
-        <textarea id="tw-text" class="tw-text" placeholder="The words from your file appear here, so you can check them first." ${st.text ? '' : 'hidden'}>${esc(st.text)}</textarea>`;
-      document.getElementById('tw-file').onchange = e => readFile(e.target.files[0]);
+        <div class="tw-upload">
+          <div class="tw-up-btns">
+            <label class="tw-file"><input type="file" id="tw-photo" accept="image/*" capture="environment" multiple><span>📷 ${st.text ? 'Add another photo' : 'Take a photo'}</span></label>
+            <label class="tw-file tw-file-2"><input type="file" id="tw-file" multiple accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/png,image/jpeg,image/webp"><span>📄 ${st.text ? 'Add another file' : 'Choose a file'}</span></label>
+          </div>
+          <label class="tw-check"><input type="checkbox" id="tw-pics" ${st.pics ? 'checked' : ''}> It's a scan, or has diagrams or tables to read (slower; photos are always read this way)</label>
+          <p class="tw-hint tw-up-hint">${st.text ? 'More than one page? Add each photo or file in turn: they all go together.' : 'Several pages? Choose them all at once, or add them one at a time.'}</p>
+          <textarea id="tw-text" class="tw-text" placeholder="The words from your file appear here, so you can check them first." ${st.text ? '' : 'hidden'}>${esc(st.text)}</textarea>
+        </div>`;
+      document.getElementById('tw-pics').onchange = e => { st.pics = e.target.checked; };
+      document.getElementById('tw-file').onchange = e => readFiles([...e.target.files]);
+      document.getElementById('tw-photo').onchange = e => readFiles([...e.target.files]);
     } else if (st.source === 'paste') {
       src.innerHTML = `<textarea id="tw-text" class="tw-text" placeholder="Paste your notes, a textbook passage or anything else to learn…">${esc(st.text)}</textarea>`;
     } else if (st.source === 'ai') {
@@ -213,33 +238,47 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       src.querySelectorAll('[name="tw-kind"]').forEach(r => r.onchange = () => { st.kind = r.value; });
     }
     if (st.note) msg(st.note);
+    const ready = st.source && (st.source !== 'upload' || st.text);
     foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
-      <button class="btn btn-primary" data-go="next" ${st.source ? '' : 'disabled'}>${st.source === 'existing' ? 'Next: make questions' : 'Next: make notes'} →</button>`;
+      <button class="btn btn-primary" data-go="next" ${ready ? '' : 'disabled'}>${st.source === 'existing' ? 'Next: make quiz questions' : 'Next: make notes'} →</button>`;
     foot().querySelector('[data-go="close"]').onclick = close;
     foot().querySelector('[data-go="next"]').onclick = makeNotes;
   }
 
-  async function readFile(file) {
-    if (!file) return;
+  // One or more photos or files; each one's words are added to what's there
+  async function readFiles(files) {
+    files = (files || []).filter(Boolean);
+    if (!files.length) return;
+    st.text = (document.getElementById('tw-text')?.value || st.text || '').trim();
+    const notes = [];
+    let err = '';
+    for (let i = 0; i < files.length; i++) {
+      const r = await readFile(files[i], files.length > 1 ? ` (${i + 1} of ${files.length})` : '');
+      if (r.error) { err = r.error; break; }
+      st.text = [st.text, r.text].filter(Boolean).join('\n\n');
+      st.files++;
+      notes.push(r.note);
+    }
+    if (notes.length) st.note = (st.files > notes.length ? `${st.files} photos or files so far. ` : '') + notes.join(' ') + ' Check the words below, then continue.';
+    step1();
+    if (err) msg(err, true);
+  }
+
+  async function readFile(file, of = '') {
     const isImage = /^image\//.test(file.type);
     const pics = isImage || document.getElementById('tw-pics')?.checked;
-    busy(true, 'Reading your file…');
+    busy(true, `Reading ${isImage ? 'your photo' : 'your file'}${of}…`);
     try {
-      let r;
-      if (pics) r = await readDocumentWithAI(file, askClaude, setBusyText);
-      else {
-        try { r = await readDocument(file, setBusyText); }
-        catch (e) {
-          // A scan: read it with AI instead
-          if (!/scan/.test(e.message)) throw e;
-          setBusyText('This looks like a scan, so reading it with AI…');
-          r = await readDocumentWithAI(file, askClaude, setBusyText);
-        }
+      if (pics) return await readDocumentWithAI(file, askClaude, setBusyText);
+      try { return await readDocument(file, setBusyText); }
+      catch (e) {
+        // A scan: read it with AI instead
+        if (!/scan/.test(e.message)) throw e;
+        setBusyText('This looks like a scan, so reading it with AI…');
+        return await readDocumentWithAI(file, askClaude, setBusyText);
       }
-      st.text = r.text; st.note = r.note + ' Check it below, then continue.';
-    } catch (e) { st.note = ''; busy(false); msg(e.message, true); return; }
-    busy(false);
-    step1();
+    } catch (e) { return { error: `${file.name}: ${e.message}` }; }
+    finally { busy(false); }
   }
 
   async function makeNotes() {
@@ -251,7 +290,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       prompt = notesPromptResearch(st.aiTopic);
     } else {
       st.text = (document.getElementById('tw-text')?.value || '').trim();
-      if (st.text.length < 40) { msg(st.source === 'upload' ? 'Choose a file first.' : 'Paste some notes first.', true); return; }
+      if (st.text.length < 40) { msg(st.source === 'upload' ? 'Take a photo or choose a file first.' : 'Paste some notes first.', true); return; }
       prompt = notesPromptFromText(st.text, st.kind, st.aiTopic);
     }
     busy(true, 'Writing the notes… (up to a minute)');
@@ -269,7 +308,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     const have = pointCount(st.current);
     body().innerHTML = `
       <h3 class="tw-h">Check the notes</h3>
-      <p class="tw-hint">${notesWord(pointCount(st.notes))} in ${st.notes.length} section${st.notes.length === 1 ? '' : 's'}. Change anything that isn't right, or remove what you don't need. They're saved when you continue.</p>
+      <p class="tw-hint">${notesWord(pointCount(st.notes))} in ${st.notes.length} section${st.notes.length === 1 ? '' : 's'}. Change anything that isn't right, or remove what you don't need. Next, these notes are turned into quiz questions.</p>
       ${have ? `<div class="tw-merge">
         <label><input type="radio" name="tw-merge" value="add" ${st.merge === 'add' ? 'checked' : ''}> Add these to the ${notesWord(have)} already here</label>
         <label><input type="radio" name="tw-merge" value="replace" ${st.merge === 'replace' ? 'checked' : ''}> Replace the notes already here</label></div>` : ''}
@@ -286,9 +325,8 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       if (t.dataset.del === 'group') t.closest('.tw-grp').remove();
     };
     foot().innerHTML = `<button class="btn btn-secondary" data-go="back">← Back</button>
-      <span class="tw-spacer"></span>
-      <button class="btn btn-secondary" data-go="finish">Save notes and finish</button>
-      <button class="btn btn-primary" data-go="next">Save notes, make questions →</button>`;
+      <button class="tw-link" data-go="finish">Save notes only, for now</button>
+      <button class="btn btn-primary" data-go="next">Next: make quiz questions →</button>`;
     foot().querySelector('[data-go="back"]').onclick = () => { st.notes = readNotes(); st.step = 1; render(); };
     foot().querySelector('[data-go="finish"]').onclick = () => saveNotes(true);
     foot().querySelector('[data-go="next"]').onclick = () => saveNotes(false);
@@ -310,11 +348,11 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     try {
       await updateDoc(doc(db, topicPath), { keyPoints });
       logEvent('content.keypoints', { target: `${subject.name || ''} › ${topic.name}`, detail: `Create with AI: ${pointCount(fresh)} notes ${st.merge === 'replace' ? 'replaced' : 'added'}` });
-      st.current = keyPoints; st.notes = fresh;
+      st.current = keyPoints; st.notes = fresh; st.notesSaved += pointCount(fresh);
     } catch (e) { busy(false); msg('Could not save: ' + e.message, true); return; }
     busy(false);
-    onDone && onDone();
-    if (finish) { close(); window.showToast?.(`${pointCount(fresh)} notes saved`, 'success'); return; }
+    onDone && onDone({ notes: st.notesSaved, questions: st.questionsSaved });
+    if (finish) { leave(); return; }
     st.step = 3; st.questions = []; render();
   }
 
@@ -325,8 +363,8 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     const suggested = Math.max(10, Math.min(MAX_QUESTIONS, Math.round(n * 1.5 / 5) * 5));
     if (!st.qtyChosen) st.qty = suggested;
     body().innerHTML = `
-      <h3 class="tw-h">Make questions</h3>
-      <p class="tw-hint">Made from the ${notesWord(n)} for this topic. You'll see them before anything is saved.</p>
+      <h3 class="tw-h">Make quiz questions</h3>
+      <p class="tw-hint">${st.notesSaved ? `Notes saved ✓. ` : ''}Questions are what students answer in quizzes and reviews. They're made from the ${notesWord(n)} for this topic, and you'll see them before anything is saved.</p>
       <div class="tw-row"><span class="tw-label-s">How many?</span>
         ${[10, 20, 40, 60, 80, 100].map(q => `<button class="tw-chip${st.qty === q ? ' on' : ''}" data-qty="${q}">${q}</button>`).join('')}
         <input type="number" class="tw-num" id="tw-qty" min="3" max="${MAX_QUESTIONS}" value="${st.qty}" aria-label="Number of questions"></div>
@@ -336,7 +374,11 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       <div id="tw-qs">${st.genNote ? `<p class="tw-gen-note">${esc(st.genNote)}</p>` : ''}${st.questions.length ? questionsHtml() : ''}</div>
       <div class="tw-msg" id="tw-msg"></div>`;
     body().querySelectorAll('[data-qty]').forEach(b => b.onclick = () => { st.qty = +b.dataset.qty; st.qtyChosen = true; step3(); });
-    document.getElementById('tw-qty').oninput = e => { st.qty = Math.max(3, Math.min(MAX_QUESTIONS, +e.target.value || 20)); st.qtyChosen = true; body().querySelectorAll('[data-qty]').forEach(b => b.classList.toggle('on', +b.dataset.qty === st.qty)); };
+    document.getElementById('tw-qty').oninput = e => {
+      st.qty = Math.max(3, Math.min(MAX_QUESTIONS, +e.target.value || 20)); st.qtyChosen = true;
+      body().querySelectorAll('[data-qty]').forEach(b => b.classList.toggle('on', +b.dataset.qty === st.qty));
+      const g = foot().querySelector('[data-go="gen"].btn-primary'); if (g) g.textContent = `✨ Make ${st.qty} questions`;
+    };
     body().querySelectorAll('.tw-types input').forEach(c => c.onchange = () => {
       st.types = [...body().querySelectorAll('.tw-types input:checked')].map(i => i.value);
       c.closest('label').classList.toggle('on', c.checked);
@@ -349,13 +391,13 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     foot().innerHTML = `<button class="btn btn-secondary" data-go="back">← Notes</button>
       <span class="tw-spacer"></span>
       ${has ? `<button class="btn btn-secondary" data-go="gen">Make them again</button><button class="btn btn-primary" data-go="save">Save ${has} questions</button>`
-            : `<button class="btn btn-secondary" data-go="skip">Finish without questions</button><button class="btn btn-primary" data-go="gen">✨ Make questions</button>`}`;
+            : `<button class="tw-link" data-go="skip">Not now</button><button class="btn btn-primary" data-go="gen">✨ Make ${st.qty} questions</button>`}`;
     foot().querySelector('[data-go="back"]').onclick = () => {
       st.notes = st.notes.length ? st.notes : st.current; st.step = 2; render();
     };
     foot().querySelector('[data-go="gen"]').onclick = makeQuestions;
     foot().querySelector('[data-go="save"]')?.addEventListener('click', saveQuestions);
-    foot().querySelector('[data-go="skip"]')?.addEventListener('click', close);
+    foot().querySelector('[data-go="skip"]')?.addEventListener('click', leave);
   }
   const updateSave = () => { const b = foot().querySelector('[data-go="save"]'); if (b) { b.textContent = `Save ${st.questions.length} questions`; b.disabled = !st.questions.length; } };
   function questionsHtml() {
@@ -418,11 +460,13 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     } catch (e) { busy(false); msg('Could not save: ' + e.message, true); return; }
     busy(false);
     const n = st.questions.length;
+    st.questionsSaved += n;
     close();
     window.showToast?.(`${n} questions saved`, 'success');
-    onDone && onDone();
+    onDone && onDone({ notes: st.notesSaved, questions: st.questionsSaved });
   }
 
+  if (start === 'questions' && pointCount(st.current)) st.step = 3;
   render();
 }
 
@@ -450,6 +494,20 @@ function injectStyle() {
   .tw-choice strong { font-family: var(--font-ui); font-size: 0.95rem; }
   .tw-choice small { color: var(--color-text-muted); font-size: 0.8rem; line-height: 1.35; }
   .tw-ic { font-size: 1.4rem; }
+  .tw-hero { flex-direction: row; align-items: flex-start; gap: 14px; width: 100%; padding: 16px 18px; margin-bottom: 10px; }
+  .tw-hero .tw-ic { font-size: 2rem; line-height: 1; }
+  .tw-hero strong { display: block; font-size: 1.05rem; margin-bottom: 3px; }
+  .tw-hero small { display: block; font-size: 0.85rem; }
+  .tw-upload { border: 1px solid var(--color-border); border-radius: 14px; padding: 14px; margin: -2px 0 6px; }
+  .tw-up-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tw-file-2 span { background: var(--color-surface); color: var(--color-primary); border: 2px solid var(--color-primary); }
+  .tw-up-hint { margin: 2px 0 8px; }
+  .tw-or { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin: 14px 0 8px; }
+  .tw-choices-sm .tw-choice { padding: 10px 12px; }
+  .tw-choices-sm .tw-ic { font-size: 1.1rem; }
+  .tw-link { background: none; border: 0; padding: 8px 6px; font: inherit; font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted); text-decoration: underline; cursor: pointer; }
+  .tw-link:hover { color: var(--color-primary); }
+  .tw-link:disabled { opacity: 0.5; cursor: default; }
   .tw-text { width: 100%; min-height: 180px; padding: 12px; border-radius: 12px; font-size: 0.9rem; line-height: 1.5; resize: vertical; }
   .tw-label { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; }
   .tw-input { padding: 11px 12px; border-radius: 10px; font-size: 0.95rem; }

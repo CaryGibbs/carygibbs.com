@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111u">
-  <script src="icons.js?v=20261111u"></script>
-  <link rel="stylesheet" href="stats.css?v=20261111u">
+  <link rel="stylesheet" href="theme.css?v=20261112a">
+  <script src="icons.js?v=20261112a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261112a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -182,7 +182,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111u">
+  <link rel="stylesheet" href="ui.css?v=20261112a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -195,6 +195,7 @@
   <div class="content-area page-fade">
   <!-- ── HOME ──────────────────────────────────────────── -->
   <section id="parent-home">
+    <div id="first-steps"></div>
     <div class="home-hello">
       <div>
         <div class="home-date" id="home-date"></div>
@@ -235,6 +236,7 @@
         <button class="btn btn-primary" onclick="openAddModal()"><i data-icon="plus"></i> Add student</button>
       </div>
     </div>
+    <div id="first-steps-mini"></div>
     <h2 class="family-heading">My Family</h2>
     <div class="children-count" id="children-count">Loading…</div>
     <div id="pending-links"></div>
@@ -430,23 +432,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261111u';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole } from './auth.js?v=20261111u';
-import { syncMyChildPlus } from './family-plus.js?v=20261111u';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111u';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261111u';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111u';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261111u';
-import { logEvent } from './log.js?v=20261111u';
-import { openInviteDialog } from './invite.js?v=20261111u';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261111u';
-import { dueEntries, scheduledCount } from './srs.js?v=20261111u';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261111u';
-import { openPlanCalendar } from './plan-view.js?v=20261111u';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261111u';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111u';
-import { openDeleteAccount } from './account.js?v=20261111u';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261111u';
+import { auth, db } from './firebase-config.js?v=20261112a';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus } from './auth.js?v=20261112a';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS } from './first-steps.js?v=20261112a';
+import { showPlusUpsell } from './plus.js?v=20261112a';
+import { syncMyChildPlus } from './family-plus.js?v=20261112a';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261112a';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261112a';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261112a';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261112a';
+import { logEvent } from './log.js?v=20261112a';
+import { openInviteDialog } from './invite.js?v=20261112a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112a';
+import { dueEntries, scheduledCount } from './srs.js?v=20261112a';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261112a';
+import { openPlanCalendar } from './plan-view.js?v=20261112a';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261112a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112a';
+import { openDeleteAccount } from './account.js?v=20261112a';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261112a';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -459,7 +463,7 @@ let shellUser = null, shellProfile = null; // for keeping the sidebar's child li
 let selectedTheme = 'edge';
 
 /* ── Theme pickers ───────────────────────────────────────── */
-document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}.form-hint{font-size:.76rem;color:var(--color-text-muted);margin-top:6px;}</style>`);
+document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}${FIRST_STEPS_CSS}.form-hint{font-size:.76rem;color:var(--color-text-muted);margin-top:6px;}</style>`);
 function renderThemeGrid(containerId, current, onPick) {
   const grid = document.getElementById(containerId);
   grid.innerHTML = THEMES.map(t => themeSwatchHtml(t, t.id === current)).join('');
@@ -488,8 +492,14 @@ requireAuth((user, profile) => {
   shellUser = user; shellProfile = profile;
   homeName = (profile.name || '').split(' ')[0] || '';
   showSection();
+  // "Getting started" (sidebar or Help) brings the checklist back
+  if (askedToShow()) {
+    if (firstStepsState(profile).hidden) saveFirstSteps(user.uid, profile, { hidden: false });
+    try { history.replaceState(null, '', 'parent.html#home'); } catch (e) {}
+    if (location.hash !== '#home') { location.hash = 'home'; }
+  }
   // Groups first, so child cards show group names rather than ids
-  loadGroups().finally(() => { loadChildren(); loadPendingLinks(); });
+  loadGroups().finally(() => { loadChildren(); loadPendingLinks(); loadOwnStats(); });
 });
 
 window._doSignOut = () => handleSignOut();
@@ -507,6 +517,103 @@ window._openInvite = (fromManage) => {
 /* ── Load available groups ───────────────────────────────── */
 async function loadGroups() {
   allGroups = await listPacks(parentUid).catch(() => []);
+}
+// Questions and notes per topic in my own packs (for the checklist and warnings)
+let ownStats = null;
+async function loadOwnStats() {
+  ownStats = await ownPackStats(allGroups.filter(g => g.mine)).catch(() => ({}));
+  renderHome();
+}
+
+/* ── Getting started (first-steps.js) ────────────────────── */
+// The builder (My packs) with something to do when it opens
+window.goPack = (packId, start) => {
+  if (start === 'classnotes' && !hasPlus(shellProfile)) { showPlusUpsell('Turning class notes into revision'); return; }
+  const q = new URLSearchParams({ mine: 'parent' });
+  if (packId) q.set('pack', packId);
+  if (start) q.set('start', start);
+  location.href = 'admin.html?' + q.toString();
+};
+// Manage student, scrolled to the packs or the exam dates
+window.openManageAt = (uid, where) => {
+  window._openManageModal(uid);
+  setTimeout(() => {
+    if (where === 'exams') { document.getElementById('btn-add-exam')?.click(); document.getElementById('manage-exams')?.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    if (where === 'packs') document.getElementById('manage-group-list')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 80);
+};
+const packsOf = k => k.groupIds || (k.groupId ? [k.groupId] : []);
+// A pack the child can actually revise from: a Lobe Limpet pack, another
+// parent's pack, or my own once it has questions
+function usablePack(id) {
+  const g = allGroups.find(x => x.id === id);
+  if (!g || !g.mine) return true;
+  return !ownStats || (ownStats[id]?.questions || 0) > 0;
+}
+function parentSteps(kids) {
+  const own = allGroups.filter(g => g.mine);
+  const st = ownStats || {};
+  const fs = firstStepsState(shellProfile || {});
+  const first = kids[0];
+  const firstName = first ? esc(first.first) : 'your child';
+  const needing = kids.find(k => !packsOf(k).some(usablePack)) || first;
+  const notesOnly = own.flatMap(p => (st[p.id]?.notesOnly || []).map(t => ({ ...t, packId: p.id })));
+  const ownWithQ = own.filter(p => st[p.id]?.questions);
+  const plus = hasPlus(shellProfile || {});
+  const anyPack = own.length || kids.some(k => packsOf(k).length);
+  return [
+    { id: 'child', title: 'Add your child',
+      text: "Create their account (they'll get an email to choose a password), or link to an account they already have.",
+      done: kids.length > 0, doneText: kids.map(k => esc(k.first)).join(', ') + ' added.',
+      actions: [{ label: '＋ Add your child', primary: true, act: () => openAddModal() }] },
+    { id: 'pack', title: "Choose what they'll revise",
+      text: "Make your own pack for their subjects, or pick a ready-made Lobe Limpet pack for their exam board.",
+      done: !!anyPack, doneText: own.length ? `Your pack${own.length === 1 ? '' : 's'}: ${own.map(p => '“' + esc(p.name) + '”').join(', ')}.` : 'Lobe Limpet pack chosen.',
+      actions: [{ label: 'Make a pack', primary: true, act: () => goPack('', 'newpack') },
+        ...(first ? [{ label: 'Pick a Lobe Limpet pack', act: () => openManageAt(needing.uid, 'packs') }] : [])] },
+    { id: 'notes', title: 'Add revision from their class notes', plus: !plus,
+      text: notesOnly.length
+        ? `${notesOnly.length} topic${notesOnly.length === 1 ? ' has' : 's have'} notes but no quiz questions yet (${notesOnly.slice(0, 3).map(t => esc(t.name)).join(', ')}${notesOnly.length > 3 ? '…' : ''}). Make the questions, or add more class notes.`
+        : "Got a revision sheet, worksheet or class notes from school? Take a photo or upload it, and we'll turn exactly that into notes and quiz questions.",
+      done: ownWithQ.length > 0 || fs.skipped.includes('notes'),
+      doneText: ownWithQ.length ? `${ownWithQ.reduce((a, p) => a + st[p.id].questions, 0)} questions in your own pack${ownWithQ.length === 1 ? '' : 's'}.` : 'Skipped: using a ready-made pack.',
+      actions: [
+        ...(notesOnly.length ? [{ label: '✨ Make questions', primary: true, act: () => goPack(notesOnly[0].packId, 'questions') }] : []),
+        { label: '📷 Add class notes', primary: !notesOnly.length, act: () => goPack(own[0]?.id || '', 'classnotes') }],
+      skip: "Skip: we're using a ready-made pack" },
+    { id: 'give', title: 'Give the pack to your child',
+      // They have my pack already, it just has no questions yet: step 3 is the fix
+      text: needing && packsOf(needing).length
+        ? `${esc(needing.first)} has ${packsOf(needing).length === 1 ? 'your pack' : 'your packs'}, but there are no quiz questions in ${packsOf(needing).length === 1 ? 'it' : 'them'} yet. Make questions (step 3) and this ticks itself off.`
+        : `Tick the pack in Manage, so it's there when ${firstName} signs in.`,
+      done: kids.length > 0 && kids.every(k => packsOf(k).some(usablePack)),
+      doneText: kids.length === 1 ? `${firstName} has a pack to revise from.` : 'Everyone has a pack to revise from.',
+      actions: first ? [{ label: `Choose packs for ${esc(needing.first)}`, primary: !packsOf(needing).length, act: () => openManageAt(needing.uid, 'packs') }] : [] },
+    { id: 'exams', title: 'Set an exam date', optional: true,
+      text: 'Add their exam or test dates, and the daily goal steps up as the exams get closer.',
+      done: kids.some(k => (k.plan?.exams || []).length), doneText: 'Exam dates set.',
+      actions: first ? [{ label: 'Add exam dates', act: () => openManageAt(first.uid, 'exams') }] : [] },
+  ];
+}
+function renderFirstSteps(kids) {
+  const big = document.getElementById('first-steps');
+  const mini = document.getElementById('first-steps-mini');
+  if (!big || !shellProfile) return;
+  const fs = firstStepsState(shellProfile);
+  if (fs.hidden) { big.innerHTML = ''; mini.innerHTML = ''; return; }
+  const steps = parentSteps(kids);
+  const allDone = steps.filter(s => !s.optional).every(s => s.done);
+  if (allDone && !fs.doneAt && ownStats) { saveFirstSteps(parentUid, shellProfile, { doneAt: Date.now() }); logEvent('account.getting_started', { detail: 'Parent' }); }
+  const handlers = {
+    hide: async () => { await saveFirstSteps(parentUid, shellProfile, { hidden: true }); renderHome(); if (!allDone) showToast('Hidden. Find it again under Getting started in the menu.', 'info'); },
+    skip: async id => { await saveFirstSteps(parentUid, shellProfile, { skipped: [...new Set([...fs.skipped, id])] }); renderHome(); },
+    open: () => { location.hash = 'home'; },
+  };
+  big.innerHTML = firstStepsHtml({ title: 'Set up revision for your child',
+    lead: "Got a revision sheet or class notes? Take a photo and we'll turn it into notes and quiz questions. Here's how to get going:", steps });
+  wireFirstSteps(big, steps, handlers);
+  mini.innerHTML = allDone ? '' : firstStepsHtml({ steps, compact: true });
+  wireFirstSteps(mini, steps, handlers);
 }
 // Names for packs on my students that aren't in my list
 async function loadOtherPackNames() {
@@ -605,6 +712,7 @@ function renderHome() {
   const att = document.getElementById('home-attention');
   const act = document.getElementById('home-activity');
   const wk = document.getElementById('home-students');
+  renderFirstSteps(kids);
   const waitingHtml = pendingLinks.filter(l => l.status === 'pending' && !childrenData[l.studentUid])
     .map(l => `<div class="att-item"><span class="att-emoji">⏳</span><div class="att-text">Waiting for ${esc(l.studentName || l.studentEmail)} to accept your link request<small>They'll see it next time they open Lobe Limpet.</small></div></div>`).join('');
   if (!kids.length) {
@@ -638,7 +746,7 @@ function renderHome() {
   figs.forEach(({ k, w, st, due }) => {
     const daysOff = w.last ? Math.round((startOfDay() - startOfDay(w.last)) / DAY) : null;
     const packs = (k.groupIds || []).length + Object.values(k.classPacks || {}).reduce((a, l) => a + (l || []).length, 0);
-    if (!packs) items.push({ p: 0, emoji: '📦', text: `${esc(k.first)} has no revision pack yet`, sub: 'Choose one so they can start revising.', act: btn('Choose pack', `openManageModal('${k.uid}')`, true) });
+    if (!packs) items.push({ p: 0, emoji: '📦', text: `${esc(k.first)} has no revision pack yet`, sub: 'Choose one so they can start revising.', act: btn('Choose pack', `openManageAt('${k.uid}','packs')`, true) });
     if (daysOff === null) items.push({ p: 1, emoji: '👋', text: `${esc(k.first)} hasn't started yet`, sub: 'A quick message can help them get going.', act: btn('Message', `openNotifyModal('${k.uid}')`) });
     else if (daysOff >= 2) items.push({ p: 1, emoji: '💤', text: `${esc(k.first)} hasn't revised since ${agoText(w.last)}`, sub: st.best ? `Best streak ${st.best} day${st.best === 1 ? '' : 's'}.` : '', act: btn('Message', `openNotifyModal('${k.uid}')`) });
     const behind = behindPlan(k);
@@ -658,6 +766,19 @@ function renderHome() {
     const weak = Object.entries(bySub).filter(([, l]) => l.length >= 2).map(([n, l]) => [n, Math.round(l.reduce((a, b) => a + b, 0) / l.length)]).sort((a, b) => a[1] - b[1])[0];
     if (weak && weak[1] < 50) items.push({ p: 4, emoji: '📉', text: `${esc(k.first)} is finding ${esc(weak[0])} tricky`, sub: `Average ${weak[1]}% over the last month.`, act: btn('Progress', `openProgressModal('${k.uid}')`) });
     if (st.current >= 3 && st.current >= st.best) items.push({ p: 5, emoji: '🏆', text: `${esc(k.first)} is on a ${st.current}-day personal best`, sub: 'Worth a well done!', act: btn('Message', `openNotifyModal('${k.uid}')`) });
+  });
+  // My own packs given to my students with no questions, or topics with notes only
+  if (ownStats) allGroups.filter(g => g.mine && ownStats[g.id]).forEach(g => {
+    const st = ownStats[g.id];
+    const who = kids.filter(k => packsOf(k).includes(g.id)).map(k => esc(k.first));
+    if (!who.length) return;
+    const names = who.length > 2 ? `${who.slice(0, -1).join(', ')} and ${who[who.length - 1]}` : who.join(' and ');
+    if (!st.questions) items.push({ p: 0.2, emoji: '📭', text: `${names} ${who.length === 1 ? 'has' : 'have'} a pack with no questions yet: “${esc(g.name)}”`,
+      sub: st.notesOnly.length ? `${st.notesOnly.length} topic${st.notesOnly.length === 1 ? ' has' : 's have'} notes ready. Make quiz questions from them so there's something to revise.` : 'Add revision to it (a photo of class notes works) so there\'s something to revise.',
+      act: btn(st.notesOnly.length ? 'Make questions' : 'Add revision', `goPack('${g.id}','${st.notesOnly.length ? 'questions' : 'classnotes'}')`, true) });
+    else if (st.notesOnly.length) items.push({ p: 1.5, emoji: '📝', text: `${st.notesOnly.length} topic${st.notesOnly.length === 1 ? '' : 's'} in “${esc(g.name)}” ${st.notesOnly.length === 1 ? 'has' : 'have'} notes but no questions`,
+      sub: `${st.notesOnly.slice(0, 3).map(t => esc(t.name)).join(', ')}${st.notesOnly.length > 3 ? ` and ${st.notesOnly.length - 3} more` : ''}. ${names} can read them in Learn, but can't quiz on them yet.`,
+      act: btn('Make questions', `goPack('${g.id}','questions')`) });
   });
   items.sort((a, b) => a.p - b.p);
   att.innerHTML = waitingHtml + (items.length
@@ -691,7 +812,7 @@ function renderHome() {
       <div class="wk-stat"><b>${w.quizzes}${w.avg !== null ? ` <small style="font-size:0.75rem;color:var(--color-text-muted)">· ${w.avg}%</small>` : ''}</b><span>quizzes</span></div>
       <div class="wk-stat"><b>${st.current} 🔥</b><span>${streakSub}</span></div>
       <div class="wk-stat"><b>${due}</b><span>reviews due</span></div>
-      <div class="wk-actions">${btn('Plan', `openPlanFor('${k.uid}')`)}${btn('Progress', `openProgressModal('${k.uid}')`)}${btn('View as', `viewAs('${k.uid}')`)}</div>
+      <div class="wk-actions">${packsOf(k).length ? btn('Manage', `openManageModal('${k.uid}')`) : btn('Choose packs', `openManageAt('${k.uid}','packs')`, true)}${btn('Plan', `openPlanFor('${k.uid}')`)}${btn('Progress', `openProgressModal('${k.uid}')`)}${btn('View as', `viewAs('${k.uid}')`)}</div>
     </div>`;
   }).join('');
 }
@@ -1361,6 +1482,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261111u"></script>
+<script src="site.js?v=20261112a"></script>
 </body>
 </html>

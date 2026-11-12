@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261111u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261111u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261111u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261111u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261111u">
-  <script src="icons.js?v=20261111u"></script>
+  <link rel="stylesheet" href="theme.css?v=20261112a">
+  <script src="icons.js?v=20261112a"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -288,7 +288,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261111u">
+  <link rel="stylesheet" href="ui.css?v=20261112a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -488,21 +488,23 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261111u';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent } from './auth.js?v=20261111u';
-  import { mountShell } from './shell.js?v=20261111u';
-  import { byOrder } from './order.js?v=20261111u';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261111u';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261111u';
-  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261111u';
-  import { logEvent } from './log.js?v=20261111u';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261111u';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261111u';
-  import { app as firebaseApp } from './firebase-config.js?v=20261111u';
+  import { auth, db } from './firebase-config.js?v=20261112a';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus } from './auth.js?v=20261112a';
+  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS } from './first-steps.js?v=20261112a';
+  import { showPlusUpsell } from './plus.js?v=20261112a';
+  import { mountShell } from './shell.js?v=20261112a';
+  import { byOrder } from './order.js?v=20261112a';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261112a';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112a';
+  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261112a';
+  import { logEvent } from './log.js?v=20261112a';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261112a';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261112a';
+  import { app as firebaseApp } from './firebase-config.js?v=20261112a';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261111u';
+  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261112a';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -528,7 +530,7 @@
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
   // Theme picker for new students (same swatches as the parent dashboard)
-  document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
+  document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}${FIRST_STEPS_CSS}</style>`);
   function renderStudentThemes() {
     const grid = document.getElementById('st-theme-grid');
     if (!grid) return;
@@ -552,8 +554,81 @@
     mountShell(user, profile, { view: 'teacher', active: currentSection() === 'classes' ? 'classes' : 'home' });
     showSection();
     if (profile.school) document.getElementById('school-name').textContent = profile.school;
-    loadPacks().then(loadClasses);
+    if (askedToShow()) {
+      if (firstStepsState(profile).hidden) saveFirstSteps(user.uid, profile, { hidden: false });
+      try { history.replaceState(null, '', 'teacher-dashboard.html#home'); } catch (e) {}
+      showSection();
+    }
+    loadPacks().then(() => { loadClasses(); loadOwnStats(); });
   });
+
+  // ── Getting started (first-steps.js) ──────────────────────
+  let ownStats = null;
+  async function loadOwnStats() {
+    ownStats = await ownPackStats(Object.values(packs).filter(p => p.mine)).catch(() => ({}));
+    renderTeacherHome();
+  }
+  window.goPack = (packId, start) => {
+    if (start === 'classnotes' && !hasPlus(teacherProfile)) { showPlusUpsell('Turning your notes into revision'); return; }
+    const q = new URLSearchParams({ mine: 'teacher' });
+    if (packId) q.set('pack', packId);
+    if (start) q.set('start', start);
+    location.href = 'admin.html?' + q.toString();
+  };
+  const usablePack = id => !packs[id] ? false : !packs[id].mine || !ownStats || (ownStats[id]?.questions || 0) > 0;
+  function teacherSteps(classIds) {
+    const own = Object.values(packs).filter(p => p.mine);
+    const st = ownStats || {};
+    const fs = firstStepsState(teacherProfile || {});
+    const first = classIds[0];
+    const needing = classIds.find(cid => !(classesData[cid].packIds || []).some(usablePack)) || first;
+    const notesOnly = own.flatMap(p => (st[p.id]?.notesOnly || []).map(t => ({ ...t, packId: p.id })));
+    const ownWithQ = own.filter(p => st[p.id]?.questions);
+    const anyPack = own.length || classIds.some(cid => (classesData[cid].packIds || []).length);
+    const name = cid => esc(classesData[cid]?.name || 'your class');
+    const noKids = classIds.find(cid => !(classRoster[cid] || []).length);
+    return [
+      { id: 'class', title: 'Create a class', text: 'Each class gets a join code for students to sign up with.',
+        done: classIds.length > 0, doneText: classIds.map(name).join(', ') + '.',
+        actions: [{ label: '＋ Create class', primary: true, act: () => openCreateClass() }] },
+      { id: 'pack', title: "Choose what they'll revise", text: 'Make your own pack, or pick a ready-made Lobe Limpet pack for their exam board.',
+        done: !!anyPack, doneText: own.length ? `Your pack${own.length === 1 ? '' : 's'}: ${own.map(p => '“' + esc(p.name) + '”').join(', ')}.` : 'Lobe Limpet pack chosen.',
+        actions: [{ label: 'Make a pack', primary: true, act: () => goPack('', 'newpack') },
+          ...(first ? [{ label: 'Pick a Lobe Limpet pack', act: () => openPacks(needing) }] : [])] },
+      { id: 'notes', title: 'Add revision from your own material', plus: !hasPlus(teacherProfile || {}),
+        text: notesOnly.length
+          ? `${notesOnly.length} topic${notesOnly.length === 1 ? ' has' : 's have'} notes but no quiz questions yet. Make the questions, or add more material.`
+          : "A worksheet, slides saved as PDF, a scheme of work or a specification: upload it or take a photo, and we'll turn it into notes and quiz questions.",
+        done: ownWithQ.length > 0 || fs.skipped.includes('notes'),
+        doneText: ownWithQ.length ? `${ownWithQ.reduce((a, p) => a + st[p.id].questions, 0)} questions in your own pack${ownWithQ.length === 1 ? '' : 's'}.` : 'Skipped: using a ready-made pack.',
+        actions: [...(notesOnly.length ? [{ label: '✨ Make questions', primary: true, act: () => goPack(notesOnly[0].packId, 'questions') }] : []),
+          { label: '📷 Add your material', primary: !notesOnly.length, act: () => goPack(own[0]?.id || '', 'classnotes') }],
+        skip: "Skip: we're using a ready-made pack" },
+      { id: 'give', title: 'Give the pack to your class', text: 'Choose it under Revision packs, so students see it when they sign in.',
+        done: classIds.length > 0 && classIds.every(cid => (classesData[cid].packIds || []).some(usablePack)),
+        doneText: 'Every class has a pack to revise from.',
+        actions: first ? [{ label: `Choose packs for ${name(needing)}`, primary: true, act: () => openPacks(needing) }] : [] },
+      { id: 'join', title: 'Share the join code', text: 'Students sign up with the code (or you can add them yourself), then their progress shows here.',
+        done: classIds.length > 0 && !noKids, doneText: 'Students have joined.',
+        actions: first ? [{ label: `Join code for ${name(noKids || first)}`, primary: true, act: () => openStudentsModal(noKids || first) }] : [] },
+    ];
+  }
+  function mountTeacherSteps(box) {
+    if (!teacherProfile) return;
+    const fs = firstStepsState(teacherProfile);
+    if (fs.hidden) return;
+    const classIds = Object.keys(classesData);
+    const steps = teacherSteps(classIds);
+    const allDone = steps.every(x => x.done);
+    if (allDone && !fs.doneAt && ownStats) { saveFirstSteps(teacherUid, teacherProfile, { doneAt: Date.now() }); logEvent('account.getting_started', { detail: 'Teacher' }); }
+    box.insertAdjacentHTML('afterbegin', `<div id="first-steps">${firstStepsHtml({ title: 'Set up revision for your classes',
+      lead: 'Retrieval practice for your classes, from your own material or a ready-made pack. Here\'s how to get going:',
+      doneLead: 'Your students can start revising. Class progress will show here as they go.', steps })}</div>`);
+    wireFirstSteps(document.getElementById('first-steps'), steps, {
+      hide: async () => { await saveFirstSteps(teacherUid, teacherProfile, { hidden: true }); renderTeacherHome(); if (!allDone) showToast('Hidden. Find it again under Getting started in the menu.', 'info'); },
+      skip: async id => { await saveFirstSteps(teacherUid, teacherProfile, { skipped: [...new Set([...fs.skipped, id])] }); renderTeacherHome(); },
+    });
+  }
 
   // Official packs plus the teacher's own (made in My packs)
   async function loadPacks() {
@@ -601,6 +676,7 @@
     if (!classIds.length) {
       box.innerHTML = helloHtml({ name: first, sub: 'Create your first class to get started.', actions })
         + attentionHtml([{ emoji: '🏫', text: 'No classes yet', sub: 'Create a class, choose its revision packs and share the join code.', action: smallBtn('Create class', 'openCreateClass()', true) }]);
+      mountTeacherSteps(box);
       return;
     }
     const weekFrom = startOfDay() - 6 * DAY;
@@ -621,6 +697,8 @@
       const roster = classRoster[cid] || [];
       const name = esc(cls.name || 'Class');
       const clsPacks = (cls.packIds || []).filter(p => packs[p]);
+      const emptyOwn = clsPacks.filter(p => packs[p].mine && ownStats && !(ownStats[p]?.questions));
+      emptyOwn.forEach(p => items.push({ p: 0.2, emoji: '📭', text: `${name} has a pack with no questions yet: “${esc(packs[p].name)}”`, sub: ownStats[p]?.notesOnly?.length ? 'Some topics have notes ready: make quiz questions from them.' : 'Add revision to it so there\'s something to quiz.', action: smallBtn(ownStats[p]?.notesOnly?.length ? 'Make questions' : 'Add revision', `goPack('${p}','${ownStats[p]?.notesOnly?.length ? 'questions' : 'classnotes'}')`, true) }));
       if (!clsPacks.length) items.push({ p: 0, emoji: '📦', text: `${name} has no revision pack`, sub: 'Students in it have nothing to revise yet.', action: smallBtn('Choose packs', `openPacks('${cid}')`, true) });
       if (!roster.length) items.push({ p: 1, emoji: '👥', text: `${name} has no students yet`, sub: `Share the join code ${esc(cls.joinCode || '')}.`, action: smallBtn('Students', `openStudentsModal('${cid}')`) });
       const profs = roster.map(r => studentProfiles[r.id]).filter(Boolean);
@@ -670,6 +748,7 @@
       ])
       + `<div class="home-grid">${attentionHtml(items)}${activityHtml(events, 'No quizzes from your students in the last 7 days.')}</div>`
       + `<div class="home-card"><h3><i data-icon="school"></i> Your classes this week</h3>${rows}</div>`;
+    mountTeacherSteps(box);
   }
 
   window._doSignOut = () => handleSignOut();
@@ -1241,6 +1320,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261111u"></script>
+<script src="site.js?v=20261112a"></script>
 </body>
 </html>
