@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112e';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261112e';
-import { themeColour } from './themes.js?v=20261112e';
+import { db } from './firebase-config.js?v=20261112f';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261112f';
+import { themeColour } from './themes.js?v=20261112f';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openDeleteAccount } from './account.js?v=20261112e';
-import { plusPillHtml } from './plus.js?v=20261112e';
+import { openDeleteAccount } from './account.js?v=20261112f';
+import { plusPillHtml } from './plus.js?v=20261112f';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -113,6 +113,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     <nav class="sidebar-nav">${navHtml}
     </nav>
     <div class="sidebar-footer">
+      <a class="nav-item" href="help.html${view === 'teacher' ? '#teachers' : view === 'parent' ? '#parents' : ''}" target="_blank" rel="noopener"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Help &amp; FAQs</span></a>
       ${profile?.tier !== 'plus' && profile?.plan !== 'plus' && !viewsOf(profile).includes('admin') ? `<a class="nav-item" href="plus.html" style="color:#e0643f;font-weight:700;"><span class="nav-icon"><i data-icon="sparkles"></i></span><span>Upgrade to Plus</span></a>` : ''}
       <div class="sidebar-account">
         <span class="sidebar-avatar">${esc(initials)}</span>

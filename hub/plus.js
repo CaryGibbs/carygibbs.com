@@ -36,6 +36,7 @@ export function showPlusUpsell(feature = '') {
         <h2 id="pu-title">${feature ? `${esc(feature)} is part of Lobe Limpet Plus` : 'This is part of Lobe Limpet Plus'}</h2>
         <p>Upgrade to Plus to unlock it. Everything else, including writing your own notes and questions, stays free.</p>
         <ul>${PLUS_FEATURES.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+        <p style="font-size:0.82rem;margin:-4px 0 14px;"><a href="help.html#plus" target="_blank" rel="noopener" style="color:inherit;">Questions about Plus? See Help</a></p>
         <div class="pu-actions">
           <button class="btn btn-secondary" id="pu-close">Not now</button>
           <a class="btn btn-primary" href="plus.html" id="pu-go">Upgrade to Plus</a>

@@ -524,3 +524,14 @@ i[data-icon] { display: inline-block; width: 1.15em; height: 1.15em; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ── Help button in page headers (Lobe Limpet) ─────────────── */
+.help-btn { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  padding: 7px 10px; border-radius: var(--radius-button); text-decoration: none;
+  font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted); }
+.help-btn:hover { background: var(--color-surface-2); color: var(--color-text); }
+.help-btn .icon { width: 18px; height: 18px; }
+.help-btn.help-compact span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 600px) { .help-btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .help-btn { padding: 7px; } }
+.help-inline { font-size: 0.82rem; font-weight: 600; color: var(--color-text-muted); text-decoration: underline; text-underline-offset: 2px; }
+.help-inline:hover { color: var(--color-primary); }

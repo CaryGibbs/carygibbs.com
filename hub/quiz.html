@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112e">
-  <script src="icons.js?v=20261112e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261112f">
+  <script src="icons.js?v=20261112f"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -318,7 +318,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261112e">
+  <link rel="stylesheet" href="ui.css?v=20261112f">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -326,7 +326,7 @@
 <nav class="topnav">
   <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
   <div class="nav-title" id="nav-title">Quiz</div>
-  <div class="nav-progress" id="nav-progress"></div>
+  <div style="display:flex;align-items:center;gap:8px;"><div class="nav-progress" id="nav-progress"></div><a class="help-btn help-compact" href="help.html" target="_blank" rel="noopener" aria-label="Help" title="Help"><i data-icon="circle-help"></i><span>Help</span></a></div>
 </nav>
 <div class="progress-bar-wrap">
   <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
@@ -434,6 +434,7 @@
               <div class="ai-score-label" id="ai-score-label"></div>
             </div>
             <div class="ai-feedback" id="ai-feedback"></div>
+            <a class="help-inline" href="help.html#marking" target="_blank" rel="noopener">How are written answers marked?</a>
             <div class="model-answer" id="model-answer" style="display:none;"></div>
           </div>
         </div>
@@ -523,13 +524,13 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261112e';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261112e';
-import { askClaude, jsonOf } from './ai.js?v=20261112e';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261112e';
-import { logEvent } from './log.js?v=20261112e';
-import { topicLocked, showTopicLocked } from './access.js?v=20261112e';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261112e';
+import { auth, db } from './firebase-config.js?v=20261112f';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261112f';
+import { askClaude, jsonOf } from './ai.js?v=20261112f';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261112f';
+import { logEvent } from './log.js?v=20261112f';
+import { topicLocked, showTopicLocked } from './access.js?v=20261112f';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261112f';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
