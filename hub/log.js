@@ -13,8 +13,8 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261112b';
-import { PROXY_URL } from './ai.js?v=20261112b';
+import { db, auth } from './firebase-config.js?v=20261112c';
+import { PROXY_URL } from './ai.js?v=20261112c';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
@@ -60,6 +60,8 @@ export const ACTIONS = {
   'account.getting_started': { label: 'Finished getting started', cat: 'account' },
   'class.pack_given':    { label: 'Gave a class a pack',     cat: 'class' },
   'student.pack_given':  { label: 'Gave a student a pack',   cat: 'family' },
+  'student.choose_pack': { label: 'Chose a pack',            cat: 'family' },
+  'student.remove_pack': { label: 'Removed a chosen pack',   cat: 'family' },
   'account.plus':        { label: 'Changed Plus',            cat: 'account' },
   'student.add':         { label: 'Added a student',         cat: 'family' },
   'student.edit':        { label: 'Updated a student',       cat: 'family' },

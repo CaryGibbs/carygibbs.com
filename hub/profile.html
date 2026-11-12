@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112b">
-  <script src="icons.js?v=20261112b"></script>
-  <link rel="stylesheet" href="stats.css?v=20261112b">
+  <link rel="stylesheet" href="theme.css?v=20261112c">
+  <script src="icons.js?v=20261112c"></script>
+  <link rel="stylesheet" href="stats.css?v=20261112c">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -154,7 +154,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261112b">
+  <link rel="stylesheet" href="ui.css?v=20261112c">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -225,6 +225,16 @@
     <div class="sessions-list" id="sessions-list"></div>
   </div>
 
+  <!-- My revision packs: where each came from; ones I chose can be removed -->
+  <div class="section" id="packs-section" hidden>
+    <div class="section-title"><i data-icon="library"></i> Your revision packs</div>
+    <div id="packs-list"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center;">
+      <button class="btn btn-secondary" id="btn-add-pack"><i data-icon="plus"></i> Add a Lobe Limpet pack</button>
+      <button class="btn btn-ghost" id="btn-first-week" style="font-size:0.85rem;" hidden>Show "Your first week" again</button>
+    </div>
+  </div>
+
   <!-- Parents and teachers who can see my progress -->
   <div class="section" id="people-section" hidden>
     <div class="section-title"><i data-icon="users"></i> Who can see your progress</div>
@@ -247,16 +257,48 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261112b';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261112b';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261112b';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261112b';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261112b';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261112b';
-import { openDeleteAccount } from './account.js?v=20261112b';
-import { plusPillHtml } from './plus.js?v=20261112b';
-import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261112b';
+import { auth, db } from './firebase-config.js?v=20261112c';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261112c';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261112c';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261112c';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261112c';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261112c';
+import { openDeleteAccount } from './account.js?v=20261112c';
+import { plusPillHtml } from './plus.js?v=20261112c';
+import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261112c';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { packNames, flatPackIds } from './packs.js?v=20261112c';
+import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261112c';
+import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261112c';
+
+async function showPacks(user, profile) {
+  if (!isStudent(profile)) return;
+  const sec = document.getElementById('packs-section');
+  sec.hidden = false;
+  const ids = flatPackIds(profile).filter(id => id !== profile.myPackId);
+  const names = await packNames(ids).catch(() => ({}));
+  const esc = t => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const box = document.getElementById('packs-list');
+  box.innerHTML = ids.length ? ids.map(id => {
+    const src = packSource(profile, id);
+    return `<div class="person-row" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--color-border);">
+      <div style="flex:1;"><strong>${esc(names[id] || 'A revision pack')}</strong><div style="font-size:0.82rem;color:var(--color-text-muted);">${esc(SOURCE_TEXT[src] || '')}</div></div>
+      ${src === 'self' && !isPreview() ? `<button class="btn btn-ghost" style="padding:6px 12px;font-size:0.8rem;" data-rm-pack="${esc(id)}">Remove</button>` : ''}</div>`;
+  }).join('') + `<p class="card-length-help" style="margin-top:10px;">Packs from a parent or class can only be changed by them.</p>`
+    : `<p class="card-length-help">No packs yet. Add a Lobe Limpet pack for your subjects, or join a class from your hub.</p>`;
+  box.querySelectorAll('[data-rm-pack]').forEach(b => b.onclick = async () => {
+    if (!confirm(`Remove "${names[b.dataset.rmPack] || 'this pack'}"? Your scores so far are kept.`)) return;
+    b.disabled = true;
+    try { await removeChosenPack(user.uid, profile, b.dataset.rmPack); showPacks(user, profile); }
+    catch (e) { b.disabled = false; alert('Could not remove: ' + e.message); }
+  });
+  const add = document.getElementById('btn-add-pack');
+  add.hidden = isPreview();
+  add.onclick = () => openChoosePacks({ uid: user.uid, profile, toast: (m, t) => window.showToast && window.showToast(m, t), onDone: () => showPacks(user, profile) });
+  const fw = document.getElementById('btn-first-week');
+  fw.hidden = isPreview() || !firstStepsState(profile).hidden;
+  fw.onclick = async () => { await saveFirstSteps(user.uid, profile, { hidden: false }); location.href = 'hub.html'; };
+}
 
 document.head.insertAdjacentHTML('beforeend', `<style>${THEME_SWATCH_CSS}</style>`);
 
@@ -337,6 +379,7 @@ requireAuth(async (user, profile) => {
   if (isPreview()) document.getElementById('delete-section').hidden = true;
   else document.getElementById('btn-delete-account').onclick = () => openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true });
   if (!isPreview()) showPeople(user, profile);
+  showPacks(user, profile);
 
   // Apply theme
   if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
@@ -445,6 +488,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261112b"></script>
+<script src="site.js?v=20261112c"></script>
 </body>
 </html>

@@ -14,9 +14,9 @@
 // Targets can be changed by an admin (settings/plans).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112b';
+import { db } from './firebase-config.js?v=20261112c';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { dueEntries } from './srs.js?v=20261112b';
+import { dueEntries } from './srs.js?v=20261112c';
 
 export const LEVEL_DEFAULTS = {
   relaxed: { label: 'Relaxed',   emoji: '🌱', mins: 15, quizzes: 1, reviews: false, either: true,  days: 4, blurb: 'A little and often' },

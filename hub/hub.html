@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112b">
-  <script src="icons.js?v=20261112b"></script>
-  <link rel="stylesheet" href="stats.css?v=20261112b">
+  <link rel="stylesheet" href="theme.css?v=20261112c">
+  <script src="icons.js?v=20261112c"></script>
+  <link rel="stylesheet" href="stats.css?v=20261112c">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -285,7 +285,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261112b">
+  <link rel="stylesheet" href="ui.css?v=20261112c">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -316,6 +316,7 @@
     <div class="welcome-sub" id="welcome-sub">Loading your subjects…</div>
     <div id="join-wrap"></div>
   </div>
+  <div id="first-steps"></div>
 
   <div id="gamification-wrap" style="display:none;">
     <div class="xp-bar-wrap" id="xp-bar-wrap">
@@ -369,21 +370,22 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261112b';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261112b';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261112b';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261112b';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261112b';
-import { listPacks, samePackIds } from './packs.js?v=20261112b';
-import { plusPillHtml } from './plus.js?v=20261112b';
-import { inOrder } from './order.js?v=20261112b';
-import { videosOf } from './videos.js?v=20261112b';
-import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261112b';
-import { showLinkRequests } from './parent-link.js?v=20261112b';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261112b';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261112b';
-import { openPlanCalendar } from './plan-view.js?v=20261112b';
-import { logEvent } from './log.js?v=20261112b';
+import { auth, db } from './firebase-config.js?v=20261112c';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261112c';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261112c';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261112c';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261112c';
+import { listPacks, samePackIds } from './packs.js?v=20261112c';
+import { plusPillHtml } from './plus.js?v=20261112c';
+import { inOrder } from './order.js?v=20261112c';
+import { videosOf } from './videos.js?v=20261112c';
+import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261112c';
+import { showLinkRequests } from './parent-link.js?v=20261112c';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261112c';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261112c';
+import { openPlanCalendar } from './plan-view.js?v=20261112c';
+import { logEvent } from './log.js?v=20261112c';
+import { noPackHtml, openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT } from './student-start.js?v=20261112c';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -449,29 +451,34 @@ requireAuth(async (user, profile) => {
   }
 
   if (!groupId) {
-    document.getElementById('welcome-sub').textContent = 'Your revision content will appear here once a revision pack is chosen for you.';
-    document.getElementById('hub-content').innerHTML = `
-      <div class="no-group-banner">
-        <div class="empty-state-icon"><i data-icon="library"></i></div>
-        <h3>No revision pack yet</h3>
-        <p>Got a class code from your teacher? Enter it here. Otherwise, ask your parent or teacher to choose a revision pack for you.</p>
-        ${joinFormHtml()}
-        <p style="margin-top:var(--space-lg);">Or make your own flashcards to revise from.</p>
-        <a class="btn btn-secondary" href="cards.html"><i data-icon="layers"></i> My flashcards</a>
-      </div>`;
+    document.getElementById('welcome-sub').textContent = "Welcome! Let's choose what you'll revise.";
+    document.getElementById('hub-content').innerHTML = noPackHtml(joinFormHtml());
     wireJoinForm(user, profile);
+    document.querySelector('[data-ss="choose"]').onclick = () => openChoosePacks({ uid: user.uid, profile, toast: showToast, preview: isPreview(), onDone: () => location.reload() });
     return;
   }
 
   // Small "Join a class" link under the welcome line
   const jw = document.getElementById('join-wrap');
   if (jw && !isPreview()) {
-    jw.innerHTML = `<a class="join-toggle" href="cards.html" style="margin-right:16px;text-decoration:none;"><i data-icon="layers"></i> My flashcards</a><button class="join-toggle" type="button"><i data-icon="plus"></i> Join a class</button>`;
-    jw.querySelector('button.join-toggle').onclick = () => { jw.innerHTML = joinFormHtml(); wireJoinForm(user, profile); jw.querySelector('input').focus(); };
+    jw.innerHTML = `<a class="join-toggle" href="cards.html" style="margin-right:16px;text-decoration:none;"><i data-icon="layers"></i> My flashcards</a><button class="join-toggle" type="button" data-add-pack style="margin-right:16px;"><i data-icon="library"></i> Add a pack</button><button class="join-toggle" type="button" data-join><i data-icon="plus"></i> Join a class</button>`;
+    jw.querySelector('[data-join]').onclick = () => { jw.innerHTML = joinFormHtml(); wireJoinForm(user, profile); jw.querySelector('input').focus(); };
+    jw.querySelector('[data-add-pack]').onclick = () => openChoosePacks({ uid: user.uid, profile, toast: showToast, onDone: () => location.reload() });
   }
 
   await loadSubjects(user, groupId);
   if (groupIds.length > 1) renderPackPicker(user, groupIds, groupId);
+  // "Your first week" (student-start.js), until done or hidden
+  const firstBtn = sel => document.querySelector(`#hub-content button[onclick^="${sel}"]`) || document.querySelector(`button[onclick^="${sel}"]`);
+  mountStudentStart(document.getElementById('first-steps'), {
+    uid: user.uid, profile, preview: isPreview(), toast: showToast,
+    source: SOURCE_TEXT[packSource(profile, groupId)] || '',
+    actions: {
+      quiz: () => { const b = firstBtn('goQuiz'); b ? b.click() : document.getElementById('hub-content').scrollIntoView({ behavior: 'smooth' }); },
+      learn: () => { const b = firstBtn('goMindmap'); b ? b.click() : document.getElementById('hub-content').scrollIntoView({ behavior: 'smooth' }); },
+      cards: () => { location.href = 'cards.html'; },
+    },
+  });
   renderGamification(profile, user);
   // Show parent notification if any
   if (profile.notification && !profile.notification.read) {
@@ -886,6 +893,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261112b"></script>
+<script src="site.js?v=20261112c"></script>
 </body>
 </html>
