@@ -13,12 +13,12 @@
 // Lobe Limpet (official) packs can be read by anyone signed in.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112c';
-import { listPacks, flatPackIds } from './packs.js?v=20261112c';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112c';
-import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS } from './first-steps.js?v=20261112c';
-import { studyEntries } from './gamification.js?v=20261112c';
-import { logEvent } from './log.js?v=20261112c';
+import { db } from './firebase-config.js?v=20261112d';
+import { listPacks, flatPackIds } from './packs.js?v=20261112d';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112d';
+import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS } from './first-steps.js?v=20261112d';
+import { studyEntries } from './gamification.js?v=20261112d';
+import { logEvent } from './log.js?v=20261112d';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -152,7 +152,8 @@ export async function removeChosenPack(uid, profile, packId) {
 
 /* ── "Your first week" checklist ─────────────────────────── */
 // actions: { quiz(), learn(), cards() }; source: text for where the pack came from
-export function studentSteps(profile = {}, actions = {}) {
+// cardSets: how many flashcard sets they have now (a deleted set doesn't count)
+export function studentSteps(profile = {}, actions = {}, cardSets = null) {
   const sessions = profile.sessions || [];
   const quizzes = sessions.filter(s => !s.review);
   const study = studyEntries(profile);
@@ -171,19 +172,29 @@ export function studentSteps(profile = {}, actions = {}) {
       done: days.size >= 2, doneText: 'Streak started.' },
     { id: 'cards', title: 'Make your own flashcards', optional: true,
       text: 'Type or import your own cards (Quizlet exports work); each card becomes quiz questions.',
-      done: !!profile.myPackId, doneText: 'Flashcards made.',
+      done: cardSets === null ? false : cardSets > 0, doneText: `${cardSets} flashcard set${cardSets === 1 ? '' : 's'} made.`,
       actions: [{ label: '🃏 My flashcards', act: actions.cards }] },
   ];
 }
 // Puts the checklist in `el`. preview: an adult viewing as the student (nothing is saved)
-export function mountStudentStart(el, { uid, profile, source = '', actions = {}, preview = false, toast = () => {} }) {
+export function mountStudentStart(el, { uid, profile, source = '', actions = {}, preview = false, toast = () => {}, cardSets = null }) {
   if (!el) return;
   addStudentStartCss();
   const fs = firstStepsState(profile);
   if (fs.hidden) { el.innerHTML = ''; return; }
-  const steps = studentSteps(profile, actions);
+  const steps = studentSteps(profile, actions, cardSets);
   const allDone = steps.filter(s => !s.optional).every(s => s.done);
-  if (allDone && !fs.doneAt && !preview) { saveFirstSteps(uid, profile, { doneAt: Date.now() }); logEvent('account.getting_started', { detail: 'Student' }); }
+  if (allDone && !fs.doneAt) {
+    // Students who were revising before this checklist existed never need it:
+    // put it away quietly rather than congratulating them on week one
+    const first = Math.min(...(profile.sessions || []).map(x => x.date || Infinity), ...studyEntries(profile).map(e => e.date));
+    if (first < Date.now() - 7 * 86400000) {
+      el.innerHTML = '';
+      if (!preview) saveFirstSteps(uid, profile, { doneAt: Date.now(), hidden: true });
+      return;
+    }
+    if (!preview) { saveFirstSteps(uid, profile, { doneAt: Date.now() }); logEvent('account.getting_started', { detail: 'Student' }); }
+  }
   el.innerHTML = firstStepsHtml({ title: 'Your first week',
     lead: `${source ? `${esc(source)}. ` : ''}Three quick things to get going:`,
     doneLead: "You're off to a great start. Keep your streak going: a few minutes a day is all it takes.", steps });

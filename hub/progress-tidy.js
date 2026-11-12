@@ -10,7 +10,7 @@
      { packId, topicId }              a set or topic
      { packId, subjectId }            a subject in a pack
      { subjectName }                  everything shown under that name on Progress */
-import { db } from './firebase-config.js?v=20261112c';
+import { db } from './firebase-config.js?v=20261112d';
 import { doc, getDoc, updateDoc, deleteField }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
