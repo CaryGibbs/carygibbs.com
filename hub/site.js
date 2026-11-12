@@ -80,7 +80,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261112d'),
+        import('./firebase-config.js?v=20261112e'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -93,4 +93,10 @@
     };
     ('requestIdleCallback' in window) ? requestIdleCallback(check, { timeout: 1500 }) : setTimeout(check, 300);
   }
+
+  // ── Install as an app (service worker + home screen offer) ─
+  var pwa = document.createElement('script');
+  pwa.src = 'pwa.js?v=20261112e';
+  pwa.defer = true;
+  document.head.appendChild(pwa);
 })();
