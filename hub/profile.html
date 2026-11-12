@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112n">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112n">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112n">
+  <link rel="manifest" href="manifest.webmanifest?v=20261112n">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112m">
-  <script src="icons.js?v=20261112m"></script>
-  <link rel="stylesheet" href="stats.css?v=20261112m">
+  <link rel="stylesheet" href="theme.css?v=20261112n">
+  <script src="icons.js?v=20261112n"></script>
+  <link rel="stylesheet" href="stats.css?v=20261112n">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -154,7 +154,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261112m">
+  <link rel="stylesheet" href="ui.css?v=20261112n">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -257,19 +257,19 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261112m';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261112m';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261112m';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261112m';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261112m';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261112m';
-import { openDeleteAccount } from './account.js?v=20261112m';
-import { plusPillHtml } from './plus.js?v=20261112m';
-import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261112m';
+import { auth, db } from './firebase-config.js?v=20261112n';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261112n';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261112n';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261112n';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261112n';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261112n';
+import { openDeleteAccount } from './account.js?v=20261112n';
+import { plusPillHtml } from './plus.js?v=20261112n';
+import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261112n';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { packNames, flatPackIds } from './packs.js?v=20261112m';
-import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261112m';
-import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261112m';
+import { packNames, flatPackIds } from './packs.js?v=20261112n';
+import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261112n';
+import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261112n';
 
 async function showPacks(user, profile) {
   if (!isStudent(profile)) return;
@@ -488,6 +488,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261112m"></script>
+<script src="site.js?v=20261112n"></script>
 </body>
 </html>
