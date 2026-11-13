@@ -8,6 +8,6 @@ const BRAND = {
   tagline: "Knowledge that sticks.",
   logoUrl: "assets/images/brand/logo.svg",
   faviconUrl: "assets/images/brand/favicon.svg",
-  supportEmail: "cary@carygibbs.com",
+  supportEmail: "support@lobelimpet.com",
   primaryColour: "#ff7a59",
 };

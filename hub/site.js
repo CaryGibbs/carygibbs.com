@@ -7,7 +7,7 @@
 // Change links or the contact email here and every page updates.
 // ============================================================
 (function () {
-  var CONTACT_EMAIL = 'cary@carygibbs.com';
+  var CONTACT_EMAIL = 'support@lobelimpet.com';
   var TAGLINE = 'Knowledge that sticks.';
   var YEAR = new Date().getFullYear();
 
@@ -101,7 +101,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261113d'),
+        import('./firebase-config.js?v=20261113e'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -117,7 +117,7 @@
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261113d';
+  pwa.src = 'pwa.js?v=20261113e';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();
