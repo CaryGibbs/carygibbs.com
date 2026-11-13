@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261113p"></script>
+  <script src="dev-flag.js?v=20261113q"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113p">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113p">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113p">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113p">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113q">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113q">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113q">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113q">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113p">
-  <script src="icons.js?v=20261113p"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113q">
+  <script src="icons.js?v=20261113q"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -65,7 +65,7 @@
   .pw-btn { background: none; border: 1px solid var(--color-border); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; }
   .pw-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113p">
+  <link rel="stylesheet" href="ui.css?v=20261113q">
 </head>
 <body>
 <div class="bg-orbs"></div>
@@ -177,8 +177,8 @@
 <script type="module">
 // Version of the Terms of use agreed at sign-up (users.terms.version); change when the terms change
 const TERMS_VERSION = '2026-11-13';
-  import { auth, db } from './firebase-config.js?v=20261113p';
-  import { redirectByRole, generatePassword } from './auth.js?v=20261113p';
+  import { auth, db } from './firebase-config.js?v=20261113q';
+  import { redirectByRole, generatePassword } from './auth.js?v=20261113q';
   // Password helpers: show/hide, and a memorable suggested password for new accounts
   document.querySelectorAll('[data-pw-show]').forEach(b => b.addEventListener('click', () => {
     const f = document.getElementById(b.dataset.pwShow);
@@ -193,10 +193,10 @@ const TERMS_VERSION = '2026-11-13';
     document.getElementById('pw-hint').textContent = 'Write this down or let your browser save it: you\'ll need it to sign in.';
     f.focus(); f.select();
   });
-  import { logEvent } from './log.js?v=20261113p';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261113p';
-  import { findClass } from './join-class.js?v=20261113p';
-  import { saveEmailIndex } from './email-index.js?v=20261113p';
+  import { logEvent } from './log.js?v=20261113q';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261113q';
+  import { findClass } from './join-class.js?v=20261113q';
+  import { saveEmailIndex } from './email-index.js?v=20261113q';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
@@ -493,6 +493,6 @@ const TERMS_VERSION = '2026-11-13';
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261113p"></script>
+<script src="site.js?v=20261113q"></script>
 </body>
 </html>

@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261113p"></script>
+  <script src="dev-flag.js?v=20261113q"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113p">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113p">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113p">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113p">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113q">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113q">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113q">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113q">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113p">
-  <script src="icons.js?v=20261113p"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113q">
+  <script src="icons.js?v=20261113q"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -319,7 +319,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261113p">
+  <link rel="stylesheet" href="ui.css?v=20261113q">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -525,13 +525,13 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261113p';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261113p';
-import { askClaude, jsonOf } from './ai.js?v=20261113p';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261113p';
-import { logEvent } from './log.js?v=20261113p';
-import { topicLocked, showTopicLocked } from './access.js?v=20261113p';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261113p';
+import { auth, db } from './firebase-config.js?v=20261113q';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261113q';
+import { askClaude, jsonOf } from './ai.js?v=20261113q';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261113q';
+import { logEvent } from './log.js?v=20261113q';
+import { topicLocked, showTopicLocked } from './access.js?v=20261113q';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261113q';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion

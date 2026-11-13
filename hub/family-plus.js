@@ -11,9 +11,9 @@
 // Admin → Users (on load, and when Plus is switched on or off).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113p';
+import { db } from './firebase-config.js?v=20261113q';
 import { doc, getDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { isPlusTier, coversFamily } from './auth.js?v=20261113p';
+import { isPlusTier, coversFamily } from './auth.js?v=20261113q';
 
 const isStudentRec = u => (Array.isArray(u?.roles) && u.roles.length ? u.roles : [u?.role || 'student']).includes('student');
 const parentsOf = s => [s.parentUid, ...(s.guardianIds || [])].filter(Boolean);
