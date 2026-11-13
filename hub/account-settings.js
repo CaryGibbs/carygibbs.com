@@ -5,19 +5,22 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261113k';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261113k';
-import { openDeleteAccount } from './account.js?v=20261113k';
+import { auth } from './firebase-config.js?v=20261113l';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261113l';
+import { openDeleteAccount } from './account.js?v=20261113l';
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ROLE = { admin: 'Admin', teacher: 'Teacher', parent: 'Parent', student: 'Student' };
+// The site owner (same as the security rules and the AI Worker, which refuses to delete it)
+const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';
 const dateText = ms => new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
 export function openAccountSettings({ user, profile = {} } = {}) {
   if (!user) return;
   document.getElementById('acct-set')?.remove();
   injectStyle();
+  const isAdmin = user.uid === OWNER_UID || viewsOf(profile).includes('admin');
   const roles = viewsOf(profile).map(v => ROLE[v] || v).join(', ') || 'Account';
   const email = profile.email || user.email || '';
   const plus = hasPlus(profile);
@@ -64,11 +67,16 @@ export function openAccountSettings({ user, profile = {} } = {}) {
           <p>${terms} How we look after your details: <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a>.</p>
         </section>
 
-        <section class="as-sec as-danger">
+        ${isAdmin ? `<section class="as-sec">
+          <h3>Delete account</h3>
+          <p class="as-hint">${user.uid === OWNER_UID
+            ? "This is the site owner's account, so it can't be deleted."
+            : "Admin accounts can't be deleted here. Ask the site owner to remove your admin role first."}</p>
+        </section>` : `<section class="as-sec as-danger">
           <h3>Delete account</h3>
           <p>Permanently deletes your sign-in, your progress and any revision packs you made. Students you look after must be removed first, unless another parent also looks after them. This can't be undone.</p>
           <button class="as-del" id="as-delete">Delete my account…</button>
-        </section>
+        </section>`}
       </div>
     </div>`);
 
@@ -87,7 +95,8 @@ export function openAccountSettings({ user, profile = {} } = {}) {
     try { await sendPasswordResetEmail(auth, email); rmsg.textContent = `Sent to ${email}. Check your inbox (and spam).`; }
     catch (e) { rmsg.textContent = `Couldn't send it: ${e.message}`; reset.disabled = false; }
   };
-  document.getElementById('as-delete').onclick = () => { close(); openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true }); };
+  const del = document.getElementById('as-delete');
+  if (del) del.onclick = () => { close(); openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true }); };
 }
 
 function injectStyle() {
