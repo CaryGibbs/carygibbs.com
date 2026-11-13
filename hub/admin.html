@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113l"></script>
+  <script src="dev-flag.js?v=20261113m"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113l">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113l">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113l">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113l">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113m">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113m">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113m">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113m">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113l">
-  <script src="icons.js?v=20261113l"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113m">
+  <script src="icons.js?v=20261113m"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -416,6 +416,7 @@
     .plus-note strong { color: #b97700; }
     .plus-switch { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .plus-switch input { width: auto; margin: 0; }
+    .plus-switch.plus-family { cursor: default; opacity: 0.75; }
     .move-btns { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0.55; }
     .item-card:hover .move-btns { opacity: 1; }
     .move-btns .icon-btn { width: 26px; height: 26px; }
@@ -616,8 +617,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113l">
-  <link rel="stylesheet" href="stats.css?v=20261113l">
+  <link rel="stylesheet" href="ui.css?v=20261113m">
+  <link rel="stylesheet" href="stats.css?v=20261113m">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1396,33 +1397,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261113l';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113l';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113l';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113l';
-import { syncFamilyPlus } from './family-plus.js?v=20261113l';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113l';
-import { openDeleteAccount } from './account.js?v=20261113l';
-import { addDocumentButton } from './doc-text.js?v=20261113l';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113l';
-import { showPlusUpsell } from './plus.js?v=20261113l';
-import { offerGivePack } from './first-steps.js?v=20261113l';
+import { auth, db, storage } from './firebase-config.js?v=20261113m';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113m';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113m';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113m';
+import { syncFamilyPlus } from './family-plus.js?v=20261113m';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113m';
+import { openDeleteAccount } from './account.js?v=20261113m';
+import { addDocumentButton } from './doc-text.js?v=20261113m';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113m';
+import { showPlusUpsell } from './plus.js?v=20261113m';
+import { offerGivePack } from './first-steps.js?v=20261113m';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113l';
-import { mountShell } from './shell.js?v=20261113l';
-import { openInviteDialog, signupLink } from './invite.js?v=20261113l';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113l';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113l';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113l';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113l';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113l';
-import { dueEntries } from './srs.js?v=20261113l';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113l';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113l';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113m';
+import { mountShell } from './shell.js?v=20261113m';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113m';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113m';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113m';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113m';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113m';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113m';
+import { dueEntries } from './srs.js?v=20261113m';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113m';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113m';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1438,8 +1439,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261113l';
-import { inOrder } from './order.js?v=20261113l';
+import { saveEmailIndex } from './email-index.js?v=20261113m';
+import { inOrder } from './order.js?v=20261113m';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4521,6 +4522,7 @@ document.addEventListener('change', async e => {
   finally { box.disabled = false; }
 });
 
+const firstName = n => String(n || '').trim().split(/\s+/)[0];
 async function loadUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
@@ -4552,7 +4554,13 @@ async function loadUsers() {
       <td><span class="user-name"><span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
       <td class="muted">${esc(u.email||'—')}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
-      <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : `<label class="plus-switch" title="Plus: AI features"><input type="checkbox" data-plus-uid="${esc(u.id)}" ${u.tier === 'plus' || u.plan === 'plus' ? 'checked' : ''}> Plus</label>${u.plusFrom && !(u.tier === 'plus' || u.plan === 'plus') ? ` <span class="badge badge-success" title="Covered by ${esc((usersCache.find(x => x.id === u.plusFrom) || {}).name || 'a parent')}'s Plus">Family</span>` : ''}${plusRequests[u.id] ? ' <span class="badge badge-warning">Asked</span>' : ''}`}</td>
+      <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : (() => {
+        const own = u.tier === 'plus' || u.plan === 'plus';
+        // Covered by a parent's Plus: show it as Plus (ticked, greyed), naming the parent
+        const fam = !own && u.plusFrom ? (usersCache.find(x => x.id === u.plusFrom) || {}) : null;
+        if (fam) return `<label class="plus-switch plus-family" title="Plus through ${esc(fam.name || 'a parent')}. It follows their plan; tick their Plus off to remove it."><input type="checkbox" checked disabled> Plus</label> <span class="badge badge-success">via ${esc(firstName(fam.name) || 'parent')}</span>${plusRequests[u.id] ? ' <span class="badge badge-warning">Asked</span>' : ''}`;
+        return `<label class="plus-switch" title="Plus: AI features"><input type="checkbox" data-plus-uid="${esc(u.id)}" ${own ? 'checked' : ''}> Plus</label>${plusRequests[u.id] ? ' <span class="badge badge-warning">Asked</span>' : ''}`;
+      })()}</td>
       <td class="muted">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
       <td class="actions">${student
         ? `<button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
@@ -4627,6 +4635,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113l"></script>
+<script src="site.js?v=20261113m"></script>
 </body>
 </html>
