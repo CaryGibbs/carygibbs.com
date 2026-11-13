@@ -47,7 +47,7 @@
 
 const PROJECT_ID = 'clasp-revision';
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';
-const ALLOWED_ORIGINS = ['https://carygibbs.com', 'https://www.carygibbs.com'];
+const ALLOWED_ORIGINS = ['https://lobelimpet.com', 'https://www.lobelimpet.com', 'https://carygibbs.com', 'https://www.carygibbs.com'];
 
 const MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-sonnet-4-5'];
 const TASKS = {

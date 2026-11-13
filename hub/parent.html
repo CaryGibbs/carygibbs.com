@@ -1006,7 +1006,7 @@ window._addChild = async function() {
     if (ownPassword) {
       const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestType: 'PASSWORD_RESET', email, continueUrl: 'https://carygibbs.com/hub/login.html' })
+        body: JSON.stringify({ requestType: 'PASSWORD_RESET', email, continueUrl: new URL('login.html', location.href).href })
       }).catch(() => null);
       emailed = !!r?.ok;
     }
@@ -1030,7 +1030,7 @@ function showAddedDone(name, email, how) {
     <div class="modal-header"><h2>${esc(first)}'s account is ready</h2>
       <button class="modal-close" onclick="document.getElementById('added-done').remove()" aria-label="Close"><i data-icon="x"></i></button></div>
     ${msg}
-    <p>Then ${esc(first)} signs in at <strong>carygibbs.com/hub</strong>. You'll see their progress here as they revise.</p>
+    <p>Then ${esc(first)} signs in at <strong>lobelimpet.com</strong>. You'll see their progress here as they revise.</p>
     <div class="modal-footer"><button class="btn btn-primary" onclick="document.getElementById('added-done').remove()">Done</button></div>
   </div></div>`);
 }

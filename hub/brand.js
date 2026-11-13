@@ -6,8 +6,8 @@
 const BRAND = {
   name: "Lobe Limpet",
   tagline: "Knowledge that sticks.",
-  logoUrl: "/hub/assets/images/brand/logo.svg",
-  faviconUrl: "/hub/assets/images/brand/favicon.svg",
+  logoUrl: "assets/images/brand/logo.svg",
+  faviconUrl: "assets/images/brand/favicon.svg",
   supportEmail: "cary@carygibbs.com",
   primaryColour: "#ff7a59",
 };

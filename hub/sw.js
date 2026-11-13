@@ -1,5 +1,5 @@
 // ============================================================
-// LOBE LIMPET: service worker (scope /hub/)
+// LOBE LIMPET: service worker (scope: the folder it is served from)
 // Makes Lobe Limpet installable as an app and shows a friendly
 // "you're offline" page instead of the browser's error.
 // Deliberately caches nothing else: pages and scripts always come

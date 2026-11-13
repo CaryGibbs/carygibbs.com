@@ -1,10 +1,10 @@
 {
-  "id": "/hub/",
+  "id": "./",
   "name": "Lobe Limpet",
   "short_name": "Lobe Limpet",
   "description": "Knowledge that sticks.",
-  "start_url": "/hub/login.html",
-  "scope": "/hub/",
+  "start_url": "login.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "lang": "en-GB",
