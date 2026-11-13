@@ -9,7 +9,7 @@
 // (groupId = the pack, topicId = the set).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113r';
+import { db } from './firebase-config.js?v=20261113s';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
