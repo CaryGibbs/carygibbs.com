@@ -280,3 +280,9 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .stages .card:nth-child(4) .stage-tag { background: #e6e9ff; }
 @media (max-width: 1000px) { .grid3.stages.four { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .grid3.stages.four { grid-template-columns: 1fr; } }
+
+/* About: founder photos */
+.prose .about-family { display: block; width: 100%; height: auto; border-radius: var(--radius); margin: 6px 0 18px; }
+.prose .about-sign { display: flex; align-items: center; gap: 14px; margin: 18px 0 8px; }
+.prose .about-sign img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; flex: none; }
+.prose .about-sign p { margin: 0; line-height: 1.35; }
