@@ -193,7 +193,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   function step1() {
     const have = pointCount(st.current);
     const others = [
-      ['web', '🔗', 'A web page', 'A link to a revision page, e.g. BBC Bitesize'],
+      ['web', '🔗', 'A web page', 'A link to a revision page or article'],
       ['paste', '📋', 'Paste text', 'Your own notes or a textbook passage'],
       ['ai', '✨', 'Let AI write them', 'Just from the topic name'],
       ...(have ? [['existing', '🗒️', 'Use my current notes', `Make questions from the ${notesWord(have)} already here`]] : []),
@@ -239,10 +239,10 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       src.innerHTML = `
         <div class="tw-upload tw-web">
           <label class="tw-label">Link to the page (up to 3, one per line)
-            <textarea id="tw-urls" class="tw-input tw-urls" rows="2" placeholder="https://www.bbc.co.uk/bitesize/…" autocomplete="off" spellcheck="false">${esc(st.urls)}</textarea></label>
+            <textarea id="tw-urls" class="tw-input tw-urls" rows="2" placeholder="https://… (paste the link here)" autocomplete="off" spellcheck="false">${esc(st.urls)}</textarea></label>
           <div class="tw-up-btns"><button class="btn btn-primary" id="tw-read">🔗 ${tried ? 'Read again' : 'Read the page'}</button>
             <button class="tw-link" id="tw-manual">I'll copy the words myself</button></div>
-          ${tried ? '' : `<p class="tw-hint">Works with most revision sites. Notes and questions are written in our own words, and the link is kept on the topic as "Read first", so students can read the original page too.</p>`}
+          ${tried ? '' : `<p class="tw-hint">Many sites can be read straight away. Some, such as BBC Bitesize, don't let apps read their pages: for those, tap "I'll copy the words myself" and paste them in. Either way, notes and questions are written in our own words, and the link is kept on the topic as "Read first", so students can read the original page too.</p>`}
           ${st.pages.length ? `<ul class="tw-pages">${st.pages.map(p => `<li>✓ <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a> <small>${esc(p.site)} · ${p.words.toLocaleString('en-GB')} words${p.cut ? ' (first part)' : ''}</small></li>`).join('')}</ul>` : ''}
           ${st.manual.length ? `<div class="tw-copy">
             <strong>${st.manual.length > 1 ? 'Copy the words from these pages' : 'Copy the words from the page'}</strong>
