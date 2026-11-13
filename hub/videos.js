@@ -63,11 +63,32 @@ export const WATCH_CSS = `
    students go back to the original page to read it. */
 const MAX_READS = 8;
 
+// A friendly name for the site a link is on ("BBC Bitesize", not "bbc.co.uk")
+export function siteOf(url) {
+  try {
+    const x = new URL(url); const h = x.hostname.replace(/^www\./, '');
+    if (/^bbc\.(co\.uk|com)$/.test(h)) return /^\/bitesize/.test(x.pathname) ? 'BBC Bitesize' : 'BBC';
+    return { 'thenational.academy': 'Oak National Academy', 'savemyexams.com': 'Save My Exams', 'senecalearning.com': 'Seneca',
+      'en.wikipedia.org': 'Wikipedia', 'physicsandmathstutor.com': 'Physics & Maths Tutor', 'docbrown.info': "Doc Brown's", 'youtube.com': 'YouTube' }[h] || h;
+  } catch (e) { return 'Web'; }
+}
+// Pages with no real name (blank, or just the web address) are called
+// "BBC Bitesize page", numbered when there are several
 export function readsOf(topic) {
-  return (Array.isArray(topic?.reads) ? topic.reads : [])
+  const list = (Array.isArray(topic?.reads) ? topic.reads : [])
     .filter(r => r && /^https?:\/\//i.test(r.url || ''))
-    .map(r => ({ label: String(r.label || '').trim() || hostOf(r.url), url: r.url, site: String(r.site || '').trim() }))
-    .slice(0, MAX_READS);
+    .slice(0, MAX_READS)
+    .map(r => {
+      let label = String(r.label || '').trim();
+      if (!label || label.replace(/^www\./, '') === hostOf(r.url) || label === r.url) label = '';
+      return { label, url: r.url, site: String(r.site || '').trim() || siteOf(r.url), named: !!label };
+    });
+  const unnamed = list.filter(r => !r.named);
+  unnamed.forEach(r => {
+    const same = unnamed.filter(x => x.site === r.site);
+    r.label = `${r.site} page${same.length > 1 ? ' ' + (same.indexOf(r) + 1) : ''}`;
+  });
+  return list.map(({ named, ...r }) => r);
 }
 
 // Add pages to a list, without repeats (same link), newest last
@@ -81,6 +102,8 @@ const sameUrl = (a, b) => String(a).replace(/[#?].*$/, '').replace(/\/$/, '') ==
 export function readLines(list) {
   return readsOf({ reads: list }).map(r => `${r.label.replace(/\|/g, '-')} | ${r.url}`).join('\n');
 }
+// What students see: "River management (BBC Bitesize)"
+export const readLabel = r => r.site && !r.label.toLowerCase().includes(r.site.toLowerCase()) ? `${r.label} (${r.site})` : r.label;
 // "Label | link" per line, keeping the site name of pages already there
 export function parseReadLines(text, before = []) {
   const p = parseVideoLines(text);
@@ -88,7 +111,6 @@ export function parseReadLines(text, before = []) {
   return { ...p, list: p.list.map(r => ({ ...r, site: old.find(o => sameUrl(o.url, r.url))?.site || '' })) };
 }
 
-const readLabel = r => r.site && !r.label.toLowerCase().includes(r.site.toLowerCase()) ? `${r.label} (${r.site})` : r.label;
 
 // A strip of "Read first" links (Learn page)
 export function readStripHtml(list, { title = 'Read first' } = {}) {

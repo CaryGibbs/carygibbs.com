@@ -13,12 +13,12 @@
 // Lobe Limpet (official) packs can be read by anyone signed in.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113b';
-import { listPacks, flatPackIds } from './packs.js?v=20261113b';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113b';
-import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261113b';
-import { studyEntries } from './gamification.js?v=20261113b';
-import { logEvent } from './log.js?v=20261113b';
+import { db } from './firebase-config.js?v=20261113c';
+import { listPacks, flatPackIds } from './packs.js?v=20261113c';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113c';
+import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261113c';
+import { studyEntries } from './gamification.js?v=20261113c';
+import { logEvent } from './log.js?v=20261113c';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -159,14 +159,14 @@ export function studentSteps(profile = {}, actions = {}, cardSets = null) {
   const study = studyEntries(profile);
   const days = new Set([...sessions.map(s => s.date).filter(Boolean).map(dayOf), ...study.map(e => e.day)]);
   return [
-    { id: 'quiz', title: 'Take your first quiz',
-      text: 'Pick any topic below and tap Quiz. It takes about five minutes, and getting things wrong is how it sticks.',
-      done: quizzes.length > 0, doneText: `${quizzes.length} quiz${quizzes.length === 1 ? '' : 'zes'} done.`,
-      actions: [{ label: '⚡ Start a quiz', primary: true, act: actions.quiz }] },
-    { id: 'learn', title: 'Learn a topic first',
-      text: 'Tap Learn on a topic for its subject map and notes. Reading first, then quizzing, beats quizzing cold.',
+    { id: 'learn', title: 'Learn a topic',
+      text: 'Tap Learn on a topic for its subject map and notes (and any pages to read first). Reading first, then quizzing, beats quizzing cold.',
       done: study.length > 0, doneText: 'Learn tried.',
-      actions: [{ label: '📖 Open Learn', act: actions.learn }] },
+      actions: [{ label: '📖 Open Learn', primary: true, act: actions.learn }] },
+    { id: 'quiz', title: 'Then take a quiz',
+      text: 'Tap Quiz on the same topic. It takes about five minutes, and getting things wrong is how it sticks.',
+      done: quizzes.length > 0, doneText: `${quizzes.length} quiz${quizzes.length === 1 ? '' : 'zes'} done.`,
+      actions: [{ label: '⚡ Start a quiz', act: actions.quiz }] },
     { id: 'back', title: 'Come back tomorrow',
       text: "Revise on a second day to start your streak. Review brings back questions just before you'd forget them, so a few minutes a day keeps everything fresh.",
       done: days.size >= 2, doneText: 'Streak started.' },

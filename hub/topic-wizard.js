@@ -9,11 +9,11 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113b';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261113b';
-import { mergeReads } from './videos.js?v=20261113b';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261113b';
-import { logEvent } from './log.js?v=20261113b';
+import { db } from './firebase-config.js?v=20261113c';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261113c';
+import { mergeReads, siteOf } from './videos.js?v=20261113c';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261113c';
+import { logEvent } from './log.js?v=20261113c';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -246,7 +246,9 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
           ${st.pages.length ? `<ul class="tw-pages">${st.pages.map(p => `<li>✓ <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a> <small>${esc(p.site)} · ${p.words.toLocaleString('en-GB')} words${p.cut ? ' (first part)' : ''}</small></li>`).join('')}</ul>` : ''}
           ${st.manual.length ? `<div class="tw-copy">
             <strong>${st.manual.length > 1 ? 'Copy the words from these pages' : 'Copy the words from the page'}</strong>
-            ${st.manual.map(m => `<div class="tw-copy-row"><a class="btn btn-secondary btn-sm" href="${esc(m.url)}" target="_blank" rel="noopener">Open the page ↗</a> <small>${esc(m.why || siteLabel(m.url))}</small></div>`).join('')}
+            ${st.manual.map((m, i) => `<div class="tw-copy-row"><a class="btn btn-secondary btn-sm" href="${esc(m.url)}" target="_blank" rel="noopener">Open the page ↗</a> <small>${esc(m.why || siteLabel(m.url))}</small>
+              <input class="tw-input tw-mname" data-mi="${i}" value="${esc(m.name || '')}" maxlength="80" placeholder="Name for this page, e.g. ${st.manual.length > 1 ? 'Flood management' : esc(topic.name)}" aria-label="Name for this page"></div>`).join('')}
+            <p class="tw-hint" style="margin:4px 0 0">Students see the name as a "Read first" link, so they know which page is which.</p>
             <ol class="tw-steps-copy">
               <li>Open the page and select all the words: on a computer press <kbd>Ctrl</kbd>+<kbd>A</kbd> (<kbd>⌘</kbd>+<kbd>A</kbd> on a Mac); on a phone, press and hold on some text, then tap <b>Select All</b>.</li>
               <li>Copy, come back here and paste into the box below. Menus and other bits of the page are fine: they're left out of the notes.</li>
@@ -255,6 +257,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
         </div>`;
       document.getElementById('tw-read').onclick = readUrls;
       document.getElementById('tw-manual').onclick = copyMyself;
+      src.querySelectorAll('.tw-mname').forEach(inp => inp.oninput = () => { st.manual[+inp.dataset.mi].name = inp.value.trim(); });
       document.getElementById('tw-urls').onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) readUrls(); };
       // Pasting enables Next straight away
       document.getElementById('tw-text').oninput = e => {
@@ -314,7 +317,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   // Straight to copying and pasting (the link is still kept for "Read first")
   function copyMyself() {
     const urls = typedUrls(); if (!urls) return;
-    st.manual = urls.filter(u => !st.pages.some(p => p.url === u)).map(url => ({ url, why: '' }));
+    st.manual = urls.filter(u => !st.pages.some(p => p.url === u)).map(url => ({ url, why: '', name: st.manual.find(m => m.url === url)?.name || '' }));
     st.note = '';
     step1();
     document.getElementById('tw-text')?.focus();
@@ -335,7 +338,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     st.pages = got.map(p => ({ url: p.finalUrl || p.url, title: p.title, site: p.site, words: p.words || 0, cut: !!p.cut }));
     // Pages that couldn't be read (e.g. BBC Bitesize turns apps away): copy and paste them
     st.manual = failed.filter(p => !/web address|wasn't found|is a PDF/.test(p.error || ''))
-      .map(p => ({ url: p.url, why: whyText(p) }));
+      .map(p => ({ url: p.url, why: whyText(p), name: st.manual.find(m => m.url === p.url)?.name || '' }));
     const broken = failed.filter(p => !st.manual.some(m => m.url === p.url));
     st.text = got.map(p => (got.length > 1 || st.manual.length ? `# ${p.title}\n` : '') + p.text).join('\n\n');
     st.note = got.length ? `Read ${got.length === 1 ? 'the page' : got.length + ' pages'}. Check the words below (you can delete anything not needed)${st.manual.length ? ', add the words you copy' : ''}, then continue.` : '';
@@ -442,7 +445,8 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     // Notes made from web pages keep a link back to each page ("Read first")
     const fromPages = st.source === 'web' ? [
       ...st.pages.map(p => ({ label: p.title, url: p.url, site: p.site })),
-      ...st.manual.map(m => ({ label: `${siteLabel(m.url)} page`, url: m.url, site: '' })),
+      // Named by the parent; one unnamed page takes the topic's name; otherwise "BBC Bitesize page 2"
+      ...st.manual.map(m => ({ label: m.name || (st.manual.length === 1 && !st.pages.length ? topic.name : ''), url: m.url, site: siteOf(m.url) })),
     ] : [];
     try {
       const upd = { keyPoints };
@@ -615,7 +619,8 @@ function injectStyle() {
   .tw-copy { background: var(--color-surface-2); border-radius: 12px; padding: 12px 14px; margin: 8px 0 10px; font-size: 0.88rem; }
   .tw-copy > strong { display: block; font-family: var(--font-ui); margin-bottom: 8px; }
   .tw-copy-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .tw-copy-row small { color: var(--color-text-muted); }
+  .tw-copy-row small { color: var(--color-text-muted); flex: 1; min-width: 160px; }
+  .tw-mname { flex-basis: 100%; padding: 8px 10px; font-size: 0.88rem; }
   .tw-copy .btn-sm { padding: 6px 12px; font-size: 0.85rem; text-decoration: none; }
   .tw-steps-copy { margin: 8px 0 0; padding-left: 20px; line-height: 1.5; }
   .tw-steps-copy li { margin-bottom: 4px; }
