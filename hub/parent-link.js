@@ -13,8 +13,8 @@
 // The security rules check each step against the request (lastParentLink).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113c';
-import { logEvent } from './log.js?v=20261113c';
+import { db } from './firebase-config.js?v=20261113d';
+import { logEvent } from './log.js?v=20261113d';
 import {
   doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, query, where, arrayUnion, arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";

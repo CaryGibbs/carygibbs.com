@@ -75,9 +75,12 @@ export function siteOf(url) {
 // Pages with no real name (blank, or just the web address) are called
 // "BBC Bitesize page", numbered when there are several
 export function readsOf(topic) {
-  const list = (Array.isArray(topic?.reads) ? topic.reads : [])
+  return namedLinks((Array.isArray(topic?.reads) ? topic.reads : []).filter(r => r && /^https?:\/\//i.test(r.url || '')).slice(0, MAX_READS));
+}
+// Any list of { label, url } links (topic pages, a subject's Official resources)
+export function namedLinks(links) {
+  const list = (Array.isArray(links) ? links : [])
     .filter(r => r && /^https?:\/\//i.test(r.url || ''))
-    .slice(0, MAX_READS)
     .map(r => {
       let label = String(r.label || '').trim();
       if (!label || label.replace(/^www\./, '') === hostOf(r.url) || label === r.url) label = '';
