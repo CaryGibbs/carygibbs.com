@@ -10,10 +10,10 @@
 // Admins can invite as Parent, Teacher or Admin; parents as Parent.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113e';
-import { saveEmailIndex } from './email-index.js?v=20261113e';
+import { db } from './firebase-config.js?v=20261113f';
+import { saveEmailIndex } from './email-index.js?v=20261113f';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261113e';
+import { logEvent } from './log.js?v=20261113f';
 
 export const INVITE_DAYS = 14;
 export const ROLE_LABEL = { parent: 'Parent', teacher: 'Teacher', admin: 'Admin' };
@@ -141,7 +141,7 @@ export function openInviteDialog(opts) {
       <div class="iv-sub">They get a link to join Lobe Limpet${opts.students?.length ? ' and see the students you choose' : ''}. It works once and lasts ${INVITE_DAYS} days.</div>
       ${roles.length > 1 ? `<div class="form-group"><label class="iv-l">Join as</label><div class="iv-roles">${roles.map(r => `<button type="button" data-ivrole="${r}" class="${r === role ? 'on' : ''}">${ROLE_LABEL[r]}</button>`).join('')}</div>
         <div class="iv-hint" id="iv-role-hint"></div></div>` : ''}
-      <div class="form-group"><label class="iv-l" for="iv-name">Their name</label><input type="text" id="iv-name" placeholder="e.g. Catherine Gibbs" autocomplete="off"></div>
+      <div class="form-group"><label class="iv-l" for="iv-name">Their name</label><input type="text" id="iv-name" placeholder="e.g. Alex Smith" autocomplete="off"></div>
       <div class="form-group"><label class="iv-l" for="iv-email">Their email</label><input type="email" id="iv-email" placeholder="name@example.com" autocomplete="off">
         <div class="iv-hint">Only this email can use the invite.</div></div>
       ${opts.students?.length ? `<div class="form-group" id="iv-students-group"><label class="iv-l">Share these students</label><div class="iv-students">${opts.students.map(s => `<label><input type="checkbox" value="${esc(s.id)}" ${pre.has(s.id) ? 'checked' : ''}> ${esc(s.name || s.email || 'Student')}</label>`).join('')}</div></div>` : ''}

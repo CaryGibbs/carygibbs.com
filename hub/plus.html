@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pricing · Lobe Limpet</title>
   <meta name="description" content="Lobe Limpet pricing: free to start with no adverts, and Plus to keep turning your own notes and worksheets into revision with AI.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113f">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261113e">
+  <link rel="stylesheet" href="site.css?v=20261113f">
 </head>
 <body>
 <div id="site-header"></div>
@@ -84,15 +84,15 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261113e"></script>
+<script src="site.js?v=20261113f"></script>
 <script type="module">
 // Signed in: ask for Plus with one tap (admins see it on their home page and
 // switch Plus on in Users). Signed out: sign in first, or email.
-import { auth, db } from './firebase-config.js?v=20261113e';
+import { auth, db } from './firebase-config.js?v=20261113f';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261113e';
-import { withFamilyPlus } from './auth.js?v=20261113e';
+import { logEvent } from './log.js?v=20261113f';
+import { withFamilyPlus } from './auth.js?v=20261113f';
 const $ = id => document.getElementById(id);
 onAuthStateChanged(auth, async user => {
   if (!user) { $('plus-intro').innerHTML = 'Plus is in early access. <a href="login.html">Sign in</a>, then come back here to ask for it.'; return; }
