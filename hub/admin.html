@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113s"></script>
+  <script src="dev-flag.js?v=20261113t"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113s">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113s">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113s">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113s">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113t">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113t">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113t">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113t">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113s">
-  <script src="icons.js?v=20261113s"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113t">
+  <script src="icons.js?v=20261113t"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -633,8 +633,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113s">
-  <link rel="stylesheet" href="stats.css?v=20261113s">
+  <link rel="stylesheet" href="ui.css?v=20261113t">
+  <link rel="stylesheet" href="stats.css?v=20261113t">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -905,6 +905,8 @@
         <label class="uf-search"><i data-icon="search"></i><input type="search" id="uf-q" placeholder="Search name or email" autocomplete="off"></label>
         <label class="uf-field">Role
           <select id="uf-role"><option value="">All roles</option><option value="admin">Admin</option><option value="teacher">Teacher</option><option value="parent">Parent</option><option value="student">Student</option></select></label>
+        <label class="uf-field">Plan
+          <select id="uf-plan"><option value="">All plans</option><option value="plus">Plus (any)</option><option value="own">Plus: their own</option><option value="family">Plus: through family</option><option value="free">Free</option></select></label>
         <label class="uf-field">Joined
           <select id="uf-when"><option value="">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 3 months</option><option value="custom">Between dates…</option></select></label>
         <span class="uf-dates" id="uf-dates" hidden>
@@ -1425,33 +1427,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261113s';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113s';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113s';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113s';
-import { syncFamilyPlus } from './family-plus.js?v=20261113s';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113s';
-import { openDeleteAccount } from './account.js?v=20261113s';
-import { addDocumentButton } from './doc-text.js?v=20261113s';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113s';
-import { showPlusUpsell } from './plus.js?v=20261113s';
-import { offerGivePack } from './first-steps.js?v=20261113s';
+import { auth, db, storage } from './firebase-config.js?v=20261113t';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113t';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113t';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113t';
+import { syncFamilyPlus } from './family-plus.js?v=20261113t';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113t';
+import { openDeleteAccount } from './account.js?v=20261113t';
+import { addDocumentButton } from './doc-text.js?v=20261113t';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113t';
+import { showPlusUpsell } from './plus.js?v=20261113t';
+import { offerGivePack } from './first-steps.js?v=20261113t';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113s';
-import { mountShell } from './shell.js?v=20261113s';
-import { openInviteDialog, signupLink } from './invite.js?v=20261113s';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113s';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113s';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113s';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113s';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113s';
-import { dueEntries } from './srs.js?v=20261113s';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113s';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113s';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113t';
+import { mountShell } from './shell.js?v=20261113t';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113t';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113t';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113t';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113t';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113t';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113t';
+import { dueEntries } from './srs.js?v=20261113t';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113t';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113t';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1467,8 +1469,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261113s';
-import { inOrder } from './order.js?v=20261113s';
+import { saveEmailIndex } from './email-index.js?v=20261113t';
+import { inOrder } from './order.js?v=20261113t';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4619,8 +4621,10 @@ async function loadUsers() {
     <thead><tr><th>Name</th><th>Email</th><th>Roles</th><th>Plan</th><th>Joined</th><th></th></tr></thead>
     <tbody>${users.map(u => {
       const roles = rolesFor(u), student = roles.includes('student');
+      // Plan for the filter: own Plus (or admin), Plus through family, or free
+      const planKey = (u.tier === 'plus' || u.plan === 'plus' || roles.includes('admin')) ? 'own' : (u.plusFrom && usersCache.some(x => x.id === u.plusFrom)) ? 'family' : 'free';
       const joined = u.createdAt ? (u.createdAt.seconds ? u.createdAt.seconds * 1000 : Number(u.createdAt) || Date.parse(u.createdAt) || 0) : 0;
-      return `<tr data-user-row="${esc(u.id)}" data-q="${esc(((u.name || '') + ' ' + (u.email || '')).toLowerCase())}" data-roles="${esc(roles.join(' '))}" data-joined="${joined}" class="${u._famHead ? 'fam-head' : ''}${u._famMember ? ' fam-member' : ''}">
+      return `<tr data-user-row="${esc(u.id)}" data-q="${esc(((u.name || '') + ' ' + (u.email || '')).toLowerCase())}" data-roles="${esc(roles.join(' '))}" data-plan="${planKey}" data-joined="${joined}" class="${u._famHead ? 'fam-head' : ''}${u._famMember ? ' fam-member' : ''}">
       <td><span class="user-name">${u._famMember ? '<span class="fam-tick" aria-hidden="true">↳</span>' : ''}<span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
       <td class="muted">${esc(u.email||'—')}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
@@ -4649,27 +4653,28 @@ function wireUserFilters() {
   if (!bar || bar.dataset.wired) return;
   bar.dataset.wired = '1';
   const $f = id => document.getElementById(id);
-  ['uf-q', 'uf-role', 'uf-from', 'uf-to'].forEach(id => $f(id).addEventListener('input', applyUserFilters));
+  ['uf-q', 'uf-role', 'uf-plan', 'uf-from', 'uf-to'].forEach(id => $f(id).addEventListener('input', applyUserFilters));
   $f('uf-when').addEventListener('change', () => { $f('uf-dates').hidden = $f('uf-when').value !== 'custom'; applyUserFilters(); });
-  $f('uf-clear').onclick = () => { $f('uf-q').value = ''; $f('uf-role').value = ''; $f('uf-when').value = ''; $f('uf-from').value = ''; $f('uf-to').value = ''; $f('uf-dates').hidden = true; applyUserFilters(); };
+  $f('uf-clear').onclick = () => { $f('uf-q').value = ''; $f('uf-role').value = ''; $f('uf-plan').value = ''; $f('uf-when').value = ''; $f('uf-from').value = ''; $f('uf-to').value = ''; $f('uf-dates').hidden = true; applyUserFilters(); };
 }
 function applyUserFilters() {
   const $f = id => document.getElementById(id);
   if (!$f('uf-q')) return;
   const q = $f('uf-q').value.trim().toLowerCase();
-  const role = $f('uf-role').value, when = $f('uf-when').value;
+  const role = $f('uf-role').value, when = $f('uf-when').value, plan = $f('uf-plan').value;
   let from = 0, to = Infinity;
   if (when === 'custom') {
     if ($f('uf-from').value) from = new Date($f('uf-from').value + 'T00:00:00').getTime();
     if ($f('uf-to').value) to = new Date($f('uf-to').value + 'T23:59:59').getTime();
   } else if (when) from = Date.now() - Number(when) * 86400000;
-  const active = !!(q || role || when);
+  const active = !!(q || role || when || plan);
   const rows = [...document.querySelectorAll('.users-table tbody tr[data-user-row]')];
   let shown = 0;
   rows.forEach(tr => {
     const j = Number(tr.dataset.joined) || 0;
     const ok = (!q || q.split(/\s+/).every(w => tr.dataset.q.includes(w)))
       && (!role || tr.dataset.roles.split(' ').includes(role))
+      && (!plan || (plan === 'plus' ? tr.dataset.plan !== 'free' : tr.dataset.plan === plan))
       && (!when || (j && j >= from && j <= to));
     tr.hidden = !ok;
     if (ok) shown++;
@@ -4744,6 +4749,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113s"></script>
+<script src="site.js?v=20261113t"></script>
 </body>
 </html>
