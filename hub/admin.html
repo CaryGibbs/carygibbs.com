@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113j"></script>
+  <script src="dev-flag.js?v=20261113k"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113j">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113j">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113j">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113j">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113k">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113k">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113k">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113k">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113j">
-  <script src="icons.js?v=20261113j"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113k">
+  <script src="icons.js?v=20261113k"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -616,8 +616,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113j">
-  <link rel="stylesheet" href="stats.css?v=20261113j">
+  <link rel="stylesheet" href="ui.css?v=20261113k">
+  <link rel="stylesheet" href="stats.css?v=20261113k">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1396,33 +1396,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261113j';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113j';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113j';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113j';
-import { syncFamilyPlus } from './family-plus.js?v=20261113j';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113j';
-import { openDeleteAccount } from './account.js?v=20261113j';
-import { addDocumentButton } from './doc-text.js?v=20261113j';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113j';
-import { showPlusUpsell } from './plus.js?v=20261113j';
-import { offerGivePack } from './first-steps.js?v=20261113j';
+import { auth, db, storage } from './firebase-config.js?v=20261113k';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113k';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113k';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113k';
+import { syncFamilyPlus } from './family-plus.js?v=20261113k';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113k';
+import { openDeleteAccount } from './account.js?v=20261113k';
+import { addDocumentButton } from './doc-text.js?v=20261113k';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113k';
+import { showPlusUpsell } from './plus.js?v=20261113k';
+import { offerGivePack } from './first-steps.js?v=20261113k';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113j';
-import { mountShell } from './shell.js?v=20261113j';
-import { openInviteDialog, signupLink } from './invite.js?v=20261113j';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113j';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113j';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113j';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113j';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113j';
-import { dueEntries } from './srs.js?v=20261113j';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113j';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113j';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113k';
+import { mountShell } from './shell.js?v=20261113k';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113k';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113k';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113k';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113k';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113k';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113k';
+import { dueEntries } from './srs.js?v=20261113k';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113k';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113k';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1438,8 +1438,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261113j';
-import { inOrder } from './order.js?v=20261113j';
+import { saveEmailIndex } from './email-index.js?v=20261113k';
+import { inOrder } from './order.js?v=20261113k';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4283,6 +4283,16 @@ async function deleteSubtree(path) {
   await deleteDoc(doc(db, path));
 }
 
+// "Pack › Subject › Topic" for the activity log, and the start of a question's wording.
+function whereLabel() {
+  return [selectedGroup?.name, selectedSubject?.name, selectedTopic?.name].filter(Boolean).join(' › ');
+}
+function qSnippet(q) {
+  const t = String(q?.question || q?.sentence || q?.instruction || '').replace(/\s+/g, ' ').trim();
+  if (!t) return '(no wording)';
+  return t.length > 70 ? `"${t.slice(0, 70).trim()}…"` : `"${t}"`;
+}
+
 function setConfirmButton(label = 'Delete', danger = true) {
   const b = document.getElementById('btn-confirm-ok');
   b.textContent = label;
@@ -4298,8 +4308,16 @@ function confirmDelete(type, id, name) {
       if (type === 'group')    await deletePackTree(id);
       if (type === 'subject')  await deleteSubtree(`${subjectsPath()}/${id}`);
       if (type === 'topic')    await deleteSubtree(`${topicsPath()}/${id}`);
-      if (type === 'question') { await deleteDoc(doc(db, questionsPath(), id)); loadExistingQuestions(); }
-      logEvent('content.delete', { target: name, targetId: id, detail: `Deleted ${type === 'group' ? 'revision pack' : type}` });
+      let logTarget = name, logDetail = `Deleted ${type === 'group' ? 'revision pack' : type}`;
+      if (type === 'question') {
+        const qSnap = await getDoc(doc(db, questionsPath(), id)).catch(() => null);
+        await deleteDoc(doc(db, questionsPath(), id)); loadExistingQuestions();
+        logTarget = whereLabel();
+        logDetail = `Deleted question: ${qSnippet(qSnap?.data())}`;
+      } else if (type === 'subject' || type === 'topic') {
+        logTarget = [selectedGroup?.name, type === 'topic' ? selectedSubject?.name : null, name].filter(Boolean).join(' › ');
+      }
+      logEvent('content.delete', { target: logTarget, targetId: id, detail: logDetail });
       closeModal('modal-confirm');
       showToast(`${type.charAt(0).toUpperCase()+type.slice(1)} deleted`, 'success');
       if (type === 'group')   loadGroups();
@@ -4326,6 +4344,7 @@ async function confirmDeleteAllQuestions() {
       const deletions = [];
       snap.forEach(d => deletions.push(deleteDoc(doc(db, questionsPath(), d.id))));
       await Promise.all(deletions);
+      logEvent('content.delete', { target: whereLabel(), targetId: selectedTopic.id, detail: `Deleted all ${deletions.length} questions` });
       closeModal('modal-confirm');
       showToast(`${deletions.length} questions deleted`, 'success');
       loadExistingQuestions();
@@ -4608,6 +4627,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113j"></script>
+<script src="site.js?v=20261113k"></script>
 </body>
 </html>
