@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261113u"></script>
+  <script src="dev-flag.js?v=20261113v"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113v">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113v">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113v">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113v">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113u">
-  <script src="icons.js?v=20261113u"></script>
-  <link rel="stylesheet" href="stats.css?v=20261113u">
+  <link rel="stylesheet" href="theme.css?v=20261113v">
+  <script src="icons.js?v=20261113v"></script>
+  <link rel="stylesheet" href="stats.css?v=20261113v">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -155,7 +155,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113u">
+  <link rel="stylesheet" href="ui.css?v=20261113v">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -275,20 +275,20 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261113u';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261113u';
-import { formatAccountNo } from './account-no.js?v=20261113u';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261113u';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261113u';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261113u';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261113u';
-import { openDeleteAccount } from './account.js?v=20261113u';
-import { plusPillHtml } from './plus.js?v=20261113u';
-import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261113u';
+import { auth, db } from './firebase-config.js?v=20261113v';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261113v';
+import { formatAccountNo } from './account-no.js?v=20261113v';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261113v';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261113v';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261113v';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261113v';
+import { openDeleteAccount } from './account.js?v=20261113v';
+import { plusPillHtml } from './plus.js?v=20261113v';
+import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261113v';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { packNames, flatPackIds } from './packs.js?v=20261113u';
-import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261113u';
-import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261113u';
+import { packNames, flatPackIds } from './packs.js?v=20261113v';
+import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261113v';
+import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261113v';
 
 async function showPacks(user, profile) {
   if (!isStudent(profile)) return;
@@ -510,6 +510,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113u"></script>
+<script src="site.js?v=20261113v"></script>
 </body>
 </html>

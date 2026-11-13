@@ -13,9 +13,9 @@
 // only parent, or an admin (only the owner can delete an admin).
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261113u';
-import { PROXY_URL } from './ai.js?v=20261113u';
-import { logEvent } from './log.js?v=20261113u';
+import { auth, db } from './firebase-config.js?v=20261113v';
+import { PROXY_URL } from './ai.js?v=20261113v';
+import { logEvent } from './log.js?v=20261113v';
 import { collection, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 

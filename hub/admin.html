@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113u"></script>
+  <script src="dev-flag.js?v=20261113v"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113v">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113v">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113v">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113v">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113u">
-  <script src="icons.js?v=20261113u"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113v">
+  <script src="icons.js?v=20261113v"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -634,8 +634,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113u">
-  <link rel="stylesheet" href="stats.css?v=20261113u">
+  <link rel="stylesheet" href="ui.css?v=20261113v">
+  <link rel="stylesheet" href="stats.css?v=20261113v">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -943,7 +943,7 @@
       </div>
       <div id="as-tiles"></div>
       <div class="as-filters">
-        <label class="log-f">Search<input type="search" id="as-search" placeholder="Name, email, parent, teacher or pack"></label>
+        <label class="log-f">Search<input type="search" id="as-search" placeholder="Name, email, account no., parent, teacher or pack"></label>
         <label class="log-f">Show<select id="as-show">
           <option value="all">All students</option>
           <option value="active">Active in the last 7 days</option>
@@ -1428,34 +1428,34 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261113u';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113u';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113u';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113u';
-import { syncFamilyPlus } from './family-plus.js?v=20261113u';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261113u';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113u';
-import { openDeleteAccount } from './account.js?v=20261113u';
-import { addDocumentButton } from './doc-text.js?v=20261113u';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113u';
-import { showPlusUpsell } from './plus.js?v=20261113u';
-import { offerGivePack } from './first-steps.js?v=20261113u';
+import { auth, db, storage } from './firebase-config.js?v=20261113v';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113v';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113v';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113v';
+import { syncFamilyPlus } from './family-plus.js?v=20261113v';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261113v';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113v';
+import { openDeleteAccount } from './account.js?v=20261113v';
+import { addDocumentButton } from './doc-text.js?v=20261113v';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113v';
+import { showPlusUpsell } from './plus.js?v=20261113v';
+import { offerGivePack } from './first-steps.js?v=20261113v';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113u';
-import { mountShell } from './shell.js?v=20261113u';
-import { openInviteDialog, signupLink } from './invite.js?v=20261113u';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113u';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113u';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113u';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113u';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113u';
-import { dueEntries } from './srs.js?v=20261113u';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113u';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113u';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113v';
+import { mountShell } from './shell.js?v=20261113v';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113v';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113v';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113v';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113v';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113v';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113v';
+import { dueEntries } from './srs.js?v=20261113v';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113v';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113v';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1471,8 +1471,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261113u';
-import { inOrder } from './order.js?v=20261113u';
+import { saveEmailIndex } from './email-index.js?v=20261113v';
+import { inOrder } from './order.js?v=20261113v';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -3990,7 +3990,9 @@ function renderAllStudents() {
     if (show === 'quiet' && u.wk.last >= weekAgo) return false;
     if (show === 'nopack' && u.packIds.length) return false;
     if (!q) return true;
-    return [u.name, u.email, ...u.adults.map(nameOf), ...u.teachers.map(nameOf), ...u.packNames].join(' ').toLowerCase().includes(q);
+    // Name, email, account number (with or without "LL-"), parents, teachers, packs
+    const hay = [u.name, u.email, accountSearchText(u.accountNo), ...u.adults.map(nameOf), ...u.teachers.map(nameOf), ...u.packNames].join(' ').toLowerCase();
+    return q.split(/\s+/).every(w => hay.includes(w));
   });
   const nm = u => (u.name || u.email || '').toLowerCase();
   list.sort(sort === 'name' ? (a, b) => nm(a).localeCompare(nm(b), 'en-GB')
@@ -4005,7 +4007,7 @@ function renderAllStudents() {
       const who = [...u.adults.map(id => `${esc(nameOf(id))} <span class="as-sub" style="display:inline">(parent)</span>`),
                    ...u.teachers.map(id => `${esc(nameOf(id))} <span class="as-sub" style="display:inline">(teacher)</span>`)];
       return `<tr>
-        <td class="as-name"><strong>${esc(u.name || '—')}</strong><small>${esc(u.email || '')}</small></td>
+        <td class="as-name"><strong>${esc(u.name || '—')}</strong><small>${esc(u.email || '')}</small>${u.accountNo ? `<small class="acct-no">${esc(formatAccountNo(u.accountNo))}</small>` : ''}</td>
         <td data-l="Looked after by">${who.length ? who.join('<br>') : '<span class="as-sub">Independent</span>'}</td>
         <td data-l="Packs" class="as-packs">${u.packNames.length ? u.packNames.map(esc).join('<br>') : '<span class="as-quiet">None</span>'}</td>
         <td data-l="This week" class="as-num">${fmtTime(u.wk.secs)}<span class="as-sub">${u.wk.quizzes} quiz${u.wk.quizzes === 1 ? '' : 'zes'}${u.wk.avg !== null ? ` · ${u.wk.avg}%` : ''}</span></td>
@@ -4029,7 +4031,7 @@ function openStudentProgress(uid) {
   const lvl = getLevelInfo(u.xp || 0).current;
   document.getElementById('as-modal-title').textContent = `${u.name || 'Student'}'s progress`;
   document.getElementById('as-modal-body').innerHTML = `
-    <div class="as-meta">${esc(u.email || '')}<br>
+    <div class="as-meta">${esc(u.email || '')}${u.accountNo ? ` · <span class="acct-no" style="display:inline">${esc(formatAccountNo(u.accountNo))}</span>` : ''}<br>
       ${u.adults.length ? `Parents: ${u.adults.map(id => esc(nameOf(id))).join(', ')}<br>` : ''}
       ${u.teachers.length ? `Teachers: ${u.teachers.map(id => esc(nameOf(id))).join(', ')}<br>` : ''}
       Packs: ${u.packNames.length ? u.packNames.map(esc).join(', ') : 'none'}</div>
@@ -4754,6 +4756,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113u"></script>
+<script src="site.js?v=20261113v"></script>
 </body>
 </html>

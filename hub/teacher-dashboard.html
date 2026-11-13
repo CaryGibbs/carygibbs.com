@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113u"></script>
+  <script src="dev-flag.js?v=20261113v"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113v">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113v">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113v">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113v">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113u">
-  <script src="icons.js?v=20261113u"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113v">
+  <script src="icons.js?v=20261113v"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -289,7 +289,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261113u">
+  <link rel="stylesheet" href="ui.css?v=20261113v">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -489,23 +489,23 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261113u';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261113u';
-  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261113u';
-  import { showPlusUpsell } from './plus.js?v=20261113u';
-  import { mountShell } from './shell.js?v=20261113u';
-  import { byOrder } from './order.js?v=20261113u';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261113u';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113u';
-  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261113u';
-  import { logEvent } from './log.js?v=20261113u';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261113u';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261113u';
-  import { app as firebaseApp } from './firebase-config.js?v=20261113u';
+  import { auth, db } from './firebase-config.js?v=20261113v';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261113v';
+  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261113v';
+  import { showPlusUpsell } from './plus.js?v=20261113v';
+  import { mountShell } from './shell.js?v=20261113v';
+  import { byOrder } from './order.js?v=20261113v';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261113v';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113v';
+  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261113v';
+  import { logEvent } from './log.js?v=20261113v';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261113v';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261113v';
+  import { app as firebaseApp } from './firebase-config.js?v=20261113v';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261113u';
+  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261113v';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -1324,6 +1324,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261113u"></script>
+<script src="site.js?v=20261113v"></script>
 </body>
 </html>
