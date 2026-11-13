@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113n"></script>
+  <script src="dev-flag.js?v=20261113o"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113o">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113o">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113o">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113o">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113n">
-  <script src="icons.js?v=20261113n"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113o">
+  <script src="icons.js?v=20261113o"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -417,6 +417,10 @@
     .plus-switch { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .plus-switch input { width: auto; margin: 0; }
     .plus-switch.plus-family { cursor: default; opacity: 0.75; }
+    .users-table tr.fam-head td { border-top: 2px solid var(--color-border); }
+    .users-table tr.fam-member td { background: color-mix(in srgb, var(--color-surface-2) 55%, transparent); }
+    .users-table tr.fam-member .user-name { padding-left: 18px; }
+    .fam-tick { color: var(--color-text-muted); margin-right: 2px; }
     .move-btns { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0.55; }
     .item-card:hover .move-btns { opacity: 1; }
     .move-btns .icon-btn { width: 26px; height: 26px; }
@@ -617,8 +621,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113n">
-  <link rel="stylesheet" href="stats.css?v=20261113n">
+  <link rel="stylesheet" href="ui.css?v=20261113o">
+  <link rel="stylesheet" href="stats.css?v=20261113o">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1397,33 +1401,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261113n';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113n';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113n';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113n';
-import { syncFamilyPlus } from './family-plus.js?v=20261113n';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113n';
-import { openDeleteAccount } from './account.js?v=20261113n';
-import { addDocumentButton } from './doc-text.js?v=20261113n';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113n';
-import { showPlusUpsell } from './plus.js?v=20261113n';
-import { offerGivePack } from './first-steps.js?v=20261113n';
+import { auth, db, storage } from './firebase-config.js?v=20261113o';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113o';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113o';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113o';
+import { syncFamilyPlus } from './family-plus.js?v=20261113o';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113o';
+import { openDeleteAccount } from './account.js?v=20261113o';
+import { addDocumentButton } from './doc-text.js?v=20261113o';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113o';
+import { showPlusUpsell } from './plus.js?v=20261113o';
+import { offerGivePack } from './first-steps.js?v=20261113o';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113n';
-import { mountShell } from './shell.js?v=20261113n';
-import { openInviteDialog, signupLink } from './invite.js?v=20261113n';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113n';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113n';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113n';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113n';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113n';
-import { dueEntries } from './srs.js?v=20261113n';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113n';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113n';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113o';
+import { mountShell } from './shell.js?v=20261113o';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113o';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113o';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113o';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113o';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113o';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113o';
+import { dueEntries } from './srs.js?v=20261113o';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113o';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113o';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1439,8 +1443,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261113n';
-import { inOrder } from './order.js?v=20261113n';
+import { saveEmailIndex } from './email-index.js?v=20261113o';
+import { inOrder } from './order.js?v=20261113o';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4523,6 +4527,43 @@ document.addEventListener('change', async e => {
 });
 
 const firstName = n => String(n || '').trim().split(/\s+/)[0];
+
+/* Users & roles order: families together. A family is everyone linked by a
+   student's parents (parentUid, guardianIds) or family Plus (plusFrom).
+   The main parent (the one with Plus of their own, else the one who made
+   most of the students' accounts) comes first, then the rest A–Z.
+   Families, and people on their own, are sorted by the main person's
+   surname (last word of the name). Sets u._famHead / u._famMember. */
+function groupFamilies(users) {
+  const byId = new Map(users.map(u => [u.id, u]));
+  const up = new Map(users.map(u => [u.id, u.id]));
+  const find = x => { while (up.get(x) !== x) { up.set(x, up.get(up.get(x))); x = up.get(x); } return x; };
+  const join = (a, b) => { if (byId.has(a) && byId.has(b)) up.set(find(a), find(b)); };
+  const rolesOfU = u => (Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role || 'student']);
+  users.forEach(u => {
+    if (rolesOfU(u).includes('student')) [u.parentUid, ...(u.guardianIds || [])].filter(Boolean).forEach(p => join(u.id, p));
+    if (u.plusFrom) join(u.id, u.plusFrom);
+  });
+  const fams = new Map();
+  users.forEach(u => { const r = find(u.id); if (!fams.has(r)) fams.set(r, []); fams.get(r).push(u); });
+  const nm = u => String(u.name || u.email || '').trim();
+  const surname = u => { const w = nm(u).split(/\s+/); return (w.length > 1 ? w[w.length - 1] : w[0] || '').toLowerCase(); };
+  const az = (a, b) => nm(a).localeCompare(nm(b), 'en-GB', { sensitivity: 'base' });
+  const groups = [...fams.values()].map(list => {
+    const adults = list.filter(u => !rolesOfU(u).includes('student'));
+    const made = id => list.filter(s => s.parentUid === id).length;
+    const covers = id => list.filter(x => x.plusFrom === id).length;   // whose Plus the family uses
+    const ownPlus = a => (a.tier === 'plus' || a.plan === 'plus' || rolesOfU(a).includes('admin')) ? 1 : 0;
+    const head = [...adults].sort((a, b) => covers(b.id) - covers(a.id) || ownPlus(b) - ownPlus(a) || made(b.id) - made(a.id) || az(a, b))[0]
+      || [...list].sort(az)[0];
+    const rest = list.filter(u => u !== head).sort(az);
+    list.forEach(u => { u._famHead = false; u._famMember = false; });
+    if (rest.length) { head._famHead = true; rest.forEach(u => { u._famMember = true; }); }
+    return { head, members: [head, ...rest] };
+  });
+  groups.sort((a, b) => surname(a.head).localeCompare(surname(b.head), 'en-GB', { sensitivity: 'base' }) || az(a.head, b.head));
+  users.splice(0, users.length, ...groups.flatMap(g => g.members));
+}
 async function loadUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
@@ -4534,14 +4575,10 @@ async function loadUsers() {
   plusRequests = {}; reqSnap.forEach(d => { if (d.data().status === 'pending') plusRequests[d.id] = d.data(); });
   const users = [];
   snap.forEach(d => users.push({ id: d.id, ...d.data() }));
-  // Sorted by highest role (Admin, Teacher, Parent, Student), then A–Z by name (or email)
-  const RANK = { admin: 0, teacher: 1, parent: 2, student: 3 };
-  const rankOf = u => RANK[primaryRole(Array.isArray(u.roles) && u.roles.length ? u.roles : [u.role || 'student'])] ?? 4;
-  const sortName = u => (u.name || u.email || '').trim().toLowerCase();
-  users.sort((a, b) => rankOf(a) - rankOf(b) || sortName(a).localeCompare(sortName(b), 'en-GB'));
   usersCache = users;
   await migratePlusField(users);
   await syncFamilyPlus(users);   // keep students covered by a parent's Plus in step
+  groupFamilies(users);          // families together, by the main parent's surname
   if (!users.length) { list.innerHTML = `<div class="empty-state"><h3>No users yet</h3></div>`; return; }
   const roleIcon = { parent:'house', student:'graduation-cap', teacher:'school', admin:'shield' };
   const roleColour = { parent:'badge-success', student:'badge-primary', teacher:'badge-warning', admin:'badge-primary' };
@@ -4550,8 +4587,8 @@ async function loadUsers() {
     <thead><tr><th>Name</th><th>Email</th><th>Roles</th><th>Plan</th><th>Joined</th><th></th></tr></thead>
     <tbody>${users.map(u => {
       const roles = rolesFor(u), student = roles.includes('student');
-      return `<tr data-user-row="${esc(u.id)}">
-      <td><span class="user-name"><span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
+      return `<tr data-user-row="${esc(u.id)}" class="${u._famHead ? 'fam-head' : ''}${u._famMember ? ' fam-member' : ''}">
+      <td><span class="user-name">${u._famMember ? '<span class="fam-tick" aria-hidden="true">↳</span>' : ''}<span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
       <td class="muted">${esc(u.email||'—')}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
       <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : (() => {
@@ -4635,6 +4672,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113n"></script>
+<script src="site.js?v=20261113o"></script>
 </body>
 </html>
