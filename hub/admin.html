@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113o"></script>
+  <script src="dev-flag.js?v=20261113p"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113o">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113o">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113o">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113o">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113p">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113p">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113p">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113p">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113o">
-  <script src="icons.js?v=20261113o"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113p">
+  <script src="icons.js?v=20261113p"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -621,8 +621,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113o">
-  <link rel="stylesheet" href="stats.css?v=20261113o">
+  <link rel="stylesheet" href="ui.css?v=20261113p">
+  <link rel="stylesheet" href="stats.css?v=20261113p">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -1401,33 +1401,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261113o';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113o';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113o';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113o';
-import { syncFamilyPlus } from './family-plus.js?v=20261113o';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113o';
-import { openDeleteAccount } from './account.js?v=20261113o';
-import { addDocumentButton } from './doc-text.js?v=20261113o';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113o';
-import { showPlusUpsell } from './plus.js?v=20261113o';
-import { offerGivePack } from './first-steps.js?v=20261113o';
+import { auth, db, storage } from './firebase-config.js?v=20261113p';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113p';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113p';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113p';
+import { syncFamilyPlus } from './family-plus.js?v=20261113p';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113p';
+import { openDeleteAccount } from './account.js?v=20261113p';
+import { addDocumentButton } from './doc-text.js?v=20261113p';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113p';
+import { showPlusUpsell } from './plus.js?v=20261113p';
+import { offerGivePack } from './first-steps.js?v=20261113p';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113o';
-import { mountShell } from './shell.js?v=20261113o';
-import { openInviteDialog, signupLink } from './invite.js?v=20261113o';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113o';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113o';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113o';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113o';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113o';
-import { dueEntries } from './srs.js?v=20261113o';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113o';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113o';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113p';
+import { mountShell } from './shell.js?v=20261113p';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113p';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113p';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113p';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113p';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113p';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113p';
+import { dueEntries } from './srs.js?v=20261113p';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113p';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113p';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1443,8 +1443,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261113o';
-import { inOrder } from './order.js?v=20261113o';
+import { saveEmailIndex } from './email-index.js?v=20261113p';
+import { inOrder } from './order.js?v=20261113p';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4533,7 +4533,7 @@ const firstName = n => String(n || '').trim().split(/\s+/)[0];
    The main parent (the one with Plus of their own, else the one who made
    most of the students' accounts) comes first, then the rest A–Z.
    Families, and people on their own, are sorted by the main person's
-   surname (last word of the name). Sets u._famHead / u._famMember. */
+   surname (last word of the name); the site owner's family is always first. Sets u._famHead / u._famMember. */
 function groupFamilies(users) {
   const byId = new Map(users.map(u => [u.id, u]));
   const up = new Map(users.map(u => [u.id, u.id]));
@@ -4554,14 +4554,16 @@ function groupFamilies(users) {
     const made = id => list.filter(s => s.parentUid === id).length;
     const covers = id => list.filter(x => x.plusFrom === id).length;   // whose Plus the family uses
     const ownPlus = a => (a.tier === 'plus' || a.plan === 'plus' || rolesOfU(a).includes('admin')) ? 1 : 0;
-    const head = [...adults].sort((a, b) => covers(b.id) - covers(a.id) || ownPlus(b) - ownPlus(a) || made(b.id) - made(a.id) || az(a, b))[0]
+    const isOwnerU = a => a.id === OWNER_UID ? 1 : 0;   // the site owner always heads their family
+    const head = [...adults].sort((a, b) => isOwnerU(b) - isOwnerU(a) || covers(b.id) - covers(a.id) || ownPlus(b) - ownPlus(a) || made(b.id) - made(a.id) || az(a, b))[0]
       || [...list].sort(az)[0];
     const rest = list.filter(u => u !== head).sort(az);
     list.forEach(u => { u._famHead = false; u._famMember = false; });
     if (rest.length) { head._famHead = true; rest.forEach(u => { u._famMember = true; }); }
     return { head, members: [head, ...rest] };
   });
-  groups.sort((a, b) => surname(a.head).localeCompare(surname(b.head), 'en-GB', { sensitivity: 'base' }) || az(a.head, b.head));
+  // The site owner's family comes first, then everyone else by surname
+  groups.sort((a, b) => (b.head.id === OWNER_UID) - (a.head.id === OWNER_UID) || surname(a.head).localeCompare(surname(b.head), 'en-GB', { sensitivity: 'base' }) || az(a.head, b.head));
   users.splice(0, users.length, ...groups.flatMap(g => g.members));
 }
 async function loadUsers() {
@@ -4672,6 +4674,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113o"></script>
+<script src="site.js?v=20261113p"></script>
 </body>
 </html>

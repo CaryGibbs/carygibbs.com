@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261113o"></script>
+  <script src="dev-flag.js?v=20261113p"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113o">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113o">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113o">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113o">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113p">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113p">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113p">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113p">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113o">
-  <script src="icons.js?v=20261113o"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113p">
+  <script src="icons.js?v=20261113p"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -217,19 +217,19 @@
 </div>
 
 <script type="module">
-import { db, storage } from './firebase-config.js?v=20261113o';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261113o';
-import { askClaude, jsonOf } from './ai.js?v=20261113o';
-import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261113o';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261113o';
-import { flatPackIds } from './packs.js?v=20261113o';
-import { logEvent } from './log.js?v=20261113o';
-import { byOrder } from './order.js?v=20261113o';
-import { startStudyTimer } from './study-timer.js?v=20261113o';
-import { forgetProgress } from './progress-tidy.js?v=20261113o';
+import { db, storage } from './firebase-config.js?v=20261113p';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261113p';
+import { askClaude, jsonOf } from './ai.js?v=20261113p';
+import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261113p';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261113p';
+import { flatPackIds } from './packs.js?v=20261113p';
+import { logEvent } from './log.js?v=20261113p';
+import { byOrder } from './order.js?v=20261113p';
+import { startStudyTimer } from './study-timer.js?v=20261113p';
+import { forgetProgress } from './progress-tidy.js?v=20261113p';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
   questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
-  cardComplete, shortName, copyCards } from './cards-core.js?v=20261113o';
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261113p';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1022,6 +1022,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261113o"></script>
+<script src="site.js?v=20261113p"></script>
 </body>
 </html>
