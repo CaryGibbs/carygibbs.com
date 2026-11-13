@@ -339,7 +339,8 @@ const READ_MAX_BYTES = 3 * 1024 * 1024;
 const READ_MAX_CHARS = 30000;            // per page, after tidying
 const READ_UA = 'Mozilla/5.0 (compatible; LobeLimpet/1.0; +https://carygibbs.com/hub/help.html)';
 const READ_UA_TOKEN = 'lobelimpet';
-const PASTE_INSTEAD = 'Copy the text from the page and choose "Paste text" instead.';
+const PASTE_INSTEAD = 'Copy the words from the page and paste them in instead.';
+const NO_APPS = "That site doesn't let apps read its pages.";
 
 async function readPages(env, user, urls) {
   const list = [...new Set((Array.isArray(urls) ? urls : []).map(u => String(u || '').trim()).filter(Boolean))];
@@ -389,7 +390,7 @@ async function readPage(raw) {
     const f = safeUrl(r.url);
     if (f.origin !== u.origin && !(await robotsAllow(f))) throw new Error(`That site asks not to be read automatically. ${PASTE_INSTEAD}`);
   }
-  if (r.status === 401 || r.status === 403) throw new Error(`That page needs a sign-in or won't let us read it. ${PASTE_INSTEAD}`);
+  if (r.status === 401 || r.status === 403 || r.status === 429) throw new Error(`${NO_APPS} ${PASTE_INSTEAD}`);
   if (r.status === 404) throw new Error('That page wasn\'t found. Check the link.');
   if (!r.ok) throw new Error(`The page couldn't be read (${r.status}). ${PASTE_INSTEAD}`);
   const type = (r.headers.get('content-type') || '').toLowerCase();
@@ -435,12 +436,14 @@ const robotsCache = new Map();
 async function robotsAllow(u) {
   let rules = robotsCache.get(u.origin);
   if (!rules) {
-    let txt = '';
+    let txt = '', status = 0;
     try {
       const r = await fetch(`${u.origin}/robots.txt`, { redirect: 'follow', signal: AbortSignal.timeout(5000), headers: { 'User-Agent': READ_UA } });
+      status = r.status;
       if (r.ok) txt = (await r.text()).slice(0, 500000);
-      else if (r.status === 401 || r.status === 403) return false;
     } catch (e) { txt = ''; }
+    // The site turns apps away altogether (bot protection): say so plainly
+    if (status === 401 || status === 403) throw new Error(`${NO_APPS} ${PASTE_INSTEAD}`);
     rules = parseRobots(txt);
     robotsCache.set(u.origin, rules);
   }

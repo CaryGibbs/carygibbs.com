@@ -143,7 +143,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   const snap = await getDoc(doc(db, topicPath)).catch(() => null);
   const st = {
     step: 1, source: 'upload', text: '', note: '', kind: 'auto', files: 0,
-    urls: '', pages: [],   // "A web page": the links typed, and the pages read
+    urls: '', pages: [], manual: [],   // "A web page": links typed, pages read, pages to copy by hand
     notesSaved: 0, questionsSaved: 0,
     current: asGroups(snap?.data()?.keyPoints || []),
     notes: [], merge: 'add', questions: [], busy: false,
@@ -216,7 +216,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       if (st.source === 'upload' || st.source === 'paste' || st.source === 'web') st.text = (document.getElementById('tw-text')?.value ?? st.text);
       if (st.source === 'web') st.urls = document.getElementById('tw-urls')?.value ?? st.urls;
       // Words read from one kind of source don't carry over to another
-      if (b.dataset.src !== st.source && (st.source === 'web' || b.dataset.src === 'web')) { st.text = ''; st.pages = []; st.note = ''; st.files = 0; }
+      if (b.dataset.src !== st.source && (st.source === 'web' || b.dataset.src === 'web')) { st.text = ''; st.pages = []; st.manual = []; st.note = ''; st.files = 0; }
       st.source = b.dataset.src; step1();
     });
     const src = document.getElementById(st.source === 'upload' ? 'tw-src-upload' : 'tw-src');
@@ -235,17 +235,31 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       document.getElementById('tw-file').onchange = e => readFiles([...e.target.files]);
       document.getElementById('tw-photo').onchange = e => readFiles([...e.target.files]);
     } else if (st.source === 'web') {
+      const tried = st.pages.length || st.manual.length;
       src.innerHTML = `
         <div class="tw-upload tw-web">
           <label class="tw-label">Link to the page (up to 3, one per line)
             <textarea id="tw-urls" class="tw-input tw-urls" rows="2" placeholder="https://www.bbc.co.uk/bitesize/…" autocomplete="off" spellcheck="false">${esc(st.urls)}</textarea></label>
-          <div class="tw-up-btns"><button class="btn btn-primary" id="tw-read">🔗 ${st.pages.length ? 'Read again' : 'Read the page'}</button></div>
-          <p class="tw-hint">Works with most revision sites, like BBC Bitesize. Notes and questions are written in our own words, and the link is kept on the topic as "Read first", so students can read the original page too. Some sites can't be read automatically: then copy the words from the page and choose Paste text.</p>
+          <div class="tw-up-btns"><button class="btn btn-primary" id="tw-read">🔗 ${tried ? 'Read again' : 'Read the page'}</button>
+            <button class="tw-link" id="tw-manual">I'll copy the words myself</button></div>
+          ${tried ? '' : `<p class="tw-hint">Works with most revision sites. Notes and questions are written in our own words, and the link is kept on the topic as "Read first", so students can read the original page too.</p>`}
           ${st.pages.length ? `<ul class="tw-pages">${st.pages.map(p => `<li>✓ <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a> <small>${esc(p.site)} · ${p.words.toLocaleString('en-GB')} words${p.cut ? ' (first part)' : ''}</small></li>`).join('')}</ul>` : ''}
-          <textarea id="tw-text" class="tw-text" placeholder="The words from the page appear here, so you can check them first." ${st.text ? '' : 'hidden'}>${esc(st.text)}</textarea>
+          ${st.manual.length ? `<div class="tw-copy">
+            <strong>${st.manual.length > 1 ? 'Copy the words from these pages' : 'Copy the words from the page'}</strong>
+            ${st.manual.map(m => `<div class="tw-copy-row"><a class="btn btn-secondary btn-sm" href="${esc(m.url)}" target="_blank" rel="noopener">Open the page ↗</a> <small>${esc(m.why || siteLabel(m.url))}</small></div>`).join('')}
+            <ol class="tw-steps-copy">
+              <li>Open the page and select all the words: on a computer press <kbd>Ctrl</kbd>+<kbd>A</kbd> (<kbd>⌘</kbd>+<kbd>A</kbd> on a Mac); on a phone, press and hold on some text, then tap <b>Select All</b>.</li>
+              <li>Copy, come back here and paste into the box below. Menus and other bits of the page are fine: they're left out of the notes.</li>
+            </ol></div>` : ''}
+          <textarea id="tw-text" class="tw-text" placeholder="${st.manual.length ? 'Paste the words from the page here…' : 'The words from the page appear here, so you can check them first.'}" ${st.text || st.manual.length ? '' : 'hidden'}>${esc(st.text)}</textarea>
         </div>`;
       document.getElementById('tw-read').onclick = readUrls;
+      document.getElementById('tw-manual').onclick = copyMyself;
       document.getElementById('tw-urls').onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) readUrls(); };
+      // Pasting enables Next straight away
+      document.getElementById('tw-text').oninput = e => {
+        const nx = foot().querySelector('[data-go="next"]'); if (nx) nx.disabled = !e.target.value.trim();
+      };
     } else if (st.source === 'paste') {
       src.innerHTML = `<textarea id="tw-text" class="tw-text" placeholder="Paste your notes, a textbook passage or anything else to learn…">${esc(st.text)}</textarea>`;
     } else if (st.source === 'ai') {
@@ -286,14 +300,27 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   }
 
   // "A web page": the Worker fetches each page and sends back its main words
-  async function readUrls() {
+  function typedUrls() {
     st.urls = document.getElementById('tw-urls').value;
+    st.text = document.getElementById('tw-text')?.value ?? st.text;
     const urls = [...new Set(st.urls.split(/[\s,]+/).map(u => u.trim()).filter(Boolean)
       .map(u => /^https?:\/\//i.test(u) ? u : 'https://' + u))];
-    if (!urls.length) { msg('Paste a link to a web page first.', true); return; }
-    if (urls.length > 3) { msg('Up to 3 pages at a time.', true); return; }
+    if (!urls.length) { msg('Paste a link to a web page first.', true); return null; }
+    if (urls.length > 3) { msg('Up to 3 pages at a time.', true); return null; }
     const bad = urls.find(u => { try { new URL(u); return false; } catch (e) { return true; } });
-    if (bad) { msg(`That doesn't look like a web address: ${bad}`, true); return; }
+    if (bad) { msg(`That doesn't look like a web address: ${bad}`, true); return null; }
+    return urls;
+  }
+  // Straight to copying and pasting (the link is still kept for "Read first")
+  function copyMyself() {
+    const urls = typedUrls(); if (!urls) return;
+    st.manual = urls.filter(u => !st.pages.some(p => p.url === u)).map(url => ({ url, why: '' }));
+    st.note = '';
+    step1();
+    document.getElementById('tw-text')?.focus();
+  }
+  async function readUrls() {
+    const urls = typedUrls(); if (!urls) return;
     busy(true, `Reading ${urls.length > 1 ? 'the pages' : 'the page'}…`);
     let res;
     try { res = await workerAction('readPage', { urls }); }
@@ -306,12 +333,29 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     const got = (res.pages || []).filter(p => p.text);
     const failed = (res.pages || []).filter(p => !p.text);
     st.pages = got.map(p => ({ url: p.finalUrl || p.url, title: p.title, site: p.site, words: p.words || 0, cut: !!p.cut }));
-    st.text = got.map(p => (got.length > 1 ? `# ${p.title}\n` : '') + p.text).join('\n\n');
-    st.note = got.length ? `Read ${got.length === 1 ? 'the page' : got.length + ' pages'}. Check the words below (you can delete anything not needed), then continue.` : '';
+    // Pages that couldn't be read (e.g. BBC Bitesize turns apps away): copy and paste them
+    st.manual = failed.filter(p => !/web address|wasn't found|is a PDF/.test(p.error || ''))
+      .map(p => ({ url: p.url, why: whyText(p) }));
+    const broken = failed.filter(p => !st.manual.some(m => m.url === p.url));
+    st.text = got.map(p => (got.length > 1 || st.manual.length ? `# ${p.title}\n` : '') + p.text).join('\n\n');
+    st.note = got.length ? `Read ${got.length === 1 ? 'the page' : got.length + ' pages'}. Check the words below (you can delete anything not needed)${st.manual.length ? ', add the words you copy' : ''}, then continue.` : '';
     if (got.length) logEvent('content.read_page', { target: `${subject.name || ''} › ${topic.name}`, detail: got.map(p => p.site || p.title).join(', ') });
     step1();
-    if (failed.length) msg(failed.map(p => `${shortUrl(p.url)}: ${p.error}`).join(' '), true);
+    if (broken.length) msg(broken.map(p => `${shortUrl(p.url)}: ${p.error}`).join(' '), true);
+    if (st.manual.length) document.getElementById('tw-text')?.focus();
   }
+  // "BBC Bitesize doesn't let apps read its pages", from the Worker's reason
+  const whyText = p => {
+    const e = String(p.error || '').replace(/\s*Copy the (words|text) from the page.*$/, '');
+    return /let apps|asks not to be read/.test(e) ? `${siteLabel(p.url)} doesn't let apps read its pages, so copy the words yourself.` : `${siteLabel(p.url)}: ${e}`;
+  };
+  const siteLabel = u => {
+    try {
+      const x = new URL(u); const h = x.hostname.replace(/^www\./, '');
+      if (/^bbc\.(co\.uk|com)$/.test(h)) return /^\/bitesize/.test(x.pathname) ? 'BBC Bitesize' : 'BBC';
+      return { 'thenational.academy': 'Oak National Academy', 'savemyexams.com': 'Save My Exams', 'senecalearning.com': 'Seneca', 'en.wikipedia.org': 'Wikipedia' }[h] || h;
+    } catch (e) { return 'This site'; }
+  };
   const shortUrl = u => { try { const x = new URL(u); return x.hostname.replace(/^www\./, '') + (x.pathname.length > 1 ? x.pathname.slice(0, 30) + (x.pathname.length > 30 ? '…' : '') : ''); } catch (e) { return u; } };
 
   async function readFile(file, of = '') {
@@ -340,7 +384,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       prompt = notesPromptResearch(st.aiTopic);
     } else {
       st.text = (document.getElementById('tw-text')?.value || '').trim();
-      if (st.text.length < 40) { msg(st.source === 'upload' ? 'Take a photo or choose a file first.' : st.source === 'web' ? 'Paste a link and tap Read the page first.' : 'Paste some notes first.', true); return; }
+      if (st.text.length < 40) { msg(st.source === 'upload' ? 'Take a photo or choose a file first.' : st.source === 'web' ? (st.manual.length ? 'Paste the words from the page into the box first.' : 'Paste a link and tap Read the page first.') : 'Paste some notes first.', true); return; }
       prompt = notesPromptFromText(st.text, st.source === 'web' ? 'auto' : st.kind, st.aiTopic, { fromWeb: st.source === 'web' });
     }
     busy(true, 'Writing the notes… (up to a minute)');
@@ -396,7 +440,10 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     const keyPoints = st.merge === 'replace' || !st.current.length ? fresh : [...st.current, ...fresh];
     busy(true, 'Saving the notes…');
     // Notes made from web pages keep a link back to each page ("Read first")
-    const fromPages = st.source === 'web' ? st.pages.map(p => ({ label: p.title, url: p.url, site: p.site })) : [];
+    const fromPages = st.source === 'web' ? [
+      ...st.pages.map(p => ({ label: p.title, url: p.url, site: p.site })),
+      ...st.manual.map(m => ({ label: `${siteLabel(m.url)} page`, url: m.url, site: '' })),
+    ] : [];
     try {
       const upd = { keyPoints };
       if (fromPages.length) {
@@ -565,6 +612,15 @@ function injectStyle() {
   .tw-pages { list-style: none; padding: 0; margin: 0 0 10px; display: flex; flex-direction: column; gap: 4px; font-size: 0.88rem; }
   .tw-pages a { color: var(--color-primary); font-weight: 600; }
   .tw-pages small { color: var(--color-text-muted); }
+  .tw-copy { background: var(--color-surface-2); border-radius: 12px; padding: 12px 14px; margin: 8px 0 10px; font-size: 0.88rem; }
+  .tw-copy > strong { display: block; font-family: var(--font-ui); margin-bottom: 8px; }
+  .tw-copy-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .tw-copy-row small { color: var(--color-text-muted); }
+  .tw-copy .btn-sm { padding: 6px 12px; font-size: 0.85rem; text-decoration: none; }
+  .tw-steps-copy { margin: 8px 0 0; padding-left: 20px; line-height: 1.5; }
+  .tw-steps-copy li { margin-bottom: 4px; }
+  .tw-steps-copy kbd { font-family: var(--font-ui); font-size: 0.78rem; border: 1px solid var(--color-border); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--color-surface); }
+  .tw-web .tw-link { margin-left: 4px; }
   .tw-or { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin: 14px 0 8px; }
   .tw-choices-sm .tw-choice { padding: 10px 12px; }
   .tw-choices-sm .tw-ic { font-size: 1.1rem; }

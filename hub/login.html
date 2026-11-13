@@ -151,13 +151,17 @@
         <label class="age-label"><input type="checkbox" id="signup-age13"> <span>I'm 13 or over</span></label>
         <p class="form-hint">Under 13? Ask a parent or carer to sign up as a parent and create your account for you.</p>
       </div>
+      <div class="form-group age-check" id="terms-group">
+        <label class="age-label"><input type="checkbox" id="signup-terms"> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a></span></label>
+        <p class="form-hint">How we look after your details: <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a>.</p>
+      </div>
       <button class="btn btn-primary btn-submit" id="btn-signup" onclick="handleSignup()">Create account</button>
       <p class="invite-alt" id="invite-alt" hidden>Already have a Lobe Limpet account? <a href="#" onclick="switchTab('login');return false;">Sign in to accept</a></p>
     </div>
   </div>
 
   <div class="auth-footer">
-    By signing in you agree to our <a href="terms.html">Terms</a> &amp; <a href="privacy.html">Privacy notice</a> · <a href="help.html">Help</a>
+    <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy notice</a> · <a href="help.html">Help</a>
   </div>
 </div>
 
@@ -170,6 +174,8 @@
 </script>
 
 <script type="module">
+// Version of the Terms of use agreed at sign-up (users.terms.version); change when the terms change
+const TERMS_VERSION = '2026-11-13';
   import { auth, db } from './firebase-config.js?v=20261113a';
   import { redirectByRole, generatePassword } from './auth.js?v=20261113a';
   // Password helpers: show/hide, and a memorable suggested password for new accounts
@@ -337,6 +343,8 @@
     const age13 = document.getElementById('signup-age13').checked;
     if (signupType === 'student' && !studentSelf) { showError('Students: please ask a parent or carer to create your account.'); return; }
     if (signupType === 'student' && !age13) { showError("Please confirm you're 13 or over. If you're under 13, a parent or carer needs to create your account."); return; }
+    if (!document.getElementById('signup-terms').checked) { showError('Please read and agree to the Terms of use.'); return; }
+    const terms = { version: TERMS_VERSION, at: Date.now() };   // agreed at sign-up
 
     // Validate class code if provided
     let classInfo = null;
@@ -356,13 +364,13 @@
       if (signupType === 'parent') {
         await setDoc(doc(db, 'users', uid), {
           name, email, role: 'parent', theme: 'parent',
-          createdAt: Date.now(), children: {}
+          createdAt: Date.now(), children: {}, terms
         });
         await saveEmailIndex(uid, email, name, ['parent']);
       } else if (signupType === 'teacher') {
         await setDoc(doc(db, 'users', uid), {
           name, email, school, role: 'teacher', roles: ['teacher'], theme: 'parent',
-          createdAt: Date.now()
+          createdAt: Date.now(), terms
         });
         await saveEmailIndex(uid, email, name, ['teacher']);
       } else {
@@ -373,6 +381,7 @@
           classPacks: classInfo ? { [classInfo.classId]: classInfo.packIds || [] } : {},
           packIds: classInfo ? (classInfo.packIds || []) : [],
           ageConfirmed: { over13: true, at: Date.now() },   // ticked "I'm 13 or over" at sign-up
+          terms,
           teacherIds: classInfo ? [classInfo.teacherUid] : [],
           ...(classInfo ? { lastJoin: { teacherUid: classInfo.teacherUid, classId: classInfo.classId, at: Date.now() } } : {})
         };
