@@ -132,29 +132,40 @@ service cloud.firestore {
         return (!hasRole(newData(), 'student') || studentSelfSignupOn())
           && (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
           && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
-          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit'])
+          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'accountNo'])
           && teacherIdsCreateOK();
       }
       // A parent or teacher creating a student account
       function studentCreateOK() {
         return newData().get('role', '') == 'student'
           && newData().get('roles', ['student']) == ['student']
+          && !newData().keys().hasAny(['accountNo'])
           && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
           && ((newData().get('parentUid', '') == me() && hasRole(userDoc(me()), 'parent'))
               || (newData().get('teacherUid', '') == me() && newData().get('teacherIds', []) == [me()]
                   && hasRole(userDoc(me()), 'teacher')));
       }
+      // Account number (account-no.js): set once, to a code whose index entry
+      // (accountNos/{code}) names this account; never changed after that
+      function accountNoOK() {
+        let no = newData().get('accountNo', '');
+        return !changedKeys().hasAny(['accountNo'])
+          || (resource.data.get('accountNo', '') == '' && no is string && no != ''
+              && exists(/databases/$(database)/documents/accountNos/$(no))
+              && get(/databases/$(database)/documents/accountNos/$(no)).data.uid == uid);
+      }
       // Editing yourself: can't change plan or who your parents are; can only
       // add admin with a valid admin invite
       function selfUpdateOK() {
         return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit'])
+          && accountNoOK()
           && !gainsPlus()
           && teacherIdsUpdateOK()
           && (!gainsAdmin() || adminInvite(newData().get('inviteCode', '')));
       }
       // A parent editing their student: anything except roles, paid plan and teacher links
       function guardianUpdateOK() {
-        return !changedKeys().hasAny(['roles', 'role', 'teacherIds', 'teacherUid', 'aiLimit']) && !gainsPlus();
+        return !changedKeys().hasAny(['roles', 'role', 'teacherIds', 'teacherUid', 'aiLimit', 'accountNo']) && !gainsPlus();
       }
       // Accepting an invite that shares this student: add only yourself as a guardian
       function inviteGuardianOK() {
@@ -235,6 +246,19 @@ service cloud.firestore {
     }
 
     // ── Exact-email look-up (no browsing) ─────────────────
+    // Account numbers: accountNos/{LL-XXXXX} = { uid, at }. Created once (a
+    // code that's taken counts as an update and is refused), never changed.
+    match /accountNos/{no} {
+      allow get: if signedIn() && (resource.data.uid == me() || isAdmin());
+      allow list: if isAdmin();
+      allow create: if signedIn()
+        && no.matches('LL-[A-HJ-NP-Z2-9]{5}')
+        && (request.resource.data.uid == me() || isAdmin())
+        && request.resource.data.keys().hasOnly(['uid', 'at']);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     match /emailIndex/{email} {
       function manages(id) {
         return exists(/databases/$(database)/documents/users/$(id))

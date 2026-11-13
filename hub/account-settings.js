@@ -5,9 +5,10 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261113t';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261113t';
-import { openDeleteAccount } from './account.js?v=20261113t';
+import { auth } from './firebase-config.js?v=20261113u';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261113u';
+import { openDeleteAccount } from './account.js?v=20261113u';
+import { formatAccountNo } from './account-no.js?v=20261113u';
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -46,8 +47,9 @@ export function openAccountSettings({ user, profile = {} } = {}) {
             <dt>Name</dt><dd>${esc(profile.name || user.displayName || '')}</dd>
             <dt>Email</dt><dd>${esc(email)}</dd>
             <dt>Roles</dt><dd>${esc(roles)}</dd>
+            ${profile.accountNo ? `<dt>Account no.</dt><dd><span class="as-no">${esc(formatAccountNo(profile.accountNo))}</span> <button class="as-copy" id="as-copy" title="Copy">Copy</button></dd>` : ''}
           </dl>
-          <p class="as-hint">To change your name or email, <a href="contact.html" target="_blank" rel="noopener">contact us</a> from this email address.</p>
+          <p class="as-hint">${profile.accountNo ? 'Quote your account number if you contact us. ' : ''}To change your name or email, <a href="contact.html" target="_blank" rel="noopener">contact us</a> from this email address.</p>
         </section>
 
         <section class="as-sec">
@@ -88,6 +90,9 @@ export function openAccountSettings({ user, profile = {} } = {}) {
   box.addEventListener('click', e => { if (e.target === box) close(); });
   box.querySelector('.as-x').focus();
 
+  document.getElementById('as-copy')?.addEventListener('click', e => {
+    navigator.clipboard?.writeText(formatAccountNo(profile.accountNo)).then(() => { e.target.textContent = 'Copied'; }).catch(() => {});
+  });
   const reset = document.getElementById('as-reset'), rmsg = document.getElementById('as-reset-msg');
   reset.onclick = async () => {
     if (!email) { rmsg.textContent = 'No email address on this account.'; return; }
@@ -111,7 +116,9 @@ function injectStyle() {
   .as-sec h3 { font-family: var(--font-ui, system-ui); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin: 0 0 8px; }
   .as-sec p { font-size: 0.9rem; line-height: 1.5; margin: 0 0 8px; }
   .as-sec a { color: var(--color-primary); }
-  .as-dl { display: grid; grid-template-columns: 70px 1fr; gap: 4px 12px; margin: 0 0 6px; font-size: 0.92rem; }
+  .as-no { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.04em; }
+  .as-copy { background: none; border: 1px solid var(--color-border); border-radius: 999px; padding: 1px 8px; font: inherit; font-size: 0.75rem; cursor: pointer; color: var(--color-text-muted); margin-left: 4px; }
+  .as-dl { display: grid; grid-template-columns: 90px 1fr; gap: 4px 12px; margin: 0 0 6px; font-size: 0.92rem; }
   .as-dl dt { color: var(--color-text-muted); } .as-dl dd { margin: 0; word-break: break-word; }
   .as-hint { color: var(--color-text-muted); font-size: 0.82rem !important; }
   .as-msg { display: inline-block; margin-left: 10px; font-size: 0.85rem; color: var(--color-text-muted); }

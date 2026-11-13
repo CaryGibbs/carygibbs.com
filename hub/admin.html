@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113t"></script>
+  <script src="dev-flag.js?v=20261113u"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113t">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113t">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113t">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113t">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113u">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113u">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113u">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113u">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113t">
-  <script src="icons.js?v=20261113t"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113u">
+  <script src="icons.js?v=20261113u"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -417,6 +417,7 @@
     .plus-switch { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .plus-switch input { width: auto; margin: 0; }
     .plus-switch.plus-family { cursor: default; opacity: 0.75; }
+    .acct-no { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; letter-spacing: 0.04em; color: var(--color-text-muted); margin-top: 2px; }
     .uf-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; font-family: var(--font-ui); font-size: 0.85rem; }
     .uf-search { display: flex; align-items: center; gap: 6px; flex: 1 1 220px; max-width: 340px; padding: 0 10px; border: 1px solid var(--color-border); border-radius: var(--radius-button); background: var(--color-surface); }
     .uf-search input { border: 0 !important; background: none !important; padding: 9px 0 !important; width: 100%; box-shadow: none !important; }
@@ -633,8 +634,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113t">
-  <link rel="stylesheet" href="stats.css?v=20261113t">
+  <link rel="stylesheet" href="ui.css?v=20261113u">
+  <link rel="stylesheet" href="stats.css?v=20261113u">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -902,7 +903,7 @@
       </div>
       <!-- Filters for the list below (applied in the browser; nothing is reloaded) -->
       <div class="uf-bar" id="users-filters">
-        <label class="uf-search"><i data-icon="search"></i><input type="search" id="uf-q" placeholder="Search name or email" autocomplete="off"></label>
+        <label class="uf-search"><i data-icon="search"></i><input type="search" id="uf-q" placeholder="Search name, email or account no." autocomplete="off"></label>
         <label class="uf-field">Role
           <select id="uf-role"><option value="">All roles</option><option value="admin">Admin</option><option value="teacher">Teacher</option><option value="parent">Parent</option><option value="student">Student</option></select></label>
         <label class="uf-field">Plan
@@ -1427,33 +1428,34 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261113t';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113t';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113t';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113t';
-import { syncFamilyPlus } from './family-plus.js?v=20261113t';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113t';
-import { openDeleteAccount } from './account.js?v=20261113t';
-import { addDocumentButton } from './doc-text.js?v=20261113t';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113t';
-import { showPlusUpsell } from './plus.js?v=20261113t';
-import { offerGivePack } from './first-steps.js?v=20261113t';
+import { auth, db, storage } from './firebase-config.js?v=20261113u';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113u';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113u';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113u';
+import { syncFamilyPlus } from './family-plus.js?v=20261113u';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261113u';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113u';
+import { openDeleteAccount } from './account.js?v=20261113u';
+import { addDocumentButton } from './doc-text.js?v=20261113u';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113u';
+import { showPlusUpsell } from './plus.js?v=20261113u';
+import { offerGivePack } from './first-steps.js?v=20261113u';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113t';
-import { mountShell } from './shell.js?v=20261113t';
-import { openInviteDialog, signupLink } from './invite.js?v=20261113t';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113t';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113t';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113t';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113t';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113t';
-import { dueEntries } from './srs.js?v=20261113t';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113t';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113t';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113u';
+import { mountShell } from './shell.js?v=20261113u';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113u';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113u';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113u';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113u';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113u';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113u';
+import { dueEntries } from './srs.js?v=20261113u';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113u';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113u';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1469,8 +1471,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261113t';
-import { inOrder } from './order.js?v=20261113t';
+import { saveEmailIndex } from './email-index.js?v=20261113u';
+import { inOrder } from './order.js?v=20261113u';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4613,6 +4615,9 @@ async function loadUsers() {
   await migratePlusField(users);
   await syncFamilyPlus(users);   // keep students covered by a parent's Plus in step
   groupFamilies(users);          // families together, by the main parent's surname
+  // Account numbers for anyone still without one (one at a time; quick)
+  // (stops at the first failure, e.g. before the new security rules are published)
+  for (const u of users.filter(x => !x.accountNo)) { if (!(await ensureAccountNo(u.id, u))) break; }
   if (!users.length) { list.innerHTML = `<div class="empty-state"><h3>No users yet</h3></div>`; return; }
   const roleIcon = { parent:'house', student:'graduation-cap', teacher:'school', admin:'shield' };
   const roleColour = { parent:'badge-success', student:'badge-primary', teacher:'badge-warning', admin:'badge-primary' };
@@ -4624,9 +4629,9 @@ async function loadUsers() {
       // Plan for the filter: own Plus (or admin), Plus through family, or free
       const planKey = (u.tier === 'plus' || u.plan === 'plus' || roles.includes('admin')) ? 'own' : (u.plusFrom && usersCache.some(x => x.id === u.plusFrom)) ? 'family' : 'free';
       const joined = u.createdAt ? (u.createdAt.seconds ? u.createdAt.seconds * 1000 : Number(u.createdAt) || Date.parse(u.createdAt) || 0) : 0;
-      return `<tr data-user-row="${esc(u.id)}" data-q="${esc(((u.name || '') + ' ' + (u.email || '')).toLowerCase())}" data-roles="${esc(roles.join(' '))}" data-plan="${planKey}" data-joined="${joined}" class="${u._famHead ? 'fam-head' : ''}${u._famMember ? ' fam-member' : ''}">
+      return `<tr data-user-row="${esc(u.id)}" data-q="${esc(((u.name || '') + ' ' + (u.email || '') + ' ' + accountSearchText(u.accountNo)).toLowerCase())}" data-roles="${esc(roles.join(' '))}" data-plan="${planKey}" data-joined="${joined}" class="${u._famHead ? 'fam-head' : ''}${u._famMember ? ' fam-member' : ''}">
       <td><span class="user-name">${u._famMember ? '<span class="fam-tick" aria-hidden="true">↳</span>' : ''}<span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
-      <td class="muted">${esc(u.email||'—')}</td>
+      <td class="muted">${esc(u.email||'—')}${u.accountNo ? `<div class="acct-no" title="Account number">${esc(formatAccountNo(u.accountNo))}</div>` : ''}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
       <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : (() => {
         const own = u.tier === 'plus' || u.plan === 'plus';
@@ -4749,6 +4754,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113t"></script>
+<script src="site.js?v=20261113u"></script>
 </body>
 </html>

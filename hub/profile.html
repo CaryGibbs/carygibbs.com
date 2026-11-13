@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261113t"></script>
+  <script src="dev-flag.js?v=20261113u"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113t">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113t">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113t">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113t">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113u">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113u">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113u">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113u">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113t">
-  <script src="icons.js?v=20261113t"></script>
-  <link rel="stylesheet" href="stats.css?v=20261113t">
+  <link rel="stylesheet" href="theme.css?v=20261113u">
+  <script src="icons.js?v=20261113u"></script>
+  <link rel="stylesheet" href="stats.css?v=20261113u">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -155,7 +155,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113t">
+  <link rel="stylesheet" href="ui.css?v=20261113u">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -246,6 +246,7 @@
   <div class="section" id="delete-section">
     <details class="acct-details">
       <summary class="section-title"><i data-icon="settings"></i> Account settings</summary>
+      <p class="card-length-help" id="acct-no-line" hidden></p>
       <p class="card-length-help">Read the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and how we look after your details in the <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a>.</p>
       <div class="acct-danger">
         <strong>Delete account</strong>
@@ -274,19 +275,20 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261113t';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261113t';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261113t';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261113t';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261113t';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261113t';
-import { openDeleteAccount } from './account.js?v=20261113t';
-import { plusPillHtml } from './plus.js?v=20261113t';
-import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261113t';
+import { auth, db } from './firebase-config.js?v=20261113u';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261113u';
+import { formatAccountNo } from './account-no.js?v=20261113u';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261113u';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261113u';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261113u';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261113u';
+import { openDeleteAccount } from './account.js?v=20261113u';
+import { plusPillHtml } from './plus.js?v=20261113u';
+import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261113u';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { packNames, flatPackIds } from './packs.js?v=20261113t';
-import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261113t';
-import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261113t';
+import { packNames, flatPackIds } from './packs.js?v=20261113u';
+import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261113u';
+import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261113u';
 
 async function showPacks(user, profile) {
   if (!isStudent(profile)) return;
@@ -395,6 +397,9 @@ requireAuth(async (user, profile) => {
   if (!isStudent(profile)) { location.href = 'hub.html'; return; }
   if (isPreview()) document.getElementById('delete-section').hidden = true;
   else document.getElementById('btn-delete-account').onclick = () => openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true });
+  // Account number (given out on sign-in; may arrive a moment after the page)
+  const showAcctNo = () => { const el = document.getElementById('acct-no-line'); if (el && profile.accountNo) { el.hidden = false; el.innerHTML = `Your account number: <b style="font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em">${formatAccountNo(profile.accountNo)}</b>. Quote it if you or your parent contact us.`; } };
+  showAcctNo(); if (!profile.accountNo) setTimeout(showAcctNo, 2500);
   if (!isPreview()) showPeople(user, profile);
   showPacks(user, profile);
 
@@ -505,6 +510,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113t"></script>
+<script src="site.js?v=20261113u"></script>
 </body>
 </html>

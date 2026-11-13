@@ -685,6 +685,7 @@ async function deleteAccount(env, caller, uid, checkOnly) {
   // Their record, and the things only they had
   if (target) writes.push(del(`users/${uid}`));
   if (target?.email) writes.push(del(`emailIndex/${String(target.email).trim().toLowerCase()}`));
+  if (target?.accountNo) writes.push(del(`accountNos/${target.accountNo}`));   // their account number, freed
   for (const sid of await fsList(tok, `users/${uid}/children`)) writes.push(del(`users/${uid}/children/${sid}`));
   // As a teacher: their classes, join codes, and the class on each student
   for (const cid of await fsList(tok, `users/${uid}/classes`)) {
