@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113h';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261113h';
-import { themeColour } from './themes.js?v=20261113h';
+import { db } from './firebase-config.js?v=20261113i';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261113i';
+import { themeColour } from './themes.js?v=20261113i';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openDeleteAccount } from './account.js?v=20261113h';
-import { plusPillHtml } from './plus.js?v=20261113h';
+import { openAccountSettings } from './account-settings.js?v=20261113i';
+import { plusPillHtml } from './plus.js?v=20261113i';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -115,12 +115,12 @@ export function mountShell(user, profile, { view, active } = {}) {
     <div class="sidebar-footer">
       <a class="nav-item" href="help.html${view === 'teacher' ? '#teachers' : view === 'parent' ? '#parents' : ''}" target="_blank" rel="noopener"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Help &amp; FAQs</span></a>
       ${profile?.tier !== 'plus' && profile?.plan !== 'plus' && !viewsOf(profile).includes('admin') ? `<a class="nav-item" href="plus.html" style="color:#e0643f;font-weight:700;"><span class="nav-icon"><i data-icon="sparkles"></i></span><span>Upgrade to Plus</span></a>` : ''}
-      <div class="sidebar-account">
+      <button class="sidebar-account" id="shell-account" title="Account settings" aria-label="Account settings for ${esc(profile.name || 'you')}">
         <span class="sidebar-avatar">${esc(initials)}</span>
         <span class="sidebar-account-text"><strong>${esc(profile.name || 'Account')}</strong><small>${esc(accountRole)} · ${esc(profile.email || '')}</small></span>
-      </div>
+        <span class="sidebar-account-cog" aria-hidden="true"><i data-icon="settings"></i></span>
+      </button>
       <button class="nav-item" id="shell-signout"><span class="nav-icon"><i data-icon="log-out"></i></span><span>Sign out</span></button>
-      <button class="shell-delete" id="shell-delete">Delete my account</button>
     </div>`;
 
   // Highlight the right admin item
@@ -150,10 +150,12 @@ export function mountShell(user, profile, { view, active } = {}) {
   sidebar.querySelector('.sidebar-close').onclick = close;
   sidebar.addEventListener('click', e => { if (e.target.closest('a.nav-item, button.nav-item')) close(); });
   document.getElementById('shell-signout').onclick = () => handleSignOut();
-  document.getElementById('shell-delete').onclick = () => openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true });
-  if (!document.getElementById('shell-delete-style')) document.head.insertAdjacentHTML('beforeend', `<style id="shell-delete-style">
-    .shell-delete { background: none; border: 0; padding: 2px 12px 4px; font: inherit; font-size: 0.75rem; color: var(--color-text-muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
-    .shell-delete:hover { color: var(--color-danger); }</style>`);
+  document.getElementById('shell-account').onclick = () => { close(); openAccountSettings({ user, profile }); };
+  if (!document.getElementById('shell-account-style')) document.head.insertAdjacentHTML('beforeend', `<style id="shell-account-style">
+    button.sidebar-account { width: 100%; background: none; border: 0; border-radius: 10px; font: inherit; text-align: left; cursor: pointer; color: inherit; }
+    button.sidebar-account:hover, button.sidebar-account:focus-visible { background: var(--color-surface-2); }
+    .sidebar-account-cog { margin-left: auto; color: var(--color-text-muted); display: inline-flex; flex-shrink: 0; }
+    .sidebar-account-cog svg { width: 16px; height: 16px; }</style>`);
 
   if (view === 'parent') loadChildShortcuts(user);
 }

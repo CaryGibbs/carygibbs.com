@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113h">
-  <script src="icons.js?v=20261113h"></script>
-  <link rel="stylesheet" href="stats.css?v=20261113h">
+  <link rel="stylesheet" href="theme.css?v=20261113i">
+  <script src="icons.js?v=20261113i"></script>
+  <link rel="stylesheet" href="stats.css?v=20261113i">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -154,7 +154,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261113h">
+  <link rel="stylesheet" href="ui.css?v=20261113i">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -243,10 +243,26 @@
 
   <!-- Delete account (not shown while an adult is previewing) -->
   <div class="section" id="delete-section">
-    <div class="section-title"><i data-icon="trash-2"></i> Your account</div>
-    <p class="card-length-help">You can delete your account and everything in it at any time. This can't be undone.</p>
-    <button class="btn btn-danger" id="btn-delete-account">Delete my account</button>
+    <details class="acct-details">
+      <summary class="section-title"><i data-icon="settings"></i> Account settings</summary>
+      <p class="card-length-help">Read the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> and how we look after your details in the <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a>.</p>
+      <div class="acct-danger">
+        <strong>Delete account</strong>
+        <p class="card-length-help">Permanently deletes your account and everything in it: progress, streaks, badges and flashcards. This can't be undone.</p>
+        <button class="acct-del" id="btn-delete-account">Delete my account…</button>
+      </div>
+    </details>
   </div>
+  <style>
+    .acct-details summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+    .acct-details summary::-webkit-details-marker { display: none; }
+    .acct-details summary::after { content: '›'; margin-left: auto; transition: transform .2s; font-size: 1.2rem; }
+    .acct-details[open] summary::after { transform: rotate(90deg); }
+    .acct-details a { color: var(--color-primary); }
+    .acct-danger { border: 1px solid color-mix(in srgb, var(--color-danger, #c0392b) 45%, transparent); border-radius: 12px; padding: 12px 14px; margin-top: 10px; }
+    .acct-danger strong { color: var(--color-danger, #c0392b); font-family: var(--font-ui); font-size: 0.9rem; }
+    .acct-del { background: none; border: 1px solid var(--color-danger, #c0392b); color: var(--color-danger, #c0392b); border-radius: 999px; padding: 8px 16px; font: inherit; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+  </style>
 
 </div>
 
@@ -257,19 +273,19 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261113h';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261113h';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261113h';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261113h';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261113h';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261113h';
-import { openDeleteAccount } from './account.js?v=20261113h';
-import { plusPillHtml } from './plus.js?v=20261113h';
-import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261113h';
+import { auth, db } from './firebase-config.js?v=20261113i';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261113i';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261113i';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261113i';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261113i';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261113i';
+import { openDeleteAccount } from './account.js?v=20261113i';
+import { plusPillHtml } from './plus.js?v=20261113i';
+import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261113i';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { packNames, flatPackIds } from './packs.js?v=20261113h';
-import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261113h';
-import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261113h';
+import { packNames, flatPackIds } from './packs.js?v=20261113i';
+import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261113i';
+import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261113i';
 
 async function showPacks(user, profile) {
   if (!isStudent(profile)) return;
@@ -488,6 +504,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113h"></script>
+<script src="site.js?v=20261113i"></script>
 </body>
 </html>

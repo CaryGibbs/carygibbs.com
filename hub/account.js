@@ -1,6 +1,7 @@
 // ============================================================
 // LOBE LIMPET: deleting an account
-// Used by: the adult sidebar ("Delete my account"), the student Profile,
+// Used by: Account settings (account-settings.js, from your name in the adult
+// sidebar), the student Profile (Account settings section),
 // a parent removing a student who has no other parent, and Admin → Users.
 //
 // The browser first deletes the person's own revision packs (whole trees),
@@ -12,9 +13,9 @@
 // only parent, or an admin (only the owner can delete an admin).
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261113h';
-import { PROXY_URL } from './ai.js?v=20261113h';
-import { logEvent } from './log.js?v=20261113h';
+import { auth, db } from './firebase-config.js?v=20261113i';
+import { PROXY_URL } from './ai.js?v=20261113i';
+import { logEvent } from './log.js?v=20261113i';
 import { collection, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
