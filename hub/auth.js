@@ -2,10 +2,10 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261113m';
+import { auth, db } from './firebase-config.js?v=20261113n';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261113m';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261113n';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -104,16 +104,29 @@ function showPreviewBanner(student) {
   document.head.appendChild(style);
 }
 
-// plusFrom must be one of the student's own parents, and that parent must have Plus
+// Family Plus. A student: plusFrom must be one of their own parents, and that
+// parent must have Plus. A co-parent: plusFrom is another parent with Plus and
+// plusVia a student they both look after (checked the same way by the
+// security rules and the AI Worker, so a made-up value gives nothing).
 export function familyPlusFrom(profile) {
   const from = profile?.plusFrom;
   return typeof from === 'string' && from && (profile.parentUid === from || (profile.guardianIds || []).includes(from)) ? from : null;
 }
-export async function withFamilyPlus(profile) {
-  const from = !isPlusTier(profile) && familyPlusFrom(profile);
+const parentsOfRec = s => [s?.parentUid, ...(s?.guardianIds || [])].filter(Boolean);
+export async function withFamilyPlus(profile, uid = '') {
+  if (!profile || isPlusTier(profile)) return profile;
+  const from = familyPlusFrom(profile);
   if (from) {
     const p = await getDoc(doc(db, 'users', from)).catch(() => null);
     profile._familyPlus = !!p?.exists?.() && coversFamily(p.data());
+  } else if (uid && typeof profile.plusFrom === 'string' && profile.plusFrom && typeof profile.plusVia === 'string' && profile.plusVia) {
+    const [s, p] = await Promise.all([
+      getDoc(doc(db, 'users', profile.plusVia)).catch(() => null),
+      getDoc(doc(db, 'users', profile.plusFrom)).catch(() => null),
+    ]);
+    const ps = parentsOfRec(s?.data?.());
+    profile._familyPlus = ps.includes(uid) && ps.includes(profile.plusFrom) && profile.plusFrom !== uid
+      && !!p?.exists?.() && coversFamily(p.data());
   }
   return profile;
 }
@@ -147,7 +160,7 @@ export function requireAuth(callback) {
         }
       }
 
-      await withFamilyPlus(profile);
+      await withFamilyPlus(profile, user.previewOf || user.uid);
       if (profile.theme) document.body.setAttribute('data-theme', profile.theme);
       callback(user, profile);
     } catch(e) {

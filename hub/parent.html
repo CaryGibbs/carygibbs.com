@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113m"></script>
+  <script src="dev-flag.js?v=20261113n"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113n">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113n">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113n">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113n">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113m">
-  <script src="icons.js?v=20261113m"></script>
-  <link rel="stylesheet" href="stats.css?v=20261113m">
+  <link rel="stylesheet" href="theme.css?v=20261113n">
+  <script src="icons.js?v=20261113n"></script>
+  <link rel="stylesheet" href="stats.css?v=20261113n">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -183,7 +183,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261113m">
+  <link rel="stylesheet" href="ui.css?v=20261113n">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -433,25 +433,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261113m';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261113m';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261113m';
-import { showPlusUpsell } from './plus.js?v=20261113m';
-import { syncMyChildPlus } from './family-plus.js?v=20261113m';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261113m';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261113m';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261113m';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261113m';
-import { logEvent } from './log.js?v=20261113m';
-import { openInviteDialog } from './invite.js?v=20261113m';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113m';
-import { dueEntries, scheduledCount } from './srs.js?v=20261113m';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261113m';
-import { openPlanCalendar } from './plan-view.js?v=20261113m';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261113m';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113m';
-import { openDeleteAccount } from './account.js?v=20261113m';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261113m';
+import { auth, db } from './firebase-config.js?v=20261113n';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261113n';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261113n';
+import { showPlusUpsell } from './plus.js?v=20261113n';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261113n';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261113n';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261113n';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261113n';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261113n';
+import { logEvent } from './log.js?v=20261113n';
+import { openInviteDialog } from './invite.js?v=20261113n';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113n';
+import { dueEntries, scheduledCount } from './srs.js?v=20261113n';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261113n';
+import { openPlanCalendar } from './plan-view.js?v=20261113n';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261113n';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113n';
+import { openDeleteAccount } from './account.js?v=20261113n';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261113n';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -650,9 +650,11 @@ async function refreshFromChildRecords() {
   const ids = Object.keys(childrenData).filter(id => !(id in liveStats));
   if (!ids.length) return;
   ids.forEach(id => { liveStats[id] = {}; });
+  const records = {};
   await Promise.all(ids.map(async id => {
     const snap = await getDoc(doc(db, 'users', id)).catch(() => null);
     const p = snap?.data(); if (!p) return;
+    records[id] = p;
     syncMyChildPlus(parentUid, shellProfile, id, p);   // my Plus covers my students
     const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'xp', 'level',
                   'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength'];
@@ -661,6 +663,8 @@ async function refreshFromChildRecords() {
     liveStats[id] = fresh;
     Object.assign(childrenData[id] || {}, fresh);
   }));
+  // And another parent's Plus covers me (co-parents share the family's Plus)
+  if (Object.keys(records).length) syncMyCoParentPlus(parentUid, shellProfile, records);
   renderChildren();
   loadOtherPackNames();
 }
@@ -1487,6 +1491,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113m"></script>
+<script src="site.js?v=20261113n"></script>
 </body>
 </html>

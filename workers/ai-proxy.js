@@ -174,6 +174,11 @@ export default {
     let familyPlus = false;
     if (who && svc && !(who.tier === 'plus' || who.plan === 'plus') && familyOf(who)) {
       familyPlus = await fsGet(svc, `users/${who.plusFrom}`).then(isPlusRecord).catch(() => false);
+    } else if (who && svc && !(who.tier === 'plus' || who.plan === 'plus') && coParentOf(who, user.uid)) {
+      // A co-parent: plusVia is a student whose parents include both of them
+      familyPlus = await Promise.all([fsGet(svc, `users/${who.plusVia}`), fsGet(svc, `users/${who.plusFrom}`)])
+        .then(([s, p]) => parentsOfRec(s).includes(user.uid) && parentsOfRec(s).includes(who.plusFrom) && isPlusRecord(p))
+        .catch(() => false);
     }
     if (who) who._familyPlus = familyPlus;   // (shown in usage as "plus (family)")
     const isPlus = isAdmin || who?.tier === 'plus' || who?.plan === 'plus' || familyPlus;
@@ -283,6 +288,11 @@ function familyOf(who) {
   const from = who?.plusFrom;
   return !!from && typeof from === 'string' && (who.parentUid === from || (who.guardianIds || []).includes(from));
 }
+// A co-parent (another parent of the same student): plusFrom and plusVia set
+function coParentOf(who, uid) {
+  return typeof who?.plusFrom === 'string' && !!who.plusFrom && who.plusFrom !== uid && typeof who.plusVia === 'string' && !!who.plusVia;
+}
+const parentsOfRec = d => [d?.parentUid, ...(d?.guardianIds || [])].filter(Boolean);
 // (an admin's children are covered too)
 const isPlusRecord = d => !!d && (d.tier === 'plus' || d.plan === 'plus' || rolesOf(d).has('admin'));
 
@@ -299,10 +309,18 @@ async function hasPlus(user, token) {
   const roles = (f.roles?.arrayValue?.values || []).map(v => v.stringValue);
   if (f.role?.stringValue) roles.push(f.role.stringValue);
   if (f.tier?.stringValue === 'plus' || f.plan?.stringValue === 'plus' || roles.includes('admin')) return true;
-  // Covered by a parent's Plus (students can read their parents' records)
+  // Covered by a parent's Plus (students can read their parents' records),
+  // or as a co-parent through a student both parents look after
   const from = f.plusFrom?.stringValue;
   const guardians = (f.guardianIds?.arrayValue?.values || []).map(v => v.stringValue);
-  if (!from || !(f.parentUid?.stringValue === from || guardians.includes(from))) return false;
+  const parentsOfF = x => [x?.parentUid?.stringValue, ...((x?.guardianIds?.arrayValue?.values || []).map(v => v.stringValue))].filter(Boolean);
+  if (!from) return false;
+  if (!(f.parentUid?.stringValue === from || guardians.includes(from))) {
+    const via = f.plusVia?.stringValue;
+    if (!via || from === user.uid) return false;
+    const s = await read(via).catch(() => null);
+    if (!s || !parentsOfF(s).includes(user.uid) || !parentsOfF(s).includes(from)) return false;
+  }
   const p = await read(from).catch(() => null);
   const pRoles = (p?.roles?.arrayValue?.values || []).map(v => v.stringValue).concat(p?.role?.stringValue || []);
   return !!p && (p.tier?.stringValue === 'plus' || p.plan?.stringValue === 'plus' || pRoles.includes('admin'));

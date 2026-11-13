@@ -316,15 +316,22 @@ service cloud.firestore {
     // Free sample topics: in a Lobe Limpet (official) pack, a topic marked
     // plusOnly opens its questions and notes only to people with Plus (and
     // admins). Everyone can still see the topic itself in the list.
-    // Plus of my own, or a parent's Plus covering me: plusFrom must be one
-    // of my parents (parentUid or guardianIds) and that parent must have Plus
+    // Plus of my own, or a family's Plus covering me. A student: plusFrom
+    // must be one of my parents (parentUid or guardianIds). A co-parent:
+    // plusVia names a student whose parents include both me and plusFrom.
+    // Either way plusFrom must have Plus (or be an admin) of their own.
     function plusRecord(d) { return d.get('tier', '') == 'plus' || d.get('plan', '') == 'plus'; }
+    function parentOfRec(d, id) { return id == d.get('parentUid', '') || id in d.get('guardianIds', []); }
     function iHavePlus() {
       let u = userDoc(me());
       let from = u.get('plusFrom', '');
+      let via = u.get('plusVia', '');
       return plusRecord(u)
-        || (from is string && from != ''
-            && (from == u.get('parentUid', '') || from in u.get('guardianIds', []))
+        || (from is string && from != '' && from != me()
+            && (parentOfRec(u, from)
+                || (via is string && via != ''
+                    && exists(/databases/$(database)/documents/users/$(via))
+                    && parentOfRec(userDoc(via), me()) && parentOfRec(userDoc(via), from)))
             && exists(/databases/$(database)/documents/users/$(from))
             && (plusRecord(userDoc(from)) || hasRole(userDoc(from), 'admin')));
     }
