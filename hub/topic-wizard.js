@@ -1,18 +1,19 @@
 // ============================================================
 // LOBE LIMPET: "Create with AI" for one topic (Plus)
 // A three-step guide that replaces juggling tabs:
-//   1. Where are the notes coming from? (upload a file, paste text,
-//      let AI write them, or use the notes already there)
+//   1. Where are the notes coming from? (upload a file, a web page,
+//      paste text, let AI write them, or use the notes already there)
 //   2. Check the notes (edit, then they're saved)
 //   3. Make questions (how many, which kinds, review, save)
 // Also holds the AI instructions (prompts) the builder uses, so the
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261112n';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose } from './ai.js?v=20261112n';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261112n';
-import { logEvent } from './log.js?v=20261112n';
+import { db } from './firebase-config.js?v=20261113a';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261113a';
+import { mergeReads } from './videos.js?v=20261113a';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261113a';
+import { logEvent } from './log.js?v=20261113a';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -35,7 +36,10 @@ export function levelOf(context = '') {
   return 'GCSE';
 }
 const IGNORE_LAYOUT = `Ignore everything about how the document is laid out or used, and never make notes about it: tables and columns, row numbers, tick boxes, confidence or traffic-light columns, smiley faces, page headers and footers, logos, instructions to the student (e.g. "tick when revised"), and messages like "Good luck".`;
-export function notesPromptFromText(text, kind = 'auto', context = '') {
+// opts.fromWeb: the content is a published web page (e.g. BBC Bitesize), so
+// the notes are written in our own words and the page's extras are skipped
+const FROM_WEB = `This content was taken from a published revision web page. Write every note IN YOUR OWN WORDS: don't copy its sentences or distinctive phrases, just teach the same facts and ideas. Skip anything about the website itself: menus, games, videos, quizzes, "click to play", links to other pages and adverts. Where a glossary definition follows a word in the content, use it to explain that word.`;
+export function notesPromptFromText(text, kind = 'auto', context = '', { fromWeb = false } = {}) {
   const lvl = levelOf(context);
   const teach = `For every item a student must know or be able to do, write the actual knowledge they need, as revision notes: definitions, facts, processes, rules, formulas, worked examples, equations and named examples, at the level the document is for (${lvl} unless it says otherwise). Turn "be able to state / describe / explain X" into what X actually is. Use the document's sections or headings as the groups. Be accurate and only include what is on the specification for that item; if you're not sure of a detail, keep it general.`;
   const extract = `Extract all key points from the content and organise them into logical sub-topic groups. Do not add anything not in the content, and do not omit anything. Cover every concept, definition, process, fact, example, and term mentioned. Where the content describes a diagram, graph or table of SUBJECT information, turn what it shows into key points too.`;
@@ -50,7 +54,7 @@ Where this will be saved: ${context} (if the document is clearly about something
 
 ${how}
 
-${IGNORE_LAYOUT}
+${IGNORE_LAYOUT}${fromWeb ? '\n\n' + FROM_WEB : ''}
 
 ${NOTES_JSON}
 
@@ -139,6 +143,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   const snap = await getDoc(doc(db, topicPath)).catch(() => null);
   const st = {
     step: 1, source: 'upload', text: '', note: '', kind: 'auto', files: 0,
+    urls: '', pages: [],   // "A web page": the links typed, and the pages read
     notesSaved: 0, questionsSaved: 0,
     current: asGroups(snap?.data()?.keyPoints || []),
     notes: [], merge: 'add', questions: [], busy: false,
@@ -188,6 +193,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   function step1() {
     const have = pointCount(st.current);
     const others = [
+      ['web', '🔗', 'A web page', 'A link to a revision page, e.g. BBC Bitesize'],
       ['paste', '📋', 'Paste text', 'Your own notes or a textbook passage'],
       ['ai', '✨', 'Let AI write them', 'Just from the topic name'],
       ...(have ? [['existing', '🗒️', 'Use my current notes', `Make questions from the ${notesWord(have)} already here`]] : []),
@@ -207,7 +213,10 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       <div id="tw-src"></div>
       <div class="tw-msg" id="tw-msg"></div>`;
     body().querySelectorAll('[data-src]').forEach(b => b.onclick = () => {
-      if (st.source === 'upload' || st.source === 'paste') st.text = (document.getElementById('tw-text')?.value || st.text);
+      if (st.source === 'upload' || st.source === 'paste' || st.source === 'web') st.text = (document.getElementById('tw-text')?.value ?? st.text);
+      if (st.source === 'web') st.urls = document.getElementById('tw-urls')?.value ?? st.urls;
+      // Words read from one kind of source don't carry over to another
+      if (b.dataset.src !== st.source && (st.source === 'web' || b.dataset.src === 'web')) { st.text = ''; st.pages = []; st.note = ''; st.files = 0; }
       st.source = b.dataset.src; step1();
     });
     const src = document.getElementById(st.source === 'upload' ? 'tw-src-upload' : 'tw-src');
@@ -225,6 +234,18 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       document.getElementById('tw-pics').onchange = e => { st.pics = e.target.checked; };
       document.getElementById('tw-file').onchange = e => readFiles([...e.target.files]);
       document.getElementById('tw-photo').onchange = e => readFiles([...e.target.files]);
+    } else if (st.source === 'web') {
+      src.innerHTML = `
+        <div class="tw-upload tw-web">
+          <label class="tw-label">Link to the page (up to 3, one per line)
+            <textarea id="tw-urls" class="tw-input tw-urls" rows="2" placeholder="https://www.bbc.co.uk/bitesize/…" autocomplete="off" spellcheck="false">${esc(st.urls)}</textarea></label>
+          <div class="tw-up-btns"><button class="btn btn-primary" id="tw-read">🔗 ${st.pages.length ? 'Read again' : 'Read the page'}</button></div>
+          <p class="tw-hint">Works with most revision sites, like BBC Bitesize. Notes and questions are written in our own words, and the link is kept on the topic as "Read first", so students can read the original page too. Some sites can't be read automatically: then copy the words from the page and choose Paste text.</p>
+          ${st.pages.length ? `<ul class="tw-pages">${st.pages.map(p => `<li>✓ <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a> <small>${esc(p.site)} · ${p.words.toLocaleString('en-GB')} words${p.cut ? ' (first part)' : ''}</small></li>`).join('')}</ul>` : ''}
+          <textarea id="tw-text" class="tw-text" placeholder="The words from the page appear here, so you can check them first." ${st.text ? '' : 'hidden'}>${esc(st.text)}</textarea>
+        </div>`;
+      document.getElementById('tw-read').onclick = readUrls;
+      document.getElementById('tw-urls').onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) readUrls(); };
     } else if (st.source === 'paste') {
       src.innerHTML = `<textarea id="tw-text" class="tw-text" placeholder="Paste your notes, a textbook passage or anything else to learn…">${esc(st.text)}</textarea>`;
     } else if (st.source === 'ai') {
@@ -238,7 +259,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       src.querySelectorAll('[name="tw-kind"]').forEach(r => r.onchange = () => { st.kind = r.value; });
     }
     if (st.note) msg(st.note);
-    const ready = st.source && (st.source !== 'upload' || st.text);
+    const ready = st.source && (!['upload', 'web'].includes(st.source) || st.text);
     foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
       <button class="btn btn-primary" data-go="next" ${ready ? '' : 'disabled'}>${st.source === 'existing' ? 'Next: make quiz questions' : 'Next: make notes'} →</button>`;
     foot().querySelector('[data-go="close"]').onclick = close;
@@ -263,6 +284,35 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     step1();
     if (err) msg(err, true);
   }
+
+  // "A web page": the Worker fetches each page and sends back its main words
+  async function readUrls() {
+    st.urls = document.getElementById('tw-urls').value;
+    const urls = [...new Set(st.urls.split(/[\s,]+/).map(u => u.trim()).filter(Boolean)
+      .map(u => /^https?:\/\//i.test(u) ? u : 'https://' + u))];
+    if (!urls.length) { msg('Paste a link to a web page first.', true); return; }
+    if (urls.length > 3) { msg('Up to 3 pages at a time.', true); return; }
+    const bad = urls.find(u => { try { new URL(u); return false; } catch (e) { return true; } });
+    if (bad) { msg(`That doesn't look like a web address: ${bad}`, true); return; }
+    busy(true, `Reading ${urls.length > 1 ? 'the pages' : 'the page'}…`);
+    let res;
+    try { res = await workerAction('readPage', { urls }); }
+    catch (e) {
+      busy(false);
+      msg(/Unknown task|Nothing to send/.test(e.message) ? 'Reading web pages isn\'t switched on yet. Copy the words from the page and choose Paste text instead.' : e.message, true);
+      return;
+    }
+    busy(false);
+    const got = (res.pages || []).filter(p => p.text);
+    const failed = (res.pages || []).filter(p => !p.text);
+    st.pages = got.map(p => ({ url: p.finalUrl || p.url, title: p.title, site: p.site, words: p.words || 0, cut: !!p.cut }));
+    st.text = got.map(p => (got.length > 1 ? `# ${p.title}\n` : '') + p.text).join('\n\n');
+    st.note = got.length ? `Read ${got.length === 1 ? 'the page' : got.length + ' pages'}. Check the words below (you can delete anything not needed), then continue.` : '';
+    if (got.length) logEvent('content.read_page', { target: `${subject.name || ''} › ${topic.name}`, detail: got.map(p => p.site || p.title).join(', ') });
+    step1();
+    if (failed.length) msg(failed.map(p => `${shortUrl(p.url)}: ${p.error}`).join(' '), true);
+  }
+  const shortUrl = u => { try { const x = new URL(u); return x.hostname.replace(/^www\./, '') + (x.pathname.length > 1 ? x.pathname.slice(0, 30) + (x.pathname.length > 30 ? '…' : '') : ''); } catch (e) { return u; } };
 
   async function readFile(file, of = '') {
     const isImage = /^image\//.test(file.type);
@@ -290,8 +340,8 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       prompt = notesPromptResearch(st.aiTopic);
     } else {
       st.text = (document.getElementById('tw-text')?.value || '').trim();
-      if (st.text.length < 40) { msg(st.source === 'upload' ? 'Take a photo or choose a file first.' : 'Paste some notes first.', true); return; }
-      prompt = notesPromptFromText(st.text, st.kind, st.aiTopic);
+      if (st.text.length < 40) { msg(st.source === 'upload' ? 'Take a photo or choose a file first.' : st.source === 'web' ? 'Paste a link and tap Read the page first.' : 'Paste some notes first.', true); return; }
+      prompt = notesPromptFromText(st.text, st.source === 'web' ? 'auto' : st.kind, st.aiTopic, { fromWeb: st.source === 'web' });
     }
     busy(true, 'Writing the notes… (up to a minute)');
     try {
@@ -345,10 +395,18 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     if (!fresh.length) { msg('There are no notes to save.', true); return; }
     const keyPoints = st.merge === 'replace' || !st.current.length ? fresh : [...st.current, ...fresh];
     busy(true, 'Saving the notes…');
+    // Notes made from web pages keep a link back to each page ("Read first")
+    const fromPages = st.source === 'web' ? st.pages.map(p => ({ label: p.title, url: p.url, site: p.site })) : [];
     try {
-      await updateDoc(doc(db, topicPath), { keyPoints });
+      const upd = { keyPoints };
+      if (fromPages.length) {
+        const now = (await getDoc(doc(db, topicPath)).catch(() => null))?.data()?.reads || [];
+        upd.reads = mergeReads(now, fromPages);
+      }
+      await updateDoc(doc(db, topicPath), upd);
       logEvent('content.keypoints', { target: `${subject.name || ''} › ${topic.name}`, detail: `Create with AI: ${pointCount(fresh)} notes ${st.merge === 'replace' ? 'replaced' : 'added'}` });
       st.current = keyPoints; st.notes = fresh; st.notesSaved += pointCount(fresh);
+      if (fromPages.length) st.readsSaved = true;
     } catch (e) { busy(false); msg('Could not save: ' + e.message, true); return; }
     busy(false);
     onDone && onDone({ notes: st.notesSaved, questions: st.questionsSaved });
@@ -502,6 +560,11 @@ function injectStyle() {
   .tw-up-btns { display: flex; flex-wrap: wrap; gap: 8px; }
   .tw-file-2 span { background: var(--color-surface); color: var(--color-primary); border: 2px solid var(--color-primary); }
   .tw-up-hint { margin: 2px 0 8px; }
+  .tw-urls { width: 100%; font-family: var(--font-mono, monospace); font-size: 0.85rem; resize: vertical; min-height: 48px; }
+  .tw-web .tw-up-btns { margin: 10px 0 4px; }
+  .tw-pages { list-style: none; padding: 0; margin: 0 0 10px; display: flex; flex-direction: column; gap: 4px; font-size: 0.88rem; }
+  .tw-pages a { color: var(--color-primary); font-weight: 600; }
+  .tw-pages small { color: var(--color-text-muted); }
   .tw-or { font-family: var(--font-ui); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin: 14px 0 8px; }
   .tw-choices-sm .tw-choice { padding: 10px 12px; }
   .tw-choices-sm .tw-ic { font-size: 1.1rem; }

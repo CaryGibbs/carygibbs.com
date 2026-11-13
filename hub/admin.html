@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261112n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261112n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261112n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261112n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261113a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261112n">
-  <script src="icons.js?v=20261112n"></script>
+  <link rel="stylesheet" href="theme.css?v=20261113a">
+  <script src="icons.js?v=20261113a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -615,8 +615,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261112n">
-  <link rel="stylesheet" href="stats.css?v=20261112n">
+  <link rel="stylesheet" href="ui.css?v=20261113a">
+  <link rel="stylesheet" href="stats.css?v=20261113a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -716,12 +716,13 @@
           <div class="ts-stat"><b id="ts-notes">–</b><span>notes</span></div>
           <div class="ts-stat"><b id="ts-qs">–</b><span>questions</span></div>
           <div class="ts-stat"><b id="ts-vids">–</b><span>videos</span></div>
+          <div class="ts-stat"><b id="ts-reads">–</b><span>web pages</span></div>
         </div>
         <div class="ts-actions">
           <button class="btn btn-primary" data-action="create-with-ai"><i data-icon="sparkles"></i> Create with AI</button>
           <button class="btn btn-secondary" data-action="new-question-manual"><i data-icon="plus"></i> Add a question myself</button>
           <button class="btn btn-secondary" data-action="edit-notes"><i data-icon="pencil"></i> Edit notes</button>
-          <button class="btn btn-secondary" data-action="topic-videos"><i data-icon="play"></i> Videos</button>
+          <button class="btn btn-secondary" data-action="topic-videos"><i data-icon="play"></i> Videos and pages</button>
         </div>
         <p class="ts-hint" id="ts-hint"></p>
         <div class="ts-callout" id="ts-callout" hidden>
@@ -1179,6 +1180,11 @@
       <textarea id="topic-videos-input" rows="3" placeholder="Bicen Maths: Binomial expansion | https://www.youtube.com/watch?v=..." style="width:100%;min-height:70px;resize:vertical;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.85rem;"></textarea>
       <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">Students see these as "Watch" links on the topic and in Learn. Up to 8; they open on the video site.</p>
     </div>
+    <div class="form-group" style="margin-top:var(--space-md);">
+      <label>Web pages to read <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-faint)">(optional, one per line: Label | link)</span></label>
+      <textarea id="topic-reads-input" rows="2" placeholder="River management | https://www.bbc.co.uk/bitesize/..." style="width:100%;min-height:56px;resize:vertical;padding:10px var(--space-md);border-radius:var(--radius-button);font-size:0.85rem;"></textarea>
+      <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">Students see these as "Read first" links in Learn and on the topic. Pages you make notes from with Create with AI are added here.</p>
+    </div>
     <div class="form-group" id="topic-modal-kp" hidden style="margin-top:var(--space-lg);">
       <label style="margin-bottom:var(--space-sm);display:block;">Key points <span style="font-weight:400;text-transform:none;">(for mindmaps)</span></label>
       <div style="display:flex;gap:4px;background:var(--color-surface-2);border-radius:var(--radius-button);padding:3px;margin-bottom:var(--space-md);width:fit-content;">
@@ -1389,33 +1395,33 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261112n';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261112n';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261112n';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261112n';
-import { syncFamilyPlus } from './family-plus.js?v=20261112n';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261112n';
-import { openDeleteAccount } from './account.js?v=20261112n';
-import { addDocumentButton } from './doc-text.js?v=20261112n';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261112n';
-import { showPlusUpsell } from './plus.js?v=20261112n';
-import { offerGivePack } from './first-steps.js?v=20261112n';
+import { auth, db, storage } from './firebase-config.js?v=20261113a';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261113a';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261113a';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261113a';
+import { syncFamilyPlus } from './family-plus.js?v=20261113a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113a';
+import { openDeleteAccount } from './account.js?v=20261113a';
+import { addDocumentButton } from './doc-text.js?v=20261113a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261113a';
+import { showPlusUpsell } from './plus.js?v=20261113a';
+import { offerGivePack } from './first-steps.js?v=20261113a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261112n';
-import { mountShell } from './shell.js?v=20261112n';
-import { openInviteDialog, signupLink } from './invite.js?v=20261112n';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261112n';
-import { videosOf, parseVideoLines, videoLines } from './videos.js?v=20261112n';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261112n';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261112n';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261112n';
-import { dueEntries } from './srs.js?v=20261112n';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261112n';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261112n';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261113a';
+import { mountShell } from './shell.js?v=20261113a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261113a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261113a';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261113a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261113a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261113a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113a';
+import { dueEntries } from './srs.js?v=20261113a';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261113a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261113a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1431,8 +1437,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261112n';
-import { inOrder } from './order.js?v=20261112n';
+import { saveEmailIndex } from './email-index.js?v=20261113a';
+import { inOrder } from './order.js?v=20261113a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2572,6 +2578,7 @@ async function openTopicModal(id, { focusVideos = false } = {}) {
   editingItem = id ? { type:'topic', id } : null;
   document.getElementById('modal-topic-title').textContent = id ? 'Edit topic' : 'New topic';
   document.getElementById('topic-videos-input').value = '';
+  document.getElementById('topic-reads-input').value = '';
   document.getElementById('topic-modal-hint').hidden = !!id;
   document.getElementById('topic-name-input').value = '';
   document.getElementById('kp-gen-status').textContent = '';
@@ -2582,6 +2589,7 @@ async function openTopicModal(id, { focusVideos = false } = {}) {
       document.getElementById('topic-name-input').value = snap.data().name || '';
       kps = snap.data().keyPoints || [];
       document.getElementById('topic-videos-input').value = videoLines(snap.data().videos);
+      document.getElementById('topic-reads-input').value = readLines(snap.data().reads);
     }
   }
   renderKpList('kp-list', kps);
@@ -2600,8 +2608,13 @@ async function saveTopic() {
   try {
     if (editingItem) {
       const before = (await getDoc(doc(db, topicsPath(), editingItem.id)).catch(() => null))?.data() || {};
-      await updateDoc(doc(db, topicsPath(), editingItem.id), { name, videos });
-      const changes = [before.name !== name ? 'Renamed' : '', videoLines(before.videos) !== videoLines(videos) ? `Videos (${videos.length})` : ''].filter(Boolean);
+      const rp = parseReadLines(document.getElementById('topic-reads-input').value, before.reads);
+      if (rp.bad.length) { showToast(`Not a valid link: ${rp.bad[0].slice(0, 60)}`, 'error'); return; }
+      if (rp.tooMany) { showToast('Up to 8 web pages per topic', 'error'); return; }
+      const reads = rp.list;
+      await updateDoc(doc(db, topicsPath(), editingItem.id), { name, videos, reads });
+      const changes = [before.name !== name ? 'Renamed' : '', videoLines(before.videos) !== videoLines(videos) ? `Videos (${videos.length})` : '',
+        readLines(before.reads) !== readLines(reads) ? `Web pages (${reads.length})` : ''].filter(Boolean);
       logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: changes.join(', ') || 'Saved' });
       closeModal('modal-topic');
       if (selectedTopic?.id === editingItem.id) { selectedTopic.name = name; renderTopicStatus(); }
@@ -2609,7 +2622,9 @@ async function saveTopic() {
       showToast('Topic updated', 'success');
       editingItem = null;
     } else {
-      const ref = await addDoc(collection(db, topicsPath()), { name, keyPoints: [], videos, order: (orderedItems.topics || []).length, createdAt: serverTimestamp() });
+      const rp = parseReadLines(document.getElementById('topic-reads-input').value);
+      if (rp.bad.length) { showToast(`Not a valid link: ${rp.bad[0].slice(0, 60)}`, 'error'); return; }
+      const ref = await addDoc(collection(db, topicsPath()), { name, keyPoints: [], videos, reads: rp.list.slice(0, 8), order: (orderedItems.topics || []).length, createdAt: serverTimestamp() });
       logEvent('content.topic', { target: `${selectedSubject?.name || ''} › ${name}`, detail: 'Created' });
       closeModal('modal-topic');
       editingItem = null;
@@ -3032,9 +3047,10 @@ async function renderTopicStatus() {
   document.getElementById('ts-notes').textContent = notes;
   document.getElementById('ts-qs').textContent = qCount;
   document.getElementById('ts-vids').textContent = videosOf(tSnap?.data()).length;
+  document.getElementById('ts-reads').textContent = readsOf(tSnap?.data()).length;
   document.getElementById('ts-callout').hidden = !(notes && !qCount);
   document.getElementById('ts-hint').textContent = !notes && !qCount
-    ? 'This topic is empty. Create with AI turns a photo or file of class notes into notes and quiz questions, or add your own.'
+    ? 'This topic is empty. Create with AI turns a photo or file of class notes, or a revision web page, into notes and quiz questions, or add your own.'
     : !qCount ? 'Make questions from these notes with AI, or add them yourself.'
     : !notes ? 'Add notes too, so students can learn the topic before they quiz.'
     : 'Students can learn from the notes and quiz on the questions.';
@@ -4591,6 +4607,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261112n"></script>
+<script src="site.js?v=20261113a"></script>
 </body>
 </html>

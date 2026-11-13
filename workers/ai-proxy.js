@@ -15,6 +15,10 @@
 //   task 'marking'     marking written quiz answers           any signed-in user
 //   (generation may include page pictures, to read scanned PDFs and diagrams)
 //   action 'checkLinks'  checking resource links load        any signed-in user
+//   action 'readPage'    the words of up to 3 web pages, for  parents, teachers, admins
+//                        Create with AI (one page a link, as  and Plus; 40 pages a day;
+//                        a person would open it; robots.txt  nothing is stored here)
+//                        respected)
 //   action 'deleteAccount'  delete a user's account and data  yourself, a student's
 //                       only parent (the one who made the account), or an admin (only the owner can delete admins)
 //   action 'logSignedOut'   log a failed sign-in or password reset  anyone (no sign-in),
@@ -138,6 +142,13 @@ export default {
       const results = {};
       await Promise.all(urls.map(async u => { results[u] = await checkLink(u); }));
       return reply(200, { results });
+    }
+
+    // ── Reading a web page for Create with AI (parents, teachers, admins, Plus) ──
+    if (body.action === 'readPage') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await readPages(env, user, body.urls)); }
+      catch (e) { return fail(e.status || 500, e.message || 'Could not read that page'); }
     }
 
     // ── AI request ──
@@ -311,6 +322,206 @@ async function checkLink(url) {
   } catch (e) {
     return { ok: false, status: 0 };
   }
+}
+
+/* ============================================================
+   Reading a web page (Create with AI → "A web page")
+   A person pastes a link (e.g. a BBC Bitesize page); we fetch that one
+   page, as their browser would, and hand back its main words so AI can
+   write notes and questions IN ITS OWN WORDS. The words aren't stored
+   anywhere; the app keeps only the link, shown to students as "Read first".
+   Sites that ask robots not to read a page (robots.txt) are respected:
+   the person is told to copy and paste the text instead.
+   ============================================================ */
+const READ_MAX_URLS = 3;
+const READ_PER_DAY = 40;
+const READ_MAX_BYTES = 3 * 1024 * 1024;
+const READ_MAX_CHARS = 30000;            // per page, after tidying
+const READ_UA = 'Mozilla/5.0 (compatible; LobeLimpet/1.0; +https://carygibbs.com/hub/help.html)';
+const READ_UA_TOKEN = 'lobelimpet';
+const PASTE_INSTEAD = 'Copy the text from the page and choose "Paste text" instead.';
+
+async function readPages(env, user, urls) {
+  const list = [...new Set((Array.isArray(urls) ? urls : []).map(u => String(u || '').trim()).filter(Boolean))];
+  if (!list.length) throw oops(400, 'Paste a link to a web page first');
+  if (list.length > READ_MAX_URLS) throw oops(400, `Up to ${READ_MAX_URLS} pages at a time`);
+  // Who may, and how many today (so the Worker can't be used as a general fetcher)
+  if (env.FIREBASE_SERVICE_ACCOUNT) {
+    const tok = await serviceToken(env);
+    const who = await fsGet(tok, `users/${user.uid}`);
+    const r = rolesOf(who);
+    const ok = user.uid === OWNER_UID || r.has('admin') || r.has('parent') || r.has('teacher') || who?.tier === 'plus';
+    if (!ok) throw oops(403, 'Making revision from a web page is for parents and teachers');
+    const rl = `rateLimits/readpage_${user.uid}_${londonDay()}`;
+    const seen = await fsGet(tok, rl);
+    if ((seen?.count || 0) + list.length > READ_PER_DAY && !(user.uid === OWNER_UID || r.has('admin'))) {
+      throw oops(429, `That's the most web pages for today (${READ_PER_DAY}). ${PASTE_INSTEAD}`);
+    }
+    await fsCommit(tok, [{ update: { name: `${DOCS}/${rl}`, fields: { expireAt: tsv(new Date(Date.now() + 2 * 86400000)) } },
+      updateMask: { fieldPaths: ['expireAt'] }, updateTransforms: [{ fieldPath: 'count', increment: { integerValue: String(list.length) } }] }]);
+  }
+  const pages = await Promise.all(list.map(u => readPage(u).catch(e => ({ url: u, error: e.message || 'Could not read that page' }))));
+  return { pages };
+}
+
+function safeUrl(raw) {
+  let u;
+  try { u = new URL(raw); } catch (e) { throw new Error("That isn't a web address"); }
+  if (!['http:', 'https:'].includes(u.protocol)) throw new Error('Only web pages (http or https) can be read');
+  const h = u.hostname.toLowerCase();
+  if (h === 'localhost' || h.endsWith('.local') || h.endsWith('.internal') || /^\[|^(127\.|10\.|192\.168\.|169\.254\.|0\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h) || !h.includes('.')) {
+    throw new Error("That address can't be read");
+  }
+  u.hash = '';
+  return u;
+}
+
+async function readPage(raw) {
+  const u = safeUrl(raw);
+  if (!(await robotsAllow(u))) throw new Error(`That site asks not to be read automatically. ${PASTE_INSTEAD}`);
+  let r;
+  try {
+    r = await fetch(u.toString(), { redirect: 'follow', signal: AbortSignal.timeout(12000),
+      headers: { 'User-Agent': READ_UA, 'Accept': 'text/html,application/xhtml+xml,text/plain;q=0.8', 'Accept-Language': 'en-GB,en;q=0.8' } });
+  } catch (e) { throw new Error(`The page didn't answer. ${PASTE_INSTEAD}`); }
+  // A redirect to somewhere private, or to a page robots.txt rules out
+  if (r.url && r.url !== u.toString()) {
+    const f = safeUrl(r.url);
+    if (f.origin !== u.origin && !(await robotsAllow(f))) throw new Error(`That site asks not to be read automatically. ${PASTE_INSTEAD}`);
+  }
+  if (r.status === 401 || r.status === 403) throw new Error(`That page needs a sign-in or won't let us read it. ${PASTE_INSTEAD}`);
+  if (r.status === 404) throw new Error('That page wasn\'t found. Check the link.');
+  if (!r.ok) throw new Error(`The page couldn't be read (${r.status}). ${PASTE_INSTEAD}`);
+  const type = (r.headers.get('content-type') || '').toLowerCase();
+  if (/pdf/.test(type)) throw new Error('That link is a PDF: download it and choose "A photo or file" instead.');
+  if (type && !/html|text\/plain|xml/.test(type)) throw new Error(`That link isn't a web page. ${PASTE_INSTEAD}`);
+  const html = await readCapped(r, READ_MAX_BYTES);
+  const page = /text\/plain/.test(type) ? { title: '', site: '', text: tidyText(html) } : pageText(html);
+  const text = page.text.slice(0, READ_MAX_CHARS);
+  if (text.replace(/\s+/g, ' ').length < 200) throw new Error(`There wasn't enough readable text on that page. ${PASTE_INSTEAD}`);
+  const host = new URL(r.url || u.toString()).hostname.replace(/^www\./, '');
+  return {
+    url: u.toString(), finalUrl: r.url || u.toString(),
+    title: page.title.slice(0, 140) || host, site: page.site.slice(0, 60) || siteName(host),
+    text, words: text.split(/\s+/).filter(Boolean).length, cut: page.text.length > READ_MAX_CHARS,
+  };
+}
+
+async function readCapped(r, max) {
+  const reader = r.body?.getReader();
+  if (!reader) return (await r.text()).slice(0, max);
+  const chunks = []; let n = 0;
+  while (n < max) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); n += value.length;
+  }
+  try { reader.cancel(); } catch (e) { /* already finished */ }
+  const all = new Uint8Array(Math.min(n, max)); let at = 0;
+  for (const c of chunks) { const part = c.subarray(0, all.length - at); all.set(part, at); at += part.length; if (at >= all.length) break; }
+  return new TextDecoder('utf-8').decode(all);
+}
+
+const SITE_NAMES = { 'bbc.co.uk': 'BBC Bitesize', 'thenational.academy': 'Oak National Academy', 'savemyexams.com': 'Save My Exams',
+  'senecalearning.com': 'Seneca', 'physicsandmathstutor.com': 'Physics & Maths Tutor', 'docbrown.info': "Doc Brown's", 'en.wikipedia.org': 'Wikipedia' };
+function siteName(host) {
+  if (/^bbc\.(co\.uk|com)$/.test(host)) return 'BBC';
+  return SITE_NAMES[host] || host;
+}
+
+// robots.txt: the group for our name if there is one, otherwise "*".
+// Longest matching rule wins; Allow wins a tie. No robots.txt = allowed.
+const robotsCache = new Map();
+async function robotsAllow(u) {
+  let rules = robotsCache.get(u.origin);
+  if (!rules) {
+    let txt = '';
+    try {
+      const r = await fetch(`${u.origin}/robots.txt`, { redirect: 'follow', signal: AbortSignal.timeout(5000), headers: { 'User-Agent': READ_UA } });
+      if (r.ok) txt = (await r.text()).slice(0, 500000);
+      else if (r.status === 401 || r.status === 403) return false;
+    } catch (e) { txt = ''; }
+    rules = parseRobots(txt);
+    robotsCache.set(u.origin, rules);
+  }
+  return robotsAllows(rules, u.pathname + u.search);
+}
+function parseRobots(txt) {
+  const groups = []; let cur = null, lastWasAgent = false;
+  String(txt || '').split(/\r?\n/).forEach(line => {
+    const m = line.replace(/#.*$/, '').trim().match(/^([A-Za-z-]+)\s*:\s*(.*)$/);
+    if (!m) return;
+    const key = m[1].toLowerCase(), val = m[2].trim();
+    if (key === 'user-agent') {
+      if (!lastWasAgent || !cur) { cur = { agents: [], rules: [] }; groups.push(cur); }
+      cur.agents.push(val.toLowerCase()); lastWasAgent = true;
+    } else {
+      lastWasAgent = false;
+      if (cur && (key === 'allow' || key === 'disallow')) cur.rules.push({ allow: key === 'allow', path: val });
+    }
+  });
+  const mine = groups.filter(g => g.agents.some(a => a !== '*' && READ_UA_TOKEN.includes(a.replace(/\/.*$/, ''))));
+  const pick = mine.length ? mine : groups.filter(g => g.agents.includes('*'));
+  return pick.flatMap(g => g.rules).filter(r => r.path || !r.allow);
+}
+function robotsAllows(rules, path) {
+  let best = null;
+  for (const r of rules) {
+    if (!r.path) continue;   // "Disallow:" (empty) allows everything
+    const re = new RegExp('^' + r.path.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\\\$$/, '$'));
+    if (!re.test(path)) continue;
+    const len = r.path.length;
+    if (!best || len > best.len || (len === best.len && r.allow)) best = { len, allow: r.allow };
+  }
+  return !best || best.allow;
+}
+
+// The main words of a page: the article (or <main>), without menus,
+// cookie banners, scripts, forms or footers. Headings and list items
+// stay on their own lines so the notes follow the page's sections.
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ndash: '–', mdash: '—', hellip: '…', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”', pound: '£', euro: '€', deg: '°', times: '×', divide: '÷', minus: '−', plusmn: '±', le: '≤', ge: '≥', ne: '≠', frac12: '½', frac14: '¼', frac34: '¾', sup2: '²', sup3: '³', micro: 'µ', middot: '·', bull: '•', copy: '©', reg: '®', eacute: 'é', egrave: 'è', aacute: 'á', uuml: 'ü', ouml: 'ö', auml: 'ä', ccedil: 'ç', rarr: '→', larr: '←', harr: '↔', rlarr: '⇌', alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', Delta: 'Δ', pi: 'π', theta: 'θ', lambda: 'λ', mu: 'μ', sigma: 'σ', Omega: 'Ω' };
+const decode = s => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (m, e) => {
+  if (e[0] === '#') { const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); try { return String.fromCodePoint(n); } catch (x) { return ''; } }
+  return ENTITIES[e] ?? ENTITIES[e.toLowerCase()] ?? m;
+});
+const metaOf = (html, prop) => {
+  const re = new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]*>`, 'i');
+  const tag = html.match(re)?.[0] || '';
+  return decode(tag.match(/content=["']([^"']*)["']/i)?.[1] || '').trim();
+};
+const JUNK_LINE = /^(back to top|skip to .{0,40}|share this (page|article)|print this page|click to play.{0,60}|play the full .{0,80}|advertisement|cookie settings|accept( all)? cookies|count|\d+ of \d+|\(picture: click to play.*\))$/i;
+function tidyText(s) {
+  const out = [];
+  String(s).split('\n').map(l => l.replace(/[ \t ]+/g, ' ').trim()).forEach(l => {
+    if (!l || /^[-#]\s*$/.test(l) || l === out[out.length - 1] || JUNK_LINE.test(l)) return;
+    out.push(l);
+  });
+  return out.join('\n').replace(/\n(#{2,3} )/g, '\n\n$1').trim();
+}
+function pageText(html) {
+  html = String(html || '');
+  const site = metaOf(html, 'og:site_name');
+  const reSite = site ? site.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : 'BBC Bitesize|BBC';
+  const title = (metaOf(html, 'og:title') || decode((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ')).trim())
+    .replace(new RegExp(`\\s+[-|–:]\\s+(${reSite})$`, 'i'), '');
+  let h = html
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<(script|style|noscript|svg|template|iframe|object|canvas|form|button|select|textarea|nav|header|footer|aside|figure|dialog)\b[\s\S]*?<\/\1\s*>/gi, ' ')
+    .replace(/<(div|section|p|ul|li)\b[^>]*(?:class|id|aria-label|role)=["'][^"']*(?:cookie|consent|advert|newsletter|breadcrumb|skip-?link)[^"']*["'][^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  // The article if there is one (the biggest), else <main>, else the body
+  const pickBiggest = tag => (h.match(new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?<\\/${tag}>`, 'gi')) || []).sort((a, b) => b.length - a.length)[0];
+  const area = pickBiggest('article') || pickBiggest('main') || h.match(/<body\b[^>]*>([\s\S]*)<\/body>/i)?.[1] || h;
+  const text = decode(area
+    .replace(/<\/(span|a|strong|b|em|i|dfn|abbr)>\s*<(span|a|strong|b|em|i|dfn|abbr)\b/gi, '</$1> <$2')
+    .replace(/<h([1-6])\b[^>]*>/gi, (m, n) => `\n${n <= 2 ? '## ' : '### '}`)
+    .replace(/<\/h[1-6]>/gi, '\n')
+    .replace(/<li\b[^>]*>/gi, '\n- ')
+    .replace(/<(td|th)\b[^>]*>/gi, ' | ')
+    .replace(/<(br|hr)\b[^>]*>/gi, '\n')
+    .replace(/<\/?(p|div|section|ul|ol|tr|table|blockquote|dl|dt|dd|figcaption|caption|pre)\b[^>]*>/gi, '\n')
+    .replace(/<img\b[^>]*alt=["']([^"']{4,})["'][^>]*>/gi, '\n(Picture: $1)\n')
+    .replace(/<[^>]+>/g, ''));
+  return { title, site, text: tidyText(text) };
 }
 
 /* ============================================================

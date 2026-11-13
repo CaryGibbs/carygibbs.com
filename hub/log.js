@@ -13,8 +13,8 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261112n';
-import { PROXY_URL } from './ai.js?v=20261112n';
+import { db, auth } from './firebase-config.js?v=20261113a';
+import { PROXY_URL } from './ai.js?v=20261113a';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
@@ -39,6 +39,7 @@ export const ACTIONS = {
   'content.topic':       { label: 'Topic',                   cat: 'content' },
   'content.questions':   { label: 'Questions',               cat: 'content' },
   'content.keypoints':   { label: 'Key points',              cat: 'content' },
+  'content.read_page':   { label: 'Read a web page',         cat: 'content' },
   'content.delete':      { label: 'Deleted content',         cat: 'content' },
   'class.create':        { label: 'Created a class',         cat: 'class' },
   'class.edit':          { label: 'Edited a class',          cat: 'class' },

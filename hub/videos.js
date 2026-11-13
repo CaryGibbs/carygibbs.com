@@ -55,3 +55,48 @@ export const WATCH_CSS = `
 .watch-link:hover { border-color:var(--color-primary); }
 .outline-watch { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 8px; }
 `;
+
+/* ── Web pages to read ("Read first") ────────────────────────
+   topic.reads = [{ label, url, site }]: pages a topic was made from
+   with Create with AI → "A web page" (e.g. BBC Bitesize), or added in
+   Edit topic. Only the link is kept (never the page's words), so
+   students go back to the original page to read it. */
+const MAX_READS = 8;
+
+export function readsOf(topic) {
+  return (Array.isArray(topic?.reads) ? topic.reads : [])
+    .filter(r => r && /^https?:\/\//i.test(r.url || ''))
+    .map(r => ({ label: String(r.label || '').trim() || hostOf(r.url), url: r.url, site: String(r.site || '').trim() }))
+    .slice(0, MAX_READS);
+}
+
+// Add pages to a list, without repeats (same link), newest last
+export function mergeReads(list, add) {
+  const out = readsOf({ reads: list });
+  readsOf({ reads: add }).forEach(r => { if (!out.some(x => sameUrl(x.url, r.url))) out.push(r); });
+  return out.slice(-MAX_READS);
+}
+const sameUrl = (a, b) => String(a).replace(/[#?].*$/, '').replace(/\/$/, '') === String(b).replace(/[#?].*$/, '').replace(/\/$/, '');
+
+export function readLines(list) {
+  return readsOf({ reads: list }).map(r => `${r.label.replace(/\|/g, '-')} | ${r.url}`).join('\n');
+}
+// "Label | link" per line, keeping the site name of pages already there
+export function parseReadLines(text, before = []) {
+  const p = parseVideoLines(text);
+  const old = readsOf({ reads: before });
+  return { ...p, list: p.list.map(r => ({ ...r, site: old.find(o => sameUrl(o.url, r.url))?.site || '' })) };
+}
+
+const readLabel = r => r.site && !r.label.toLowerCase().includes(r.site.toLowerCase()) ? `${r.label} (${r.site})` : r.label;
+
+// A strip of "Read first" links (Learn page)
+export function readStripHtml(list, { title = 'Read first' } = {}) {
+  const reads = readsOf({ reads: list });
+  if (!reads.length) return '';
+  return `<div class="watch-strip read-strip"><span class="watch-strip-title">📖 ${escv(title)}</span>${reads.map(r =>
+    `<a class="watch-link" href="${escv(r.url)}" target="_blank" rel="noopener">${escv(readLabel(r))} <span aria-hidden="true">↗</span></a>`).join('')}</div>`;
+}
+export function readLinksHtml(list, cls = 'watch-link') {
+  return readsOf({ reads: list }).map(r => `<a class="${cls}" href="${escv(r.url)}" target="_blank" rel="noopener">📖 ${escv(readLabel(r))} ↗</a>`).join('');
+}
