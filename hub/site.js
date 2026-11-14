@@ -125,7 +125,7 @@
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261114g';
+  hs.src = 'help-sheet.js?v=20261114h';
   hs.defer = true;
   document.head.appendChild(hs);
 

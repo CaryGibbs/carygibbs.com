@@ -92,7 +92,7 @@
       panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-labelledby', 'hs-title');
       panel.innerHTML = '<div class="hs-head"><h2 id="hs-title"></h2><button class="hs-close" type="button" aria-label="Close">\u00d7</button></div>' +
         '<div class="hs-body"></div>' +
-        '<div class="hs-foot"><a href="' + href + '">Open full Help \u2197</a></div>';
+        '<div class="hs-foot"><a data-hs-full href="' + href + '">Open full Help \u2197</a></div>';
       panel.querySelector('#hs-title').textContent = c.title;
       panel.querySelector('.hs-body').innerHTML = c.html;
       // Links inside: other Help answers open here; anything else in a new tab
@@ -113,7 +113,7 @@
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var a = e.target.closest && e.target.closest('a[href]');
-    if (!a) return;
+    if (!a || a.hasAttribute('data-hs-full')) return;   // "Open full Help" goes to the page
     var m = /^(?:\.\/)?help\.html#([\w-]+)$/.exec(a.getAttribute('href') || '');
     if (!m) return;
     e.preventDefault();
