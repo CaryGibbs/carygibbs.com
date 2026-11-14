@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261114b"></script>
+  <script src="dev-flag.js?v=20261114c"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114b">
-  <script src="icons.js?v=20261114b"></script>
-  <link rel="stylesheet" href="stats.css?v=20261114b">
+  <link rel="stylesheet" href="theme.css?v=20261114c">
+  <script src="icons.js?v=20261114c"></script>
+  <link rel="stylesheet" href="stats.css?v=20261114c">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -184,7 +184,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114b">
+  <link rel="stylesheet" href="ui.css?v=20261114c">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -435,25 +435,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114b';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114b';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114b';
-import { showPlusUpsell } from './plus.js?v=20261114b';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114b';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114b';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114b';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114b';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261114b';
-import { logEvent } from './log.js?v=20261114b';
-import { openInviteDialog } from './invite.js?v=20261114b';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114b';
-import { dueEntries, scheduledCount } from './srs.js?v=20261114b';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114b';
-import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261114b';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114b';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114b';
-import { openDeleteAccount } from './account.js?v=20261114b';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114b';
+import { auth, db } from './firebase-config.js?v=20261114c';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114c';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114c';
+import { showPlusUpsell } from './plus.js?v=20261114c';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114c';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114c';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114c';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114c';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261114c';
+import { logEvent } from './log.js?v=20261114c';
+import { openInviteDialog } from './invite.js?v=20261114c';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114c';
+import { dueEntries, scheduledCount } from './srs.js?v=20261114c';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114c';
+import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261114c';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114c';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114c';
+import { openDeleteAccount } from './account.js?v=20261114c';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114c';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -1123,7 +1123,7 @@ function readPlanEditor() {
     name: row.querySelector('[data-f="name"]').value.trim(),
     start: row.querySelector('[data-f="start"]').value,
     end: row.querySelector('[data-f="end"]').value || null,
-    packId: row.querySelector('[data-f="packId"]')?.value || null,
+    packId: row.querySelector('[data-f="subjectId"]')?.value ? null : row.querySelector('[data-f="packId"]')?.value || null,
     subjectId: row.querySelector('[data-f="subjectId"]')?.value || null,
     subjectPackId: row.querySelector('[data-f="subjectId"]')?.selectedOptions[0]?.dataset.pack || (byId[row.dataset.id] || {}).subjectPackId || null,
   }));
@@ -1164,10 +1164,18 @@ function renderPlanEditor() {
       <button type="button" class="btn btn-ghost" data-del-exam="${i}" aria-label="Remove these exams"><i data-icon="trash-2"></i></button>
     </div>`).join('');
   box.querySelectorAll('[data-del-exam]').forEach(b => b.onclick = () => { readPlanEditor(); managePlan.exams.splice(+b.dataset.delExam, 1); renderPlanEditor(); });
-  // A paper for one subject: fill in the name if it's blank
-  box.querySelectorAll('select[data-f="subjectId"]').forEach(sel => sel.onchange = () => {
-    const name = sel.closest('.plan-exam-row').querySelector('[data-f="name"]');
-    if (sel.value && !name.value.trim()) name.value = sel.selectedOptions[0].text;
+  // A paper for one subject: fill in the name if it's blank. The pack choice
+  // is only for All subjects (a paper's subject already says which pack).
+  box.querySelectorAll('select[data-f="subjectId"]').forEach(sel => {
+    const row = sel.closest('.plan-exam-row');
+    const packBox = row.querySelector('select[data-f="packId"]')?.closest('.plan-exam-pack');
+    const sync = () => { if (packBox) packBox.style.display = sel.value ? 'none' : ''; };
+    sel.onchange = () => {
+      const name = row.querySelector('[data-f="name"]');
+      if (sel.value && !name.value.trim()) name.value = sel.selectedOptions[0].text;
+      sync();
+    };
+    sync();
   });
   document.getElementById('btn-add-exam').onclick = () => {
     readPlanEditor();
@@ -1522,6 +1530,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261114b"></script>
+<script src="site.js?v=20261114c"></script>
 </body>
 </html>

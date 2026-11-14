@@ -16,9 +16,9 @@
 // Targets can be changed by an admin (settings/plans).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261114b';
+import { db } from './firebase-config.js?v=20261114c';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { dueEntries } from './srs.js?v=20261114b';
+import { dueEntries } from './srs.js?v=20261114c';
 
 export const LEVEL_DEFAULTS = {
   relaxed: { label: 'Relaxed',   emoji: '🌱', mins: 15, quizzes: 1, reviews: false, either: true,  days: 4, blurb: 'A little and often' },
@@ -257,7 +257,8 @@ export function planSchedule(profile, subjects = [], packId = null, { back = 3, 
 // pack the student is currently using
 export function planPack(profile) {
   const ex = examRun(profile);
-  return ex?.exams.find(e => e.packId)?.packId || profile?.currentPackId || (profile?.groupIds || [])[0] || Object.values(profile?.classPacks || {}).flat()[0] || null;
+  // (a single-subject paper's pack doesn't count: the subject sets its own)
+  return ex?.exams.find(e => e.packId && !e.subjectId)?.packId || profile?.currentPackId || (profile?.groupIds || [])[0] || Object.values(profile?.classPacks || {}).flat()[0] || null;
 }
 
 // Every revision pack the student has, the plan's pack first (not their
