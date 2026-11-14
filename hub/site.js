@@ -123,6 +123,12 @@
     ('requestIdleCallback' in window) ? requestIdleCallback(check, { timeout: 1500 }) : setTimeout(check, 300);
   }
 
+  // ── Help answers open over the page (help-sheet.js) ─────
+  var hs = document.createElement('script');
+  hs.src = 'help-sheet.js?v=20261114g';
+  hs.defer = true;
+  document.head.appendChild(hs);
+
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
   pwa.src = 'pwa.js?v=20261114g';
