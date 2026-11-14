@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -14 108 114" role="img" aria-label="Lobe Limpet in a graduation cap">
+<style>
+.body { transform-box: view-box; transform-origin: 50px 84px; }
+.eye { transform-box: fill-box; transform-origin: center; animation: blink 4.8s infinite; }
+.shadow { transform-box: fill-box; transform-origin: center; }
+@keyframes blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.1); } }
+
+.body { animation: nod 3s ease-in-out infinite; }
+.tassel { transform-box: view-box; transform-origin: 72px 3px; animation: swing 3s ease-in-out infinite; }
+.spark { transform-box: fill-box; transform-origin: center; animation: spark 3s ease-in-out infinite; opacity: 0; }
+@keyframes nod { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-3deg) translateY(-2px); } 40% { transform: rotate(2deg); } 60% { transform: rotate(0); } }
+@keyframes swing { 0%,100% { transform: rotate(-10deg); } 20% { transform: rotate(18deg); } 40% { transform: rotate(-14deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-4deg); } }
+@keyframes spark { 0%,45% { opacity: 0; transform: scale(.2) rotate(0); } 60% { opacity: 1; transform: scale(1) rotate(45deg); } 75%,100% { opacity: 0; transform: scale(.3) rotate(90deg); } }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }</style>
+<path d="M2 89 Q5 81 16 81 H84 Q95 81 98 89 V93 a4 4 0 0 1 -4 4 H6 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><ellipse class="shadow" cx="50" cy="83" rx="40" ry="2.5" fill="#123a4a" opacity=".18"/><g class="body"><path d="M8 83 C7 42 26 14 50 13 C74 14 93 42 92 83 Q87 88 82 83 Q77 88 72 83 Q67 88 61.5 83 Q56 88 50 83 Q44 88 38.5 83 Q33 88 28 83 Q23 88 18 83 Q13 88 8 83 Z" fill="#ff7a59"/><path d="M20 54 C21 40 27 30 35 23" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="5" stroke-linecap="round"/><g fill="none" stroke="#c94a28" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path class="fold" d="M50 15 C46 23 54 30 50 37 C47 42 52 45 50 48"/><path class="fold f2" d="M31 30 C34 25 40 26 40 30 C40 34 45 34 45 28"/><path class="fold f3" d="M69 30 C66 25 60 26 60 30 C60 34 55 34 55 28"/><path class="fold f4" d="M24 47 C25 41 31 40 33 44 C35 48 41 46 40 40"/><path class="fold f5" d="M76 47 C75 41 69 40 67 44 C65 48 59 46 60 40"/></g><ellipse class="cheek" cx="28" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><ellipse class="cheek" cx="72" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><g class="eye"><circle cx="39" cy="62" r="7.5" fill="#123a4a"/><g class="pupil"><circle cx="36.5" cy="59" r="2.8" fill="#fff"/><circle cx="41.5" cy="65" r="1.2" fill="#fff"/></g></g><g class="eye"><circle cx="61" cy="62" r="7.5" fill="#123a4a"/><g class="pupil"><circle cx="58.5" cy="59" r="2.8" fill="#fff"/><circle cx="63.5" cy="65" r="1.2" fill="#fff"/></g></g><path d="M45.5 70 Q50 74.5 54.5 70" fill="none" stroke="#123a4a" stroke-width="2.6" stroke-linecap="round"/><path d="M37 17 Q50 22 63 17 L63 7 L37 7 Z" fill="#0d2c39"/><path d="M50 -5 L80 4 L50 13 L20 4 Z" fill="#123a4a"/><path d="M50 -5 L80 4 L50 13 L20 4 Z" fill="none" stroke="#2c5566" stroke-width="1"/><circle cx="50" cy="4" r="2.2" fill="#ffc94a"/><g class="tassel"><path d="M50 4 L72 3 L72 16" fill="none" stroke="#ffc94a" stroke-width="2" stroke-linecap="round"/><path d="M69 15 L75 15 L76 24 L68 24 Z" fill="#ffc94a"/></g></g><path class="spark" transform="translate(12 6)" d="M0 -6 Q1.5 -1.5 6 0 Q1.5 1.5 0 6 Q-1.5 1.5 -6 0 Q-1.5 -1.5 0 -6 Z" fill="#ffc94a"/>
+</svg>

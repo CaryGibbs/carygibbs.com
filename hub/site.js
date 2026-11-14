@@ -106,7 +106,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261114j'),
+        import('./firebase-config.js?v=20261114k'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -125,13 +125,13 @@
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261114j';
+  hs.src = 'help-sheet.js?v=20261114k';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261114j';
+  pwa.src = 'pwa.js?v=20261114k';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

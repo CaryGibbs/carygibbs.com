@@ -7,12 +7,12 @@
 // old copy. Later this is where push notifications will arrive.
 // Bump VERSION when offline.html or its picture changes.
 // ============================================================
-const VERSION = 'll-offline-2';
+const VERSION = 'll-offline-3';
 const OFFLINE_URL = 'offline.html';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll([OFFLINE_URL, 'assets/images/brand/icon-192.png']))
+    caches.open(VERSION).then((cache) => cache.addAll([OFFLINE_URL, 'assets/images/brand/icon-192.png', 'assets/images/brand/mascot/limpet-sleep.svg']))
   );
   self.skipWaiting();
 });
