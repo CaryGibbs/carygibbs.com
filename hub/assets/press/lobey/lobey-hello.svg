@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -14 108 114" role="img" aria-label="Lobey">
+<style>
+  .body  { transform-box: view-box; transform-origin: 50px 84px; animation: bob 3.2s ease-in-out infinite; }
+  .eye   { transform-box: fill-box; transform-origin: center; animation: blink 4.8s infinite; }
+  .fold  { animation: think 3.2s ease-in-out infinite; }
+  .f2 { animation-delay: .25s; } .f3 { animation-delay: .5s; } .f4 { animation-delay: .75s; } .f5 { animation-delay: 1s; }
+  .cheek { animation: blush 3.2s ease-in-out infinite; }
+  .spark { transform-box: fill-box; transform-origin: center; animation: spark 3.2s ease-in-out infinite; opacity: 0; }
+  .s2 { animation-delay: .35s; }
+  .shadow { transform-box: fill-box; transform-origin: center; animation: shadow 3.2s ease-in-out infinite; }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) scale(1, 1); }
+    12%      { transform: translateY(0) scale(1.04, .95); }
+    40%      { transform: translateY(-6px) scale(.98, 1.03); }
+    65%      { transform: translateY(0) scale(1.03, .97); }
+    80%      { transform: translateY(0) scale(1, 1); }
+  }
+  @keyframes shadow { 0%, 100%, 80% { opacity: .18; transform: scaleX(1); } 40% { opacity: .1; transform: scaleX(.85); } }
+  @keyframes blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.1); } }
+  @keyframes think { 0%, 25%, 75%, 100% { stroke: #c94a28; } 45% { stroke: #ffd36b; } }
+  @keyframes blush { 0%, 100% { opacity: .75; } 45% { opacity: 1; } }
+  @keyframes spark {
+    0%, 30%  { opacity: 0; transform: scale(.2) rotate(0deg); }
+    45%      { opacity: 1; transform: scale(1) rotate(45deg); }
+    62%, 100% { opacity: 0; transform: scale(.3) rotate(90deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .body, .eye, .fold, .cheek, .spark, .shadow { animation: none; }
+  }
+</style>
+<path d="M2 89 Q5 81 16 81 H84 Q95 81 98 89 V93 a4 4 0 0 1 -4 4 H6 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/>
+<ellipse class="shadow" cx="50" cy="83" rx="40" ry="2.5" fill="#123a4a" opacity=".18"/>
+<g class="body">
+  <path d="M8 83 C7 42 26 14 50 13 C74 14 93 42 92 83 Q87 88 82 83 Q77 88 72 83 Q67 88 61.5 83 Q56 88 50 83 Q44 88 38.5 83 Q33 88 28 83 Q23 88 18 83 Q13 88 8 83 Z" fill="#ff7a59"/>
+  <path d="M20 54 C21 40 27 30 35 23" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="5" stroke-linecap="round"/>
+  <g fill="none" stroke="#c94a28" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <path class="fold" d="M50 15 C46 23 54 30 50 37 C47 42 52 45 50 48"/>
+    <path class="fold f2" d="M31 30 C34 25 40 26 40 30 C40 34 45 34 45 28"/>
+    <path class="fold f3" d="M69 30 C66 25 60 26 60 30 C60 34 55 34 55 28"/>
+    <path class="fold f4" d="M24 47 C25 41 31 40 33 44 C35 48 41 46 40 40"/>
+    <path class="fold f5" d="M76 47 C75 41 69 40 67 44 C65 48 59 46 60 40"/>
+  </g>
+  <ellipse class="cheek" cx="28" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/>
+  <ellipse class="cheek" cx="72" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/>
+  <g class="eye"><circle cx="39" cy="62" r="7.5" fill="#123a4a"/><circle cx="36.5" cy="59" r="2.8" fill="#fff"/><circle cx="41.5" cy="65" r="1.2" fill="#fff"/></g>
+  <g class="eye"><circle cx="61" cy="62" r="7.5" fill="#123a4a"/><circle cx="58.5" cy="59" r="2.8" fill="#fff"/><circle cx="63.5" cy="65" r="1.2" fill="#fff"/></g>
+  <path d="M45.5 70 Q50 74.5 54.5 70" fill="none" stroke="#123a4a" stroke-width="2.6" stroke-linecap="round"/>
+</g>
+<path class="spark" d="M76 -6 Q77.5 -1.5 82 0 Q77.5 1.5 76 6 Q74.5 1.5 70 0 Q74.5 -1.5 76 -6 Z" fill="#ffc94a"/>
+<path class="spark s2" d="M88 8 Q89 11 92 12 Q89 13 88 16 Q87 13 84 12 Q87 11 88 8 Z" fill="#ffc94a"/>
+</svg>

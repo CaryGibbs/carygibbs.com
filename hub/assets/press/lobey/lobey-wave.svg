@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -14 108 114" role="img" aria-label="Lobey waving hello">
+<style>
+.body { transform-box: view-box; transform-origin: 50px 84px; }
+.eye { transform-box: fill-box; transform-origin: center; animation: blink 4.8s infinite; }
+.shadow { transform-box: fill-box; transform-origin: center; }
+@keyframes blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.1); } }
+
+.body { animation: bob 2.4s ease-in-out infinite; }
+.arm { transform-box: view-box; transform-origin: 84px 60px; animation: wave 2.4s ease-in-out infinite; }
+.hi { transform-box: fill-box; transform-origin: center; animation: pop 2.4s ease-in-out infinite; opacity: 0; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes wave { 0%,100% { transform: rotate(0deg); } 10% { transform: rotate(-28deg); } 22% { transform: rotate(14deg); }
+  34% { transform: rotate(-28deg); } 46% { transform: rotate(14deg); } 58% { transform: rotate(0deg); } }
+@keyframes pop { 0%,8% { opacity: 0; transform: scale(.4); } 18%,55% { opacity: 1; transform: scale(1); } 68%,100% { opacity: 0; transform: scale(.6); } }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }</style>
+<path d="M2 89 Q5 81 16 81 H84 Q95 81 98 89 V93 a4 4 0 0 1 -4 4 H6 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><ellipse class="shadow" cx="50" cy="83" rx="40" ry="2.5" fill="#123a4a" opacity=".18"/><g class="body"><g class="arm"><path transform="translate(84 60) rotate(30)" d="M-3 2 C-3 -6 -3 -12 -5 -17 C-8 -24 -2 -30 4 -27 C9 -24 8 -17 5 -13 C3 -9 3 -4 3 2 Z" fill="#ff7a59" stroke="#c94a28" stroke-width="2.4" stroke-linejoin="round"/></g><path d="M8 83 C7 42 26 14 50 13 C74 14 93 42 92 83 Q87 88 82 83 Q77 88 72 83 Q67 88 61.5 83 Q56 88 50 83 Q44 88 38.5 83 Q33 88 28 83 Q23 88 18 83 Q13 88 8 83 Z" fill="#ff7a59"/><path d="M20 54 C21 40 27 30 35 23" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="5" stroke-linecap="round"/><g fill="none" stroke="#c94a28" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path class="fold" d="M50 15 C46 23 54 30 50 37 C47 42 52 45 50 48"/><path class="fold f2" d="M31 30 C34 25 40 26 40 30 C40 34 45 34 45 28"/><path class="fold f3" d="M69 30 C66 25 60 26 60 30 C60 34 55 34 55 28"/><path class="fold f4" d="M24 47 C25 41 31 40 33 44 C35 48 41 46 40 40"/><path class="fold f5" d="M76 47 C75 41 69 40 67 44 C65 48 59 46 60 40"/></g><ellipse class="cheek" cx="28" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><ellipse class="cheek" cx="72" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><g class="eye"><circle cx="39" cy="62" r="7.5" fill="#123a4a"/><g class="pupil"><circle cx="36.5" cy="59" r="2.8" fill="#fff"/><circle cx="41.5" cy="65" r="1.2" fill="#fff"/></g></g><g class="eye"><circle cx="61" cy="62" r="7.5" fill="#123a4a"/><g class="pupil"><circle cx="58.5" cy="59" r="2.8" fill="#fff"/><circle cx="63.5" cy="65" r="1.2" fill="#fff"/></g></g><path d="M43.5 68.5 Q50 79 56.5 68.5 Z" fill="#123a4a" stroke="#123a4a" stroke-width="1.5" stroke-linejoin="round"/><path d="M46.5 73.5 Q50 71.5 53.5 73.5 Q50 77 46.5 73.5 Z" fill="#ff9e8a"/></g><g class="hi"><rect x="-2" y="-12" width="30" height="18" rx="9" fill="#fff" stroke="#123a4a" stroke-opacity=".15"/><text x="13" y="1.5" text-anchor="middle" font-family="Fredoka, Arial Rounded MT Bold, Arial, sans-serif" font-weight="700" font-size="12" fill="#123a4a">hi!</text></g>
+</svg>

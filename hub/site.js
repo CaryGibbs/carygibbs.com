@@ -64,7 +64,7 @@
     foot.outerHTML = '<footer class="site-foot"><div class="wrap"><div class="foot-grid">' +
       '<div>' + BRAND + '<p class="foot-blurb">Snap a revision list and get everything needed to revise it.</p></div>' +
       '<div><h4>Lobe Limpet</h4><ul><li><a href="./">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li></ul></div>' +
-      '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li><li><a href="about.html">About</a></li><li><a href="login.html" id="foot-signin">Sign in</a></li></ul></div>' +
+      '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li><li><a href="about.html">About</a></li><li><a href="press.html">Press and brand</a></li><li><a href="login.html" id="foot-signin">Sign in</a></li></ul></div>' +
       '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy</a></li><li><a href="terms.html">Terms</a></li></ul></div>' +
       '</div><div class="foot-base"><span>© ' + YEAR + ' Lobe Limpet</span><span>Made in the UK</span></div></div></footer>';
   }
@@ -106,7 +106,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261114k'),
+        import('./firebase-config.js?v=20261114l'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -125,13 +125,13 @@
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261114k';
+  hs.src = 'help-sheet.js?v=20261114l';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261114k';
+  pwa.src = 'pwa.js?v=20261114l';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();
