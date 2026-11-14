@@ -2,11 +2,11 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261114d';
-import { ensureAccountNo } from './account-no.js?v=20261114d';
+import { auth, db } from './firebase-config.js?v=20261114e';
+import { ensureAccountNo } from './account-no.js?v=20261114e';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261114d';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261114e';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -253,6 +253,7 @@ export async function handleSignOut() {
   if (_preview) { exitPreview(); return; } // in a preview window, "Sign out" just leaves the preview
   await Promise.race([logEvent('account.signout'), new Promise(r => setTimeout(r, 1500))]);
   await signOut(auth);
+  try { localStorage.removeItem('ll_home'); } catch (e) {} // the next person to sign in gets their own home
   window.location.href = 'login.html';
 }
 

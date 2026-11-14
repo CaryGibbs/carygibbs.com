@@ -286,3 +286,20 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .prose .about-sign { display: flex; align-items: center; gap: 14px; margin: 18px 0 8px; }
 .prose .about-sign img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; flex: none; }
 .prose .about-sign p { margin: 0; line-height: 1.35; }
+
+/* ── Revision list mock + "One snap becomes…" (14 Nov) ── */
+.sheet-li { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--deep); margin-bottom: 7px; }
+.sheet-li span { width: 11px; height: 11px; border: 1.5px solid #c9bb9c; border-radius: 3px; flex-shrink: 0; }
+.becomes-sec { padding-bottom: 40px; }
+.becomes { display: grid; grid-template-columns: 220px auto 1fr; gap: 22px; align-items: center; }
+.becomes-src { background: #fffdf7; border: 1px solid #e8dcc4; border-radius: var(--radius); padding: 22px; text-align: center; transform: rotate(-2deg); box-shadow: 0 10px 26px rgba(18,58,74,0.10); }
+.becomes-src .bs-icon { display: block; font-size: 1.8rem; margin-bottom: 6px; }
+.becomes-src b, .becomes-out b { display: block; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--deep); }
+.becomes-src small, .becomes-out small { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+.becomes-arrow { font-size: 1.8rem; }
+.becomes-out { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.becomes-out li { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 14px; }
+.becomes-out li > span { display: block; font-size: 1.4rem; margin-bottom: 8px; }
+@media (max-width: 1100px) { .becomes { grid-template-columns: 1fr; justify-items: center; } .becomes-arrow { transform: rotate(90deg); } .becomes-out { width: 100%; } }
+@media (max-width: 860px) { .becomes-out { grid-template-columns: 1fr 1fr; } .becomes-out li:last-child { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .becomes-out { grid-template-columns: 1fr; gap: 8px; } .becomes-out li { display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; padding: 12px 14px; } .becomes-out li > span { grid-row: span 2; margin: 0; align-self: center; } .becomes-src { padding: 16px; } }

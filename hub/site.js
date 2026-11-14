@@ -20,6 +20,12 @@
 
   window.LL_CONTACT_EMAIL = CONTACT_EMAIL;
 
+  // The signed-in person's own home in the app (student hub, or their
+  // parent/teacher/admin page). Remembered by auth.js; sign-in page if unknown.
+  var myHome = 'login.html';
+  try { myHome = localStorage.getItem('ll_home') || 'login.html'; } catch (e) {}
+  window.LL_MY_HOME = myHome;
+
   // ── Public header ───────────────────────────────────────
   var head = document.getElementById('site-header');
   if (head) {
@@ -56,9 +62,9 @@
   var foot = document.getElementById('site-footer');
   if (foot) {
     foot.outerHTML = '<footer class="site-foot"><div class="wrap"><div class="foot-grid">' +
-      '<div>' + BRAND + '<p class="foot-blurb">Turn school revision sheets into notes and quizzes that stick.</p></div>' +
+      '<div>' + BRAND + '<p class="foot-blurb">Snap a revision list and get everything needed to revise it.</p></div>' +
       '<div><h4>Lobe Limpet</h4><ul><li><a href="./">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li></ul></div>' +
-      '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li><li><a href="about.html">About</a></li><li><a href="login.html">Sign in</a></li></ul></div>' +
+      '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li><li><a href="about.html">About</a></li><li><a href="login.html" id="foot-signin">Sign in</a></li></ul></div>' +
       '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy</a></li><li><a href="terms.html">Terms</a></li></ul></div>' +
       '</div><div class="foot-base"><span>© ' + YEAR + ' Lobe Limpet</span><span>Made in the UK</span></div></div></footer>';
   }
@@ -76,12 +82,11 @@
       if (document.querySelector('.ll-slimfoot')) return;
       var el = document.createElement('footer');
       el.className = 'll-slimfoot';
-      // On the sign-in page, Home is the website's front page; in the app it's
-      // the person's own home (hub, or their parent/teacher/admin page)
-      var home = 'login.html';
-      try { home = localStorage.getItem('ll_home') || 'login.html'; } catch (e) {}
-      if (page === 'login.html') home = './';
-      el.innerHTML = '<a href="' + home + '"><strong>Home</strong></a>·<a href="plus.html">Pricing</a>·<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
+      // "My home" is the person's own home in the app (hub, or their
+      // parent/teacher/admin page); "Website" is the public front page.
+      // The sign-in page has no "My home" yet.
+      var homeLink = page === 'login.html' ? '' : '<a href="' + myHome + '"><strong>My home</strong></a>·';
+      el.innerHTML = homeLink + '<a href="./">Lobe Limpet website</a>·<a href="plus.html">Pricing</a>·<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
         '<span class="ll-tag">© ' + YEAR + ' Lobe Limpet · ' + TAGLINE + '</span>';
       (document.querySelector('main.main') || document.body).appendChild(el);
     };
@@ -97,17 +102,20 @@
   };
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fill) : fill();
 
-  // ── Signed in? Header button goes to the hub instead ────
+  // ── Signed in? Sign-in links go straight to their home ──
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261114d'),
+        import('./firebase-config.js?v=20261114e'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
           if (!user) return;
-          var b = document.getElementById('nav-btn');
-          if (b) b.textContent = 'Go to my hub';
+          // Signed in: every "Sign in" becomes a direct way back to their home
+          ['nav-btn', 'foot-signin'].forEach(function (id) {
+            var b = document.getElementById(id);
+            if (b) { b.textContent = id === 'nav-btn' ? 'Go to my home' : 'My home'; b.href = myHome; }
+          });
           document.dispatchEvent(new CustomEvent('ll-signed-in'));
         });
       }).catch(function () {});
@@ -117,7 +125,7 @@
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261114d';
+  pwa.src = 'pwa.js?v=20261114e';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();
