@@ -38,9 +38,9 @@
 }
 .nav-logo-icon .icon, .logo-icon .icon, .sidebar-logo-icon .icon { width: 17px; height: 17px; }
 .nav-logo-icon .brand-b, .logo-icon .brand-b, .sidebar-logo-icon .brand-b { width: 21px; height: 21px; }
-.brand-mark { width: 24px; height: 20px; display: block; }
+.brand-mark { width: 28px; height: 28px; display: block; }
 .logo-wrap .logo-icon { width: 56px !important; height: 56px !important; border-radius: 16px !important; }
-.logo-icon .brand-mark { width: 38px; height: 32px; }
+.logo-icon .brand-mark { width: 52px; height: 52px; }
 .brand-word { font-family: 'Fredoka', var(--font-heading), system-ui, sans-serif !important; font-weight: 600 !important; letter-spacing: -0.01em; white-space: nowrap; }
 .brand-accent { color: #ff7a59 !important; }   /* "limpet" in shell coral */
 .nav-back {

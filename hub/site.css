@@ -23,7 +23,7 @@ a { color: inherit; }
 header { position: sticky; top: 0; z-index: 10; background: rgba(212,241,234,0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(18,58,74,0.08); }
 .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 70px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.brand svg { width: 40px; height: 34px; }
+.brand svg { width: 46px; height: 46px; }
 .word { font-family: 'Fredoka', system-ui, sans-serif; font-weight: 600; font-size: 1.45rem; letter-spacing: -0.01em; color: var(--deep); white-space: nowrap; }
 .word span { color: var(--coral); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; font-weight: 700; font-size: 0.98rem; text-decoration: none; border-radius: 999px; padding: 12px 22px; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; cursor: pointer; border: 0; white-space: nowrap; }

@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261114h';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261114h';
-import { themeColour } from './themes.js?v=20261114h';
+import { db } from './firebase-config.js?v=20261114i';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261114i';
+import { themeColour } from './themes.js?v=20261114i';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openAccountSettings } from './account-settings.js?v=20261114h';
-import { plusPillHtml } from './plus.js?v=20261114h';
+import { openAccountSettings } from './account-settings.js?v=20261114i';
+import { plusPillHtml } from './plus.js?v=20261114i';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -105,7 +105,7 @@ export function mountShell(user, profile, { view, active } = {}) {
   sidebar.innerHTML = `
     <div class="sidebar-logo">
       <a href="${V.home}" class="sidebar-brand">
-        <span class="sidebar-logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></span>
+        <span class="sidebar-logo-icon"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M2 89 Q5 81 16 81 H84 Q95 81 98 89 V93 a4 4 0 0 1 -4 4 H6 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M8 83 C7 42 26 14 50 13 C74 14 93 42 92 83 Q87 88 82 83 Q77 88 72 83 Q67 88 61.5 83 Q56 88 50 83 Q44 88 38.5 83 Q33 88 28 83 Q23 88 18 83 Q13 88 8 83 Z" fill="#ff7a59"/><path d="M20 54 C21 40 27 30 35 23" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="5" stroke-linecap="round"/><g fill="none" stroke="#c94a28" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M50 15 C46 23 54 30 50 37 C47 42 52 45 50 48"/><path d="M24 47 C25 41 31 40 33 44 C35 48 41 46 40 40"/><path d="M31 30 C34 25 40 26 40 30 C40 34 45 34 45 28"/><path d="M76 47 C75 41 69 40 67 44 C65 48 59 46 60 40"/><path d="M69 30 C66 25 60 26 60 30 C60 34 55 34 55 28"/></g><ellipse cx="28" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><ellipse cx="72" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><circle cx="39" cy="62" r="7.5" fill="#123a4a"/><circle cx="61" cy="62" r="7.5" fill="#123a4a"/><circle cx="36.5" cy="59" r="2.8" fill="#fff"/><circle cx="58.5" cy="59" r="2.8" fill="#fff"/><circle cx="41.5" cy="65" r="1.2" fill="#fff"/><circle cx="63.5" cy="65" r="1.2" fill="#fff"/><path d="M45.5 70 Q50 74.5 54.5 70" fill="none" stroke="#123a4a" stroke-width="2.6" stroke-linecap="round"/></svg></span>
         <span class="brand-word">lobe <span class="brand-accent">limpet</span></span>
       </a>
       <button class="sidebar-close" aria-label="Close menu"><i data-icon="x"></i></button>
@@ -140,7 +140,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     document.body.insertAdjacentHTML('afterbegin', `
       <div class="shell-mobilebar" id="shell-mobilebar">
         <button class="shell-menu-btn" aria-label="Open menu"><i data-icon="menu"></i></button>
-        <span class="sidebar-logo-icon"><svg class="brand-mark" viewBox="0 0 120 100" aria-hidden="true"><path d="M4 86 L16 80 L38 82 L60 79 L84 82 L104 80 L116 86 V92 a4 4 0 0 1 -4 4 H8 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M14 82 C18 46 38 16 60 14 C82 16 102 46 106 82 Q100 87 94 82 Q88 87 82 82 Q76 87 70 82 Q64 87 58 82 Q52 87 46 82 Q40 87 34 82 Q28 87 22 82 Q18 86 14 82 Z" fill="#ff7a59"/><path d="M60 16 C57 28 63 40 60 54" fill="none" stroke="#b8401f" stroke-width="6" stroke-linecap="round"/><circle cx="52" cy="66" r="6" fill="#123a4a"/><circle cx="68" cy="66" r="6" fill="#123a4a"/></svg></span><span class="shell-mobile-title"><span class="brand-word">lobe <span class="brand-accent">limpet</span></span></span><span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>
+        <span class="sidebar-logo-icon"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M2 89 Q5 81 16 81 H84 Q95 81 98 89 V93 a4 4 0 0 1 -4 4 H6 a4 4 0 0 1 -4 -4 Z" fill="#5d7c89"/><path d="M8 83 C7 42 26 14 50 13 C74 14 93 42 92 83 Q87 88 82 83 Q77 88 72 83 Q67 88 61.5 83 Q56 88 50 83 Q44 88 38.5 83 Q33 88 28 83 Q23 88 18 83 Q13 88 8 83 Z" fill="#ff7a59"/><path d="M20 54 C21 40 27 30 35 23" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="5" stroke-linecap="round"/><g fill="none" stroke="#c94a28" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M50 15 C46 23 54 30 50 37 C47 42 52 45 50 48"/><path d="M24 47 C25 41 31 40 33 44 C35 48 41 46 40 40"/><path d="M31 30 C34 25 40 26 40 30 C40 34 45 34 45 28"/><path d="M76 47 C75 41 69 40 67 44 C65 48 59 46 60 40"/><path d="M69 30 C66 25 60 26 60 30 C60 34 55 34 55 28"/></g><ellipse cx="28" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><ellipse cx="72" cy="70" rx="5.5" ry="3.4" fill="#ffc2b0"/><circle cx="39" cy="62" r="7.5" fill="#123a4a"/><circle cx="61" cy="62" r="7.5" fill="#123a4a"/><circle cx="36.5" cy="59" r="2.8" fill="#fff"/><circle cx="58.5" cy="59" r="2.8" fill="#fff"/><circle cx="41.5" cy="65" r="1.2" fill="#fff"/><circle cx="63.5" cy="65" r="1.2" fill="#fff"/><path d="M45.5 70 Q50 74.5 54.5 70" fill="none" stroke="#123a4a" stroke-width="2.6" stroke-linecap="round"/></svg></span><span class="shell-mobile-title"><span class="brand-word">lobe <span class="brand-accent">limpet</span></span></span><span class="view-chip" style="--c:${V.colour}"><i data-icon="${V.icon}"></i> ${V.label}</span>
       </div>
       <div class="shell-scrim" id="shell-scrim"></div>`);
     document.querySelector('#shell-mobilebar .view-chip')?.insertAdjacentHTML('beforebegin', plusPillHtml(profile, { short: true }));
