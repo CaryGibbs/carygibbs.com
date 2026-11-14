@@ -7,7 +7,7 @@
 // old copy. Later this is where push notifications will arrive.
 // Bump VERSION when offline.html or its picture changes.
 // ============================================================
-const VERSION = 'll-offline-1';
+const VERSION = 'll-offline-2';
 const OFFLINE_URL = 'offline.html';
 
 self.addEventListener('install', (event) => {
