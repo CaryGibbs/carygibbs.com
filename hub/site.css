@@ -228,6 +228,8 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .snap-arrow { font-size: 1.4rem; line-height: 1; }
 .snap .mock-card { width: 100%; }
 .snap .chip.streak { bottom: -14px; left: -10px; }
+.hero-limpet { position: absolute; right: -52px; bottom: -44px; width: 132px; height: auto; pointer-events: none; filter: drop-shadow(0 8px 14px rgba(18,58,74,0.18)); }
+@media (max-width: 860px) { .hero-limpet { right: -10px; bottom: -40px; width: 100px; } }
 @media (max-width: 860px) { .grid3.two { grid-template-columns: 1fr; } }
 .price-cards { margin-bottom: 24px; }
 .price, .prose .price { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 2rem; color: var(--deep); margin: 4px 0 8px; }
