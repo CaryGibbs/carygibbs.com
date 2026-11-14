@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261113v"></script>
+  <script src="dev-flag.js?v=20261114a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261113v">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261113v">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261113v">
-  <link rel="manifest" href="manifest.webmanifest?v=20261113v">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261113v">
-  <script src="icons.js?v=20261113v"></script>
-  <link rel="stylesheet" href="stats.css?v=20261113v">
+  <link rel="stylesheet" href="theme.css?v=20261114a">
+  <script src="icons.js?v=20261114a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261114a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -32,7 +32,8 @@
     /* ── Child cards ─────────────────────────────────────── */
     .plan-exams { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
     .plan-exam-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px 8px; align-items: end; padding: 10px; border: 1px solid var(--color-border); border-radius: 10px; margin-bottom: 8px; }
-    .plan-exam-row > div:first-child { grid-column: 1 / -1; }
+    .plan-exam-row > div:first-child, .plan-exam-row > .plan-exam-pack { grid-column: 1 / -1; }
+    .plan-exam-row select { width: 100%; box-sizing: border-box; padding: 8px 10px; font-size: 0.9rem; }
     .plan-exam-row.bad { border-color: var(--color-danger); }
     .plan-exam-row input { width: 100%; box-sizing: border-box; }
     .plan-exam-row label { font-size: 0.72rem; color: var(--color-text-muted); font-weight: 600; display: block; margin-bottom: 2px; }
@@ -183,7 +184,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261113v">
+  <link rel="stylesheet" href="ui.css?v=20261114a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -433,25 +434,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261113v';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261113v';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261113v';
-import { showPlusUpsell } from './plus.js?v=20261113v';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261113v';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261113v';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261113v';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261113v';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261113v';
-import { logEvent } from './log.js?v=20261113v';
-import { openInviteDialog } from './invite.js?v=20261113v';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261113v';
-import { dueEntries, scheduledCount } from './srs.js?v=20261113v';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261113v';
-import { openPlanCalendar } from './plan-view.js?v=20261113v';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261113v';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261113v';
-import { openDeleteAccount } from './account.js?v=20261113v';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261113v';
+import { auth, db } from './firebase-config.js?v=20261114a';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114a';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114a';
+import { showPlusUpsell } from './plus.js?v=20261114a';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114a';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114a';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114a';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114a';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261114a';
+import { logEvent } from './log.js?v=20261114a';
+import { openInviteDialog } from './invite.js?v=20261114a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114a';
+import { dueEntries, scheduledCount } from './srs.js?v=20261114a';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114a';
+import { openPlanCalendar } from './plan-view.js?v=20261114a';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114a';
+import { openDeleteAccount } from './account.js?v=20261114a';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114a';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -656,7 +657,7 @@ async function refreshFromChildRecords() {
     const p = snap?.data(); if (!p) return;
     records[id] = p;
     syncMyChildPlus(parentUid, shellProfile, id, p);   // my Plus covers my students
-    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'xp', 'level',
+    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'packIds', 'currentPackId', 'myPackId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'xp', 'level',
                   'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength'];
     const fresh = {};
     keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
@@ -1120,6 +1121,7 @@ function readPlanEditor() {
     name: row.querySelector('[data-f="name"]').value.trim(),
     start: row.querySelector('[data-f="start"]').value,
     end: row.querySelector('[data-f="end"]').value || null,
+    packId: row.querySelector('[data-f="packId"]')?.value || null,
   }));
 }
 function renderPlanEditor() {
@@ -1133,8 +1135,16 @@ function renderPlanEditor() {
   };
   sel.onchange = hint; hint();
   const box = document.getElementById('manage-exams');
+  // Which revision pack the exams are on (sets the subjects in the day-by-day plan)
+  const stu = childrenData[managingChildId] || {};
+  const packIds = [...new Set([...flatPackIds(stu), ...(stu.packIds || [])])].filter(id => id !== stu.myPackId);
+  const packSel = e => `<div class="plan-exam-pack"><label>Revision pack for these exams</label><select data-f="packId">
+      <option value="">Their current pack</option>
+      ${[...new Set([...packIds, ...(e.packId ? [e.packId] : [])])].map(id => `<option value="${esc(id)}"${e.packId === id ? ' selected' : ''}>${esc(packName(id))}</option>`).join('')}
+    </select></div>`;
   box.innerHTML = managePlan.exams.map((e, i) => `<div class="plan-exam-row" data-id="${esc(e.id || '')}">
       <div><label>Exams</label><input data-f="name" value="${esc(e.name || '')}" placeholder="e.g. November progress exams"></div>
+      ${packSel(e)}
       <div><label>First exam</label><input type="date" data-f="start" value="${esc(e.start || '')}"></div>
       <div><label>Last exam (optional)</label><input type="date" data-f="end" value="${esc(e.end || '')}"></div>
       <button type="button" class="btn btn-ghost" data-del-exam="${i}" aria-label="Remove these exams"><i data-icon="trash-2"></i></button>
@@ -1491,6 +1501,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261113v"></script>
+<script src="site.js?v=20261114a"></script>
 </body>
 </html>

@@ -7,11 +7,12 @@
 // Parent changes are saved as plan.overrides.<day> on the student.
 // ============================================================
 
-import { byOrder } from './order.js?v=20261113v';
-import { db } from './firebase-config.js?v=20261113v';
+import { byOrder } from './order.js?v=20261114a';
+import { db } from './firebase-config.js?v=20261114a';
 import { doc, updateDoc, deleteField, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261113v';
-import { planSchedule, planSummary, planPack, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261113v';
+import { logEvent } from './log.js?v=20261114a';
+import { packNames } from './packs.js?v=20261114a';
+import { planSchedule, planSummary, planPack, planPacks, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261114a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -67,7 +68,17 @@ export async function openPlanCalendar(profile, opts = {}) {
   addCss();
   await loadPlanSettings();
   const packId = planPack(profile);
-  const subjects = await packSubjects(packId);
+  // Subjects from every pack the student has: the plan's pack drives the
+  // rotation, and a parent can pick a subject from any of them for a day
+  const ids = planPacks(profile);
+  const [lists, names] = await Promise.all([Promise.all(ids.map(packSubjects)), packNames(ids)]);
+  const groups = ids.map((id, i) => ({ id, name: names[id] || 'Revision pack', subjects: lists[i].map(s => ({ ...s, packId: id })) }))
+    .filter(g => g.subjects.length);
+  const subjects = groups.find(g => g.id === packId)?.subjects || [];
+  const all = groups.flatMap(g => g.subjects);
+  const subjectOpts = sel => groups.length > 1
+    ? groups.map(g => `<optgroup label="${esc(g.name)}">${g.subjects.map(s => `<option value="${esc(s.id)}"${sel === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')
+    : all.map(s => `<option value="${esc(s.id)}"${sel === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
   const overlay = document.createElement('div');
   overlay.className = 'pv-overlay';
   document.body.appendChild(overlay);
@@ -76,13 +87,13 @@ export async function openPlanCalendar(profile, opts = {}) {
   document.addEventListener('keydown', function esc_(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc_); } });
 
   const draw = () => {
-    const { days, exam } = planSchedule(profile, subjects, packId);
+    const { days, exam } = planSchedule(profile, subjects, packId, { extra: all });
     const sum = planSummary(profile);
     const past = days.filter(d => d.past && d.status !== 'rest');
     const met = past.filter(d => d.status === 'met').length;
     const ahead = days.filter(d => !d.past && !d.rest);
     const mins = ahead.reduce((a, d) => a + (d.L.mins || 0), 0);
-    const covered = new Set(ahead.map(d => d.subject?.id).filter(Boolean));
+    const covered = new Set(ahead.map(d => d.subject?.id).filter(id => subjects.some(s => s.id === id)));
     const who = opts.name ? `${esc(opts.name)}'s` : 'Your';
     const levelOpts = [['', 'Auto'], ['rest', '😴 Rest day'], ['relaxed', '🌱 Relaxed'], ['steady', '📘 Steady'], ['push', '🚀 Exam push'], ['final', '🔥 Final days']];
     overlay.innerHTML = `<div class="pv-modal" role="dialog" aria-modal="true" aria-label="Plan to exams">
@@ -100,7 +111,7 @@ export async function openPlanCalendar(profile, opts = {}) {
         const edited = d.override && (d.override.level || d.override.subjectId);
         const edit = opts.editable && !d.past ? `<div class="pv-edit">
             <select data-day="${d.day}" data-k="level" aria-label="Level for ${f.wd} ${f.dm}">${levelOpts.map(([v, l]) => `<option value="${v}"${(d.override.level || '') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
-            ${d.rest ? '' : `<select data-day="${d.day}" data-k="subjectId" aria-label="Subject for ${f.wd} ${f.dm}"><option value="">Auto subject</option>${subjects.map(s => `<option value="${esc(s.id)}"${d.override.subjectId === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('')}</select>`}
+            ${d.rest ? '' : `<select data-day="${d.day}" data-k="subjectId" aria-label="Subject for ${f.wd} ${f.dm}"><option value="">Auto subject</option>${subjectOpts(d.override.subjectId)}</select>`}
           </div>` : '';
         return `<div class="pv-day${d.past ? ' past' : ''}${d.today ? ' today' : ''}${d.exam ? ' exam' : ''}">
           <div class="pv-date"><b>${d.today ? 'Today' : f.wd}</b>${f.dm}</div>
@@ -123,7 +134,9 @@ export async function openPlanCalendar(profile, opts = {}) {
     const plan = profile.plan = wasObject ? profile.plan : { mode: 'auto', exams: [] };
     const ov = { ...((plan.overrides || {})[day] || {}) };
     if (value) ov[key] = value; else delete ov[key];
-    if (key === 'level' && value === 'rest') delete ov.subjectId;
+    // Remember which pack the subject is in, so the student's hub can open it
+    if (key === 'subjectId') { const p = all.find(x => x.id === value)?.packId; if (p) ov.packId = p; else delete ov.packId; }
+    if (key === 'level' && value === 'rest') { delete ov.subjectId; delete ov.packId; }
     plan.overrides = { ...(plan.overrides || {}) };
     if (Object.keys(ov).length) plan.overrides[day] = ov; else delete plan.overrides[day];
     draw();
@@ -132,7 +145,7 @@ export async function openPlanCalendar(profile, opts = {}) {
         ? { [`plan.overrides.${day}`]: Object.keys(ov).length ? ov : deleteField() }
         : { plan });
       const lv = { rest: 'Rest day', relaxed: 'Relaxed', steady: 'Steady', push: 'Exam push', final: 'Final days' };
-      logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: `${day}: ${key === 'level' ? (value ? lv[value] || value : 'level back to Auto') : value ? 'subject ' + (subjects.find(x => x.id === value)?.name || value) : 'subject back to Auto'}` });
+      logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: `${day}: ${key === 'level' ? (value ? lv[value] || value : 'level back to Auto') : value ? 'subject ' + (all.find(x => x.id === value)?.name || value) : 'subject back to Auto'}` });
       opts.onChange && opts.onChange(profile);
     } catch (e) { alert('Could not save that change. Please try again.'); }
   }

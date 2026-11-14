@@ -14,9 +14,9 @@
 // Targets can be changed by an admin (settings/plans).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261113v';
+import { db } from './firebase-config.js?v=20261114a';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { dueEntries } from './srs.js?v=20261113v';
+import { dueEntries } from './srs.js?v=20261114a';
 
 export const LEVEL_DEFAULTS = {
   relaxed: { label: 'Relaxed',   emoji: '🌱', mins: 15, quizzes: 1, reviews: false, either: true,  days: 4, blurb: 'A little and often' },
@@ -165,12 +165,15 @@ export function subjectNeed(profile, s, packId, today = isoDay()) {
 // (or two weeks ahead when there are none). Each future day gets a
 // suggested subject: weaker subjects come up more often, every subject
 // at least once a round. A parent's choices (plan.overrides) win.
-export function planSchedule(profile, subjects = [], packId = null, { back = 3 } = {}) {
+// `subjects` are the ones the rotation uses (the plan's pack); `extra` are
+// subjects from the student's other packs, so a day a parent set to one of
+// those still shows it.
+export function planSchedule(profile, subjects = [], packId = null, { back = 3, extra = [] } = {}) {
   const today = isoDay();
   const ex = nextExam(profile, today);
   const last = ex ? (ex.end || ex.start) : addDays(today, 13);
   const first = addDays(today, -back);
-  const byId = Object.fromEntries(subjects.map(s => [s.id, s]));
+  const byId = Object.fromEntries([...extra, ...subjects].map(s => [s.id, s]));
   // Rotation: weakest third ×3, middle ×2, rest ×1 per cycle
   const ranked = subjects.map(s => ({ s, ...subjectNeed(profile, s, packId, today) })).sort((a, b) => b.score - a.score);
   const n = ranked.length, seq = [];
@@ -198,10 +201,19 @@ export function planSchedule(profile, subjects = [], packId = null, { back = 3 }
   return { days: out, exam: ex, ranked };
 }
 
-// Which pack the plan is for
+// Which pack the plan is for: the next exam's pack if one is set, else the
+// pack the student is currently using
 export function planPack(profile) {
   const ex = nextExam(profile);
   return ex?.packId || profile?.currentPackId || (profile?.groupIds || [])[0] || Object.values(profile?.classPacks || {}).flat()[0] || null;
+}
+
+// Every revision pack the student has, the plan's pack first (not their
+// own flashcard sets)
+export function planPacks(profile) {
+  const ids = [planPack(profile), profile?.currentPackId, ...(profile?.groupIds || []), profile?.groupId,
+    ...(profile?.packIds || []), ...Object.values(profile?.classPacks || {}).flat()];
+  return [...new Set(ids.filter(id => id && id !== profile?.myPackId))];
 }
 
 export function targetText(L) {
