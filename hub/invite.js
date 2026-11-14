@@ -10,10 +10,10 @@
 // Admins can invite as Parent, Teacher or Admin; parents as Parent.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261114c';
-import { saveEmailIndex } from './email-index.js?v=20261114c';
+import { db } from './firebase-config.js?v=20261114d';
+import { saveEmailIndex } from './email-index.js?v=20261114d';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261114c';
+import { logEvent } from './log.js?v=20261114d';
 
 export const INVITE_DAYS = 14;
 export const ROLE_LABEL = { parent: 'Parent', teacher: 'Teacher', admin: 'Admin' };

@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261114c"></script>
+  <script src="dev-flag.js?v=20261114d"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114c">
-  <script src="icons.js?v=20261114c"></script>
+  <link rel="stylesheet" href="theme.css?v=20261114d">
+  <script src="icons.js?v=20261114d"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -94,6 +94,9 @@
     .pic-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
     .pic-btn.small { border-style: solid; padding: 4px 8px; }
     .shared-tag { font-size: 0.75rem; font-weight: 700; color: var(--color-primary); }
+    .code-big { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; letter-spacing: 0.08em; text-align: center; padding: 14px; border: 2px dashed var(--color-border); border-radius: 14px; margin: 12px 0; user-select: all; }
+    .code-input { width: 100%; box-sizing: border-box; font-size: 1.3rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 10px; }
+    .code-off { color: var(--color-danger); font-weight: 700; }
     .class-list label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; font-size: 0.92rem; }
     .checks label { display: flex; gap: 8px; align-items: flex-start; font-size: 0.88rem; margin: 8px 0; cursor: pointer; line-height: 1.4; }
     .checks input { margin-top: 3px; }
@@ -167,7 +170,10 @@
         <h1 class="page-title">My flashcards</h1>
         <p class="lead">Make your own sets of cards. Each card becomes quiz questions and goes into your daily review.</p>
       </div>
-      <button class="btn btn-primary" data-action="new-set" id="btn-new-set"><i data-icon="plus"></i> New set</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" data-action="enter-code" id="btn-enter-code"><i data-icon="key-round"></i> Got a code?</button>
+        <button class="btn btn-primary" data-action="new-set" id="btn-new-set"><i data-icon="plus"></i> New set</button>
+      </div>
     </div>
     <div id="sets"><div class="empty"><div class="spinner" style="margin:0 auto;"></div></div></div>
     <div id="shared-section"></div>
@@ -217,20 +223,20 @@
 </div>
 
 <script type="module">
-import { db, storage } from './firebase-config.js?v=20261114c';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261114c';
-import { askClaude, jsonOf } from './ai.js?v=20261114c';
-import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261114c';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261114c';
-import { flatPackIds } from './packs.js?v=20261114c';
-import { logEvent } from './log.js?v=20261114c';
-import { byOrder } from './order.js?v=20261114c';
-import { startStudyTimer } from './study-timer.js?v=20261114c';
-import { forgetProgress } from './progress-tidy.js?v=20261114c';
+import { db, storage } from './firebase-config.js?v=20261114d';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261114d';
+import { askClaude, jsonOf } from './ai.js?v=20261114d';
+import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261114d';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261114d';
+import { flatPackIds } from './packs.js?v=20261114d';
+import { logEvent } from './log.js?v=20261114d';
+import { byOrder } from './order.js?v=20261114d';
+import { startStudyTimer } from './study-timer.js?v=20261114d';
+import { forgetProgress } from './progress-tidy.js?v=20261114d';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
   questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
-  cardComplete, shortName, copyCards } from './cards-core.js?v=20261114c';
-import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261114d';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, getCountFromServer }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
@@ -252,9 +258,9 @@ requireAuth(async (user, prof) => {
   if (!isPreview()) $('plus-link').innerHTML = plusPillHtml(profile);
   if (!isStudent(profile)) {
     $('sets').innerHTML = `<div class="empty"><h2>Flashcard sets are made by students</h2><p>Students make their own sets here. To make revision for your students, use My packs.</p><a class="btn btn-primary" href="hub.html">Back</a></div>`;
-    $('btn-new-set').hidden = true; return;
+    $('btn-new-set').hidden = true; $('btn-enter-code').hidden = true; return;
   }
-  if (readOnly()) $('btn-new-set').hidden = true;
+  if (readOnly()) { $('btn-new-set').hidden = true; $('btn-enter-code').hidden = true; }
   document.querySelectorAll('[data-plus-tag]').forEach(t => { t.hidden = canAI(); });
   packId = profile.myPackId || null;
   await loadSets();
@@ -302,11 +308,11 @@ function renderList() {
 function setCard(s) {
   const n = s.cards.length;
   return `<div class="set-card">
-    <div><div class="set-name">${esc(s.name || 'Untitled set')}</div><div class="set-meta">${n} card${n === 1 ? '' : 's'}${(s.sharedWith || []).length ? ' · <span class="shared-tag">Shared with your class</span>' : ''}</div></div>
+    <div><div class="set-name">${esc(s.name || 'Untitled set')}</div><div class="set-meta">${n} card${n === 1 ? '' : 's'}${(s.sharedWith || []).length ? ' · <span class="shared-tag">Shared with your class</span>' : ''}${s.shareCode && s.shareOn !== false ? ` · <span class="shared-tag">Code ${esc(s.shareCode)}</span>` : ''}</div></div>
     <div class="row-actions">
       <button class="btn btn-primary" data-action="study" data-id="${s.id}" ${n ? '' : 'disabled'}><i data-icon="layers"></i> Flashcards</button>
       <button class="btn btn-secondary" data-action="quiz" data-id="${s.id}" ${n ? '' : 'disabled'}><i data-icon="zap"></i> Quiz</button>
-      ${readOnly() ? '' : `${myClasses.length ? `<button class="icon-only" data-action="share-set" data-id="${s.id}" title="Share with my class" aria-label="Share with my class"><i data-icon="share-2"></i></button>` : ''}
+      ${readOnly() ? '' : `<button class="icon-only" data-action="code-set" data-id="${s.id}" title="Share with a code" aria-label="Share with a code"><i data-icon="key-round"></i></button>${myClasses.length ? `<button class="icon-only" data-action="share-set" data-id="${s.id}" title="Share with my class" aria-label="Share with my class"><i data-icon="share-2"></i></button>` : ''}
       <button class="icon-only" data-action="edit-set" data-id="${s.id}" title="Edit" aria-label="Edit set"><i data-icon="pencil"></i></button>
       <button class="icon-only danger" data-action="delete-set" data-id="${s.id}" title="Delete" aria-label="Delete set"><i data-icon="trash-2"></i></button>`}
     </div>
@@ -575,6 +581,13 @@ async function saveSet() {
       }
       await updateDoc(topicRef, { sharedWith: still }).catch(() => {});
     }
+    // Keep the copy behind a share code up to date
+    if (editing?.shareCode) {
+      try {
+        await updateDoc(doc(db, 'shareCodes', editing.shareCode), codeData({ id: topicRef.id, name, cards, subjectId: editing.subjectId }, subjectName, editing.shareCode, false));
+        if (moving) await updateDoc(topicRef, { shareCode: editing.shareCode, shareOn: editing.shareOn !== false }).catch(() => {});
+      } catch (e) { console.warn('Could not update the shared code copy', e.message); }
+    }
     clearDraft();
     logEvent(isNew && !moving ? 'cards.create' : 'cards.edit', { target: name, targetId: topicRef.id, detail: `${cards.length} cards · ${subjectName}${cards.some(c => c.imageUrl) ? ' · with pictures' : ''}` });
     showToast(`Saved: ${cards.length} card${cards.length === 1 ? '' : 's'}, ${qs.length} quiz questions`, 'success');
@@ -592,6 +605,7 @@ async function deleteSet(s) {
       const c = myClasses.find(x => x.cid === cid);
       if (c) await deleteDoc(doc(db, 'users', c.tid, 'classes', cid, 'sharedSets', `${me.uid}_${s.id}`)).catch(() => {});
     }
+    if (s.shareCode) await updateDoc(doc(db, 'shareCodes', s.shareCode), { active: false, setDeleted: true, updatedAt: serverTimestamp() }).catch(() => {});
     await deleteTopic(s.subjectId, s.id);
     // Take it off the Progress page as well (quiz history, reviews)
     await forgetProgress(me.uid, { packId, topicId: s.id }).catch(e => console.warn('Progress tidy', e));
@@ -966,12 +980,124 @@ async function loadShared() {
 
 // Open the editor with a copy of a classmate's set, to check and save as mine
 function copyShared(x) {
-  logEvent('cards.copy', { target: x.name, detail: `From ${x.ownerName || 'a classmate'}${x.className ? ' · ' + x.className : ''}` });
+  if (!x.viaCode) logEvent('cards.copy', { target: x.name, detail: `From ${x.ownerName || 'a classmate'}${x.className ? ' · ' + x.className : ''}` });
   openEditor(null);
   $('set-name').value = x.name || '';
   $('set-subject').value = x.subject || $('set-subject').value;
   setCards(copyCards(x.cards));
   $('draft-note').innerHTML = `<div class="draft-note"><span>A copy of ${esc(x.ownerName || 'a classmate')}'s set. Check the cards, change anything you like, then save it as yours.</span></div>`;
+}
+
+/* ── Share codes ──────────────────────────────────────────
+   A student can share one of their sets with a code (e.g. FC-7KQ2M) to
+   give to friends. The code points to a copy of the cards at
+   shareCodes/{code}; a friend who enters it gets their own copy to keep
+   (recorded at shareCodes/{code}/copies/{uid}). Codes aren't listed
+   anywhere public; admins can see them all and turn one off. */
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const makeCode = () => 'FC-' + Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+const tidyCode = v => { const c = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); return 'FC-' + (c.startsWith('FC') ? c.slice(2) : c).slice(0, 5); };
+function codeData(s, subjectName, code, isNew) {
+  const cards = (s.cards || []).filter(cardComplete);
+  const d = { code, ownerUid: me.uid, ownerName: shortName(profile.name), setId: s.id, packId, subjectId: s.subjectId || '',
+    name: s.name || 'Untitled set', subject: subjectName || '', cards, count: cards.length, updatedAt: serverTimestamp() };
+  if (isNew) { d.active = true; d.createdAt = serverTimestamp(); }
+  return d;
+}
+
+async function openCode(s) {
+  const subjectName = subjects[s.subjectId]?.name || '';
+  if (!s.shareCode) {
+    const box = dialog(`
+      <h2><i data-icon="key-round"></i> Share "${esc(s.name)}" with a code</h2>
+      <p>You'll get a short code to give to friends. Anyone with the code can add their own copy of these cards. They'll see your first name and initial. You can stop sharing at any time.</p>
+      <div class="checks">
+        <label><input type="checkbox" id="cd-ok1"> I made these cards myself and checked they're right.</label>
+        <label><input type="checkbox" id="cd-ok2"> There are no names, photos of people or other personal details on them.</label>
+      </div>
+      <div class="dialog-actions"><span class="grow status" id="cd-status"></span><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="cd-go"><i data-icon="key-round"></i> Make a code</button></div>`);
+    box.querySelector('#cd-go').onclick = async () => {
+      const st = box.querySelector('#cd-status');
+      if (!(box.querySelector('#cd-ok1').checked && box.querySelector('#cd-ok2').checked)) { st.textContent = 'Tick both boxes to share.'; st.className = 'grow status err'; return; }
+      if (!s.cards.filter(cardComplete).length) { st.textContent = 'Add some cards first.'; st.className = 'grow status err'; return; }
+      const go = box.querySelector('#cd-go'); go.disabled = true; st.textContent = 'Making your code…'; st.className = 'grow status';
+      // A code that's already taken can't be overwritten (the rules refuse it), so try another
+      let code = null, err = null;
+      for (let i = 0; i < 4 && !code; i++) {
+        const c = makeCode();
+        try { await setDoc(doc(db, 'shareCodes', c), codeData(s, subjectName, c, true)); code = c; } catch (e) { err = e; }
+      }
+      if (!code) { st.textContent = 'Could not make a code: ' + (err?.message || 'please try again'); st.className = 'grow status err'; go.disabled = false; return; }
+      await updateDoc(doc(db, `content/${packId}/subjects/${s.subjectId}/topics/${s.id}`), { shareCode: code, shareOn: true }).catch(() => {});
+      s.shareCode = code; s.shareOn = true;
+      logEvent('cards.code', { target: s.name, targetId: s.id, detail: `Code ${code}` });
+      renderList(); openCode(s);
+    };
+    return;
+  }
+  const box = dialog(`<h2><i data-icon="key-round"></i> "${esc(s.name)}"</h2><div class="code-big">${esc(s.shareCode)}</div><p class="set-meta" id="cd-info">Loading…</p>
+    <div class="dialog-actions" id="cd-actions"><button class="btn btn-ghost" data-close>Close</button></div>`);
+  const ref = doc(db, 'shareCodes', s.shareCode);
+  let d = null, copies = 0;
+  try {
+    const snap = await getDoc(ref); d = snap.exists() ? snap.data() : null;
+    copies = (await getCountFromServer(collection(db, 'shareCodes', s.shareCode, 'copies')).catch(() => null))?.data().count || 0;
+  } catch (e) { d = null; }
+  const off = d?.adminOff === true, on = d && d.active !== false && !off;
+  box.querySelector('#cd-info').innerHTML = !d ? 'This code no longer works.'
+    : off ? '<span class="code-off">This code has been turned off by Lobe Limpet.</span>'
+    : on ? `Give this code to friends. In My flashcards they tap <strong>Got a code?</strong> and type it in. ${copies ? `<br>${copies} ${copies === 1 ? 'person has' : 'people have'} added a copy.` : ''}`
+    : `Not shared at the moment.${copies ? ` ${copies} ${copies === 1 ? 'person' : 'people'} added a copy before.` : ''}`;
+  const acts = box.querySelector('#cd-actions');
+  if (on) acts.insertAdjacentHTML('afterbegin', `<button class="btn btn-ghost" id="cd-stop">Stop sharing</button><span class="grow"></span><button class="btn btn-secondary" id="cd-copy"><i data-icon="copy"></i> Copy code</button>`);
+  else if (d && !off) acts.insertAdjacentHTML('afterbegin', `<span class="grow"></span><button class="btn btn-primary" id="cd-again">Share again</button>`);
+  box.querySelector('#cd-copy')?.addEventListener('click', () => { navigator.clipboard?.writeText(s.shareCode).then(() => showToast('Code copied', 'success')).catch(() => {}); });
+  box.querySelector('#cd-stop')?.addEventListener('click', async () => {
+    await updateDoc(ref, { active: false, updatedAt: serverTimestamp() }).catch(e => showToast('Could not stop sharing: ' + e.message, 'error'));
+    await updateDoc(doc(db, `content/${packId}/subjects/${s.subjectId}/topics/${s.id}`), { shareOn: false }).catch(() => {});
+    s.shareOn = false; logEvent('cards.code_off', { target: s.name, targetId: s.id, detail: `Code ${s.shareCode}` });
+    renderList(); openCode(s);
+  });
+  box.querySelector('#cd-again')?.addEventListener('click', async () => {
+    await updateDoc(ref, { ...codeData(s, subjectName, s.shareCode, false), active: true }).catch(e => showToast('Could not share: ' + e.message, 'error'));
+    await updateDoc(doc(db, `content/${packId}/subjects/${s.subjectId}/topics/${s.id}`), { shareOn: true }).catch(() => {});
+    s.shareOn = true; logEvent('cards.code', { target: s.name, targetId: s.id, detail: `Code ${s.shareCode} (again)` });
+    renderList(); openCode(s);
+  });
+}
+
+// A friend's code: preview it, then add a copy to my flashcards
+function enterCode() {
+  const box = dialog(`
+    <h2><i data-icon="key-round"></i> Got a code?</h2>
+    <p>Type the code a friend gave you to add their flashcard set to yours.</p>
+    <input class="code-input" id="cd-in" placeholder="FC-XXXXX" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <div id="cd-found"></div>
+    <div class="dialog-actions"><span class="grow status" id="cd-status"></span><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-primary" id="cd-find">Find set</button></div>`);
+  const input = box.querySelector('#cd-in'), st = box.querySelector('#cd-status');
+  input.focus();
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') box.querySelector('#cd-find').click(); });
+  box.querySelector('#cd-find').onclick = async () => {
+    const code = tidyCode(input.value);
+    if (code.length !== 8) { st.textContent = 'Codes look like FC-7KQ2M.'; st.className = 'grow status err'; return; }
+    input.value = code; st.textContent = 'Looking…'; st.className = 'grow status';
+    let d = null;
+    try { const snap = await getDoc(doc(db, 'shareCodes', code)); d = snap.exists() ? snap.data() : null; } catch (e) { d = null; }
+    if (!d || d.active === false || d.adminOff) { st.textContent = 'No set found with that code. Check it with your friend.'; st.className = 'grow status err'; box.querySelector('#cd-found').innerHTML = ''; return; }
+    if (d.ownerUid === me.uid) { st.textContent = "That's your own set."; st.className = 'grow status err'; return; }
+    st.textContent = '';
+    const x = { key: 'code:' + code, ...d, cards: d.cards || [], className: '' };
+    box.querySelector('#cd-found').innerHTML = `<div class="set-card" style="margin-top:12px">
+      <div><div class="set-name">${esc(d.name)}</div><div class="set-meta">${d.count || x.cards.length} cards · by ${esc(d.ownerName || 'a friend')}${d.subject ? ` · ${esc(d.subject)}` : ''}</div></div>
+      <div class="row-actions"><button class="btn btn-secondary" id="cd-look"><i data-icon="layers"></i> Try them</button><button class="btn btn-primary" id="cd-add"><i data-icon="plus"></i> Add to mine</button></div></div>`;
+    box.querySelector('#cd-look').onclick = () => { closeDialog(); startStudy({ ...x, shared: true }); };
+    box.querySelector('#cd-add').onclick = () => {
+      setDoc(doc(db, 'shareCodes', code, 'copies', me.uid), { at: serverTimestamp(), name: shortName(profile.name) }).catch(() => {});
+      logEvent('cards.copy_code', { target: d.name, detail: `Code ${code} · from ${d.ownerName || 'a friend'}` });
+      closeDialog();
+      copyShared({ ...x, viaCode: true });
+    };
+  };
 }
 
 function goQuiz(s) {
@@ -1004,6 +1130,8 @@ document.addEventListener('click', e => {
     case 'pic-add': case 'pic-change': pickPicture(b.closest('.card-row')); break;
     case 'pic-remove': { const row = b.closest('.card-row'); delete row.dataset.img; row.querySelector('.card-pic').innerHTML = picHtml(''); changed(); break; }
     case 'share-set': if (s) openShare(s); break;
+    case 'code-set': if (s && !readOnly()) openCode(s); break;
+    case 'enter-code': if (!readOnly()) enterCode(); break;
     case 'study-shared': { const x = sharedList.find(y => y.key === b.dataset.key); if (x) startStudy({ ...x, shared: true }); break; }
     case 'copy-shared': { const x = sharedList.find(y => y.key === b.dataset.key); if (x) copyShared(x); break; }
     case 'open-ai': openAi(); break;
@@ -1022,6 +1150,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261114c"></script>
+<script src="site.js?v=20261114d"></script>
 </body>
 </html>

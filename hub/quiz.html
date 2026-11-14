@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261114c"></script>
+  <script src="dev-flag.js?v=20261114d"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114c">
-  <script src="icons.js?v=20261114c"></script>
+  <link rel="stylesheet" href="theme.css?v=20261114d">
+  <script src="icons.js?v=20261114d"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -37,6 +37,14 @@
     .nav-progress {
       font-family: var(--font-ui); font-size: 0.85rem; color: var(--color-text-muted);
     }
+    /* Running score: right and wrong so far */
+    .nav-tally { display: none; gap: 6px; font-family: var(--font-ui); font-size: 0.82rem; font-weight: 700; }
+    .nav-tally.on { display: inline-flex; }
+    .nav-tally span { padding: 2px 8px; border-radius: var(--radius-pill); }
+    .nav-tally .ok { color: var(--color-success); background: color-mix(in srgb, var(--color-success) 14%, transparent); }
+    .nav-tally .no { color: var(--color-danger); background: color-mix(in srgb, var(--color-danger) 12%, transparent); }
+    .nav-tally .pop { animation: tallyPop .35s ease; }
+    @keyframes tallyPop { 50% { transform: scale(1.25); } }
 
     /* ── Progress bar ────────────────────────────────────── */
     .progress-bar-wrap {
@@ -319,7 +327,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114c">
+  <link rel="stylesheet" href="ui.css?v=20261114d">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -327,7 +335,7 @@
 <nav class="topnav">
   <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
   <div class="nav-title" id="nav-title">Quiz</div>
-  <div style="display:flex;align-items:center;gap:8px;"><div class="nav-progress" id="nav-progress"></div><a class="help-btn help-compact" href="help.html" target="_blank" rel="noopener" aria-label="Help" title="Help"><i data-icon="circle-help"></i><span>Help</span></a></div>
+  <div style="display:flex;align-items:center;gap:8px;"><div class="nav-tally" id="nav-tally" aria-live="polite"><span class="ok" title="Right so far">✓ <b id="tally-ok">0</b></span><span class="no" title="Wrong so far">✗ <b id="tally-no">0</b></span></div><div class="nav-progress" id="nav-progress"></div><a class="help-btn help-compact" href="help.html" target="_blank" rel="noopener" aria-label="Help" title="Help"><i data-icon="circle-help"></i><span>Help</span></a></div>
 </nav>
 <div class="progress-bar-wrap">
   <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
@@ -525,13 +533,13 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114c';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261114c';
-import { askClaude, jsonOf } from './ai.js?v=20261114c';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261114c';
-import { logEvent } from './log.js?v=20261114c';
-import { topicLocked, showTopicLocked } from './access.js?v=20261114c';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261114c';
+import { auth, db } from './firebase-config.js?v=20261114d';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261114d';
+import { askClaude, jsonOf } from './ai.js?v=20261114d';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261114d';
+import { logEvent } from './log.js?v=20261114d';
+import { topicLocked, showTopicLocked } from './access.js?v=20261114d';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261114d';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -810,7 +818,7 @@ function pickQuestions() {
 }
 
 function beginQuestions() {
-  currentIdx = 0; score = 0; selectedMCQIdx = null; results = [];
+  currentIdx = 0; score = 0; selectedMCQIdx = null; results = []; resetTally();
   questions = pickQuestions();
   recentQuizIds.push(...questions.map(q => q.id));
   document.getElementById('q-total').textContent = questions.length;
@@ -1223,7 +1231,25 @@ function showFeedback(correct, explanation, correctAnswer) {
   caEl.innerHTML = correctAnswer ? `<strong>Answer:</strong> ${esc(correctAnswer)}` : '';
 }
 
+// Running score after each answer (Milly's idea)
+function updateTally() {
+  const done = Math.min(currentIdx + 1, questions.length);
+  const ok = score, no = Math.max(0, done - score);
+  const box = document.getElementById('nav-tally');
+  const okEl = document.getElementById('tally-ok'), noEl = document.getElementById('tally-no');
+  const changed = score > scoreAtStart ? okEl.parentElement : noEl.parentElement;
+  okEl.textContent = ok; noEl.textContent = no;
+  box.classList.add('on');
+  changed.classList.remove('pop'); void changed.offsetWidth; changed.classList.add('pop');
+}
+function resetTally() {
+  document.getElementById('tally-ok').textContent = '0';
+  document.getElementById('tally-no').textContent = '0';
+  document.getElementById('nav-tally').classList.remove('on');
+}
+
 function showNextBtn() {
+  updateTally();
   document.getElementById('btn-submit').style.display = 'none';
   document.getElementById('btn-next').style.display = 'inline-flex';
   document.getElementById('btn-next').textContent =

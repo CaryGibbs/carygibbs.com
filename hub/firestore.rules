@@ -31,6 +31,8 @@ rules_version = '2';
 //   parentLinks: a parent asks to link with a student's existing account;
 //   the student accepts (becoming a guardian link) or declines.
 //   Library reports: any signed-in user can report; admins read and clear.
+//   Flashcard share codes (shareCodes): a student's own set, readable by
+//   anyone signed in with the code while on; admins list and turn off.
 //   Settings: any signed-in user can read; admins write.
 //
 // ROLLBACK: if anything stops working, paste the previous rules back
@@ -473,6 +475,32 @@ service cloud.firestore {
     }
 
     // ── Library reports ───────────────────────────────────
+    // ── Flashcard share codes ─────────────────────────────
+    // A student shares one of their own flashcard sets with a code
+    // (shareCodes/{code}, a copy of the cards). Anyone signed in who has
+    // the code can read it while it's on, and add their own copy (each copy
+    // is recorded under copies/{uid}). Admins list them all and can turn a
+    // code off (adminOff), which the student can't undo.
+    match /shareCodes/{code} {
+      function validCode() {
+        return request.resource.data.ownerUid == me()
+          && request.resource.data.code == code && code.matches('FC-[A-Z0-9]{5}')
+          && request.resource.data.cards is list && request.resource.data.cards.size() <= 300
+          && request.resource.data.name is string && request.resource.data.name.size() <= 120;
+      }
+      allow get: if signedIn() && (resource.data.ownerUid == me() || isAdmin()
+        || (resource.data.active == true && resource.data.get('adminOff', false) != true));
+      allow list: if isAdmin() || (signedIn() && resource.data.ownerUid == me());
+      allow create: if signedIn() && validCode() && request.resource.data.get('adminOff', false) != true;
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == me() && validCode()
+        && request.resource.data.get('adminOff', false) == resource.data.get('adminOff', false));
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == me());
+      match /copies/{uid} {
+        allow create: if signedIn() && uid == me();
+        allow read: if isAdmin() || (signedIn() && get(/databases/$(database)/documents/shareCodes/$(code)).data.ownerUid == me());
+      }
+    }
+
     match /libraryReports/{id} {
       allow create: if signedIn() && request.resource.data.by == me()
         && request.resource.data.note is string && request.resource.data.note.size() <= 1000;

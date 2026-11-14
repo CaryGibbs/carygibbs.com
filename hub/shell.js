@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261114c';
-import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261114c';
-import { themeColour } from './themes.js?v=20261114c';
+import { db } from './firebase-config.js?v=20261114d';
+import { handleSignOut, openViewAs, viewsOf, rememberView } from './auth.js?v=20261114d';
+import { themeColour } from './themes.js?v=20261114d';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openAccountSettings } from './account-settings.js?v=20261114c';
-import { plusPillHtml } from './plus.js?v=20261114c';
+import { openAccountSettings } from './account-settings.js?v=20261114d';
+import { plusPillHtml } from './plus.js?v=20261114d';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -89,6 +89,7 @@ export function mountShell(user, profile, { view, active } = {}) {
       <div class="nav-section-label">Content</div>
       ${adminLink('groups', 'folder', 'Revision packs')}
       ${adminLink('library', 'library', 'Community library')}
+      ${adminLink('sharedcards', 'key-round', 'Shared flashcards')}
       ${onAdminPage() ? `<a class="nav-item nav-sub" href="#questions" data-nav="questions" id="nav-questions-btn" style="display:none;"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Current topic</span></a>` : ''}
       <div class="nav-section-label">People</div>
       ${adminLink('users', 'user', 'Users & roles')}

@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261114c"></script>
+  <script src="dev-flag.js?v=20261114d"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114c">
-  <script src="icons.js?v=20261114c"></script>
+  <link rel="stylesheet" href="theme.css?v=20261114d">
+  <script src="icons.js?v=20261114d"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -634,8 +634,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261114c">
-  <link rel="stylesheet" href="stats.css?v=20261114c">
+  <link rel="stylesheet" href="ui.css?v=20261114d">
+  <link rel="stylesheet" href="stats.css?v=20261114d">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -931,6 +931,17 @@
         </div>
       </div>
       <div id="lib-admin"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
+    </div>
+
+    <!-- ── SHARED FLASHCARDS PANEL (student share codes) ─────── -->
+    <div class="panel" id="panel-sharedcards">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Shared flashcards</div>
+          <div class="panel-subtitle">Flashcard sets students have shared with a code. Anyone with the code can add a copy, so check them when you like. Turning a code off stops new copies; the student can't turn it back on.</div>
+        </div>
+      </div>
+      <div id="sc-admin"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
     </div>
 
     <!-- ── ALL STUDENTS PANEL ─────────────────────────────── -->
@@ -1376,6 +1387,15 @@
 
 <!-- Confirm delete modal -->
 <!-- Library: share a pack / reject or remove with a reason -->
+<div class="modal-overlay" id="modal-sharedcards">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <div class="modal-title" id="sc-modal-title">Flashcard set</div>
+      <button class="modal-close" data-close="modal-sharedcards" aria-label="Close"><i data-icon="x"></i></button>
+    </div>
+    <div id="sc-modal-body" style="max-height:60vh;overflow:auto;"></div>
+  </div>
+</div>
 <div class="modal-overlay" id="modal-library">
   <div class="modal" style="max-width:520px;">
     <div class="modal-header">
@@ -1428,34 +1448,34 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261114c';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261114c';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261114c';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261114c';
-import { syncFamilyPlus } from './family-plus.js?v=20261114c';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261114c';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114c';
-import { openDeleteAccount } from './account.js?v=20261114c';
-import { addDocumentButton } from './doc-text.js?v=20261114c';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261114c';
-import { showPlusUpsell } from './plus.js?v=20261114c';
-import { offerGivePack } from './first-steps.js?v=20261114c';
+import { auth, db, storage } from './firebase-config.js?v=20261114d';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261114d';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261114d';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261114d';
+import { syncFamilyPlus } from './family-plus.js?v=20261114d';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261114d';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114d';
+import { openDeleteAccount } from './account.js?v=20261114d';
+import { addDocumentButton } from './doc-text.js?v=20261114d';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261114d';
+import { showPlusUpsell } from './plus.js?v=20261114d';
+import { offerGivePack } from './first-steps.js?v=20261114d';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261114c';
-import { mountShell } from './shell.js?v=20261114c';
-import { openInviteDialog, signupLink } from './invite.js?v=20261114c';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261114c';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261114c';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261114c';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261114c';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114c';
-import { dueEntries } from './srs.js?v=20261114c';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261114c';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261114c';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261114d';
+import { mountShell } from './shell.js?v=20261114d';
+import { openInviteDialog, signupLink } from './invite.js?v=20261114d';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261114d';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261114d';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261114d';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261114d';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114d';
+import { dueEntries } from './srs.js?v=20261114d';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261114d';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261114d';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1471,8 +1491,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261114c';
-import { inOrder } from './order.js?v=20261114c';
+import { saveEmailIndex } from './email-index.js?v=20261114d';
+import { inOrder } from './order.js?v=20261114d';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1544,7 +1564,7 @@ else requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
   iAmAdmin = true;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
-  const start = ['home', 'groups', 'library', 'users', 'students', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  const start = ['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
   adminProfileName = profile.name || '';
   mountShell(user, profile, { view: 'admin', active: start });
@@ -1553,7 +1573,7 @@ else requireRole('admin', (user, profile) => {
   // Address changes (e.g. the sidebar's "View as another student") switch panels too
   window.addEventListener('hashchange', () => {
     const p = location.hash.slice(1);
-    if (['home', 'groups', 'library', 'users', 'students', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
+    if (['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
   });
 });
 
@@ -2063,6 +2083,7 @@ function showPanel(name) {
   if (name === 'users') loadUsers();
   if (name === 'students') { document.getElementById('preview-actions').style.display = 'none'; loadAllStudents(); }
   if (name === 'library')  { document.getElementById('preview-actions').style.display = 'none'; loadLibraryAdmin(); }
+  if (name === 'sharedcards') { document.getElementById('preview-actions').style.display = 'none'; loadSharedCardsAdmin(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
   if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); }
@@ -2075,6 +2096,7 @@ function updateBreadcrumb() {
   // Users and Settings: "Section › Page", like the parent pages
   if (currentPanel === 'home')     { bc.innerHTML = `<span>Admin</span>${sep}<span class="breadcrumb-current">Home</span>`; return; }
   if (currentPanel === 'users')    { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
+  if (currentPanel === 'sharedcards') { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Shared flashcards</span>`; return; }
   if (currentPanel === 'library')  { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Community library</span>`; return; }
   if (currentPanel === 'students') { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">All students</span>`; return; }
   if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
@@ -2132,6 +2154,9 @@ document.addEventListener('click', e => {
   else if (action === 'lib-reject')         openRejectLibraryPack(t.dataset.id);
   else if (action === 'lib-remove')         openRemoveLibraryPack(t.dataset.id);
   else if (action === 'lib-dismiss-report') dismissLibraryReport(t.dataset.id);
+  else if (action === 'sc-view')            viewSharedCards(t.dataset.id);
+  else if (action === 'sc-off')             setSharedCardsOff(t.dataset.id, true);
+  else if (action === 'sc-on')              setSharedCardsOff(t.dataset.id, false);
 
   else if (action === 'new-subject')        openSubjectModal();
   else if (action === 'suggest-links')      suggestLinks();
@@ -3794,6 +3819,64 @@ function openReportLibraryPack(id, name) {
 }
 
 // ── Moderation (Admin → Library) ──
+/* ── Shared flashcards (student share codes) ──────────────
+   shareCodes/{code}: a copy of a student's set, with copies/{uid} for
+   each person who added it. Admins see them all and can turn a code off
+   (adminOff), which the student can't undo. */
+let sharedCodes = [];
+async function loadSharedCardsAdmin() {
+  const box = document.getElementById('sc-admin');
+  box.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  try {
+    const snap = await getDocs(collection(db, 'shareCodes'));
+    sharedCodes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    await Promise.all(sharedCodes.map(async c => {
+      c.copies = (await getCountFromServer(collection(db, 'shareCodes', c.id, 'copies')).catch(() => null))?.data().count || 0;
+    }));
+    const t = x => x?.toMillis ? x.toMillis() : (x || 0);
+    sharedCodes.sort((a, b) => t(b.updatedAt || b.createdAt) - t(a.updatedAt || a.createdAt));
+    const when = x => t(x) ? new Date(t(x)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    const live = sharedCodes.filter(c => c.active !== false && !c.adminOff);
+    const status = c => c.adminOff ? '<span class="lib-status bad">Turned off by admin</span>' : c.setDeleted ? '<span class="lib-status bad">Set deleted</span>' : c.active === false ? '<span class="lib-status wait">Stopped by the student</span>' : '<span class="lib-status ok">Sharing</span>';
+    box.innerHTML = !sharedCodes.length ? `<div class="empty-state"><p>No flashcard sets have been shared with a code yet.</p></div>`
+      : `<p style="margin:0 0 var(--space-md);color:var(--color-text-muted)">${sharedCodes.length} set${sharedCodes.length === 1 ? '' : 's'} shared, ${live.length} sharing now, ${sharedCodes.reduce((a, c) => a + c.copies, 0)} copies added in all.</p>`
+      + sharedCodes.map(c => `<div class="lib-row">
+        <span><strong>${esc(c.name || 'Untitled set')}</strong> <code>${esc(c.id)}</code> ${status(c)}
+          <small>By ${esc(c.ownerName || 'a student')}${c.subject ? ` · ${esc(c.subject)}` : ''} · ${c.count || (c.cards || []).length} cards · ${c.copies} cop${c.copies === 1 ? 'y' : 'ies'} added · shared ${when(c.createdAt)}${t(c.updatedAt) !== t(c.createdAt) ? `, updated ${when(c.updatedAt)}` : ''}</small></span>
+        <span class="lib-actions">
+          <button class="btn btn-secondary btn-sm" data-action="sc-view" data-id="${esc(c.id)}"><i data-icon="eye"></i> View cards</button>
+          ${c.adminOff ? `<button class="btn btn-secondary btn-sm" data-action="sc-on" data-id="${esc(c.id)}">Allow again</button>`
+            : `<button class="btn btn-secondary btn-sm" data-action="sc-off" data-id="${esc(c.id)}">Turn off</button>`}
+        </span></div>`).join('');
+  } catch (e) { box.innerHTML = `<div class="empty-state"><p>Could not load shared flashcards: ${esc(e.message)}</p></div>`; }
+}
+async function viewSharedCards(id) {
+  const c = sharedCodes.find(x => x.id === id); if (!c) return;
+  document.getElementById('sc-modal-title').textContent = `${c.name || 'Flashcard set'} (${c.id})`;
+  let who = '';
+  try {
+    const cs = await getDocs(collection(db, 'shareCodes', id, 'copies'));
+    who = cs.docs.map(d => d.data().name || 'a student').join(', ');
+  } catch (e) {}
+  document.getElementById('sc-modal-body').innerHTML = `<p style="color:var(--color-text-muted);font-size:0.85rem">By ${esc(c.ownerName || 'a student')}${c.subject ? ` · ${esc(c.subject)}` : ''}${who ? ` · copied by ${esc(who)}` : ''}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:0.88rem">${(c.cards || []).map((k, i) => `<tr style="border-top:1px solid var(--color-border)">
+      <td style="padding:6px 8px;vertical-align:top;color:var(--color-text-muted)">${i + 1}</td>
+      <td style="padding:6px 8px;vertical-align:top;font-weight:600">${esc(k.term || '')}</td>
+      <td style="padding:6px 8px;vertical-align:top">${esc(k.definition || '')}${k.imageUrl ? `<br><img src="${esc(k.imageUrl)}" alt="" style="max-width:160px;max-height:120px;margin-top:4px;border-radius:6px">` : ''}</td></tr>`).join('')}</table>`;
+  openModal('modal-sharedcards');
+  logEvent('admin.view_shared_cards', { target: c.name || '', targetId: id, detail: `By ${c.ownerName || 'a student'}` });
+}
+async function setSharedCardsOff(id, off) {
+  const c = sharedCodes.find(x => x.id === id); if (!c) return;
+  if (off && !confirm(`Turn off code ${id} ("${c.name}")? Nobody else can add a copy, and ${c.ownerName || 'the student'} can't turn it back on. Copies already made stay with the people who made them.`)) return;
+  try {
+    await updateDoc(doc(db, 'shareCodes', id), { adminOff: off, adminOffAt: serverTimestamp() });
+    logEvent('admin.shared_cards', { target: c.name || '', targetId: id, detail: off ? `Turned off code ${id}` : `Allowed code ${id} again` });
+    showToast(off ? `Code ${id} turned off` : `Code ${id} allowed again`, 'success');
+    loadSharedCardsAdmin();
+  } catch (e) { showToast('Could not change it: ' + e.message, 'error'); }
+}
+
 async function loadLibraryAdmin() {
   const box = document.getElementById('lib-admin');
   box.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
@@ -4756,6 +4839,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261114c"></script>
+<script src="site.js?v=20261114d"></script>
 </body>
 </html>

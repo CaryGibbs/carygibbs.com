@@ -13,8 +13,8 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261114c';
-import { PROXY_URL } from './ai.js?v=20261114c';
+import { db, auth } from './firebase-config.js?v=20261114d';
+import { PROXY_URL } from './ai.js?v=20261114d';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
@@ -31,6 +31,8 @@ export const ACTIONS = {
   'account.roles':       { label: 'Changed roles',           cat: 'account' },
   'account.delete':      { label: 'Deleted an account',      cat: 'account' },
   'admin.view_as':       { label: 'Viewed as a student',     cat: 'admin' },
+  'admin.view_shared_cards': { label: 'Viewed shared flashcards', cat: 'admin' },
+  'admin.shared_cards':  { label: 'Changed a flashcard share code', cat: 'admin' },
   'admin.view_student':  { label: "Opened a student's progress", cat: 'admin' },
   'admin.forget_progress': { label: "Removed a subject from a student's progress", cat: 'admin' },
   'admin.settings':      { label: 'Changed settings',        cat: 'admin' },
@@ -57,6 +59,9 @@ export const ACTIONS = {
   'cards.unshare':       { label: 'Stopped sharing a flashcard set', cat: 'cards' },
   'cards.copy':          { label: "Copied a classmate's flashcards", cat: 'cards' },
   'cards.study':         { label: 'Studied flashcards',      cat: 'cards' },
+  'cards.code':          { label: 'Shared flashcards with a code', cat: 'cards' },
+  'cards.code_off':      { label: 'Stopped sharing a flashcard code', cat: 'cards' },
+  'cards.copy_code':     { label: 'Added flashcards from a code', cat: 'cards' },
   'account.plus_request': { label: 'Asked for Plus',         cat: 'account' },
   'account.getting_started': { label: 'Finished getting started', cat: 'account' },
   'class.pack_given':    { label: 'Gave a class a pack',     cat: 'class' },
