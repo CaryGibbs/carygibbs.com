@@ -9,11 +9,11 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261114e';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261114e';
-import { mergeReads, siteOf } from './videos.js?v=20261114e';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261114e';
-import { logEvent } from './log.js?v=20261114e';
+import { db } from './firebase-config.js?v=20261114f';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261114f';
+import { mergeReads, siteOf } from './videos.js?v=20261114f';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261114f';
+import { logEvent } from './log.js?v=20261114f';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -203,7 +203,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       <button class="tw-choice tw-hero${st.source === 'upload' ? ' on' : ''}" data-src="upload">
         <span class="tw-ic">📷</span>
         <span><strong>A photo or file of class notes</strong>
-        <small>A worksheet, revision sheet, class notes or textbook page. Take a photo, or upload a PDF or Word file. We'll turn exactly that into notes and quiz questions.</small></span>
+        <small>A revision list, worksheet, class notes or textbook page. Take a photo, or upload a PDF or Word file. We'll turn exactly that into notes and quiz questions.</small></span>
       </button>
       <div id="tw-src-upload"></div>
       <p class="tw-or">Or</p>

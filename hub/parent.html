@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261114e"></script>
+  <script src="dev-flag.js?v=20261114f"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114e">
-  <script src="icons.js?v=20261114e"></script>
-  <link rel="stylesheet" href="stats.css?v=20261114e">
+  <link rel="stylesheet" href="theme.css?v=20261114f">
+  <script src="icons.js?v=20261114f"></script>
+  <link rel="stylesheet" href="stats.css?v=20261114f">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -184,7 +184,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114e">
+  <link rel="stylesheet" href="ui.css?v=20261114f">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -435,25 +435,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114e';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114e';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114e';
-import { showPlusUpsell } from './plus.js?v=20261114e';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114e';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114e';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114e';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114e';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261114e';
-import { logEvent } from './log.js?v=20261114e';
-import { openInviteDialog } from './invite.js?v=20261114e';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114e';
-import { dueEntries, scheduledCount } from './srs.js?v=20261114e';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114e';
-import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261114e';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114e';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114e';
-import { openDeleteAccount } from './account.js?v=20261114e';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114e';
+import { auth, db } from './firebase-config.js?v=20261114f';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114f';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114f';
+import { showPlusUpsell } from './plus.js?v=20261114f';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114f';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114f';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114f';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114f';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261114f';
+import { logEvent } from './log.js?v=20261114f';
+import { openInviteDialog } from './invite.js?v=20261114f';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114f';
+import { dueEntries, scheduledCount } from './srs.js?v=20261114f';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114f';
+import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261114f';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114f';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114f';
+import { openDeleteAccount } from './account.js?v=20261114f';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114f';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -578,7 +578,7 @@ function parentSteps(kids) {
     { id: 'notes', title: 'Turn their class notes into notes and quiz questions', plus: !plus, trial,
       text: notesOnly.length
         ? `${notesOnly.length} topic${notesOnly.length === 1 ? ' has' : 's have'} notes but no quiz questions yet (${notesOnly.slice(0, 3).map(t => esc(t.name)).join(', ')}${notesOnly.length > 3 ? '…' : ''}). Make the questions, or add more class notes.`
-        : "Got a revision sheet, worksheet or class notes from school? Take a photo or upload it, and we'll turn exactly that into notes and quiz questions." +
+        : "Got a revision list, worksheet or class notes from school? Take a photo or upload it, and we'll turn exactly that into notes, flashcards and quiz questions." +
           (trial ? ` Your first ${trialSheetsText(shellProfile)} are free to try.` : ''),
       done: ownWithQ.length > 0 || fs.skipped.includes('notes'),
       doneText: ownWithQ.length ? `${ownWithQ.reduce((a, p) => a + st[p.id].questions, 0)} questions in your own pack${ownWithQ.length === 1 ? '' : 's'}.` : 'Skipped: using a ready-made pack.',
@@ -617,7 +617,7 @@ function renderFirstSteps(kids) {
     open: () => { location.hash = 'home'; },
   };
   big.innerHTML = firstStepsHtml({ title: 'Set up revision for your child',
-    lead: "Got a revision sheet or class notes? Take a photo and we'll turn it into notes and quiz questions. Here's how to get going:", steps });
+    lead: "Got a revision list or class notes? Take a photo and we'll turn it into notes, flashcards and quiz questions. Here's how to get going:", steps });
   wireFirstSteps(big, steps, handlers);
   mini.innerHTML = allDone ? '' : firstStepsHtml({ steps, compact: true });
   wireFirstSteps(mini, steps, handlers);
@@ -1530,6 +1530,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261114e"></script>
+<script src="site.js?v=20261114f"></script>
 </body>
 </html>
