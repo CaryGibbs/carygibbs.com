@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261114f"></script>
+  <script src="dev-flag.js?v=20261114g"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114f">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114f">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114f">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114f">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114g">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114g">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114f">
-  <script src="icons.js?v=20261114f"></script>
+  <link rel="stylesheet" href="theme.css?v=20261114g">
+  <script src="icons.js?v=20261114g"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -327,7 +327,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114f">
+  <link rel="stylesheet" href="ui.css?v=20261114g">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -533,13 +533,13 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114f';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261114f';
-import { askClaude, jsonOf } from './ai.js?v=20261114f';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261114f';
-import { logEvent } from './log.js?v=20261114f';
-import { topicLocked, showTopicLocked } from './access.js?v=20261114f';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261114f';
+import { auth, db } from './firebase-config.js?v=20261114g';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261114g';
+import { askClaude, jsonOf } from './ai.js?v=20261114g';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261114g';
+import { logEvent } from './log.js?v=20261114g';
+import { topicLocked, showTopicLocked } from './access.js?v=20261114g';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261114g';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -570,7 +570,8 @@ let quizStartTime  = null;
 let questionPool   = [];   // every question for this topic/subject
 let selectedTypes  = new Set();
 let results        = [];   // per question in this quiz: true if answered correctly
-let scoreAtStart   = 0;    // score when the current question was shown
+let scoreAtStart   = 0;
+let unmarked       = new Set(); // written answers the AI couldn't mark: not counted right or wrong    // score when the current question was shown
 let recentQuizIds  = [];   // ids served earlier in this visit (Try again)
 
 const TYPE_INFO = {
@@ -818,7 +819,7 @@ function pickQuestions() {
 }
 
 function beginQuestions() {
-  currentIdx = 0; score = 0; selectedMCQIdx = null; results = []; resetTally();
+  currentIdx = 0; score = 0; selectedMCQIdx = null; results = []; unmarked = new Set(); resetTally();
   questions = pickQuestions();
   recentQuizIds.push(...questions.map(q => q.id));
   document.getElementById('q-total').textContent = questions.length;
@@ -1188,7 +1189,7 @@ Respond ONLY with a JSON object in this exact format (no markdown, no backticks)
 
   try {
     // Model chosen in Admin → Settings (falls back automatically if it fails)
-    const result = jsonOf(await askClaude('marking', prompt, 300));
+    const result = jsonOf(await askClaude('marking', prompt, 1000));   // room for newer models' thinking before the reply
 
     document.getElementById('ai-thinking').style.display = 'none';
     document.getElementById('ai-result').style.display = 'block';
@@ -1197,13 +1198,30 @@ Respond ONLY with a JSON object in this exact format (no markdown, no backticks)
     document.getElementById('ai-feedback').textContent = result.feedback;
 
     // Count as correct if ≥ 60%
+    unmarked.delete(currentIdx);
     if (result.score / result.outOf >= 0.6) score++;
     showModelAnswer(q);
   } catch(e) {
+    // Say why, offer another go, and don't count it as wrong
+    console.warn('Marking failed:', e.status || '', e.message);
+    unmarked.add(currentIdx);
+    const why = e.status === 429 ? e.message
+      : e.status === 401 ? 'Your sign-in needs refreshing. Sign out and back in, then try again.'
+      : e.status === 403 ? e.message
+      : e instanceof SyntaxError || /JSON/i.test(e.message) ? 'The marker gave an answer we couldn\'t read.'
+      : !navigator.onLine ? 'You seem to be offline.'
+      : 'The marker didn\'t reply' + (e.message ? ` (${e.message})` : '') + '.';
     document.getElementById('ai-thinking').style.display = 'none';
     document.getElementById('ai-result').style.display = 'block';
     document.getElementById('ai-score-badge').textContent = '?/5';
-    document.getElementById('ai-feedback').textContent = 'Could not mark automatically. Check with your teacher.';
+    document.getElementById('ai-score-label').textContent = 'not marked';
+    const fb = document.getElementById('ai-feedback');
+    fb.textContent = `We couldn't mark this one. ${why} It won't count as right or wrong. `;
+    const again = document.createElement('button');
+    again.type = 'button'; again.className = 'btn btn-ghost'; again.style.cssText = 'margin-top:8px;padding:6px 14px;font-size:0.85rem;';
+    again.textContent = 'Try marking again';
+    again.onclick = () => markShortWritten(q, userAnswer);
+    fb.appendChild(document.createElement('br')); fb.appendChild(again);
     showModelAnswer(q);
   }
   showNextBtn();
@@ -1234,13 +1252,13 @@ function showFeedback(correct, explanation, correctAnswer) {
 // Running score after each answer (Milly's idea)
 function updateTally() {
   const done = Math.min(currentIdx + 1, questions.length);
-  const ok = score, no = Math.max(0, done - score);
+  const ok = score, no = Math.max(0, done - score - unmarked.size);
   const box = document.getElementById('nav-tally');
   const okEl = document.getElementById('tally-ok'), noEl = document.getElementById('tally-no');
-  const changed = score > scoreAtStart ? okEl.parentElement : noEl.parentElement;
+  const changed = score > scoreAtStart ? okEl.parentElement : unmarked.has(currentIdx) ? null : noEl.parentElement;
   okEl.textContent = ok; noEl.textContent = no;
   box.classList.add('on');
-  changed.classList.remove('pop'); void changed.offsetWidth; changed.classList.add('pop');
+  if (changed) { changed.classList.remove('pop'); void changed.offsetWidth; changed.classList.add('pop'); }
 }
 function resetTally() {
   document.getElementById('tally-ok').textContent = '0';
@@ -1274,7 +1292,8 @@ window._nextQuestion = function() {
 /* ── Results ─────────────────────────────────────────────── */
 async function showResults() {
   showScreen('results');
-  const total = questions.length;
+  // Unmarked written answers are left out of the score
+  const total = Math.max(1, questions.length - unmarked.size);
   const pct   = Math.round((score / total) * 100);
 
   document.getElementById('progress-bar').style.width = '100%';
@@ -1312,7 +1331,7 @@ async function showResults() {
       minutesSpent,
       secondsSpent,
       types: [...new Set(questions.map(q => q.type))],
-      qs: questions.map((q, i) => ({ id: q.id, ok: !!results[i] })),
+      qs: questions.map((q, i) => ({ id: q.id, ok: !!results[i] })).filter((x, i) => !unmarked.has(i)),
       groupId: groupId || null,
       subjectId: subjectId || null,
       topicId: topicId || null,
@@ -1340,7 +1359,7 @@ async function showResults() {
           .filter(q => hist.lastSeen[q.id] !== undefined)
           .map(q => ({ id: q.id, ok: hist.lastOk[q.id], when: hist.lastSeen[q.id], loc: q.loc }));
         await recordAnswers(currentUser.uid, currentProfile,
-          questions.map((q, i) => ({ id: q.id, ok: !!results[i], loc: q.loc })), seed);
+          questions.map((q, i) => ({ id: q.id, ok: !!results[i], loc: q.loc })).filter((x, i) => !unmarked.has(i)), seed);
       } catch (e) { console.warn('Review schedule not saved:', e.message); }
       // Award XP
       const result = await awardXp(currentUser.uid, 'quiz', { pct });

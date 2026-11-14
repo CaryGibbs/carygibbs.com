@@ -6,7 +6,7 @@
 // app has always used, so nothing breaks.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261114f';
+import { db, auth } from './firebase-config.js?v=20261114g';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -63,6 +63,12 @@ export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallb
     const data = await r.json().catch(() => ({}));
     if (!r.ok || data.error || !data.content) {
       const e = new Error(data.error?.message || `AI request failed (${r.status})`); e.status = r.status; throw e;
+    }
+    // Newer models think before they reply; if the thinking used up a short
+    // marking reply, it's cut off. Treat that as a failure so the fallback
+    // model gets a go. (Long jobs handle cut-off replies themselves.)
+    if (task === 'marking' && data.stop_reason === 'max_tokens' && (data.content || []).some(c => c.type === 'thinking')) {
+      throw new Error('The reply was cut off before it finished');
     }
     return data;
   });

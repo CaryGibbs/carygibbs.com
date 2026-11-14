@@ -106,7 +106,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261114f'),
+        import('./firebase-config.js?v=20261114g'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -125,7 +125,7 @@
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261114f';
+  pwa.src = 'pwa.js?v=20261114g';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();
