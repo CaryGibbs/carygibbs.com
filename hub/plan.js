@@ -9,14 +9,16 @@
 // weeks out, push for the final two weeks, final in the last three
 // days, and back to relaxed the day after the exams end.
 // Saved on the student's record:
-//   plan = { mode, exams:[{ id, name, start:'YYYY-MM-DD', end, packId }] }
+//   plan = { mode, exams:[{ id, name, start:'YYYY-MM-DD', end, packId,
+//                           subjectId, subjectPackId }],   (subject: one paper)
+//            overrides: { day: { level, subjectId, packId, subjectId2, packId2 } } }
 //   planGoals = { 'YYYY-MM-DD': level }   (days the goal was hit)
 // Targets can be changed by an admin (settings/plans).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261114a';
+import { db } from './firebase-config.js?v=20261114b';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { dueEntries } from './srs.js?v=20261114a';
+import { dueEntries } from './srs.js?v=20261114b';
 
 export const LEVEL_DEFAULTS = {
   relaxed: { label: 'Relaxed',   emoji: '🌱', mins: 15, quizzes: 1, reviews: false, either: true,  days: 4, blurb: 'A little and often' },
@@ -64,13 +66,33 @@ export function nextExam(profile, day = isoDay()) {
   return exams.sort((a, b) => (a.start < b.start ? -1 : 1))[0] || null;
 }
 
+// The next (or current) run of exams: exams within 3 days of each other
+// count as one run, so separate papers on separate days (Geography Mon,
+// Biology Tue...) work like one week-long span. Returns
+// { start, end, name, exams } or null.
+export function examRun(profile, day = isoDay()) {
+  const exams = (profile?.plan?.exams || []).filter(e => e && e.start).sort((a, b) => (a.start < b.start ? -1 : 1));
+  const runs = [];
+  exams.forEach(e => {
+    const end = e.end && e.end >= e.start ? e.end : e.start;
+    const r = runs[runs.length - 1];
+    if (r && daysBetween(r.end, e.start) <= 3) { r.exams.push(e); if (end > r.end) r.end = end; }
+    else runs.push({ start: e.start, end, exams: [e] });
+  });
+  const run = runs.find(r => r.end >= day);
+  if (!run) return null;
+  const span = run.exams.find(e => !e.subjectId);
+  run.name = span ? span.name : run.exams.length === 1 ? run.exams[0].name : 'exams';
+  return run;
+}
+
 // Which level applies on a given day (a parent's change for that day wins)
 export function levelFor(profile, day = isoDay()) {
   const ov = profile?.plan?.overrides?.[day];
   if (ov?.level && LEVELS[ov.level]) return ov.level;
   const mode = profile?.plan?.mode || 'auto';
   if (mode !== 'auto') return mode;
-  const ex = nextExam(profile, day);
+  const ex = examRun(profile, day);
   if (!ex) return 'relaxed';
   const to = daysBetween(day, ex.start);
   if (to <= 0) return 'steady';          // during the exams: lighter, revise between papers
@@ -132,7 +154,7 @@ export function behindPlan(profile, today = isoDay()) {
 export function planSummary(profile, today = isoDay()) {
   const level = levelFor(profile, today);
   const L = LEVELS[level];
-  const ex = nextExam(profile, today);
+  const ex = examRun(profile, today);
   let when = '';
   if (ex) {
     const to = daysBetween(today, ex.start);
@@ -158,44 +180,74 @@ export function subjectNeed(profile, s, packId, today = isoDay()) {
   if (dueN) why.push(`${dueN} review${dueN === 1 ? '' : 's'} due`);
   if (since >= 3) why.push(last ? `not revised for ${since} days` : 'not started yet');
   if (!why.length) why.push(avg !== null ? `keep it ticking over (${Math.round(avg)}% average)` : 'keep every subject ticking over');
-  return { score, why, avg };
+  return { score, why, avg, dueN, since };
 }
 
-// Day-by-day plan from a few days ago up to the end of the next exams
-// (or two weeks ahead when there are none). Each future day gets a
-// suggested subject: weaker subjects come up more often, every subject
-// at least once a round. A parent's choices (plan.overrides) win.
-// `subjects` are the ones the rotation uses (the plan's pack); `extra` are
-// subjects from the student's other packs, so a day a parent set to one of
-// those still shows it.
+// Day-by-day plan from a few days ago up to the end of the next run of
+// exams (or two weeks ahead when there are none). Each future day gets one
+// suggested subject, or two on Exam push and Final days. Weaker subjects
+// come up more often; a subject with a paper in the next few days gets a
+// boost, the day before its paper it comes first, and once its last paper
+// is done it drops out. A parent's choices (plan.overrides) win.
+// `subjects` are the rotation (the plan's pack); `extra` are subjects from
+// the student's other packs, used for a parent's choice or a dated paper.
 export function planSchedule(profile, subjects = [], packId = null, { back = 3, extra = [] } = {}) {
   const today = isoDay();
-  const ex = nextExam(profile, today);
-  const last = ex ? (ex.end || ex.start) : addDays(today, 13);
+  const ex = examRun(profile, today);
+  const last = ex ? ex.end : addDays(today, 13);
   const first = addDays(today, -back);
   const byId = Object.fromEntries([...extra, ...subjects].map(s => [s.id, s]));
-  // Rotation: weakest third ×3, middle ×2, rest ×1 per cycle
-  const ranked = subjects.map(s => ({ s, ...subjectNeed(profile, s, packId, today) })).sort((a, b) => b.score - a.score);
-  const n = ranked.length, seq = [];
-  for (let r = 0; r < 3; r++) ranked.forEach((x, i) => { const w = i < Math.ceil(n / 3) ? 3 : i < Math.ceil(2 * n / 3) ? 2 : 1; if (w > r) seq.push(x.s); });
   const exams = (profile?.plan?.exams || []).filter(e => e && e.start);
+  const papers = exams.filter(e => e.subjectId);
+  // The rotation: the plan's pack, plus any subject with a paper still to
+  // come. When the next exams are all single-subject papers (no week-long
+  // span), only the subjects being examined are revised.
+  let pool = [...subjects];
+  papers.forEach(p => { if (p.start > today && byId[p.subjectId] && !pool.some(s => s.id === p.subjectId)) pool.push(byId[p.subjectId]); });
+  if (ex && ex.exams.every(e => e.subjectId)) pool = pool.filter(s => ex.exams.some(e => e.subjectId === s.id));
+  const need = Object.fromEntries(pool.map(s => [s.id, subjectNeed(profile, s, s.packId || packId, today)]));
+  const ranked = pool.map(s => ({ s, ...need[s.id] })).sort((a, b) => b.score - a.score);
+  const nextPaper = (sid, day) => papers.filter(p => p.subjectId === sid && p.start > day).sort((a, b) => (a.start < b.start ? -1 : 1))[0] || null;
+  const finished = (sid, day) => papers.some(p => p.subjectId === sid) && !nextPaper(sid, day);
+  const lastPick = {};
+  const score = (s, day) => {
+    const n = need[s.id] || { avg: null, dueN: 0, since: 30 };
+    const gap = lastPick[s.id] ? daysBetween(lastPick[s.id], day) : n.since + daysBetween(today, day);
+    // weakness, reviews due, and days since it last came up (so every subject gets a turn)
+    let sc = (n.avg === null ? 40 : 100 - n.avg) + n.dueN * 3 + Math.min(gap, 10) * 15;
+    const p = nextPaper(s.id, day), to = p ? daysBetween(day, p.start) : null;
+    if (to === 1) sc += 1000; else if (to !== null && to <= 5) sc += (6 - to) * 45;
+    return sc;
+  };
+  const examWhy = (s, day) => {
+    const p = nextPaper(s.id, day), to = p ? daysBetween(day, p.start) : null;
+    return to === 1 ? `${s.name} exam tomorrow` : to !== null && to <= 5 ? `${s.name} exam in ${to} days` : null;
+  };
   const out = [];
-  let k = 0;
   for (let day = first; day <= last; day = addDays(day, 1)) {
     const ov = profile?.plan?.overrides?.[day] || {};
     const g = goalStatus(profile, day);
-    const exam = exams.find(e => day >= e.start && day <= (e.end || e.start));
+    const dayExams = exams.filter(e => day >= e.start && day <= (e.end || e.start));
     const isPast = day < today;
-    let subject = null;
-    if (ov.subjectId && byId[ov.subjectId]) subject = byId[ov.subjectId];
-    else if (!isPast && g.level !== 'rest' && seq.length) subject = seq[k++ % seq.length];
-    else if (isPast) {
-      // what they actually spent most time on that day
-      const st = profile?.study?.[day] || {};
-      const top = Object.entries(st).sort((a, b) => b[1] - a[1])[0];
-      subject = top && byId[top[0]] ? byId[top[0]] : null;
+    let picks = [];
+    if (isPast) {
+      // what they actually spent most time on that day (two if both had 10+ minutes)
+      const st = Object.entries(profile?.study?.[day] || {}).filter(([id]) => byId[id]).sort((a, b) => b[1] - a[1]);
+      picks = st.filter(([, secs], i) => i === 0 || (i === 1 && secs >= 600)).map(([id]) => byId[id]);
+    } else if (g.level !== 'rest') {
+      const slots = ov.subjectId2 === '-' ? 1 : ov.subjectId2 && byId[ov.subjectId2] ? 2 : (g.level === 'push' || g.level === 'final') ? 2 : 1;
+      const cands = pool.filter(s => !finished(s.id, day)).map(s => ({ s, sc: score(s, day) })).sort((a, b) => b.sc - a.sc);
+      const best = (not) => cands.find(c => !not.includes(c.s.id))?.s || null;
+      const one = ov.subjectId && byId[ov.subjectId] ? byId[ov.subjectId] : best([]);
+      if (one) picks.push(one);
+      if (slots === 2) {
+        const two = ov.subjectId2 && byId[ov.subjectId2] ? byId[ov.subjectId2] : best(picks.map(s => s.id));
+        if (two && !picks.some(s => s.id === two.id)) picks.push(two);
+      }
+      picks.forEach(s => { lastPick[s.id] = day; });
     }
-    out.push({ day, ...g, past: isPast, today: day === today, exam: exam || null, subject, override: ov,
+    out.push({ day, ...g, past: isPast, today: day === today, exam: dayExams[0] || null, exams: dayExams,
+      subject: picks[0] || null, subjects: picks, reasons: picks.map(s => isPast ? null : examWhy(s, day)), override: ov,
       status: isPast ? (g.rest ? 'rest' : g.done ? 'met' : (g.mins || g.quizzes) ? 'part' : 'missed') : (day === today ? (g.done ? 'met' : 'today') : 'ahead') });
   }
   return { days: out, exam: ex, ranked };
@@ -204,8 +256,8 @@ export function planSchedule(profile, subjects = [], packId = null, { back = 3, 
 // Which pack the plan is for: the next exam's pack if one is set, else the
 // pack the student is currently using
 export function planPack(profile) {
-  const ex = nextExam(profile);
-  return ex?.packId || profile?.currentPackId || (profile?.groupIds || [])[0] || Object.values(profile?.classPacks || {}).flat()[0] || null;
+  const ex = examRun(profile);
+  return ex?.exams.find(e => e.packId)?.packId || profile?.currentPackId || (profile?.groupIds || [])[0] || Object.values(profile?.classPacks || {}).flat()[0] || null;
 }
 
 // Every revision pack the student has, the plan's pack first (not their

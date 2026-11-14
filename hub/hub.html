@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261114a"></script>
+  <script src="dev-flag.js?v=20261114b"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114a">
-  <script src="icons.js?v=20261114a"></script>
-  <link rel="stylesheet" href="stats.css?v=20261114a">
+  <link rel="stylesheet" href="theme.css?v=20261114b">
+  <script src="icons.js?v=20261114b"></script>
+  <link rel="stylesheet" href="stats.css?v=20261114b">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -286,7 +286,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114a">
+  <link rel="stylesheet" href="ui.css?v=20261114b">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -373,23 +373,23 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114a';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261114a';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261114a';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261114a';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261114a';
-import { listPacks, samePackIds } from './packs.js?v=20261114a';
-import { plusPillHtml } from './plus.js?v=20261114a';
-import { inOrder } from './order.js?v=20261114a';
-import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261114a';
-import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261114a';
-import { showLinkRequests } from './parent-link.js?v=20261114a';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261114a';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed } from './plan.js?v=20261114a';
-import { openPlanCalendar, packSubjects } from './plan-view.js?v=20261114a';
-import { logEvent } from './log.js?v=20261114a';
-import { loadCardSets } from './card-sets.js?v=20261114a';
-import { noPackHtml, openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT } from './student-start.js?v=20261114a';
+import { auth, db } from './firebase-config.js?v=20261114b';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261114b';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261114b';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261114b';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261114b';
+import { listPacks, samePackIds } from './packs.js?v=20261114b';
+import { plusPillHtml } from './plus.js?v=20261114b';
+import { inOrder } from './order.js?v=20261114b';
+import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261114b';
+import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261114b';
+import { showLinkRequests } from './parent-link.js?v=20261114b';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261114b';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261114b';
+import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261114b';
+import { logEvent } from './log.js?v=20261114b';
+import { loadCardSets } from './card-sets.js?v=20261114b';
+import { noPackHtml, openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT } from './student-start.js?v=20261114b';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -601,7 +601,9 @@ function focusSubject(profile, subjects, groupId) {
   return scored[0];
 }
 
-function renderPlanCard(groupId, subjects, extra = []) {
+// Subjects across all the student's packs, for the plan (loaded once per set of packs)
+let planSubs = null, planSubsKey = '';
+function renderPlanCard(groupId, subjects) {
   const wrap = document.getElementById('plan-wrap');
   if (!wrap) return;
   const profile = hubProfile;
@@ -614,17 +616,20 @@ function renderPlanCard(groupId, subjects, extra = []) {
   const parts = [`<span class="plan-part${g.minsOk ? ' ok' : ''}">${g.minsOk ? '✓ ' : ''}${Math.min(g.mins, L.mins)} / ${L.mins} min</span>`];
   if (L.quizzes) parts.push(`<span class="plan-part${g.quizOk ? ' ok' : ''}">${g.quizOk ? '✓ ' : ''}${Math.min(g.quizzes, L.quizzes)} / ${L.quizzes} quiz${L.quizzes === 1 ? '' : 'zes'}</span>`);
   if (L.reviews) parts.push(`<span class="plan-part${g.revOk ? ' ok' : ''}">${g.revOk ? '✓ reviews done' : `${g.reviewsLeft} review${g.reviewsLeft === 1 ? '' : 's'} due`}</span>`);
-  // Today's subject: from the plan (a parent may have chosen it), else the one that needs it most
-  let f = null;
+  // Today's subjects: from the plan (a parent may have chosen them; two on
+  // Exam push and Final days), else the one that needs it most
+  let focus = [];
   if (!g.done && !g.rest) {
-    // A parent may have picked a subject from another of the student's packs
-    const ov = profile?.plan?.overrides?.[isoDay()] || {};
-    if (ov.subjectId && ov.packId && ov.packId !== groupId && !extra.length) {
-      packSubjects(ov.packId).then(list => { if (list.length) renderPlanCard(groupId, subjects, list.map(s => ({ ...s, packId: ov.packId }))); }).catch(() => {});
+    const key = planPacks(profile).join('|') + '#' + planPack(profile);
+    if (key !== planSubsKey) {
+      planSubsKey = key; planSubs = null;
+      loadPlanSubjects(profile).then(r => { if (planSubsKey === key) { planSubs = r; renderPlanCard(groupId, subjects); } }).catch(() => {});
     }
-    const today = planSchedule(profile, subjects, groupId, { back: 0, extra }).days[0];
-    if (today?.subject) f = { s: today.subject, why: subjectNeed(profile, today.subject, groupId).why, chosen: !!today.override?.subjectId };
-    else f = focusSubject(profile, subjects, groupId);
+    const ps = planSubs && planSubs.subjects.length ? planSubs : { packId: groupId, subjects, all: [] };
+    const today = planSchedule(profile, ps.subjects, ps.packId, { back: 0, extra: ps.all }).days[0];
+    if (today?.subjects?.length) focus = today.subjects.map((s, i) => ({ s, why: [today.reasons[i], ...subjectNeed(profile, s, s.packId || ps.packId).why].filter(Boolean),
+      chosen: !!(i ? today.override?.subjectId2 : today.override?.subjectId) }));
+    else { const f = focusSubject(profile, subjects, groupId); if (f) focus = [f]; }
   }
   window._openMyPlan = () => openPlanCalendar(profile, { editable: false });
   const go = s => `{groupId:'${esc(s.packId || groupId)}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'}`;
@@ -640,9 +645,9 @@ function renderPlanCard(groupId, subjects, extra = []) {
       ${toExam !== null && toExam >= 0 ? `<div class="plan-count" role="button" tabindex="0" onclick="_openMyPlan()" style="cursor:pointer" title="See my plan to the exams"><b>${toExam === 0 ? 'Today' : toExam}</b><span>${toExam === 0 ? esc(sum.exam.name || 'Exams') : `day${toExam === 1 ? '' : 's'} to ${esc(sum.exam.name || 'exams')}`}</span></div>` : ''}
     </div>
     ${g.done || g.rest ? '' : `<div class="plan-parts">${parts.join('')}</div>`}
-    ${f ? `<div class="plan-focus"><span style="font-size:1.3rem">🎯</span><div class="txt"><strong>Focus today: ${esc(f.s.name)}</strong>${f.chosen ? ' <span style="font-size:0.75rem;color:var(--color-text-muted)">(chosen for you)</span>' : ''}${f.why.length ? `<small>${f.why.join(', ')}</small>` : ''}</div>
+    ${focus.map((f, i) => `<div class="plan-focus"><span style="font-size:1.3rem">${i ? '➕' : '🎯'}</span><div class="txt"><strong>${i ? 'Then' : 'Focus today'}: ${esc(f.s.name)}</strong>${f.chosen ? ' <span style="font-size:0.75rem;color:var(--color-text-muted)">(chosen for you)</span>' : ''}${f.why.length ? `<small>${esc(f.why.join(', '))}</small>` : ''}</div>
       <button class="btn btn-secondary" onclick="goMindmap(${go(f.s)})"><i data-icon="book-open"></i> Learn</button>
-      <button class="btn btn-primary" onclick="goQuiz(${go(f.s)})"><i data-icon="zap"></i> Quiz</button></div>` : ''}
+      <button class="btn btn-primary" onclick="goQuiz(${go(f.s)})"><i data-icon="zap"></i> Quiz</button></div>`).join('')}
   </div>`;
 }
 
@@ -912,6 +917,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261114a"></script>
+<script src="site.js?v=20261114b"></script>
 </body>
 </html>

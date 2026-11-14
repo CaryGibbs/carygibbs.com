@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261114a"></script>
+  <script src="dev-flag.js?v=20261114b"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114a">
-  <script src="icons.js?v=20261114a"></script>
-  <link rel="stylesheet" href="stats.css?v=20261114a">
+  <link rel="stylesheet" href="theme.css?v=20261114b">
+  <script src="icons.js?v=20261114b"></script>
+  <link rel="stylesheet" href="stats.css?v=20261114b">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -184,7 +184,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114a">
+  <link rel="stylesheet" href="ui.css?v=20261114b">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -316,6 +316,7 @@
       <select id="manage-plan-mode"></select>
       <div class="form-hint" id="manage-plan-hint"></div>
       <div class="plan-exams" id="manage-exams"></div>
+      <div class="form-hint">Don't know the dates of each paper yet? Add one row for the week with All subjects. Once you do, add a row per paper with its subject, and the plan revises each one in the days before it.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
         <button type="button" class="btn btn-secondary" id="btn-add-exam" style="padding:7px 12px;font-size:0.82rem"><i data-icon="plus"></i> Add exam dates</button>
         <button type="button" class="btn btn-secondary" id="btn-day-plan" style="padding:7px 12px;font-size:0.82rem"><i data-icon="calendar"></i> Day-by-day plan</button>
@@ -434,25 +435,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114a';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114a';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114a';
-import { showPlusUpsell } from './plus.js?v=20261114a';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114a';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114a';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114a';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114a';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261114a';
-import { logEvent } from './log.js?v=20261114a';
-import { openInviteDialog } from './invite.js?v=20261114a';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114a';
-import { dueEntries, scheduledCount } from './srs.js?v=20261114a';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114a';
-import { openPlanCalendar } from './plan-view.js?v=20261114a';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114a';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114a';
-import { openDeleteAccount } from './account.js?v=20261114a';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114a';
+import { auth, db } from './firebase-config.js?v=20261114b';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114b';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114b';
+import { showPlusUpsell } from './plus.js?v=20261114b';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114b';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114b';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114b';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114b';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261114b';
+import { logEvent } from './log.js?v=20261114b';
+import { openInviteDialog } from './invite.js?v=20261114b';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114b';
+import { dueEntries, scheduledCount } from './srs.js?v=20261114b';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114b';
+import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261114b';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114b';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114b';
+import { openDeleteAccount } from './account.js?v=20261114b';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114b';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -1111,6 +1112,7 @@ function renderPlanWeek(profile) {
 
 /* ── Study plan editor (in Manage student) ────────────────── */
 let managePlan = { mode: 'auto', exams: [] };
+let manageSubjectGroups = null;   // the student's subjects, by pack, for exam papers
 // Read the exam rows straight from the screen (each row carries its exam's id)
 function readPlanEditor() {
   managePlan.mode = document.getElementById('manage-plan-mode').value;
@@ -1122,6 +1124,8 @@ function readPlanEditor() {
     start: row.querySelector('[data-f="start"]').value,
     end: row.querySelector('[data-f="end"]').value || null,
     packId: row.querySelector('[data-f="packId"]')?.value || null,
+    subjectId: row.querySelector('[data-f="subjectId"]')?.value || null,
+    subjectPackId: row.querySelector('[data-f="subjectId"]')?.selectedOptions[0]?.dataset.pack || (byId[row.dataset.id] || {}).subjectPackId || null,
   }));
 }
 function renderPlanEditor() {
@@ -1142,14 +1146,29 @@ function renderPlanEditor() {
       <option value="">Their current pack</option>
       ${[...new Set([...packIds, ...(e.packId ? [e.packId] : [])])].map(id => `<option value="${esc(id)}"${e.packId === id ? ' selected' : ''}>${esc(packName(id))}</option>`).join('')}
     </select></div>`;
+  // One subject (a dated paper) or all subjects (a span of exams)
+  const subjSel = e => {
+    const known = manageSubjectGroups && manageSubjectGroups.some(g => g.subjects.some(x => x.id === e.subjectId));
+    return `<div class="plan-exam-pack"><label>Subject</label><select data-f="subjectId">
+      <option value="">All subjects (a week or span of exams)</option>
+      ${manageSubjectGroups ? subjectOptionsHtml(manageSubjectGroups, e.subjectId) : ''}
+      ${e.subjectId && !known ? `<option value="${esc(e.subjectId)}" selected>${manageSubjectGroups ? 'A subject no longer in their packs' : 'Loading…'}</option>` : ''}
+    </select></div>`;
+  };
   box.innerHTML = managePlan.exams.map((e, i) => `<div class="plan-exam-row" data-id="${esc(e.id || '')}">
-      <div><label>Exams</label><input data-f="name" value="${esc(e.name || '')}" placeholder="e.g. November progress exams"></div>
+      <div><label>Exams</label><input data-f="name" value="${esc(e.name || '')}" placeholder="e.g. November progress exams, or Geography paper 1"></div>
+      ${subjSel(e)}
       ${packSel(e)}
       <div><label>First exam</label><input type="date" data-f="start" value="${esc(e.start || '')}"></div>
       <div><label>Last exam (optional)</label><input type="date" data-f="end" value="${esc(e.end || '')}"></div>
       <button type="button" class="btn btn-ghost" data-del-exam="${i}" aria-label="Remove these exams"><i data-icon="trash-2"></i></button>
     </div>`).join('');
   box.querySelectorAll('[data-del-exam]').forEach(b => b.onclick = () => { readPlanEditor(); managePlan.exams.splice(+b.dataset.delExam, 1); renderPlanEditor(); });
+  // A paper for one subject: fill in the name if it's blank
+  box.querySelectorAll('select[data-f="subjectId"]').forEach(sel => sel.onchange = () => {
+    const name = sel.closest('.plan-exam-row').querySelector('[data-f="name"]');
+    if (sel.value && !name.value.trim()) name.value = sel.selectedOptions[0].text;
+  });
   document.getElementById('btn-add-exam').onclick = () => {
     readPlanEditor();
     managePlan.exams.push({ id: 'e' + Date.now().toString(36), name: '', start: '', end: null });
@@ -1173,7 +1192,9 @@ window._openManageModal = function(uid) {
   const plan0 = child.plan && typeof child.plan === 'object' ? child.plan : { mode: 'auto', exams: [] };
   managePlan = JSON.parse(JSON.stringify(plan0));
   managePlan.exams = Array.isArray(managePlan.exams) ? managePlan.exams : [];
+  manageSubjectGroups = null;
   renderPlanEditor();
+  loadPlanSubjects(child).then(r => { if (managingChildId !== uid) return; manageSubjectGroups = r.groups; readPlanEditor(); renderPlanEditor(); }).catch(() => {});
   document.getElementById('btn-day-plan').onclick = () => openPlanFor(uid);
   document.getElementById('share-email').value = '';
   renderGuardians(uid);
@@ -1205,7 +1226,7 @@ window._saveChild = async function() {
       showErr('manage-error', `Add the first exam date for "${managePlan.exams[badIdx].name || 'these exams'}", or remove that row.`);
       btn.classList.remove('loading'); return;
     }
-    const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null })) };
+    const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null, subjectId: e.subjectId || null, subjectPackId: e.subjectId ? e.subjectPackId || null : null })) };
     if (managePlan.overrides) plan.overrides = managePlan.overrides;   // keep day-by-day changes
     const was = { ...(childrenData[managingChildId] || {}) };
     await updateDoc(doc(db, 'users', managingChildId), {
@@ -1501,6 +1522,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261114a"></script>
+<script src="site.js?v=20261114b"></script>
 </body>
 </html>

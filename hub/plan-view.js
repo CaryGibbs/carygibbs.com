@@ -7,12 +7,12 @@
 // Parent changes are saved as plan.overrides.<day> on the student.
 // ============================================================
 
-import { byOrder } from './order.js?v=20261114a';
-import { db } from './firebase-config.js?v=20261114a';
+import { byOrder } from './order.js?v=20261114b';
+import { db } from './firebase-config.js?v=20261114b';
 import { doc, updateDoc, deleteField, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261114a';
-import { packNames } from './packs.js?v=20261114a';
-import { planSchedule, planSummary, planPack, planPacks, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261114a';
+import { logEvent } from './log.js?v=20261114b';
+import { packNames } from './packs.js?v=20261114b';
+import { planSchedule, planSummary, planPack, planPacks, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261114b';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -41,6 +41,7 @@ const CSS = `
 .pv-status.met { color: var(--color-success); } .pv-status.missed { color: var(--color-danger); } .pv-status.part { color: var(--color-warning); }
 .pv-edit { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .pv-edit select { width: auto; max-width: 100%; padding: 5px 8px; font-size: 0.8rem; border-radius: 8px; }
+.pv-why { color: var(--color-text-muted); font-style: italic; }
 .pv-edited { font-size: 0.7rem; font-weight: 700; color: var(--color-primary); margin-left: 6px; }
 .pv-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; font-size: 0.82rem; color: var(--color-text-muted); align-items: center; }
 @media (max-width: 560px) { .pv-day { grid-template-columns: 70px 1fr; } .pv-status { grid-column: 2; text-align: left; } }
@@ -63,22 +64,32 @@ function fmtDay(day) {
   return { wd: d.toLocaleDateString('en-GB', { weekday: 'short' }), dm: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) };
 }
 
-// Open the calendar. opts: { uid, name, editable, onChange(profile) }
-export async function openPlanCalendar(profile, opts = {}) {
-  addCss();
-  await loadPlanSettings();
+// Subjects from every pack the student has, grouped by pack. The plan's
+// pack (packId) drives the rotation (`subjects`); `all` lets a parent pick
+// from any pack and lets dated papers in other packs count.
+export async function loadPlanSubjects(profile) {
   const packId = planPack(profile);
-  // Subjects from every pack the student has: the plan's pack drives the
-  // rotation, and a parent can pick a subject from any of them for a day
   const ids = planPacks(profile);
   const [lists, names] = await Promise.all([Promise.all(ids.map(packSubjects)), packNames(ids)]);
   const groups = ids.map((id, i) => ({ id, name: names[id] || 'Revision pack', subjects: lists[i].map(s => ({ ...s, packId: id })) }))
     .filter(g => g.subjects.length);
-  const subjects = groups.find(g => g.id === packId)?.subjects || [];
-  const all = groups.flatMap(g => g.subjects);
-  const subjectOpts = sel => groups.length > 1
-    ? groups.map(g => `<optgroup label="${esc(g.name)}">${g.subjects.map(s => `<option value="${esc(s.id)}"${sel === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')
-    : all.map(s => `<option value="${esc(s.id)}"${sel === s.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
+  return { packId, groups, subjects: groups.find(g => g.id === packId)?.subjects || [], all: groups.flatMap(g => g.subjects) };
+}
+
+// <option>s for a subject picker, grouped by pack when there's more than one
+export function subjectOptionsHtml(groups, sel) {
+  const opt = s => `<option value="${esc(s.id)}" data-pack="${esc(s.packId)}"${sel === s.id ? ' selected' : ''}>${esc(s.name)}</option>`;
+  return groups.length > 1
+    ? groups.map(g => `<optgroup label="${esc(g.name)}">${g.subjects.map(opt).join('')}</optgroup>`).join('')
+    : groups.flatMap(g => g.subjects).map(opt).join('');
+}
+
+// Open the calendar. opts: { uid, name, editable, onChange(profile) }
+export async function openPlanCalendar(profile, opts = {}) {
+  addCss();
+  await loadPlanSettings();
+  const { packId, groups, subjects, all } = await loadPlanSubjects(profile);
+  const subjectOpts = sel => subjectOptionsHtml(groups, sel);
   const overlay = document.createElement('div');
   overlay.className = 'pv-overlay';
   document.body.appendChild(overlay);
@@ -93,7 +104,7 @@ export async function openPlanCalendar(profile, opts = {}) {
     const met = past.filter(d => d.status === 'met').length;
     const ahead = days.filter(d => !d.past && !d.rest);
     const mins = ahead.reduce((a, d) => a + (d.L.mins || 0), 0);
-    const covered = new Set(ahead.map(d => d.subject?.id).filter(id => subjects.some(s => s.id === id)));
+    const covered = new Set(ahead.flatMap(d => (d.subjects || []).map(x => x.id)).filter(id => subjects.some(s => s.id === id)));
     const who = opts.name ? `${esc(opts.name)}'s` : 'Your';
     const levelOpts = [['', 'Auto'], ['rest', '😴 Rest day'], ['relaxed', '🌱 Relaxed'], ['steady', '📘 Steady'], ['push', '🚀 Exam push'], ['final', '🔥 Final days']];
     overlay.innerHTML = `<div class="pv-modal" role="dialog" aria-modal="true" aria-label="Plan to exams">
@@ -108,20 +119,21 @@ export async function openPlanCalendar(profile, opts = {}) {
       <div class="pv-list">${days.map(d => {
         const f = fmtDay(d.day);
         const status = d.status === 'met' ? '✓ goal hit' : d.status === 'missed' ? '✗ missed' : d.status === 'part' ? `◐ ${d.mins} min` : d.status === 'rest' ? 'rest' : d.status === 'today' ? `${d.mins}/${d.L.mins} min` : '';
-        const edited = d.override && (d.override.level || d.override.subjectId);
+        const edited = d.override && (d.override.level || d.override.subjectId || d.override.subjectId2);
         const edit = opts.editable && !d.past ? `<div class="pv-edit">
             <select data-day="${d.day}" data-k="level" aria-label="Level for ${f.wd} ${f.dm}">${levelOpts.map(([v, l]) => `<option value="${v}"${(d.override.level || '') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
-            ${d.rest ? '' : `<select data-day="${d.day}" data-k="subjectId" aria-label="Subject for ${f.wd} ${f.dm}"><option value="">Auto subject</option>${subjectOpts(d.override.subjectId)}</select>`}
+            ${d.rest ? '' : `<select data-day="${d.day}" data-k="subjectId" aria-label="Subject for ${f.wd} ${f.dm}"><option value="">Auto subject</option>${subjectOpts(d.override.subjectId)}</select>
+            <select data-day="${d.day}" data-k="subjectId2" aria-label="Second subject for ${f.wd} ${f.dm}"><option value="">Auto second</option><option value="-"${d.override.subjectId2 === '-' ? ' selected' : ''}>No second subject</option>${subjectOpts(d.override.subjectId2)}</select>`}
           </div>` : '';
         return `<div class="pv-day${d.past ? ' past' : ''}${d.today ? ' today' : ''}${d.exam ? ' exam' : ''}">
           <div class="pv-date"><b>${d.today ? 'Today' : f.wd}</b>${f.dm}</div>
-          <div class="pv-main">${d.exam ? `📝 <strong>${esc(d.exam.name || 'Exam')}</strong> · ` : ''}${d.L.emoji} ${d.L.label}${edited ? '<span class="pv-edited">changed</span>' : ''}
-            <small>${d.rest ? 'Day off, no goal' : esc(targetText(d.L))}${d.subject ? ` · ${d.past ? 'studied' : 'focus'}: <strong>${esc(d.subject.name)}</strong>` : ''}</small>${edit}</div>
+          <div class="pv-main">${d.exams.length ? `📝 <strong>${d.exams.map(e => esc(e.name || 'Exam')).join(', ')}</strong> · ` : ''}${d.L.emoji} ${d.L.label}${edited ? '<span class="pv-edited">changed</span>' : ''}
+            <small>${d.rest ? 'Day off, no goal' : esc(targetText(d.L))}${d.subjects.length ? ` · ${d.past ? 'studied' : 'focus'}: <strong>${d.subjects.map(x => esc(x.name)).join(' + ')}</strong>` : ''}${d.reasons.some(Boolean) ? ` <span class="pv-why">(${esc(d.reasons.filter(Boolean).join(', '))})</span>` : ''}</small>${edit}</div>
           <div class="pv-status ${d.status}">${status}</div>
         </div>`;
       }).join('')}</div>
       <div class="pv-foot"><span>Subjects rotate to give weaker ones more time. ${opts.editable ? 'Changes save straight away.' : ''}</span>
-        ${opts.editable && days.some(d => !d.past && (d.override.level || d.override.subjectId)) ? '<button class="btn btn-secondary" data-reset>Reset all changes</button>' : ''}</div>
+        ${opts.editable && days.some(d => !d.past && (d.override.level || d.override.subjectId || d.override.subjectId2)) ? '<button class="btn btn-secondary" data-reset>Reset all changes</button>' : ''}</div>
     </div>`;
     overlay.querySelector('.pv-close').onclick = close;
     overlay.querySelectorAll('select[data-day]').forEach(sel => sel.onchange = () => save(sel.dataset.day, sel.dataset.k, sel.value));
@@ -135,8 +147,11 @@ export async function openPlanCalendar(profile, opts = {}) {
     const ov = { ...((plan.overrides || {})[day] || {}) };
     if (value) ov[key] = value; else delete ov[key];
     // Remember which pack the subject is in, so the student's hub can open it
-    if (key === 'subjectId') { const p = all.find(x => x.id === value)?.packId; if (p) ov.packId = p; else delete ov.packId; }
-    if (key === 'level' && value === 'rest') { delete ov.subjectId; delete ov.packId; }
+    if (key === 'subjectId' || key === 'subjectId2') {
+      const pk = key === 'subjectId' ? 'packId' : 'packId2';
+      const p = all.find(x => x.id === value)?.packId; if (p) ov[pk] = p; else delete ov[pk];
+    }
+    if (key === 'level' && value === 'rest') { delete ov.subjectId; delete ov.packId; delete ov.subjectId2; delete ov.packId2; }
     plan.overrides = { ...(plan.overrides || {}) };
     if (Object.keys(ov).length) plan.overrides[day] = ov; else delete plan.overrides[day];
     draw();
@@ -145,7 +160,7 @@ export async function openPlanCalendar(profile, opts = {}) {
         ? { [`plan.overrides.${day}`]: Object.keys(ov).length ? ov : deleteField() }
         : { plan });
       const lv = { rest: 'Rest day', relaxed: 'Relaxed', steady: 'Steady', push: 'Exam push', final: 'Final days' };
-      logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: `${day}: ${key === 'level' ? (value ? lv[value] || value : 'level back to Auto') : value ? 'subject ' + (all.find(x => x.id === value)?.name || value) : 'subject back to Auto'}` });
+      logEvent('plan.day', { target: opts.name || '', targetId: opts.uid, detail: `${day}: ${key === 'level' ? (value ? lv[value] || value : 'level back to Auto') : key === 'subjectId2' ? (value === '-' ? 'no second subject' : value ? 'second subject ' + (all.find(x => x.id === value)?.name || value) : 'second subject back to Auto') : value ? 'subject ' + (all.find(x => x.id === value)?.name || value) : 'subject back to Auto'}` });
       opts.onChange && opts.onChange(profile);
     } catch (e) { alert('Could not save that change. Please try again.'); }
   }
