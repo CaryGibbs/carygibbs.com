@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261114l"></script>
+  <script src="dev-flag.js?v=20261114m"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114l">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114l">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114l">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114l">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114m">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114m">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114m">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114m">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114l">
-  <script src="icons.js?v=20261114l"></script>
-  <script src="help-sheet.js?v=20261114l" defer></script>
+  <link rel="stylesheet" href="theme.css?v=20261114m">
+  <script src="icons.js?v=20261114m"></script>
+  <script src="help-sheet.js?v=20261114m" defer></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -328,7 +328,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114l">
+  <link rel="stylesheet" href="ui.css?v=20261114m">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -347,7 +347,7 @@
   <!-- Loading -->
   <div class="screen active" id="screen-loading">
     <div class="loading-screen">
-      <div class="spinner" style="margin:0 auto var(--space-lg);width:48px;height:48px;"></div>
+      <div class="spinner" id="loading-spinner" style="margin:0 auto var(--space-lg);width:48px;height:48px;"></div>
       <h2>Loading questions…</h2>
       <p>Picking 10 questions for you</p>
     </div>
@@ -371,7 +371,7 @@
   <!-- No questions -->
   <div class="screen" id="screen-no-questions">
     <div class="no-q-screen">
-      <div class="results-icon"><i data-icon="inbox"></i></div>
+      <div class="results-icon" id="noq-icon"><i data-icon="inbox"></i></div>
       <h2 id="noq-title">No questions yet</h2>
       <p id="noq-text">This topic doesn't have any questions yet. Ask your admin to add some!</p>
       <a href="hub.html" class="btn btn-primary">← Back to hub</a>
@@ -435,8 +435,8 @@
         <p class="short-hint">Write as much detail as you can. AI will mark your answer.</p>
         <div class="ai-marking-wrap" id="ai-marking-wrap">
           <div class="ai-thinking" id="ai-thinking">
-            <div class="spinner" style="width:16px;height:16px;border-width:2px;"></div>
-            Marking your answer…
+            <span id="ai-thinking-pic"><div class="spinner" style="width:16px;height:16px;border-width:2px;"></div></span>
+            <span id="ai-thinking-text">Marking your answer…</span>
           </div>
           <div id="ai-result" style="display:none;">
             <div class="ai-score-row">
@@ -534,13 +534,14 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114l';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261114l';
-import { askClaude, jsonOf } from './ai.js?v=20261114l';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261114l';
-import { logEvent } from './log.js?v=20261114l';
-import { topicLocked, showTopicLocked } from './access.js?v=20261114l';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261114l';
+import { auth, db } from './firebase-config.js?v=20261114m';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261114m';
+import { askClaude, jsonOf } from './ai.js?v=20261114m';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261114m';
+import { logEvent } from './log.js?v=20261114m';
+import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261114m';
+import { topicLocked, showTopicLocked } from './access.js?v=20261114m';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261114m';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -693,6 +694,7 @@ async function loadReview() {
 }
 
 function showLockedTopic(name) {
+  setNoqLobey('wave', 'The free topics in this subject are ready for you!');
   document.getElementById('noq-title').textContent = 'This topic is part of Plus';
   document.getElementById('noq-text').textContent = `"${name || 'This topic'}" is in Lobe Limpet Plus. The free topics in this subject are ready for you, or upgrade to unlock every topic.`;
   showScreen('no-questions');
@@ -700,6 +702,7 @@ function showLockedTopic(name) {
 }
 
 function showCaughtUp() {
+  setNoqLobey('party', LINES.caughtUp);
   const next = nextDueDay(currentProfile, groupId);
   document.getElementById('noq-title').textContent = 'All caught up!';
   document.getElementById('noq-text').textContent = next
@@ -1175,6 +1178,7 @@ async function markShortWritten(q, userAnswer) {
   const wrap = document.getElementById('ai-marking-wrap');
   wrap.classList.add('visible');
   document.getElementById('ai-thinking').style.display = 'flex';
+  if (lobeyShows()) document.getElementById('ai-thinking-text').textContent = pick(LINES.marking);
   document.getElementById('ai-result').style.display = 'none';
 
   const prompt = `You are marking a GCSE student's short answer question.
@@ -1293,6 +1297,7 @@ window._nextQuestion = function() {
 /* ── Results ─────────────────────────────────────────────── */
 async function showResults() {
   showScreen('results');
+  if (!isPreview()) syncLobey(currentProfile);
   // Unmarked written answers are left out of the score
   const total = Math.max(1, questions.length - unmarked.size);
   const pct   = Math.round((score / total) * 100);
@@ -1310,6 +1315,9 @@ async function showResults() {
     `You scored ${score} out of ${total} on ${reviewMode ? 'today\'s review' : (topicName || subjectName)}`;
   document.getElementById('results-icon').innerHTML = `<i data-icon="${pct >= 80 ? 'party-popper' : pct >= 60 ? 'thumbs-up' : pct >= 40 ? 'book-open' : 'dumbbell'}"></i>`;
   document.getElementById('results-icon').dataset.band = pct >= 80 ? 'great' : pct >= 60 ? 'good' : 'low';
+  // Lobey cheers the result (never sad: encouraging for low scores)
+  const lobeyRes = pct >= 80 ? ['party', LINES.great] : pct >= 60 ? ['hello', LINES.good] : pct >= 40 ? ['read', LINES.some] : ['cheer', LINES.low];
+  showResultLobey(lobeyRes[0], lobeyRes[1]);
 
   // Preview: show the result but save nothing
   if (isPreview()) {
@@ -1371,7 +1379,19 @@ async function showResults() {
   }
 }
 
+function showResultLobey(mood, line) {
+  const html = lobeySays(mood, line, { big: true, size: 112, cls: 'center' });
+  if (!html) return;
+  const el = document.getElementById('results-icon');
+  el.classList.add('has-lobey');
+  el.innerHTML = html;
+}
+
 function showXpEarned(result, minutes) {
+  // Lobey celebrates a level up or a new badge
+  if (result.levelledUp) showResultLobey('party', LINES.levelUp);
+  else if (result.newlyEarned?.length) showResultLobey('party', LINES.badge);
+
   const wrap = document.getElementById('xp-earned-wrap');
   wrap.style.display = 'block';
 
@@ -1409,6 +1429,23 @@ window._restartQuiz = function() {
   if (reviewMode) { loadReview(); return; }   // whatever is still due
   beginQuestions(); // fresh set of questions, same types
 };
+
+/* ── Lobey: loading, marking and empty screens ───────────── */
+function setNoqLobey(mood, line) {
+  const html = lobeySays(mood, line, { size: 96, cls: 'center' });
+  if (!html) return;
+  const el = document.getElementById('noq-icon');
+  el.classList.add('has-lobey');
+  el.innerHTML = html;
+}
+(function lobeyInit() {
+  const spin = document.getElementById('loading-spinner');
+  const pic = lobeyImg('cheer', 96);
+  if (spin && pic) { spin.outerHTML = `<div class="lobey-loading" style="display:flex;justify-content:center;margin-bottom:var(--space-md)">${pic}</div>`; }
+  const think = lobeyImg('think', 40);
+  if (think) document.getElementById('ai-thinking-pic').innerHTML = think;
+  setNoqLobey('wave', LINES.noQuestions);
+})();
 
 /* ── Screens ─────────────────────────────────────────────── */
 function showScreen(name) {

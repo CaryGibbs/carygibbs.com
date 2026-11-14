@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261114l"></script>
+  <script src="dev-flag.js?v=20261114m"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114l">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114l">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114l">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114l">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114m">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114m">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114m">
+  <link rel="manifest" href="manifest.webmanifest?v=20261114m">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114l">
-  <script src="icons.js?v=20261114l"></script>
-  <link rel="stylesheet" href="stats.css?v=20261114l">
+  <link rel="stylesheet" href="theme.css?v=20261114m">
+  <script src="icons.js?v=20261114m"></script>
+  <link rel="stylesheet" href="stats.css?v=20261114m">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -151,6 +151,9 @@
       margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-lg);
     }
     .xp-level-badge { font-size: 2rem; flex-shrink: 0; }
+    /* ── Lobey streak card ─────────────────────────────────── */
+    .lobey-card { margin-bottom: var(--space-md); padding: 4px 0 0 4px; }
+
     /* ── Review today ─────────────────────────────────────── */
     .review-card {
       display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;
@@ -286,7 +289,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114l">
+  <link rel="stylesheet" href="ui.css?v=20261114m">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -350,6 +353,7 @@
   </div>
   <div id="plan-wrap"></div>
   <div id="streak-wrap"></div>
+  <div id="lobey-streak"></div>
   <div id="review-wrap"></div>
   <div id="hub-content">
     <div class="subjects-grid">
@@ -374,23 +378,24 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114l';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261114l';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261114l';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261114l';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261114l';
-import { listPacks, samePackIds } from './packs.js?v=20261114l';
-import { plusPillHtml } from './plus.js?v=20261114l';
-import { inOrder } from './order.js?v=20261114l';
-import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261114l';
-import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261114l';
-import { showLinkRequests } from './parent-link.js?v=20261114l';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261114l';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261114l';
-import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261114l';
-import { logEvent } from './log.js?v=20261114l';
-import { loadCardSets } from './card-sets.js?v=20261114l';
-import { noPackHtml, openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT } from './student-start.js?v=20261114l';
+import { auth, db } from './firebase-config.js?v=20261114m';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261114m';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261114m';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261114m';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261114m';
+import { listPacks, samePackIds } from './packs.js?v=20261114m';
+import { plusPillHtml } from './plus.js?v=20261114m';
+import { inOrder } from './order.js?v=20261114m';
+import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261114m';
+import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261114m';
+import { showLinkRequests } from './parent-link.js?v=20261114m';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261114m';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261114m';
+import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261114m';
+import { logEvent } from './log.js?v=20261114m';
+import { loadCardSets } from './card-sets.js?v=20261114m';
+import { lobeySays, lobeyImg, syncLobey, LINES, STREAK_MILESTONES } from './lobey.js?v=20261114m';
+import { noPackHtml, openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT } from './student-start.js?v=20261114m';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -685,7 +690,30 @@ function renderRepairCard(profile) {
     </div></div>`;
 }
 
+/* ── Lobey and the streak ───────────────────────────────────── */
+// Lapsed: sleepy Lobey ("your streak is resting"), never "broken".
+// Milestone reached today: Lobey with a flame. Streak going but no
+// revision yet today: a gentle nudge. Skipped while the win-back card shows.
+function renderLobeyStreak(profile, st) {
+  if (!isPreview()) syncLobey(profile);
+  const wrap = document.getElementById('lobey-streak');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (!isStudent(profile) || repairOffer(profile)) return;
+  const last = profile.lastRevisionDate ? isoDay(new Date(profile.lastRevisionDate)) : null;
+  const today = last === isoDay();
+  let html = '';
+  if (st.lapsed) html = lobeySays('sleep', LINES.streakRest, { size: 72, cls: 'compact' });
+  else if (today && STREAK_MILESTONES.includes(st.current)) html = lobeySays('streak', LINES.streak(st.current), { big: true, size: 72, cls: 'compact' });
+  else if (!today && st.current >= 2) html = lobeySays('streak', `Your ${st.current}-day streak is waiting. One quiz today keeps it going!`, { size: 72, cls: 'compact' });
+  if (html) wrap.innerHTML = `<div class="lobey-card">${html}</div>`;
+}
+
 /* ── Review today card ───────────────────────────────────── */
+function lobeyIcon(mood, icon) {
+  const img = lobeyImg(mood, 52);
+  return img ? `<div class="review-icon has-lobey">${img}</div>` : `<div class="review-icon"><i data-icon="${icon}"></i></div>`;
+}
 function renderReviewCard(groupId) {
   const wrap = document.getElementById('review-wrap');
   if (!wrap) return;
@@ -696,13 +724,13 @@ function renderReviewCard(groupId) {
   if (due) {
     const n = Math.min(due, REVIEW_SIZE);
     wrap.innerHTML = `<div class="review-card due">
-      <div class="review-icon"><i data-icon="repeat"></i></div>
+      ${lobeyIcon('read', 'repeat')}
       <div class="review-text"><div class="review-title">Review today · ${due} due</div>
         <div class="review-sub">Questions you've met before, back at just the right time to make them stick${due > n ? `. ${n} at a time.` : '.'}</div></div>
       <a class="btn btn-primary" href="${go}"><i data-icon="repeat"></i> Start review</a></div>`;
   } else if (scheduled) {
     wrap.innerHTML = `<div class="review-card">
-      <div class="review-icon"><i data-icon="circle-check"></i></div>
+      ${lobeyIcon('party', 'circle-check')}
       <div class="review-text"><div class="review-title">All caught up</div>
         <div class="review-sub">Nothing to review right now. Next review ${whenText(nextDueDay(hubProfile, groupId))}.</div></div></div>`;
   } else {
@@ -732,7 +760,7 @@ async function loadSubjects(user, groupId) {
   const subjects = inOrder(subjectsSnap);
 
   if (subjects.length === 0) {
-    grid.innerHTML = `<div class="subjects-grid"><div class="empty-state"><div class="empty-state-icon"><i data-icon="inbox"></i></div><h3>No subjects yet</h3><p>Your admin is still adding content.</p></div></div>`;
+    grid.innerHTML = `<div class="subjects-grid"><div class="empty-state">${lobeyImg('wave', 96) ? `<div class="empty-state-icon has-lobey">${lobeyImg('wave', 96)}</div>` : '<div class="empty-state-icon"><i data-icon="inbox"></i></div>'}<h3>No subjects yet</h3><p>Your admin is still adding content.</p></div></div>`;
     return;
   }
 
@@ -863,6 +891,7 @@ function renderGamification(profile, user) {
   const shields = Math.min(profile.shields || 0, 2);
   document.getElementById('xp-streak-val').innerHTML  = st.current + ' <i data-icon="flame"></i>' + (shields ? ` <span title="${shields} streak shield${shields > 1 ? 's' : ''}: a missed day won't break your streak" style="font-size:0.8em">🛡️${shields > 1 ? '×' + shields : ''}</span>` : '');
   renderRepairCard(profile);
+  renderLobeyStreak(profile, st);
   if (st.lapsed) {
     // Streak ended: show their best and nudge them to start again
     const lbl = document.getElementById('xp-streak-label');
@@ -918,6 +947,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261114l"></script>
+<script src="site.js?v=20261114m"></script>
 </body>
 </html>
