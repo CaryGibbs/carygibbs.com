@@ -9,7 +9,7 @@
 // The animated SVGs stay still for people who prefer reduced motion.
 // ═══════════════════════════════════════════════════════════
 
-const V = '20261115e';
+const V = '20261115f';
 const FILES = {
   party: 'limpet-party', cheer: 'limpet-stretch', hello: '../limpet-animated', think: 'limpet-think',
   read: 'limpet-read', wave: 'limpet-wave', sleep: 'limpet-sleep', streak: 'limpet-streak',
