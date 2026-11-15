@@ -5,10 +5,10 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261115d';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261115d';
-import { openDeleteAccount } from './account.js?v=20261115d';
-import { formatAccountNo } from './account-no.js?v=20261115d';
+import { auth } from './firebase-config.js?v=20261115e';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261115e';
+import { openDeleteAccount } from './account.js?v=20261115e';
+import { formatAccountNo } from './account-no.js?v=20261115e';
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

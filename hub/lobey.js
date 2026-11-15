@@ -2,18 +2,18 @@
 // LOBEY — the Lobe Limpet mascot inside the app
 // lobeySays(mood, line, { big, size }) returns HTML for Lobey with a
 // speech bubble, or '' if the student has turned Lobey off.
-//   mood: party · cheer · hello · think · read · wave · sleep · streak · grad · mail
+//   mood: party · cheer · hello · think · read · wave · sleep · streak · grad · mail · cards · price
 //   line: a string, or an array to pick from at random (keeps it fresh)
 //   big:  true for the big moments (quiz results, badges, level ups);
 //         "Just the big moments" hides the rest
 // The animated SVGs stay still for people who prefer reduced motion.
 // ═══════════════════════════════════════════════════════════
 
-const V = '20261115d';
+const V = '20261115e';
 const FILES = {
   party: 'limpet-party', cheer: 'limpet-stretch', hello: '../limpet-animated', think: 'limpet-think',
   read: 'limpet-read', wave: 'limpet-wave', sleep: 'limpet-sleep', streak: 'limpet-streak',
-  grad: 'limpet-grad', mail: 'limpet-mail', price: 'limpet-price',
+  grad: 'limpet-grad', mail: 'limpet-mail', price: 'limpet-price', cards: 'limpet-cards',
 };
 const KEY = 'll_lobey';   // 'all' (default) · 'big' · 'off'
 
@@ -82,6 +82,8 @@ export const LINES = {
   loading: ['Picking 10 questions for you…', 'Finding good questions…'],
   noQuestions: ['Nothing to quiz on here yet. Try another topic!', 'No questions here yet. I\'ll wait on my rock.'],
   noSubjects: ['Nothing here yet! Your revision will appear here once it\'s added.'],
+  noSets: ['No cards yet. Make a set and I\'ll shuffle them for you!', 'My card stack is empty. Shall we make your first set?'],
+  noLearn: ['Nothing to learn here yet. I\'ll keep my nose in a book until it arrives!', 'No notes here yet. Check back once your revision is added.'],
   reviewDue: n => [`${n} question${n === 1 ? '' : 's'} came back to say hello. A quick look makes them stick.`, `Time for a quick review: ${n} waiting.`],
   caughtUp: ['All caught up. Your brain is nicely stuck!', 'Nothing to review. Gold star from me.'],
   streakRest: ['Your streak is having a nap. One quiz today wakes it up!', 'Shh, your streak is resting. Revise today to start a new one!'],

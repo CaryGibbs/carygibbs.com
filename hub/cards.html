@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261115d"></script>
+  <script src="dev-flag.js?v=20261115e"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261115d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261115d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261115d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261115d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261115e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261115e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261115e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261115e">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261115d">
-  <script src="icons.js?v=20261115d"></script>
+  <link rel="stylesheet" href="theme.css?v=20261115e">
+  <script src="icons.js?v=20261115e"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -223,19 +223,21 @@
 </div>
 
 <script type="module">
-import { db, storage } from './firebase-config.js?v=20261115d';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261115d';
-import { askClaude, jsonOf } from './ai.js?v=20261115d';
-import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261115d';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261115d';
-import { flatPackIds } from './packs.js?v=20261115d';
-import { logEvent } from './log.js?v=20261115d';
-import { byOrder } from './order.js?v=20261115d';
-import { startStudyTimer } from './study-timer.js?v=20261115d';
-import { forgetProgress } from './progress-tidy.js?v=20261115d';
+import { db, storage } from './firebase-config.js?v=20261115e';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261115e';
+import { askClaude, jsonOf } from './ai.js?v=20261115e';
+import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261115e';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261115e';
+import { flatPackIds } from './packs.js?v=20261115e';
+import { logEvent } from './log.js?v=20261115e';
+import { byOrder } from './order.js?v=20261115e';
+import { startStudyTimer } from './study-timer.js?v=20261115e';
+import { showBadgePops } from './badge-pop.js?v=20261115e';
+import { lobeySays, LINES } from './lobey.js?v=20261115e';
+import { forgetProgress } from './progress-tidy.js?v=20261115e';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
   questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
-  cardComplete, shortName, copyCards } from './cards-core.js?v=20261115d';
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261115e';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, getCountFromServer }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -290,7 +292,7 @@ function renderList() {
   $('subject-list').innerHTML = Object.values(subjects).map(s => `<option value="${esc(s.name)}">`).join('');
   if (!sets.length) {
     $('sets').innerHTML = `<div class="empty">
-      <div style="font-size:2rem;">🃏</div>
+      ${lobeySays('cards', LINES.noSets, { size: 92, cls: 'center' }) || '<div style="font-size:2rem;">🃏</div>'}
       <h2>Make your first set</h2>
       <p>Type your own cards, paste a list from your notes or Quizlet, or let AI make them from a document or photo.</p>
       ${readOnly() ? '' : '<button class="btn btn-primary" data-action="new-set"><i data-icon="plus"></i> New set</button>'}
@@ -757,7 +759,7 @@ function startStudy(s) {
   // Flashcard time counts as revision time (own sets: they have a subject)
   if (!readOnly()) {
     logEvent('cards.study', { target: s.name, detail: s.shared ? `Shared by ${s.ownerName || 'a classmate'}` : `${st.cards.length} cards` });
-    if (!s.shared && s.subjectId) startStudyTimer({ user: me, profile, subjectId: s.subjectId, subjectName: subjects[s.subjectId]?.name || 'Flashcards' });
+    if (!s.shared && s.subjectId) startStudyTimer({ user: me, profile, subjectId: s.subjectId, subjectName: subjects[s.subjectId]?.name || 'Flashcards', onBadges: ids => showBadgePops(ids) });
   }
   newRound(st.cards);
   document.body.insertAdjacentHTML('beforeend', `<div class="study" id="study">
@@ -1150,6 +1152,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261115d"></script>
+<script src="site.js?v=20261115e"></script>
 </body>
 </html>
