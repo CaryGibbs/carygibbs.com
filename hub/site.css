@@ -241,6 +241,14 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .sheet-row i.s { width: 60%; }
 .snap-arrow { font-size: 1.4rem; line-height: 1; }
 .snap .mock-card { width: 100%; }
+.snap-rot { display: grid; gap: 10px; justify-items: center; width: 100%; transition: opacity .35s ease, transform .35s ease; }
+.snap-rot.swap { opacity: 0; transform: translateY(6px); }
+.snap-rot .sheet-li em { font-style: normal; }
+.snap .q { min-height: 2.7em; }
+.snap-stages { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 4px; }
+.snap-stages span { font-size: 0.74rem; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.7); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; transition: all .25s; }
+.snap-stages span.on { background: var(--deep); color: #fff; border-color: var(--deep); }
+@media (prefers-reduced-motion: reduce) { .snap-rot { transition: none; } }
 .snap .chip.streak { bottom: -14px; left: -10px; }
 .hero-limpet { position: absolute; right: -52px; bottom: -44px; width: 132px; height: auto; pointer-events: none; filter: drop-shadow(0 8px 14px rgba(18,58,74,0.18)); }
 @media (max-width: 860px) { .hero-limpet { right: -10px; bottom: -40px; width: 100px; } }

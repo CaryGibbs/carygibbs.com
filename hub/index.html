@@ -42,20 +42,23 @@
     </div>
 
     <div class="mock snap" aria-hidden="true">
-      <div class="sheet">
-        <div class="sheet-top">📷 Year 9 Science: revision list</div>
-        <div class="sheet-li"><span></span>Structure of the heart</div>
-        <div class="sheet-li"><span></span>Arteries, veins and capillaries</div>
-        <div class="sheet-li"><span></span>Blood and its components</div>
-      </div>
-      <div class="snap-arrow">✨</div>
-      <div class="mock-card">
-        <div class="mock-top"><span>Science · The heart</span><span>3 / 10</span></div>
-        <div class="bar"><i></i></div>
-        <p class="q">Why does the left ventricle have a thicker muscle wall than the right?</p>
-        <div class="opt">It pumps blood to the lungs</div>
-        <div class="opt right">It pumps blood at high pressure to the whole body</div>
-        <div class="opt">It receives blood from the veins</div>
+      <div class="snap-stages" id="snap-stages"><span class="on">KS3</span><span>GCSE</span><span>A level</span><span>And more</span></div>
+      <div class="snap-rot" id="snap-rot">
+        <div class="sheet">
+          <div class="sheet-top">📷 <span data-k="list">Year 9 Science: revision list</span></div>
+          <div class="sheet-li"><span></span><em data-k="t0">Structure of the heart</em></div>
+          <div class="sheet-li"><span></span><em data-k="t1">Arteries, veins and capillaries</em></div>
+          <div class="sheet-li"><span></span><em data-k="t2">Blood and its components</em></div>
+        </div>
+        <div class="snap-arrow">✨</div>
+        <div class="mock-card">
+          <div class="mock-top"><span data-k="sub">Science · The heart</span><span>3 / 10</span></div>
+          <div class="bar"><i></i></div>
+          <p class="q" data-k="q">Why does the left ventricle have a thicker muscle wall than the right?</p>
+          <div class="opt" data-k="o0">It pumps blood to the lungs</div>
+          <div class="opt right" data-k="o1">It pumps blood at high pressure to the whole body</div>
+          <div class="opt" data-k="o2">It receives blood from the veins</div>
+        </div>
       </div>
       <div class="chip streak">🔥 7-day streak</div>
       <img class="hero-limpet" src="assets/images/brand/limpet-animated.svg?v=20261115a" alt="" width="108" height="114">
@@ -225,6 +228,43 @@
 <div id="site-footer"></div>
 
 <script src="site.js?v=20261115a"></script>
+<script>
+  // Hero example rotates through KS3, GCSE, A level and beyond, so the page
+  // doesn't feel aimed at one age. Pauses for reduced motion and hidden tabs.
+  (function () {
+    var sets = [
+      { list: 'Year 9 Science: revision list', t0: 'Structure of the heart', t1: 'Arteries, veins and capillaries', t2: 'Blood and its components',
+        sub: 'Science · The heart', q: 'Why does the left ventricle have a thicker muscle wall than the right?',
+        o0: 'It pumps blood to the lungs', o1: 'It pumps blood at high pressure to the whole body', o2: 'It receives blood from the veins' },
+      { list: 'GCSE Chemistry: revision list', t0: 'Atomic structure', t1: 'Ionic and covalent bonding', t2: 'Rates of reaction',
+        sub: 'Chemistry · Rates of reaction', q: 'Why does a higher temperature speed up a reaction?',
+        o0: 'The particles get bigger', o1: 'Particles collide more often, and with more energy', o2: 'The activation energy goes up' },
+      { list: 'A level Economics: revision list', t0: 'Price elasticity of demand', t1: 'Market failure', t2: 'Monetary policy',
+        sub: 'Economics · Elasticity', q: 'Demand is price inelastic and the price rises. What happens to revenue?',
+        o0: 'Total revenue falls', o1: 'Total revenue rises', o2: 'Total revenue stays the same' },
+      { list: 'Driving theory: revision list', t0: 'Stopping distances', t1: 'Road signs', t2: 'Hazard awareness',
+        sub: 'Driving theory · Stopping distances', q: 'What is the typical overall stopping distance at 30 mph?',
+        o0: '12 metres', o1: '23 metres', o2: '36 metres' }
+    ];
+    var rot = document.getElementById('snap-rot'), dots = document.querySelectorAll('#snap-stages span');
+    if (!rot) return;
+    var i = 0, timer = null;
+    var show = function (n) {
+      i = n;
+      rot.classList.add('swap');
+      setTimeout(function () {
+        var d = sets[i];
+        rot.querySelectorAll('[data-k]').forEach(function (el) { el.textContent = d[el.dataset.k]; });
+        dots.forEach(function (s, k) { s.classList.toggle('on', k === i); });
+        rot.classList.remove('swap');
+      }, 350);
+    };
+    var start = function () { stop(); timer = setInterval(function () { if (!document.hidden) show((i + 1) % sets.length); }, 5000); };
+    var stop = function () { if (timer) clearInterval(timer); timer = null; };
+    dots.forEach(function (s, k) { s.addEventListener('click', function () { show(k); start(); }); });
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) start();
+  })();
+</script>
 <script>
   // Signed-in visitors still see this page; the buttons take them to their dashboard.
   document.addEventListener('ll-signed-in', function () {
