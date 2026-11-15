@@ -7,10 +7,10 @@
 // copy), and every 5 minutes earns XP and updates the streak.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261115f';
-import { isPreview, isStudent } from './auth.js?v=20261115f';
-import { logEvent } from './log.js?v=20261115f';
-import { awardXp, repairOffer, loadStreakSettings } from './gamification.js?v=20261115f';
+import { db } from './firebase-config.js?v=20261115g';
+import { isPreview, isStudent } from './auth.js?v=20261115g';
+import { logEvent } from './log.js?v=20261115g';
+import { awardXp, repairOffer, loadStreakSettings } from './gamification.js?v=20261115g';
 import { doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const IDLE_MS  = 2 * 60 * 1000;   // no activity for this long = paused

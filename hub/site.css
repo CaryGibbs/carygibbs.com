@@ -350,6 +350,13 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .asset-grid { display: grid; gap: 14px; }
 .asset-grid.logos { grid-template-columns: repeat(2, 1fr); }
 .asset-grid.lobeys { grid-template-columns: repeat(3, 1fr); }
+.asset-grid.screens-wide { grid-template-columns: repeat(2, 1fr); margin-bottom: 14px; }
+.asset-grid.screens-phone { grid-template-columns: repeat(5, 1fr); }
+.asset.shot > a { display: block; background: var(--sea); }
+.asset.shot img { height: auto; padding: 0; aspect-ratio: 16 / 10.5; object-fit: cover; object-position: top; }
+.screens-phone .asset.shot img { aspect-ratio: 430 / 932; }
+.asset.shot figcaption { align-items: flex-start; flex-direction: column; gap: 2px; }
+@media (max-width: 1100px) { .asset-grid.screens-phone { grid-template-columns: repeat(3, 1fr); } }
 .asset { margin: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #fff; display: flex; flex-direction: column; }
 .asset img { display: block; width: 100%; height: 150px; object-fit: contain; padding: 22px; box-sizing: border-box; }
 .asset.tall img { height: 210px; }
@@ -380,10 +387,11 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .dos li { margin-bottom: 6px; }
 @media (max-width: 860px) {
   .asset-grid.lobeys { grid-template-columns: repeat(2, 1fr); }
+  .asset-grid.screens-phone { grid-template-columns: repeat(2, 1fr); }
   .swatches { grid-template-columns: repeat(4, 1fr); }
   .facts, .fonts { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 560px) {
-  .asset-grid.logos, .dos, .facts, .fonts { grid-template-columns: 1fr; }
+  .asset-grid.logos, .asset-grid.screens-wide, .dos, .facts, .fonts { grid-template-columns: 1fr; }
   .swatches { grid-template-columns: repeat(2, 1fr); }
 }
