@@ -9,7 +9,7 @@
 // The animated SVGs stay still for people who prefer reduced motion.
 // ═══════════════════════════════════════════════════════════
 
-const V = '20261115a';
+const V = '20261115b';
 const FILES = {
   party: 'limpet-party', cheer: 'limpet-stretch', hello: '../limpet-animated', think: 'limpet-think',
   read: 'limpet-read', wave: 'limpet-wave', sleep: 'limpet-sleep', streak: 'limpet-streak',
@@ -40,6 +40,10 @@ export function lobeyShows(big = false) {
   return lvl === 'all' || (lvl === 'big' && big);
 }
 
+// Party Lobey has his arms up, so his picture is wider (same height)
+const WIDE = { party: 140 };
+const imgSize = (mood, size) => `width="${Math.round(size * (WIDE[mood] || 108) / 108)}" height="${Math.round(size * 114 / 108)}"`;
+
 export function lobeySrc(mood) {
   const f = FILES[mood] || FILES.hello;
   return `assets/images/brand/mascot/${f}.svg?v=${V}`;
@@ -49,7 +53,7 @@ export function lobeySrc(mood) {
 export function lobeyImg(mood, size = 44, big = false) {
   if (!lobeyShows(big)) return '';
   injectCss();
-  return `<img class="lobey-img" src="${lobeySrc(mood)}" alt="" width="${size}" height="${Math.round(size * 114 / 108)}">`;
+  return `<img class="lobey-img" src="${lobeySrc(mood)}" alt="" ${imgSize(mood, size)}>`;
 }
 
 export function pick(line) {
@@ -61,7 +65,7 @@ export function lobeySays(mood, line, { big = false, size = 84, cls = '' } = {})
   if (!lobeyShows(big)) return '';
   injectCss();
   return `<div class="lobey ${cls}" role="note">
-    <img class="lobey-img" src="${lobeySrc(mood)}" alt="Lobey" width="${size}" height="${Math.round(size * 114 / 108)}">
+    <img class="lobey-img" src="${lobeySrc(mood)}" alt="Lobey" ${imgSize(mood, size)}>
     <div class="lobey-bubble">${esc(pick(line))}</div>
   </div>`;
 }

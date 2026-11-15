@@ -140,11 +140,13 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 /* Limpet mascots dotted around the website */
 .page-hero.has-mascot .wrap { position: relative; padding-right: 190px; }
 .page-mascot { position: absolute; right: 24px; bottom: -40px; width: 140px; height: auto; pointer-events: none; }
+.page-mascot.wide { width: 181px; right: 4px; } /* party Lobey, arms up */
 .final.has-mascot { position: relative; }
 .final-mascot { display: block; width: 104px; height: auto; margin: -96px auto 8px; pointer-events: none; }
 @media (max-width: 700px) {
   .page-hero.has-mascot .wrap { padding-right: 20px; }
   .page-mascot { position: static; display: block; width: 88px; margin: 4px 0 -30px auto; }
+  .page-mascot.wide { width: 114px; }
 }
 .prose { max-width: 720px; padding: 8px 0 32px; }
 .prose h2 { font-size: 1.45rem; margin: 36px 0 10px; }
