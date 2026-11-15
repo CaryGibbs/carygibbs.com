@@ -731,6 +731,7 @@ async function loadReview() {
     reviewList.forEach(q => { count[q.loc.s] = (count[q.loc.s] || 0) + 1; });
     const topSubject = Object.keys(count).sort((a, b) => count[b] - count[a])[0];
     reviewSubject = subjectNames[topSubject] || 'Review';
+    reviewList.forEach(q => { q.subjectName = subjectNames[q.loc.s] || ''; });
     questionPool = reviewList;
     beginQuestions();
   } catch (e) {
@@ -842,8 +843,16 @@ function rankQuestions(list, hist) {
     .map(x => x.q);
 }
 
+// Reviews: keep each subject's questions together (no jumping from
+// Geography to Maths and back), mixing the topics within a subject.
+// The subject with the most due questions goes first.
+function groupBySubject(list) {
+  const by = {};
+  list.forEach(q => (by[q.loc?.s || ''] = by[q.loc?.s || ''] || []).push(q));
+  return Object.values(by).sort((a, b) => b.length - a.length).flatMap(g => shuffle(g));
+}
 function pickQuestions() {
-  if (reviewMode) return shuffle(reviewList.slice());
+  if (reviewMode) return groupBySubject(reviewList);
   const pool = questionPool.filter(q => selectedTypes.has(q.type));
   const hist = questionHistory();
   const byType = {};
@@ -904,6 +913,13 @@ function renderQuestion() {
   document.getElementById('progress-bar').style.width = pct + '%';
   document.getElementById('nav-progress').textContent = `${currentIdx + 1} / ${questions.length}`;
   document.getElementById('q-num').textContent = currentIdx + 1;
+  // Reviews: say which subject this one is from, and flag a change of subject
+  if (reviewMode) {
+    const subj = q.subjectName || '';
+    document.getElementById('nav-title').textContent = subj ? `Review · ${subj}` : 'Review today';
+    const prev = questions[currentIdx - 1];
+    if (currentIdx > 0 && subj && prev?.subjectName !== subj) showToast(`Now on to ${subj}`, 'info');
+  }
 
   // Type pill
   const typeLabels = { mcq:'MCQ', tf:'True/False', fill:'Fill blank', match:'Match pairs', short:'Short written' };

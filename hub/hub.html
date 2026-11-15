@@ -685,7 +685,7 @@ function renderPlanCard(groupId, subjects) {
   const toExam = sum.exam ? daysBetween(isoDay(), sum.exam.start) : null;
   const parts = [`<span class="plan-part${g.minsOk ? ' ok' : ''}">${g.minsOk ? '✓ ' : ''}${Math.min(g.mins, L.mins)} / ${L.mins} min</span>`];
   if (L.quizzes) parts.push(`<span class="plan-part${g.quizOk ? ' ok' : ''}">${g.quizOk ? '✓ ' : ''}${Math.min(g.quizzes, L.quizzes)} / ${L.quizzes} quiz${L.quizzes === 1 ? '' : 'zes'}</span>`);
-  if (L.reviews) parts.push(`<span class="plan-part${g.revOk ? ' ok' : ''}">${g.revOk ? '✓ reviews done' : `${g.reviewsLeft} review${g.reviewsLeft === 1 ? '' : 's'} due`}</span>`);
+  if (g.needRev) parts.push(`<span class="plan-part${g.revOk ? ' ok' : ''}">${g.revOk ? '✓ reviews done' : `${g.reviewsLeft} review${g.reviewsLeft === 1 ? '' : 's'} due`}</span>`);
   // Today's subjects: from the plan (a parent may have chosen them; two on
   // Exam push and Final days), else the one that needs it most
   let focus = [];

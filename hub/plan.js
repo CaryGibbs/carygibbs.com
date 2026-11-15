@@ -11,7 +11,9 @@
 // Saved on the student's record:
 //   plan = { mode, exams:[{ id, name, start:'YYYY-MM-DD', end, packId,
 //                           subjectId, subjectPackId }],   (subject: one paper)
-//            overrides: { day: { level, subjectId, packId, subjectId2, packId2 } } }
+//            overrides: { day: { level, subjectId, packId, subjectId2, packId2 } },
+//            reviewsOff: true }   (a parent turned off "reviews count towards
+//                                  the daily goal"; missing = on)
 //   planGoals = { 'YYYY-MM-DD': level }   (days the goal was hit)
 // Targets can be changed by an admin (settings/plans).
 // ============================================================
@@ -109,20 +111,27 @@ export function dayActivity(profile, day = isoDay()) {
   return { mins: Math.floor((studySecs + quizSecs) / 60), quizzes: sessions.length };
 }
 
+// Does clearing due reviews count towards this student's goal? On unless a
+// parent has switched it off (plan.reviewsOff)
+export function reviewsRequired(profile, L) {
+  return !!L?.reviews && !profile?.plan?.reviewsOff;
+}
+
 // Progress towards the goal on a day (reviews only checked for today)
 export function goalStatus(profile, day = isoDay()) {
   const level = levelFor(profile, day);
   const L = LEVELS[level];
   const a = dayActivity(profile, day);
   const isToday = day === isoDay();
-  const reviewsLeft = L.reviews && isToday ? dueEntries(profile).length : 0;
+  const needRev = reviewsRequired(profile, L);
+  const reviewsLeft = needRev && isToday ? dueEntries(profile).length : 0;
   const minsOk = a.mins >= L.mins, quizOk = a.quizzes >= L.quizzes, revOk = reviewsLeft === 0;
-  if (level === 'rest') return { level, L, ...a, reviewsLeft: 0, minsOk: true, quizOk: true, revOk: true, rest: true, done: false, pct: 0 };
+  if (level === 'rest') return { level, L, ...a, reviewsLeft: 0, needRev: false, minsOk: true, quizOk: true, revOk: true, rest: true, done: false, pct: 0 };
   const done = L.either ? (minsOk || (L.quizzes > 0 && quizOk)) : (minsOk && quizOk && revOk);
   const pct = L.either
     ? Math.min(1, Math.max(a.mins / L.mins, L.quizzes ? a.quizzes / L.quizzes : 0))
-    : Math.min(1, ((Math.min(a.mins, L.mins) / L.mins) + (L.quizzes ? Math.min(a.quizzes, L.quizzes) / L.quizzes : 1) + (revOk ? 1 : 0)) / 3);
-  return { level, L, ...a, reviewsLeft, minsOk, quizOk, revOk, done: done || !!profile?.planGoals?.[day], pct: done ? 1 : pct };
+    : Math.min(1, ((Math.min(a.mins, L.mins) / L.mins) + (L.quizzes ? Math.min(a.quizzes, L.quizzes) / L.quizzes : 1) + (needRev ? (revOk ? 1 : 0) : 0)) / (needRev ? 3 : 2));
+  return { level, L, ...a, reviewsLeft, needRev, minsOk, quizOk, revOk, done: done || !!profile?.planGoals?.[day], pct: done ? 1 : pct };
 }
 
 // The last n days (oldest first), for the week view

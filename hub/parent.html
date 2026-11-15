@@ -315,6 +315,10 @@
       <label for="manage-plan-mode">Study plan</label>
       <select id="manage-plan-mode"></select>
       <div class="form-hint" id="manage-plan-hint"></div>
+      <label class="check-row" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;font-weight:600;font-size:0.9rem;cursor:pointer;">
+        <input type="checkbox" id="manage-plan-reviews" checked style="margin-top:3px;">
+        <span>Daily goal includes clearing due reviews<br><span class="form-hint" style="font-weight:400;">On Steady, Exam push and Final days. Untick to make reviews optional: they still show up, they just don't block the goal.</span></span>
+      </label>
       <div class="plan-exams" id="manage-exams"></div>
       <div class="form-hint">Don't know the dates of each paper yet? Add one row for the week with All subjects. Once you do, add a row per paper with its subject, and the plan revises each one in the days before it.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
@@ -1118,6 +1122,7 @@ let manageSubjectGroups = null;   // the student's subjects, by pack, for exam p
 // Read the exam rows straight from the screen (each row carries its exam's id)
 function readPlanEditor() {
   managePlan.mode = document.getElementById('manage-plan-mode').value;
+  managePlan.reviewsOff = !document.getElementById('manage-plan-reviews').checked;
   const byId = Object.fromEntries((managePlan.exams || []).map(e => [e.id, e]));
   managePlan.exams = [...document.querySelectorAll('#manage-exams .plan-exam-row')].map(row => ({
     ...(byId[row.dataset.id] || {}),
@@ -1140,6 +1145,7 @@ function renderPlanEditor() {
       : `${LEVELS[mode].emoji} ${LEVELS[mode].label}: ${targetText(LEVELS[mode])} a day, ${LEVELS[mode].days} days a week.`;
   };
   sel.onchange = hint; hint();
+  document.getElementById('manage-plan-reviews').checked = !managePlan.reviewsOff;
   const box = document.getElementById('manage-exams');
   // Which revision pack the exams are on (sets the subjects in the day-by-day plan)
   const stu = childrenData[managingChildId] || {};
@@ -1238,12 +1244,13 @@ window._saveChild = async function() {
     }
     const plan = { mode: managePlan.mode || 'auto', exams: managePlan.exams.filter(e => e.start).map(e => ({ id: e.id, name: (e.name || 'Exams').trim(), start: e.start, end: e.end && e.end >= e.start ? e.end : null, packId: e.packId || null, subjectId: e.subjectId || null, subjectPackId: e.subjectId ? e.subjectPackId || null : null })) };
     if (managePlan.overrides) plan.overrides = managePlan.overrides;   // keep day-by-day changes
+    if (managePlan.reviewsOff) plan.reviewsOff = true;                 // reviews optional (default: required)
     const was = { ...(childrenData[managingChildId] || {}) };
     await updateDoc(doc(db, 'users', managingChildId), {
       name, theme: manageTheme, groupIds, packIds, cardLength, plan,
       groupId: groupIds[0] || null
     });
-    const planText = p => `${p?.mode || 'auto'}${(p?.exams || []).length ? ' · ' + p.exams.map(e => `${e.name} ${e.start}${e.end ? '–' + e.end : ''}`).join('; ') : ''}`;
+    const planText = p => `${p?.mode || 'auto'}${p?.reviewsOff ? ' · reviews optional' : ''}${(p?.exams || []).length ? ' · ' + p.exams.map(e => `${e.name} ${e.start}${e.end ? '–' + e.end : ''}`).join('; ') : ''}`;
     if (planText(was.plan) !== planText(plan)) logEvent('plan.change', { target: name, targetId: managingChildId, detail: planText(plan) });
     const changed = [was.name !== name && 'name', was.theme !== manageTheme && 'theme', JSON.stringify([...(was.groupIds || [])].sort()) !== JSON.stringify([...groupIds].sort()) && 'packs', (was.cardLength || 'full') !== cardLength && 'card length'].filter(Boolean);
     if (changed.length) logEvent('student.edit', { target: name, targetId: managingChildId, detail: 'Changed ' + changed.join(', ') });
