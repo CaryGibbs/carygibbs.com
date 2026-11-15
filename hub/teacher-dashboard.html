@@ -493,6 +493,7 @@
   import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261115i';
   import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261115i';
   import { showPlusUpsell } from './plus.js?v=20261115i';
+  import { lastActive, lastActiveText } from './gamification.js?v=20261115i';
   import { mountShell } from './shell.js?v=20261115i';
   import { byOrder } from './order.js?v=20261115i';
   import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261115i';
@@ -1130,7 +1131,8 @@
     const now = Date.now();
     const lastRev = student.lastRevisionDate ? new Date(student.lastRevisionDate).getTime() : 0;
     const lastSess = Math.max(0, ...(student.sessions || []).map(x => x.date || 0));
-    const lastActive = Math.max(lastRev || 0, lastSess);
+    const la = lastActive(student);
+    const lastActiveT = Math.max(la.t, lastRev || 0, lastSess);
     let weekSecs = 0;
     for (let i = 0; i < 7; i++) {
       const day = student.study?.[dayKey(new Date(now - i * DAY))] || {};
@@ -1138,7 +1140,7 @@
     }
     const weekQuizzes = (student.sessions || []).filter(x => now - (x.date || 0) < 7 * DAY);
     weekSecs += weekQuizzes.reduce((a, x) => a + (x.secondsSpent || (x.minutesSpent || 0) * 60), 0);
-    return { lastActive, weekMins: Math.round(weekSecs / 60), weekQuizzes: weekQuizzes.length };
+    return { lastActive: lastActiveT, lastInfo: la, weekMins: Math.round(weekSecs / 60), weekQuizzes: weekQuizzes.length };
   }
 
   function ago(ts) {
@@ -1218,7 +1220,7 @@
           <tr class="${r.behind ? 'behind' : ''}">
             <td class="name"><div class="prog-name">${esc(r.stu.name || 'Student')}${r.reasons.map(x => `<span class="prog-flag">${x}</span>`).join('')}</div>
               <div class="prog-sub">${r.stu.streak ? `🔥 ${r.stu.streak}-day streak · ` : ''}${r.avg === null ? 'No quizzes in this subject' : `Avg ${r.avg}%`}</div></td>
-            <td>${ago(r.sum.lastActive)}</td>
+            <td>${lastActiveText(r.sum.lastInfo)}</td>
             <td>${r.sum.weekMins} min<div class="prog-sub">${r.sum.weekQuizzes} quiz${r.sum.weekQuizzes === 1 ? '' : 'zes'}</div></td>
             ${r.res.map(x => '<td>' + cell(x) + '</td>').join('')}
             <td>${r.stu.missing ? '' : `<button class="btn btn-ghost" style="padding:5px 9px;font-size:0.75rem" data-view-as="${esc(r.stu.id)}"><i data-icon="eye"></i> View</button>`}</td>

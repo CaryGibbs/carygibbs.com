@@ -1471,7 +1471,7 @@ import { openInviteDialog, signupLink } from './invite.js?v=20261115i';
 import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261115i';
 import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261115i';
 import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261115i';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo } from './gamification.js?v=20261115i';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261115i';
 import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261115i';
 import { dueEntries } from './srs.js?v=20261115i';
 import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261115i';
@@ -4006,8 +4006,9 @@ function asWeek(u) {
   const sessions = u.sessions || [], study = studyEntries(u);
   const wkS = sessions.filter(x => (x.date || 0) >= from), wkT = study.filter(e => e.date >= from);
   const last = Math.max(0, ...sessions.map(x => x.date || 0), ...study.map(e => e.date || 0),
-    u.lastRevisionDate ? new Date(u.lastRevisionDate).getTime() || 0 : 0);
+    u.lastRevisionDate ? new Date(u.lastRevisionDate).getTime() || 0 : 0, Number(u.lastActiveAt) || 0);
   return {
+    lastInfo: lastActive(u),
     secs: wkS.reduce((a, x) => a + secsOf(x), 0) + wkT.reduce((a, e) => a + (e.secs || 0), 0),
     quizzes: wkS.length,
     avg: wkS.length ? Math.round(wkS.reduce((a, x) => a + (x.pct || 0), 0) / wkS.length) : null,
@@ -4096,7 +4097,7 @@ function renderAllStudents() {
         <td data-l="This week" class="as-num">${fmtTime(u.wk.secs)}<span class="as-sub">${u.wk.quizzes} quiz${u.wk.quizzes === 1 ? '' : 'zes'}${u.wk.avg !== null ? ` · ${u.wk.avg}%` : ''}</span></td>
         <td data-l="Streak" class="as-num">${u.streak ? `${u.streak} 🔥` : '0'}</td>
         <td data-l="Reviews due" class="as-num">${u.due}</td>
-        <td data-l="Last active" class="as-num${u.wk.last < weekAgo ? ' as-quiet' : ''}">${asAgo(u.wk.last)}</td>
+        <td data-l="Last active" class="as-num${u.wk.last < weekAgo ? ' as-quiet' : ''}">${lastActiveText(u.wk.lastInfo)}</td>
         <td class="actions">
           <button class="btn btn-secondary btn-sm" data-action="student-progress" data-uid="${esc(u.id)}"><i data-icon="chart-column"></i> Progress</button>
           <button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}" data-name="${esc(u.name || '')}"><i data-icon="eye"></i> View as</button>

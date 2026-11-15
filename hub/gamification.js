@@ -411,6 +411,37 @@ function weekStartKey(ts) {
 /* Study time (Learn screen: map, learn panel, cards, cheat sheets) is stored per day
    and subject:  study = { 'YYYY-MM-DD': { subjectId: seconds } },
    studySubjects = { subjectId: 'Subject name' }.  This turns it into a list. */
+// When a student last worked in the app (learning, cards, quizzes, reviews).
+// lastActiveAt is the exact time (saved from Nov 2026 on); older records only
+// have quiz times and a per-day study total, so a day with only learning has
+// no clock time. Returns { t, exact } (t = 0 if never).
+export function lastActive(profile) {
+  const p = profile || {};
+  const rev = p.lastRevisionDate ? new Date(p.lastRevisionDate).getTime() || 0 : 0;
+  const exact = Math.max(0, Number(p.lastActiveAt) || 0, rev, ...(p.sessions || []).map(s => s.date || 0));
+  const days = Object.keys(p.study || {}).filter(d => Object.values(p.study[d] || {}).some(v => v > 0)).sort();
+  let dayT = 0;
+  if (days.length) { const [y, m, d] = days[days.length - 1].split('-').map(Number); dayT = new Date(y, m - 1, d, 12).getTime(); }
+  const sod = t => { const x = new Date(t); return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime(); };
+  if (exact && (!dayT || sod(exact) >= sod(dayT))) return { t: exact, exact: true };
+  return { t: dayT, exact: false };
+}
+// "12 min ago", "Today 19:42", "Yesterday 19:42", "Tue 19:42", "3 Nov, 19:42"
+// (no clock time when it isn't known)
+export function lastActiveText(info, never = 'Never') {
+  const { t, exact } = info || {};
+  if (!t) return never;
+  const sod = x => { const d = new Date(x); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+  const days = Math.round((sod(Date.now()) - sod(t)) / 86400000);
+  const time = exact ? new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (days <= 0) return exact ? (mins < 60 ? `${Math.max(1, mins)} min ago` : `Today ${time}`) : 'Today';
+  if (days === 1) return exact ? `Yesterday ${time}` : 'Yesterday';
+  if (days < 7) { const wd = new Date(t).toLocaleDateString('en-GB', { weekday: 'short' }); return exact ? `${wd} ${time}` : wd; }
+  const dt = new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return exact ? `${dt}, ${time}` : dt;
+}
+
 export function studyEntries(profile) {
   const out = [], names = profile.studySubjects || {};
   Object.entries(profile.study || {}).forEach(([day, subs]) => {
@@ -609,6 +640,7 @@ export async function awardXp(uid, source, options = {}) {
     streak,
     bestStreak: Math.max(bestStreak(profile), streak),
     lastRevisionDate,
+    lastActiveAt: Date.now(),
     badges,
     mindmapsViewed,
     shields,
@@ -624,7 +656,7 @@ export async function awardXp(uid, source, options = {}) {
   // Keep the parent's summary copy in step (used on the child cards)
   if (profile.parentUid) {
     updateDoc(doc(db, 'users', profile.parentUid, 'children', uid),
-      { streak, lastRevisionDate, xp: newXp, level: newLevel.level, shields, streakRepair: streakRepair || null }).catch(() => {});
+      { streak, lastRevisionDate, lastActiveAt: Date.now(), xp: newXp, level: newLevel.level, shields, streakRepair: streakRepair || null }).catch(() => {});
   }
 
   return {

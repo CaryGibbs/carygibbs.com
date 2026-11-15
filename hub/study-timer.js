@@ -57,6 +57,7 @@ export async function flush() {
   const update = {
     [`study.${dayKey()}.${subjectId}`]: increment(secs),
     [`studySubjects.${subjectId}`]: subjectName || 'Subject',
+    lastActiveAt: Date.now(),   // exact time last working (Last active on parent/admin/teacher pages)
   };
   try {
     await updateDoc(doc(db, 'users', user.uid), update);

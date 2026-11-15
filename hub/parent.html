@@ -445,7 +445,7 @@ import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsH
 import { showPlusUpsell } from './plus.js?v=20261115i';
 import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261115i';
 import { saveEmailIndex, findByEmail } from './email-index.js?v=20261115i';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261115i';
+import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261115i';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261115i';
 import { mountShell, refreshShellChildren } from './shell.js?v=20261115i';
 import { logEvent } from './log.js?v=20261115i';
@@ -663,7 +663,7 @@ async function refreshFromChildRecords() {
     const p = snap?.data(); if (!p) return;
     records[id] = p;
     syncMyChildPlus(parentUid, shellProfile, id, p);   // my Plus covers my students
-    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'packIds', 'currentPackId', 'myPackId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'xp', 'level',
+    const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'packIds', 'currentPackId', 'myPackId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'lastActiveAt', 'xp', 'level',
                   'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength'];
     const fresh = {};
     keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
@@ -708,8 +708,10 @@ function weekFigures(child) {
   const study = studyEntries(child).filter(e => e.date >= from);
   const lastSess = Math.max(0, ...(child.sessions || []).map(s => s.date || 0));
   const lastStudy = Math.max(0, ...studyEntries(child).map(e => e.date));
-  const last = Math.max(lastSess, lastStudy, child.lastRevisionDate ? new Date(child.lastRevisionDate).getTime() : 0);
+  const la = lastActive(child);
+  const last = Math.max(la.t, lastSess, lastStudy);
   return {
+    lastInfo: la,
     secs: sessions.reduce((a, s) => a + secsOf(s), 0) + study.reduce((a, e) => a + e.secs, 0),
     quizzes: sessions.length,
     avg: sessions.length ? Math.round(sessions.reduce((a, s) => a + (s.pct || 0), 0) / sessions.length) : null,
@@ -824,7 +826,7 @@ function renderHome() {
     const c = themeColour(k.theme);
     const streakSub = st.lapsed ? `ended · best ${st.best}` : (st.current >= 2 && st.current >= st.best ? '🏆 best!' : st.best ? `best ${st.best}` : 'streak');
     return `<div class="wk-row">
-      <div class="wk-name"><span class="act-dot" style="background:${c}22;color:${c}">${esc((k.name || '?').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase())}</span><div>${esc(k.name || '')}<small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">${(() => { const ps = planSummary(k), g = goalStatus(k); return `${esc(ps.text)} · today ${g.done ? '✓ goal hit' : `${Math.min(g.mins, g.L.mins)}/${g.L.mins} min`}`; })()}</small><small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">Last active ${w.last ? agoText(w.last) : 'never'}</small></div></div>
+      <div class="wk-name"><span class="act-dot" style="background:${c}22;color:${c}">${esc((k.name || '?').split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase())}</span><div>${esc(k.name || '')}<small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">${(() => { const ps = planSummary(k), g = goalStatus(k); return `${esc(ps.text)} · today ${g.done ? '✓ goal hit' : `${Math.min(g.mins, g.L.mins)}/${g.L.mins} min`}`; })()}</small><small style="display:block;font-weight:400;font-size:0.75rem;color:var(--color-text-muted)">Last active ${lastActiveText(w.lastInfo, 'never')}</small></div></div>
       <div class="wk-stat"><b>${fmtTime(w.secs)}</b><span>this week</span></div>
       <div class="wk-stat"><b>${w.quizzes}${w.avg !== null ? ` <small style="font-size:0.75rem;color:var(--color-text-muted)">· ${w.avg}%</small>` : ''}</b><span>quizzes</span></div>
       <div class="wk-stat"><b>${st.current} 🔥</b><span>${streakSub}</span></div>
@@ -871,7 +873,7 @@ function renderChildren() {
                     + study.filter(e => e.date >= startToday - 6 * 86400000).reduce((a, e) => a + e.secs, 0);
     const lastStudy = study.reduce((m, e) => Math.max(m, e.date), 0);
     const lastDate  = Math.max(lastStudy, sessions.reduce((m, x) => Math.max(m, x.date || 0), 0));
-    const lastLabel = lastDate ? new Date(lastDate).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' }) : 'never';
+    const lastLabel = lastDate ? lastActiveText(lastActive(child)) : 'never';
 
     const card = document.createElement('div');
     card.className = 'child-card';
