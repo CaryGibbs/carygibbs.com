@@ -9,11 +9,11 @@
 // The animated SVGs stay still for people who prefer reduced motion.
 // ═══════════════════════════════════════════════════════════
 
-const V = '20261115b';
+const V = '20261115c';
 const FILES = {
   party: 'limpet-party', cheer: 'limpet-stretch', hello: '../limpet-animated', think: 'limpet-think',
   read: 'limpet-read', wave: 'limpet-wave', sleep: 'limpet-sleep', streak: 'limpet-streak',
-  grad: 'limpet-grad', mail: 'limpet-mail',
+  grad: 'limpet-grad', mail: 'limpet-mail', price: 'limpet-price',
 };
 const KEY = 'll_lobey';   // 'all' (default) · 'big' · 'off'
 
@@ -40,8 +40,8 @@ export function lobeyShows(big = false) {
   return lvl === 'all' || (lvl === 'big' && big);
 }
 
-// Party Lobey has his arms up, so his picture is wider (same height)
-const WIDE = { party: 140 };
+// Party Lobey (arms up) and price-tag Lobey are wider pictures (same height)
+const WIDE = { party: 140, price: 140 };
 const imgSize = (mood, size) => `width="${Math.round(size * (WIDE[mood] || 108) / 108)}" height="${Math.round(size * 114 / 108)}"`;
 
 export function lobeySrc(mood) {
