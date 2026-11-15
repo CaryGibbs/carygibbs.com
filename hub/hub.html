@@ -490,7 +490,7 @@ requireAuth(async (user, profile) => {
 
   packCount = groupIds.length;
   await loadSubjects(user, groupId);
-  if (groupIds.length > 1) renderPackPicker(user, groupIds, groupId);
+  if (groupIds.length) renderPackPicker(user, groupIds, groupId);
   // "Your first week" (student-start.js), until done or hidden
   const firstBtn = sel => document.querySelector(`#hub-content button[onclick^="${sel}"]`) || document.querySelector(`button[onclick^="${sel}"]`);
   const cardSets = profile.myPackId ? (await loadCardSets(profile).catch(() => null))?.length ?? null : 0;
@@ -621,10 +621,10 @@ async function renderPackPicker(user, ids, current) {
   const names = await Promise.all(ids.map(id => getDoc(doc(db, 'content', id)).then(s => s.exists() ? s.data().name : null).catch(() => null)));
   const options = ids.map((id, i) => ({ id, name: names[i] })).filter(o => o.name);
   packCount = options.length;
-  if (options.length < 2) return;
+  if (!options.length) return;
   // Every pack shown as a tab, the current one filled in, so it's obvious which pack you're in
   const sub = document.getElementById('welcome-sub');
-  sub.innerHTML = `<div class="pack-tabs"><div class="pack-tabs-label">Your revision packs</div>
+  sub.innerHTML = `<div class="pack-tabs"><div class="pack-tabs-label">${options.length > 1 ? 'Your revision packs' : 'Your revision pack'}</div>
     <div class="pack-tabs-row" role="tablist" aria-label="Choose a revision pack">${options.map(o => `<button type="button" class="pack-tab" role="tab" data-pack="${o.id}" aria-selected="${o.id === current}" title="${esc(o.name)}">${esc(o.name)}</button>`).join('')}</div></div>`;
   sub.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
   sub.querySelectorAll('.pack-tab').forEach(btn => btn.onclick = async () => {
