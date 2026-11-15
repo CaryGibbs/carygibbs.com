@@ -323,6 +323,37 @@
     .result-stat-label { font-size: 0.78rem; color: var(--color-text-muted); font-family: var(--font-ui); margin-top: 2px; }
     .results-actions { display: flex; gap: var(--space-sm); justify-content: center; flex-wrap: wrap; }
 
+    /* ── Answer review (Milly's idea) ────────────────────── */
+    .ans-review { text-align: left; margin: 0 auto var(--space-xl); max-width: 640px; }
+    .ans-review-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-md); }
+    .ans-review-title { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; }
+    .ans-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .ans-filter { font-family: var(--font-ui); font-size: 0.8rem; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-pill); border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); cursor: pointer; }
+    .ans-filter.on { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
+    .ans-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .ans-item { background: var(--color-surface); border: 1px solid var(--color-border); border-left: 4px solid var(--color-success); border-radius: var(--radius-card); overflow: hidden; }
+    .ans-item.wrong { border-left-color: var(--color-danger); }
+    .ans-item.unmarked { border-left-color: var(--color-text-faint); }
+    .ans-sum { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; cursor: pointer; width: 100%; background: none; border: 0; text-align: left; color: var(--color-text); font: inherit; }
+    .ans-mark { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; color: #fff; background: var(--color-success); }
+    .ans-item.wrong .ans-mark { background: var(--color-danger); }
+    .ans-item.unmarked .ans-mark { background: var(--color-text-faint); }
+    .ans-q { flex: 1; font-size: 0.92rem; line-height: 1.45; }
+    .ans-qnum { display: block; font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 2px; }
+    .ans-chev { flex: 0 0 auto; color: var(--color-text-muted); transition: transform .2s; margin-top: 4px; }
+    .ans-item.open .ans-chev { transform: rotate(180deg); }
+    .ans-body { display: none; padding: 0 14px 14px 50px; font-size: 0.88rem; line-height: 1.55; }
+    .ans-item.open .ans-body { display: block; }
+    .ans-row { margin-top: 6px; }
+    .ans-label { font-family: var(--font-ui); font-weight: 700; font-size: 0.78rem; color: var(--color-text-muted); margin-right: 4px; }
+    .ans-yours.bad { color: var(--color-danger); }
+    .ans-yours.good, .ans-right { color: var(--color-success); }
+    .ans-why { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--color-surface-2); color: var(--color-text); white-space: pre-line; }
+    .ans-why .ans-label { display: block; margin-bottom: 2px; }
+    .ans-pairs { margin: 4px 0 0; padding-left: 18px; }
+    .ans-pairs li { margin-top: 2px; }
+    .ans-empty { color: var(--color-text-muted); font-size: 0.9rem; padding: var(--space-md); text-align: center; }
+
     /* ── No questions screen ─────────────────────────────── */
     .no-q-screen { text-align: center; padding: var(--space-2xl) 0; }
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
@@ -511,6 +542,19 @@
         </div>
       </div>
 
+      <!-- Every answer, right and wrong, with why -->
+      <div class="ans-review" id="ans-review" style="display:none;">
+        <div class="ans-review-head">
+          <div class="ans-review-title">Your answers</div>
+          <div class="ans-filters" id="ans-filters">
+            <button class="ans-filter" data-f="all">All</button>
+            <button class="ans-filter" data-f="wrong">Wrong</button>
+            <button class="ans-filter" data-f="right">Right</button>
+          </div>
+        </div>
+        <div class="ans-list" id="ans-list"></div>
+      </div>
+
       <div class="results-actions">
         <button class="btn btn-primary" onclick="restartQuiz()"><i data-icon="refresh-cw"></i> Try again</button>
         <button class="btn btn-secondary" onclick="changeTypes()"><i data-icon="sliders-horizontal"></i> Change question types</button>
@@ -575,6 +619,7 @@ let selectedTypes  = new Set();
 let results        = [];   // per question in this quiz: true if answered correctly
 let scoreAtStart   = 0;
 let unmarked       = new Set(); // written answers the AI couldn't mark: not counted right or wrong    // score when the current question was shown
+let answerLog      = [];   // per question: what the student answered, the right answer and why
 let recentQuizIds  = [];   // ids served earlier in this visit (Try again)
 
 const TYPE_INFO = {
@@ -824,7 +869,7 @@ function pickQuestions() {
 }
 
 function beginQuestions() {
-  currentIdx = 0; score = 0; selectedMCQIdx = null; results = []; unmarked = new Set(); resetTally();
+  currentIdx = 0; score = 0; selectedMCQIdx = null; results = []; answerLog = []; unmarked = new Set(); resetTally();
   questions = pickQuestions();
   recentQuizIds.push(...questions.map(q => q.id));
   document.getElementById('q-total').textContent = questions.length;
@@ -1005,6 +1050,7 @@ window._submitTF = function(btn) {
   const answer  = q.answer === true || String(q.answer).trim().toLowerCase() === 'true';
   const correct = userVal === answer;
   answered = true;
+  logAnswer({ yours: userVal ? 'True' : 'False', right: answer ? 'True' : 'False' });
 
   document.querySelectorAll('.tf-btn').forEach(b => b.disabled = true);
   btn.classList.add('selected');
@@ -1091,6 +1137,11 @@ function submitMatch() {
   });
   matchItems('left').concat(matchItems('right')).forEach(el => { el.style.pointerEvents = 'none'; });
   matchState.matched = right;
+  logAnswer({ pairs: pairs.map((p, i) => {
+    const pk = picks[i];
+    const ok = pk === i || (pk !== undefined && sameText(pairs[pk]?.right, p.right));
+    return { left: p.left, right: p.right, yours: pairs[pk]?.right || '', ok };
+  }) });
   document.getElementById('btn-submit').style.display = 'none';
   const allCorrect = right === matchState.total;
   if (allCorrect) score++;
@@ -1131,6 +1182,7 @@ window._submitAnswer = function() {
     const opts = q.options || [];
     const correct = opts[selectedMCQIdx]?.correct === true;
     answered = true;
+    logAnswer({ yours: opts[selectedMCQIdx]?.text || '', right: opts.find(o => o.correct)?.text || '' });
 
     document.querySelectorAll('.option-btn').forEach((btn, i) => {
       btn.disabled = true;
@@ -1153,6 +1205,7 @@ window._submitAnswer = function() {
     const alts = (q.alternatives || []).map(a => a.toLowerCase());
     const correct = userAns === correctAns || alts.includes(userAns);
     answered = true;
+    logAnswer({ yours: inp.value.trim(), right: q.answer || '' });
     inp.disabled = true;
     inp.classList.add(correct ? 'correct' : 'wrong');
 
@@ -1167,6 +1220,7 @@ window._submitAnswer = function() {
     if (!userAns) { showToast('Write your answer first', 'error'); return; }
     inp.disabled = true;
     answered = true;
+    logAnswer({ yours: userAns, right: q.markScheme || q.modelAnswer || '' });
     document.getElementById('btn-submit').style.display = 'none';
     markShortWritten(q, userAns);
   }
@@ -1176,6 +1230,7 @@ window._submitAnswer = function() {
 
 /* ── AI marking for short written ───────────────────────── */
 async function markShortWritten(q, userAnswer) {
+  const idx = currentIdx;   // marking is async: keep the note on the right question
   const wrap = document.getElementById('ai-marking-wrap');
   wrap.classList.add('visible');
   document.getElementById('ai-thinking').style.display = 'flex';
@@ -1202,6 +1257,7 @@ Respond ONLY with a JSON object in this exact format (no markdown, no backticks)
     document.getElementById('ai-score-badge').textContent = `${result.score}/${result.outOf}`;
     document.getElementById('ai-score-label').textContent = `marks`;
     document.getElementById('ai-feedback').textContent = result.feedback;
+    if (answerLog[idx]) { answerLog[idx].marks = `${result.score}/${result.outOf}`; answerLog[idx].aiWhy = result.feedback || ''; }
 
     // Count as correct if ≥ 60%
     unmarked.delete(currentIdx);
@@ -1309,6 +1365,7 @@ async function showResults() {
   document.getElementById('stat-correct').textContent = score;
   document.getElementById('stat-wrong').textContent = total - score;
   document.getElementById('stat-total').textContent = total;
+  renderAnswerReview();
 
   const resultTitle = pct >= 80 ? 'Excellent work!' : pct >= 60 ? 'Good effort!' : pct >= 40 ? 'Keep practising' : 'Don\'t give up!';
   document.getElementById('results-title').textContent = resultTitle;
@@ -1425,6 +1482,87 @@ function showXpEarned(result, minutes) {
       </div>`;
     }).join('');
   }
+}
+
+/* ── Answer review: every question, right and wrong, and why ── */
+function logAnswer(extra) {
+  const q = questions[currentIdx];
+  answerLog[currentIdx] = {
+    type: q.type,
+    text: q.question || q.sentence || q.instruction || '',
+    why: q.explanation || '',
+    ...extra,
+  };
+}
+let ansFilter = 'all';
+function renderAnswerReview() {
+  const box = document.getElementById('ans-review');
+  const items = questions.map((q, i) => {
+    const a = answerLog[i] || { type: q.type, text: q.question || q.sentence || q.instruction || '', why: q.explanation || '' };
+    const status = unmarked.has(i) ? 'unmarked' : results[i] ? 'right' : 'wrong';
+    return { i, a, status };
+  });
+  if (!items.length) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const nWrong = items.filter(x => x.status === 'wrong').length;
+  const nRight = items.filter(x => x.status === 'right').length;
+  // Start on the wrong ones if there are any: that's where the learning is
+  ansFilter = nWrong ? 'wrong' : 'all';
+  const labels = { all: `All (${items.length})`, wrong: `Wrong (${nWrong})`, right: `Right (${nRight})` };
+  document.querySelectorAll('#ans-filters .ans-filter').forEach(b => {
+    b.textContent = labels[b.dataset.f];
+    b.onclick = () => { ansFilter = b.dataset.f; draw(); };
+  });
+  const typeLabels = { mcq:'Multiple choice', tf:'True or false', fill:'Fill the blank', match:'Match pairs', short:'Written answer' };
+
+  function body({ a, status }) {
+    const bad = status === 'wrong';
+    let html = '';
+    if (a.type === 'match' && a.pairs) {
+      html += `<div class="ans-row"><span class="ans-label">Correct pairs:</span></div><ul class="ans-pairs">` +
+        a.pairs.map(p => `<li>${p.ok ? '✓' : '✗'} <strong>${esc(p.left)}</strong> → <span class="ans-right">${esc(p.right)}</span>` +
+          (!p.ok && p.yours ? ` <span class="ans-yours bad">(you picked: ${esc(p.yours)})</span>` : '') + `</li>`).join('') + `</ul>`;
+    } else {
+      if (a.yours !== undefined) html += `<div class="ans-row"><span class="ans-label">You answered:</span><span class="ans-yours ${bad ? 'bad' : status === 'right' ? 'good' : ''}">${esc(a.yours) || '<em>(no answer)</em>'}</span>${a.marks ? ` <span class="ans-label">(${esc(a.marks)} marks)</span>` : ''}</div>`;
+      if (bad && a.right && a.type !== 'short') html += `<div class="ans-row"><span class="ans-label">Right answer:</span><span class="ans-right">${esc(a.right)}</span></div>`;
+    }
+    if (a.type === 'short') {
+      if (a.aiWhy) html += `<div class="ans-why"><span class="ans-label">Marker's feedback</span>${esc(a.aiWhy)}</div>`;
+      if (a.right) html += `<div class="ans-why"><span class="ans-label">What a full answer includes</span>${esc(a.right)}</div>`;
+      if (status === 'unmarked') html += `<div class="ans-row ans-label">This one couldn't be marked, so it doesn't count as right or wrong.</div>`;
+    } else if (a.why) {
+      html += `<div class="ans-why"><span class="ans-label">${bad ? 'Why' : 'Explanation'}</span>${esc(a.why)}</div>`;
+    }
+    return html;
+  }
+
+  function draw() {
+    document.querySelectorAll('#ans-filters .ans-filter').forEach(b => b.classList.toggle('on', b.dataset.f === ansFilter));
+    const shown = items.filter(x => ansFilter === 'all' || x.status === ansFilter);
+    const list = document.getElementById('ans-list');
+    if (!shown.length) {
+      list.innerHTML = `<div class="ans-empty">${ansFilter === 'wrong' ? 'None wrong. Brilliant!' : 'None here yet.'}</div>`;
+      return;
+    }
+    list.innerHTML = shown.map(x => {
+      const mark = x.status === 'right' ? '✓' : x.status === 'wrong' ? '✗' : '?';
+      // Wrong answers open straight away so the "why" is right there
+      return `<div class="ans-item ${x.status}${x.status === 'wrong' ? ' open' : ''}">
+        <button type="button" class="ans-sum" aria-expanded="${x.status === 'wrong'}">
+          <span class="ans-mark">${mark}</span>
+          <span class="ans-q"><span class="ans-qnum">Question ${x.i + 1} · ${typeLabels[x.a.type] || ''}</span>${esc(x.a.text)}</span>
+          <span class="ans-chev">▾</span>
+        </button>
+        <div class="ans-body">${body(x)}</div>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.ans-sum').forEach(btn => btn.onclick = () => {
+      const it = btn.parentElement;
+      it.classList.toggle('open');
+      btn.setAttribute('aria-expanded', it.classList.contains('open'));
+    });
+  }
+  draw();
 }
 
 window._restartQuiz = function() {
