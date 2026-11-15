@@ -143,5 +143,5 @@ D[f'users/{SAM}'] = {
 }
 D[f'users/{PARENT}/children/{SAM}'] = {'name': 'Sam Morgan', 'email': 'sam.morgan@example.com', 'groupIds': [PACK], 'theme': 'spark',
                                        'createdAt': ms(NOW - dt.timedelta(days=38)), 'sharedBy': PARENT, 'sessions': sessions}
-json.dump(D, open('/home/claude/press-shots/demo.json', 'w'), ensure_ascii=False)
+json.dump(D, open(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)),'demo.json'), 'w'), ensure_ascii=False)
 print(len(D), 'docs;', len(sessions), 'sessions')

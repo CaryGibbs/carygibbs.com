@@ -231,6 +231,8 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .aud-links a { color: var(--deep); font-weight: 700; }
 .steps-note { text-align: center; color: var(--muted); margin-top: 16px; font-size: 0.97rem; }
 .grid3.two { grid-template-columns: 1fr 1fr; }
+.grid3.aud3 .card { display: flex; flex-direction: column; }
+.grid3.aud3 .ticks { flex: 1; margin-bottom: 10px; }
 .icon { font-size: 1.4rem; }
 .ticks { list-style: none; margin-top: 6px; }
 .ticks li { position: relative; padding-left: 26px; margin-bottom: 8px; color: var(--muted); }
