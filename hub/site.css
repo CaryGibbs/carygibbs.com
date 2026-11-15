@@ -353,7 +353,7 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .asset-grid.screens-wide { grid-template-columns: repeat(2, 1fr); margin-bottom: 14px; }
 .asset-grid.screens-phone { grid-template-columns: repeat(5, 1fr); }
 .asset.shot > a { display: block; background: var(--sea); }
-.asset.shot img { height: auto; padding: 0; aspect-ratio: 16 / 10.5; object-fit: cover; object-position: top; }
+.asset.shot img { height: auto; padding: 0; aspect-ratio: 16 / 10.5; object-fit: contain; object-position: center top; }
 .screens-phone .asset.shot img { aspect-ratio: 430 / 932; }
 .asset.shot figcaption { align-items: flex-start; flex-direction: column; gap: 2px; }
 @media (max-width: 1100px) { .asset-grid.screens-phone { grid-template-columns: repeat(3, 1fr); } }
