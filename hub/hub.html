@@ -54,10 +54,14 @@
     }
     .welcome-greeting span { color: var(--color-primary); }
     .welcome-sub { color: var(--color-text-muted); font-size: 0.95rem; }
-    .pack-picker { display: inline-flex; align-items: center; gap: 8px; position: relative; font-family: var(--font-ui); max-width: 100%; min-width: 0; }
-    .pack-picker span { color: var(--color-text-muted); }
-    .pack-picker select { min-width: 0; max-width: 100%; text-overflow: ellipsis; width: auto; appearance: none; -webkit-appearance: none; padding: 7px 34px 7px 12px; font-weight: 700; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 999px; cursor: pointer; font-family: var(--font-ui); font-size: 0.92rem; }
-    .pack-picker .icon { position: absolute; right: 12px; pointer-events: none; width: 16px; height: 16px; color: var(--color-text-muted); }
+    .pack-tabs { margin-top: 10px; font-family: var(--font-ui); }
+    .pack-tabs-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); margin-bottom: 6px; }
+    .pack-tabs-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+    .pack-tab { flex: 0 0 auto; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); font: 700 0.9rem var(--font-ui); cursor: pointer; }
+    .pack-tab:hover { border-color: var(--color-primary); color: var(--color-text); }
+    .pack-tab[aria-selected="true"] { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary, #fff); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+    .pack-tab[aria-selected="true"]::before { content: "✓ "; }
+    .pack-tab:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
     /* ── Section header ──────────────────────────────────── */
     .section-header {
@@ -400,6 +404,8 @@ import { openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT, hasStarted
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+let currentPackName = '';   // shown in the subjects heading when a student has more than one pack
+let packCount = 1;
 
 window._doSignOut = () => handleSignOut();
 
@@ -482,6 +488,7 @@ requireAuth(async (user, profile) => {
     jw.querySelector('[data-add-pack]').onclick = () => openChoosePacks({ uid: user.uid, profile, toast: showToast, onDone: () => location.reload() });
   }
 
+  packCount = groupIds.length;
   await loadSubjects(user, groupId);
   if (groupIds.length > 1) renderPackPicker(user, groupIds, groupId);
   // "Your first week" (student-start.js), until done or hidden
@@ -613,13 +620,16 @@ function chosenPack(user, profile, ids) {
 async function renderPackPicker(user, ids, current) {
   const names = await Promise.all(ids.map(id => getDoc(doc(db, 'content', id)).then(s => s.exists() ? s.data().name : null).catch(() => null)));
   const options = ids.map((id, i) => ({ id, name: names[i] })).filter(o => o.name);
+  packCount = options.length;
   if (options.length < 2) return;
+  // Every pack shown as a tab, the current one filled in, so it's obvious which pack you're in
   const sub = document.getElementById('welcome-sub');
-  sub.innerHTML = `<label class="pack-picker"><span>Revising for</span>
-    <select id="pack-select" aria-label="Choose a revision pack">${options.map(o => `<option value="${o.id}"${o.id === current ? ' selected' : ''}>${esc(o.name)}</option>`).join('')}</select>
-    <i data-icon="chevron-down"></i></label>`;
-  document.getElementById('pack-select').onchange = async e => {
-    const id = e.target.value;
+  sub.innerHTML = `<div class="pack-tabs"><div class="pack-tabs-label">Your revision packs</div>
+    <div class="pack-tabs-row" role="tablist" aria-label="Choose a revision pack">${options.map(o => `<button type="button" class="pack-tab" role="tab" data-pack="${o.id}" aria-selected="${o.id === current}" title="${esc(o.name)}">${esc(o.name)}</button>`).join('')}</div></div>`;
+  sub.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  sub.querySelectorAll('.pack-tab').forEach(btn => btn.onclick = async () => {
+    const id = btn.dataset.pack;
+    if (id === current) return;
     try { localStorage.setItem('clasp_pack_' + user.uid, id); } catch (err) {}
     if (!isPreview() && user.uid !== 'preview-readonly') {
       const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
@@ -628,7 +638,7 @@ async function renderPackPicker(user, ids, current) {
     document.getElementById('hub-content').innerHTML = '<div class="subjects-grid"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>';
     await loadSubjects(user, id);
     renderPackPicker(user, ids, id);
-  };
+  });
 }
 
 let hubProfile = null;   // the student whose hub this is (for Review today)
@@ -811,7 +821,8 @@ async function loadSubjects(user, groupId) {
     return;
   }
 
-  document.getElementById('welcome-sub').textContent = `Revising: ${groupSnap.data().name}`;
+  currentPackName = groupSnap.data().name || '';
+  document.getElementById('welcome-sub').textContent = `Revising: ${currentPackName}`;
 
   // Get subjects
   // All subjects (orderBy('order') would leave out any without an order number), then sorted
@@ -834,7 +845,7 @@ async function loadSubjects(user, groupId) {
 
   grid.innerHTML = `
     <div class="section-header">
-      <div class="section-title">Your subjects</div>
+      <div class="section-title">${packCount > 1 && currentPackName ? `Subjects in ${esc(currentPackName)}` : 'Your subjects'}</div>
     </div>
     <div class="subjects-grid" id="subjects-grid"></div>`;
 
