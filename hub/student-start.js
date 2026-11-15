@@ -13,12 +13,12 @@
 // Lobe Limpet (official) packs can be read by anyone signed in.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261114m';
-import { listPacks, flatPackIds } from './packs.js?v=20261114m';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114m';
-import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114m';
-import { studyEntries } from './gamification.js?v=20261114m';
-import { logEvent } from './log.js?v=20261114m';
+import { db } from './firebase-config.js?v=20261115a';
+import { listPacks, flatPackIds } from './packs.js?v=20261115a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261115a';
+import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261115a';
+import { studyEntries } from './gamification.js?v=20261115a';
+import { logEvent } from './log.js?v=20261115a';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -168,7 +168,7 @@ export function studentSteps(profile = {}, actions = {}, cardSets = null) {
       done: quizzes.length > 0, doneText: `${quizzes.length} quiz${quizzes.length === 1 ? '' : 'zes'} done.`,
       actions: [{ label: '⚡ Start a quiz', act: actions.quiz }] },
     { id: 'back', title: 'Come back tomorrow',
-      text: "Revise on a second day to start your streak. Review brings back questions just before you'd forget them, so a few minutes a day keeps everything fresh.",
+      text: "Revise on a second day to start your streak. Review brings back the questions you find hardest until they stick, so a few minutes a day keeps everything fresh.",
       done: days.size >= 2, doneText: 'Streak started.' },
     { id: 'cards', title: 'Make your own flashcards', optional: true,
       text: 'Type or import your own cards (Quizlet exports work); each card becomes quiz questions.',

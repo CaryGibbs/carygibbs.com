@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261114m"></script>
+  <script src="dev-flag.js?v=20261115a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261115a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261115a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261115a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261115a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114m">
-  <script src="icons.js?v=20261114m"></script>
-  <link rel="stylesheet" href="stats.css?v=20261114m">
+  <link rel="stylesheet" href="theme.css?v=20261115a">
+  <script src="icons.js?v=20261115a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261115a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -289,7 +289,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114m">
+  <link rel="stylesheet" href="ui.css?v=20261115a">
 </head>
 <body>
 <div id="toast-container"></div>
@@ -378,24 +378,24 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114m';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261114m';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261114m';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261114m';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261114m';
-import { listPacks, samePackIds } from './packs.js?v=20261114m';
-import { plusPillHtml } from './plus.js?v=20261114m';
-import { inOrder } from './order.js?v=20261114m';
-import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261114m';
-import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261114m';
-import { showLinkRequests } from './parent-link.js?v=20261114m';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261114m';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261114m';
-import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261114m';
-import { logEvent } from './log.js?v=20261114m';
-import { loadCardSets } from './card-sets.js?v=20261114m';
-import { lobeySays, lobeyImg, syncLobey, LINES, STREAK_MILESTONES } from './lobey.js?v=20261114m';
-import { noPackHtml, openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT } from './student-start.js?v=20261114m';
+import { auth, db } from './firebase-config.js?v=20261115a';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261115a';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261115a';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261115a';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261115a';
+import { listPacks, samePackIds } from './packs.js?v=20261115a';
+import { plusPillHtml } from './plus.js?v=20261115a';
+import { inOrder } from './order.js?v=20261115a';
+import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261115a';
+import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261115a';
+import { showLinkRequests } from './parent-link.js?v=20261115a';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261115a';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261115a';
+import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261115a';
+import { logEvent } from './log.js?v=20261115a';
+import { loadCardSets } from './card-sets.js?v=20261115a';
+import { lobeySays, lobeyImg, syncLobey, LINES, STREAK_MILESTONES } from './lobey.js?v=20261115a';
+import { noPackHtml, openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT } from './student-start.js?v=20261115a';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -737,7 +737,7 @@ function renderReviewCard(groupId) {
     wrap.innerHTML = `<div class="review-card">
       <div class="review-icon"><i data-icon="repeat"></i></div>
       <div class="review-text"><div class="review-title">Review today</div>
-        <div class="review-sub">Do a quiz and its questions will come back here for review, just as you're about to forget them.</div></div></div>`;
+        <div class="review-sub">Do a quiz and its questions will come back here for review, the hardest ones most often.</div></div></div>`;
   }
 }
 
@@ -947,6 +947,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261114m"></script>
+<script src="site.js?v=20261115a"></script>
 </body>
 </html>

@@ -13,8 +13,8 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261114m';
-import { PROXY_URL } from './ai.js?v=20261114m';
+import { db, auth } from './firebase-config.js?v=20261115a';
+import { PROXY_URL } from './ai.js?v=20261115a';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;

@@ -17,6 +17,8 @@
 
   var page = location.pathname.split('/').pop() || 'index.html';
   var cur = function (f) { return page === f ? ' aria-current="page"' : ''; };
+  // Sign up from the header picks the account type for the page they're on
+  var signupType = page === 'students.html' ? 'student' : page === 'teachers.html' ? 'teacher' : 'parent';
 
   window.LL_CONTACT_EMAIL = CONTACT_EMAIL;
 
@@ -37,7 +39,8 @@
       '<a href="features.html"' + cur('features.html') + '>Features</a>' +
       '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
       '<a href="help.html"' + cur('help.html') + '>Help</a></nav>' +
-      '<a class="btn btn-deep" href="login.html" id="nav-btn">Sign in</a>' +
+      '<a class="nav-signin" href="login.html" id="nav-btn">Sign in</a>' +
+      '<a class="btn btn-coral nav-signup" href="login.html?signup=' + signupType + '" id="nav-signup">Sign up free</a>' +
       '<button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>' +
       '</div></div>' +
       // Phone menu (the links above are hidden on narrow screens)
@@ -49,6 +52,7 @@
       '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
       '<a href="help.html"' + cur('help.html') + '>Help</a>' +
       '<a href="contact.html"' + cur('contact.html') + '>Contact</a>' +
+      '<a href="login.html" id="menu-signin">Sign in</a>' +
       '</nav></header>';
     var tog = document.getElementById('nav-toggle'), menu = document.getElementById('nav-menu');
     var setOpen = function (open) { menu.hidden = !open; tog.setAttribute('aria-expanded', open); tog.classList.toggle('open', open); };
@@ -106,15 +110,20 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261114m'),
+        import('./firebase-config.js?v=20261115a'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
           if (!user) return;
-          // Signed in: every "Sign in" becomes a direct way back to their home
-          ['nav-btn', 'foot-signin'].forEach(function (id) {
+          // Signed in: "Sign up free" becomes a direct way back to their home,
+          // and the sign-in links go there too
+          var up = document.getElementById('nav-signup');
+          if (up) { up.textContent = 'Go to my home'; up.href = myHome; }
+          var inBtn = document.getElementById('nav-btn');
+          if (inBtn) inBtn.hidden = true;
+          ['foot-signin', 'menu-signin'].forEach(function (id) {
             var b = document.getElementById(id);
-            if (b) { b.textContent = id === 'nav-btn' ? 'Go to my home' : 'My home'; b.href = myHome; }
+            if (b) { b.textContent = 'My home'; b.href = myHome; }
           });
           document.dispatchEvent(new CustomEvent('ll-signed-in'));
         });
@@ -125,13 +134,13 @@
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261114m';
+  hs.src = 'help-sheet.js?v=20261115a';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261114m';
+  pwa.src = 'pwa.js?v=20261115a';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

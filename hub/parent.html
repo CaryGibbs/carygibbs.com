@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261114m"></script>
+  <script src="dev-flag.js?v=20261115a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261114m">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261114m">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261114m">
-  <link rel="manifest" href="manifest.webmanifest?v=20261114m">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261115a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261115a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261115a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261115a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261114m">
-  <script src="icons.js?v=20261114m"></script>
-  <link rel="stylesheet" href="stats.css?v=20261114m">
+  <link rel="stylesheet" href="theme.css?v=20261115a">
+  <script src="icons.js?v=20261115a"></script>
+  <link rel="stylesheet" href="stats.css?v=20261115a">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -184,7 +184,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261114m">
+  <link rel="stylesheet" href="ui.css?v=20261115a">
 </head>
 <body class="app-layout">
 <div id="toast-container"></div>
@@ -435,25 +435,25 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261114m';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261114m';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261114m';
-import { showPlusUpsell } from './plus.js?v=20261114m';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261114m';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261114m';
-import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261114m';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261114m';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261114m';
-import { logEvent } from './log.js?v=20261114m';
-import { openInviteDialog } from './invite.js?v=20261114m';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261114m';
-import { dueEntries, scheduledCount } from './srs.js?v=20261114m';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261114m';
-import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261114m';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261114m';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261114m';
-import { openDeleteAccount } from './account.js?v=20261114m';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261114m';
+import { auth, db } from './firebase-config.js?v=20261115a';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261115a';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261115a';
+import { showPlusUpsell } from './plus.js?v=20261115a';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261115a';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261115a';
+import { getLevelInfo, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261115a';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261115a';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261115a';
+import { logEvent } from './log.js?v=20261115a';
+import { openInviteDialog } from './invite.js?v=20261115a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261115a';
+import { dueEntries, scheduledCount } from './srs.js?v=20261115a';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261115a';
+import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261115a';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261115a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261115a';
+import { openDeleteAccount } from './account.js?v=20261115a';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261115a';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -1530,6 +1530,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261114m"></script>
+<script src="site.js?v=20261115a"></script>
 </body>
 </html>
