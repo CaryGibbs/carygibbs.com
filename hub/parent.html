@@ -1140,11 +1140,11 @@ function readPlanEditor() {
 }
 function renderPlanEditor() {
   const sel = document.getElementById('manage-plan-mode');
-  sel.innerHTML = MODES.map(m => `<option value="${m.id}"${m.id === managePlan.mode ? ' selected' : ''}>${m.label}</option>`).join('');
+  sel.innerHTML = MODES.map(m => `<option value="${m.id}"${m.id === managePlan.mode ? ' selected' : ''}>${m.label}${LEVELS[m.id] ? ` · ${LEVELS[m.id].mins} min a day` : ''}</option>`).join('');
   const hint = () => {
     const mode = sel.value;
     document.getElementById('manage-plan-hint').textContent = mode === 'auto'
-      ? `Steady most of the time, Exam push for the 2 weeks before an exam (${targetText(LEVELS.push)} a day), and Relaxed once exams are over.`
+      ? `Steady most of the time, Exam push for the 2 weeks before an exam (${LEVELS.push.mins} min a day), Final days (${LEVELS.final.mins} min) in the last 3 days and through exam week while papers are still to come, then Relaxed once exams are over. To change a single day, use Day-by-day plan.`
       : `${LEVELS[mode].emoji} ${LEVELS[mode].label}: ${targetText(LEVELS[mode])} a day, ${LEVELS[mode].days} days a week.`;
   };
   sel.onchange = hint; hint();

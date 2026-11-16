@@ -8,7 +8,7 @@
 // In "auto" the level follows the next exam date: steady until three
 // weeks out, push for the final two weeks, final in the last three
 // days, and back to relaxed the day after the exams end. During a run of
-// exams it stays at push while papers are still to come.
+// exams it stays at final while papers are still to come.
 // Saved on the student's record:
 //   plan = { mode, exams:[{ id, name, start:'YYYY-MM-DD', end, packId,
 //                           subjectId, subjectPackId }],   (subject: one paper)
@@ -38,6 +38,7 @@ export const MODES = [
   { id: 'relaxed', label: '🌱 Relaxed' },
   { id: 'steady',  label: '📘 Steady' },
   { id: 'push',    label: '🚀 Exam push' },
+  { id: 'final',   label: '🔥 Final days' },
 ];
 export const GOAL_XP = 10;
 
@@ -99,9 +100,9 @@ export function levelFor(profile, day = isoDay()) {
   if (!ex) return 'relaxed';
   const to = daysBetween(day, ex.start);
   if (to <= 0) {
-    // During the exams: keep pushing while papers are still to come
+    // During the exams: Final days while papers are still to come
     // (Monday's paper shouldn't drop Friday's revision), then ease off.
-    if (ex.exams.some(e => e.start > day)) return 'push';
+    if (ex.exams.some(e => e.start > day)) return 'final';
     return ex.end > day ? 'steady' : 'relaxed';   // a span with no paper dates, or the last day
   }
   if (to <= 3) return 'final';

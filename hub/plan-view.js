@@ -106,7 +106,7 @@ export async function openPlanCalendar(profile, opts = {}) {
     const mins = ahead.reduce((a, d) => a + (d.L.mins || 0), 0);
     const covered = new Set(ahead.flatMap(d => (d.subjects || []).map(x => x.id)).filter(id => subjects.some(s => s.id === id)));
     const who = opts.name ? `${esc(opts.name)}'s` : 'Your';
-    const levelOpts = [['', 'Auto'], ['rest', '😴 Rest day'], ['relaxed', '🌱 Relaxed'], ['steady', '📘 Steady'], ['push', '🚀 Exam push'], ['final', '🔥 Final days']];
+    const levelOpts = [['', 'Auto'], ['rest', '😴 Rest day'], ...['relaxed', 'steady', 'push', 'final'].map(k => [k, `${LEVELS[k].emoji} ${LEVELS[k].label} · ${LEVELS[k].mins} min`])];
     overlay.innerHTML = `<div class="pv-modal" role="dialog" aria-modal="true" aria-label="Plan to exams">
       <div class="pv-head"><div><h2>${who} plan${exam ? ` to ${esc(exam.name || 'exams')}` : ' for the next two weeks'}</h2></div>
         <button class="pv-close" aria-label="Close">✕</button></div>
