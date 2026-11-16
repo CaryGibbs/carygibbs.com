@@ -798,7 +798,15 @@ function renderTypeList() {
   if (selectedTypes.size === 0) note.textContent = 'Pick at least one question type.';
   else if (selectedTypes.size === Object.keys(counts).length && selectedTypes.size >= 5) note.textContent = 'All five types: this one counts towards Mix Master!';
   else if (available < QUIZ_SIZE) note.textContent = `${available} question${available !== 1 ? 's' : ''} available with these types.`;
-  else note.textContent = `${QUIZ_SIZE} questions, mixed from your chosen types.`;
+  else {
+    const hist = questionHistory(), now = Date.now();
+    const fresh = q => hist.lastSeen[q.id] === undefined || now - hist.lastSeen[q.id] >= REPEAT_GAP;
+    const freshHere = questionPool.filter(q => selectedTypes.has(q.type) && fresh(q)).length;
+    const freshElsewhere = questionPool.some(q => !selectedTypes.has(q.type) && fresh(q));
+    note.textContent = freshHere < QUIZ_SIZE && freshElsewhere
+      ? `You've had most of these recently. Tick more question types for fresh ones.`
+      : `${QUIZ_SIZE} questions, mixed from your chosen types.`;
+  }
 }
 
 window._toggleType = function(t) {
@@ -815,11 +823,17 @@ window._presetTypes = function(p) {
 
 /* ── Question selection ──────────────────────────────────
    Uses the student's history so questions don't keep repeating:
-     1. never seen before
-     2. got wrong last time (worth another go)
-     3. got right before, the longest ago first
-   Each chosen type gets a share in proportion to how many questions
-   it has, so a type with only a few questions isn't drawn every time. */
+     0. never seen before
+     1. got wrong last time (worth another go), once a day has passed
+     2. got right before, the longest ago first
+     3. seen in the last day (right or wrong), the longest ago first
+     4. already had in this visit
+   Wrong answers used to jump the queue straight away, so once every
+   question had been seen the same missed ones came back quiz after quiz
+   (reviews bring them back too). Each chosen type gets a share in
+   proportion to how many questions it has, so a type with only a few
+   questions isn't drawn every time. */
+const REPEAT_GAP = 24 * 60 * 60 * 1000;
 function questionHistory() {
   const lastSeen = {}, lastOk = {};
   const sessions = (currentProfile?.sessions || []).slice().sort((a, b) => (a.date || 0) - (b.date || 0));
@@ -833,11 +847,12 @@ function questionHistory() {
 
 function rankQuestions(list, hist) {
   const recent = new Set(recentQuizIds);
+  const now = Date.now();
   return shuffle(list)
     .map(q => {
       const seen = hist.lastSeen[q.id];
-      let tier = seen === undefined ? 0 : (hist.lastOk[q.id] ? 2 : 1);
-      if (recent.has(q.id)) tier = 3;                 // just had it in this visit
+      let tier = seen === undefined ? 0 : now - seen < REPEAT_GAP ? 3 : (hist.lastOk[q.id] ? 2 : 1);
+      if (recent.has(q.id)) tier = 4;                 // just had it in this visit
       return { q, tier, seen: seen || 0 };
     })
     .sort((a, b) => a.tier - b.tier || a.seen - b.seen) // stable after shuffle: random within ties
