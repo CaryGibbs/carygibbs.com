@@ -1012,6 +1012,37 @@
           <div class="panel-subtitle">Platform configuration</div>
         </div>
       </div>
+      <div class="card ai-settings" style="max-width:640px;margin-bottom:16px;" id="pay-card">
+        <div class="ai-settings-head">
+          <div>
+            <h3>Payments and pricing <span class="badge badge-warning" id="pay-site"></span></h3>
+            <p>Plus is paid for by card through Stripe, renewing each year. Settings here apply to <strong id="pay-site-name">this site</strong> only: the dev site uses Stripe's test mode (test cards, no real money) and the live site real payments.</p>
+          </div>
+        </div>
+        <div class="ai-field"><label>Payments</label>
+          <div class="pay-modes" role="radiogroup" aria-label="Payments">
+            <label class="pl-switch"><input type="radio" name="pay-mode" value="off"> Off: nobody can buy. Pricing shows Plus as early access ("Ask for Plus")</label>
+            <label class="pl-switch"><input type="radio" name="pay-mode" value="admins"> Admins only: test checkout with a real card before opening up</label>
+            <label class="pl-switch"><input type="radio" name="pay-mode" value="on"> On: parents and teachers can buy Plus</label>
+          </div>
+          <p class="ai-status" id="pay-mode-status" style="margin-top:6px;"></p>
+          <p class="lim-cost">Turning payments off only stops new purchases: people who've paid keep Plus, renew as normal and can still manage their billing.</p>
+        </div>
+        <div class="ai-field" style="margin-top:14px;"><label>Price</label>
+          <p>New buyers pay this. People already subscribed keep the price they signed up at.</p>
+          <div class="lim-pair">
+            <label>Plan name <input type="text" id="pay-plan" maxlength="40" class="lim-input" placeholder="e.g. Family Plus"></label>
+            <label>£ a year <input type="number" id="pay-price" min="1" max="500" step="0.01" class="lim-input" placeholder="39.99"></label>
+          </div>
+          <p class="lim-cost" id="pay-preview"></p>
+          <div class="ai-settings-actions">
+            <button class="btn btn-primary" id="btn-save-price"><i data-icon="save"></i> Save price</button>
+            <span class="ai-status" id="pay-price-status"></span>
+          </div>
+          <div id="pay-history"></div>
+        </div>
+      </div>
+
       <div class="card" style="max-width:640px;">
         <div class="form-group">
           <label>Firestore rules status</label>
@@ -1070,37 +1101,6 @@
           <p class="lim-cost" id="pl-cost"></p>
         </div>
         <div id="ai-usage"></div>
-      </div>
-
-      <div class="card ai-settings" style="max-width:640px;margin-top:16px;" id="pay-card">
-        <div class="ai-settings-head">
-          <div>
-            <h3>Payments and pricing <span class="badge badge-warning" id="pay-site"></span></h3>
-            <p>Plus is paid for by card through Stripe, renewing each year. Settings here apply to <strong id="pay-site-name">this site</strong> only: the dev site uses Stripe's test mode (test cards, no real money) and the live site real payments.</p>
-          </div>
-        </div>
-        <div class="ai-field"><label>Payments</label>
-          <div class="pay-modes" role="radiogroup" aria-label="Payments">
-            <label class="pl-switch"><input type="radio" name="pay-mode" value="off"> Off: nobody can buy. Pricing shows Plus as early access ("Ask for Plus")</label>
-            <label class="pl-switch"><input type="radio" name="pay-mode" value="admins"> Admins only: test checkout with a real card before opening up</label>
-            <label class="pl-switch"><input type="radio" name="pay-mode" value="on"> On: parents and teachers can buy Plus</label>
-          </div>
-          <p class="ai-status" id="pay-mode-status" style="margin-top:6px;"></p>
-          <p class="lim-cost">Turning payments off only stops new purchases: people who've paid keep Plus, renew as normal and can still manage their billing.</p>
-        </div>
-        <div class="ai-field" style="margin-top:14px;"><label>Price</label>
-          <p>New buyers pay this. People already subscribed keep the price they signed up at.</p>
-          <div class="lim-pair">
-            <label>Plan name <input type="text" id="pay-plan" maxlength="40" class="lim-input" placeholder="e.g. Family Plus"></label>
-            <label>£ a year <input type="number" id="pay-price" min="1" max="500" step="0.01" class="lim-input" placeholder="39.99"></label>
-          </div>
-          <p class="lim-cost" id="pay-preview"></p>
-          <div class="ai-settings-actions">
-            <button class="btn btn-primary" id="btn-save-price"><i data-icon="save"></i> Save price</button>
-            <span class="ai-status" id="pay-price-status"></span>
-          </div>
-          <div id="pay-history"></div>
-        </div>
       </div>
 
       <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
