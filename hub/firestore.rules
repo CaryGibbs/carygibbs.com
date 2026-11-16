@@ -28,6 +28,10 @@ rules_version = '2';
 //   of that student's parents or teachers (not just the id in packIds).
 //   aiUsage: written by the AI Worker; admins and the person read it.
 //   plusRequests: a person asks for Plus; admins read, switch on, clear.
+//   Plus given by an admin can end (users.plusUntil, ms); tierSource says
+//   who gave it ('admin' or 'stripe'). Only admins and the Worker set these.
+//   billing / billingTest: a person's Stripe subscription (live / test
+//   mode), written only by the AI Worker; the person and admins read it.
 //   parentLinks: a parent asks to link with a student's existing account;
 //   the student accepts (becoming a guardian link) or declines.
 //   Library reports: any signed-in user can report; admins read and clear.
@@ -134,14 +138,14 @@ service cloud.firestore {
         return (!hasRole(newData(), 'student') || studentSelfSignupOn())
           && (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
           && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
-          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'accountNo'])
+          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'accountNo', 'tierSource', 'plusUntil', 'plusNote'])
           && teacherIdsCreateOK();
       }
       // A parent or teacher creating a student account
       function studentCreateOK() {
         return newData().get('role', '') == 'student'
           && newData().get('roles', ['student']) == ['student']
-          && !newData().keys().hasAny(['accountNo'])
+          && !newData().keys().hasAny(['accountNo', 'tierSource', 'plusUntil', 'plusNote'])
           && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
           && ((newData().get('parentUid', '') == me() && hasRole(userDoc(me()), 'parent'))
               || (newData().get('teacherUid', '') == me() && newData().get('teacherIds', []) == [me()]
@@ -159,7 +163,7 @@ service cloud.firestore {
       // Editing yourself: can't change plan or who your parents are; can only
       // add admin with a valid admin invite
       function selfUpdateOK() {
-        return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit'])
+        return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'tierSource', 'plusUntil', 'plusNote'])
           && accountNoOK()
           && !gainsPlus()
           && teacherIdsUpdateOK()
@@ -167,7 +171,7 @@ service cloud.firestore {
       }
       // A parent editing their student: anything except roles, paid plan and teacher links
       function guardianUpdateOK() {
-        return !changedKeys().hasAny(['roles', 'role', 'teacherIds', 'teacherUid', 'aiLimit', 'accountNo']) && !gainsPlus();
+        return !changedKeys().hasAny(['roles', 'role', 'teacherIds', 'teacherUid', 'aiLimit', 'accountNo', 'tierSource', 'plusUntil', 'plusNote']) && !gainsPlus();
       }
       // Accepting an invite that shares this student: add only yourself as a guardian
       function inviteGuardianOK() {
@@ -346,7 +350,12 @@ service cloud.firestore {
     // must be one of my parents (parentUid or guardianIds). A co-parent:
     // plusVia names a student whose parents include both me and plusFrom.
     // Either way plusFrom must have Plus (or be an admin) of their own.
-    function plusRecord(d) { return d.get('tier', '') == 'plus' || d.get('plan', '') == 'plus'; }
+    // (Plus an admin gave for a set time stops at plusUntil)
+    function plusRecord(d) {
+      return (d.get('tier', '') == 'plus'
+              && (d.get('plusUntil', 0) == null || d.get('plusUntil', 0) == 0 || d.get('plusUntil', 0) > request.time.toMillis()))
+        || d.get('plan', '') == 'plus';
+    }
     function parentOfRec(d, id) { return id == d.get('parentUid', '') || id in d.get('guardianIds', []); }
     function iHavePlus() {
       let u = userDoc(me());
@@ -515,6 +524,24 @@ service cloud.firestore {
     // Whether students may sign themselves up: read on the sign-in page, before sign-in
     match /settings/signup {
       allow get: if true;
+    }
+    // The Plus price and whether payments are open: shown on the Pricing
+    // page to people who aren't signed in. (Dev: pricingDev / paymentsDev.)
+    // The price is set through the AI Worker, which creates it in Stripe.
+    match /settings/{id} {
+      allow get: if id in ['pricing', 'pricingDev', 'payments', 'paymentsDev'];
+    }
+
+    // ── Paying for Plus (Stripe, through the AI Worker only) ──
+    match /billing/{uid} {
+      allow get: if signedIn() && (me() == uid || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+    match /billingTest/{uid} {
+      allow get: if signedIn() && (me() == uid || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false;
     }
 
     // ── Activity log ──────────────────────────────────────

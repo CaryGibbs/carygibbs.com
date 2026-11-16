@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261116a"></script>
+  <script src="dev-flag.js?v=20261116b"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261116a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261116b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261116a">
-  <script src="icons.js?v=20261116a"></script>
+  <link rel="stylesheet" href="theme.css?v=20261116b">
+  <script src="icons.js?v=20261116b"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -548,6 +548,17 @@
   .pl-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .pl-switch { display: flex; gap: 10px; align-items: center; font-weight: 600; font-size: 0.92rem; cursor: pointer; }
   .pl-switch input { width: 18px; height: 18px; accent-color: var(--color-primary); }
+  .pay-modes { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .pay-modes .pl-switch { font-weight: 500; }
+  .pay-hist { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
+  .pay-hist th, .pay-hist td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--color-border); }
+  .pay-hist th { font-weight: 600; color: var(--color-text-muted); font-size: 0.78rem; }
+  .gift-modal .gift-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; margin: 10px 0; }
+  .gift-modal .gift-opts label { display: flex; gap: 8px; align-items: center; justify-content: flex-start; font-size: 0.9rem; font-weight: 500; text-transform: none; letter-spacing: 0; white-space: nowrap; margin: 0; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; cursor: pointer; }
+  .gift-modal .gift-opts input { width: auto; margin: 0; flex: none; }
+  .gift-modal .gift-opts label:has(input:checked) { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+  .plan-sub { display: block; font-size: 0.74rem; color: var(--color-text-muted); margin-top: 3px; }
+  .plan-sub a, .plan-sub button { font: inherit; color: var(--color-primary); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
   .official-copy { margin-top: var(--space-xl); }
   .official-copy-head { font-family: var(--font-ui); font-weight: 700; font-size: 1rem; }
   .official-copy-sub { font-size: 0.85rem; color: var(--color-text-muted); margin: 4px 0 var(--space-md); }
@@ -634,8 +645,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261116a">
-  <link rel="stylesheet" href="stats.css?v=20261116a">
+  <link rel="stylesheet" href="ui.css?v=20261116b">
+  <link rel="stylesheet" href="stats.css?v=20261116b">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -908,7 +919,7 @@
         <label class="uf-field">Role
           <select id="uf-role"><option value="">All roles</option><option value="admin">Admin</option><option value="teacher">Teacher</option><option value="parent">Parent</option><option value="student">Student</option></select></label>
         <label class="uf-field">Plan
-          <select id="uf-plan"><option value="">All plans</option><option value="plus">Plus (any)</option><option value="own">Plus: their own</option><option value="family">Plus: through family</option><option value="free">Free</option></select></label>
+          <select id="uf-plan"><option value="">All plans</option><option value="plus">Plus (any)</option><option value="own">Plus: their own</option><option value="paid">Plus: paid</option><option value="gift">Plus: free from us</option><option value="family">Plus: through family</option><option value="free">Free</option></select></label>
         <label class="uf-field">Joined
           <select id="uf-when"><option value="">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 3 months</option><option value="custom">Between dates…</option></select></label>
         <span class="uf-dates" id="uf-dates" hidden>
@@ -1061,6 +1072,37 @@
         <div id="ai-usage"></div>
       </div>
 
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;" id="pay-card">
+        <div class="ai-settings-head">
+          <div>
+            <h3>Payments and pricing <span class="badge badge-warning" id="pay-site"></span></h3>
+            <p>Plus is paid for by card through Stripe, renewing each year. Settings here apply to <strong id="pay-site-name">this site</strong> only: the dev site uses Stripe's test mode (test cards, no real money) and the live site real payments.</p>
+          </div>
+        </div>
+        <div class="ai-field"><label>Payments</label>
+          <div class="pay-modes" role="radiogroup" aria-label="Payments">
+            <label class="pl-switch"><input type="radio" name="pay-mode" value="off"> Off: nobody can buy. Pricing shows Plus as early access ("Ask for Plus")</label>
+            <label class="pl-switch"><input type="radio" name="pay-mode" value="admins"> Admins only: test checkout with a real card before opening up</label>
+            <label class="pl-switch"><input type="radio" name="pay-mode" value="on"> On: parents and teachers can buy Plus</label>
+          </div>
+          <p class="ai-status" id="pay-mode-status" style="margin-top:6px;"></p>
+          <p class="lim-cost">Turning payments off only stops new purchases: people who've paid keep Plus, renew as normal and can still manage their billing.</p>
+        </div>
+        <div class="ai-field" style="margin-top:14px;"><label>Price</label>
+          <p>New buyers pay this. People already subscribed keep the price they signed up at.</p>
+          <div class="lim-pair">
+            <label>Plan name <input type="text" id="pay-plan" maxlength="40" class="lim-input" placeholder="e.g. Family Plus"></label>
+            <label>£ a year <input type="number" id="pay-price" min="1" max="500" step="0.01" class="lim-input" placeholder="39.99"></label>
+          </div>
+          <p class="lim-cost" id="pay-preview"></p>
+          <div class="ai-settings-actions">
+            <button class="btn btn-primary" id="btn-save-price"><i data-icon="save"></i> Save price</button>
+            <span class="ai-status" id="pay-price-status"></span>
+          </div>
+          <div id="pay-history"></div>
+        </div>
+      </div>
+
       <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
         <div class="ai-settings-head">
           <div>
@@ -1138,6 +1180,41 @@
 ════════════════════════════════════════════════════════════ -->
 
 <!-- Group modal -->
+<div class="modal-overlay" id="modal-gift">
+  <div class="modal gift-modal">
+    <div class="modal-header">
+      <div class="modal-title" id="gift-title">Give Plus</div>
+      <button class="modal-close" data-close="modal-gift" aria-label="Close"><i data-icon="x"></i></button>
+    </div>
+    <p style="margin:0;font-size:0.9rem;color:var(--color-text-muted);" id="gift-intro">Free Plus, with no payment. It covers their students and co-parent too, and ends on its own.</p>
+    <div class="gift-opts" id="gift-opts">
+      <label><input type="radio" name="gift-len" value="1d"> 1 day</label>
+      <label><input type="radio" name="gift-len" value="7d"> 1 week</label>
+      <label><input type="radio" name="gift-len" value="1m" checked> 1 month</label>
+      <label><input type="radio" name="gift-len" value="3m"> 3 months</label>
+      <label><input type="radio" name="gift-len" value="6m"> 6 months</label>
+      <label><input type="radio" name="gift-len" value="1y"> 1 year</label>
+      <label><input type="radio" name="gift-len" value="date"> Until a date</label>
+      <label><input type="radio" name="gift-len" value="none"> No end date</label>
+    </div>
+    <div class="form-group" id="gift-date-row" hidden>
+      <label>Ends on</label>
+      <input type="date" id="gift-date">
+    </div>
+    <div class="form-group">
+      <label>Note <span style="font-weight:400;text-transform:none;">(optional, only admins see it)</span></label>
+      <input type="text" id="gift-note" maxlength="80" placeholder="e.g. Friend trial, Beta tester">
+    </div>
+    <p class="ai-status" id="gift-ends"></p>
+    <div style="display:flex;gap:var(--space-sm);justify-content:flex-end;flex-wrap:wrap;margin-top:var(--space-md);">
+      <button class="btn btn-danger" id="gift-end" hidden>End now</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-secondary" data-close="modal-gift">Cancel</button>
+      <button class="btn btn-primary" id="gift-save">Give Plus</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-group">
   <div class="modal">
     <div class="modal-header">
@@ -1449,34 +1526,35 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261116a';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261116a';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261116a';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261116a';
-import { syncFamilyPlus } from './family-plus.js?v=20261116a';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261116a';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261116a';
-import { openDeleteAccount } from './account.js?v=20261116a';
-import { addDocumentButton } from './doc-text.js?v=20261116a';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261116a';
-import { showPlusUpsell } from './plus.js?v=20261116a';
-import { offerGivePack } from './first-steps.js?v=20261116a';
+import { auth, db, storage } from './firebase-config.js?v=20261116b';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261116b';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261116b';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261116b';
+import { syncFamilyPlus } from './family-plus.js?v=20261116b';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261116b';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261116b';
+import { openDeleteAccount } from './account.js?v=20261116b';
+import { addDocumentButton } from './doc-text.js?v=20261116b';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261116b';
+import { showPlusUpsell } from './plus.js?v=20261116b';
+import { offerGivePack } from './first-steps.js?v=20261116b';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261116a';
-import { mountShell } from './shell.js?v=20261116a';
-import { openInviteDialog, signupLink } from './invite.js?v=20261116a';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261116a';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261116a';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261116a';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261116a';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261116a';
-import { dueEntries } from './srs.js?v=20261116a';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261116a';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261116a';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261116b';
+import { mountShell } from './shell.js?v=20261116b';
+import { openInviteDialog, signupLink } from './invite.js?v=20261116b';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261116b';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261116b';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261116b';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261116b';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261116b';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261116b';
+import { dueEntries } from './srs.js?v=20261116b';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261116b';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261116b';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1492,8 +1570,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261116a';
-import { inOrder } from './order.js?v=20261116a';
+import { saveEmailIndex } from './email-index.js?v=20261116b';
+import { inOrder } from './order.js?v=20261116b';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1557,12 +1635,14 @@ function startMine(user, profile) {
 
 /* ── Auth guard ──────────────────────────────────────────── */
 let currentAdminUid = null;
+let currentAdminName = '';
 if (MINE) requireAuth((user, profile) => {
   if (!hasRole(profile, MINE)) { window.location.href = 'login.html'; return; }
   startMine(user, profile);
 });
 else requireRole('admin', (user, profile) => {
   currentAdminUid = user.uid;
+  currentAdminName = profile.name || profile.email || '';
   iAmAdmin = true;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
   const start = ['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
@@ -1928,6 +2008,73 @@ document.getElementById('btn-pl-save').onclick = async () => {
   } catch (err) { showToast('Could not save: ' + err.message, 'error'); }
 };
 
+/* ── Payments and pricing (billing.js; the AI Worker talks to Stripe).
+   settings/payments(Dev).mode: off | admins | on. The price is saved
+   through the Worker, which makes a new Stripe price each time it changes. ── */
+const PAY_WORDS = { off: 'Off: nobody can buy Plus on this site.', admins: 'Admins only: only admins can buy (for testing).', on: 'On: parents and teachers can buy Plus.' };
+let payPricing = null;
+async function renderPaySettings() {
+  document.getElementById('pay-site').textContent = IS_DEV ? 'Dev · test mode' : 'Live';
+  document.getElementById('pay-site-name').textContent = IS_DEV ? 'the dev site' : 'the live site (lobelimpet.com)';
+  const [mode, pricing, subs] = await Promise.all([
+    getPaymentsMode(), getPricing(),
+    getDocs(collection(db, BILLING_COLL)).then(s => s.docs.map(d => d.data())).catch(() => []),
+  ]);
+  payPricing = pricing;
+  document.querySelectorAll('input[name="pay-mode"]').forEach(r => { r.checked = r.value === mode; });
+  document.getElementById('pay-mode-status').textContent = PAY_WORDS[mode];
+  document.getElementById('pay-plan').value = pricing.planName || 'Plus';
+  document.getElementById('pay-price').value = pricing.amountPence ? (pricing.amountPence / 100).toFixed(2) : '';
+  renderPayPreview();
+  // Each price tried, and how many people are paying it now
+  const live = subs.filter(b => PAID_STATES.includes(b.state));
+  const hist = [...(pricing.history || [])].reverse();
+  document.getElementById('pay-history').innerHTML = hist.length ? `<table class="pay-hist">
+    <thead><tr><th>Price</th><th>Plan name</th><th>From</th><th>To</th><th>Paying now</th></tr></thead>
+    <tbody>${hist.map(h => `<tr><td><strong>${esc(gbp(h.amountPence))}</strong>${h.priceId === pricing.priceId ? ' <span class="badge badge-success">Current</span>' : ''}</td>
+      <td>${esc(h.planName || '')}</td><td>${h.from ? payDate(h.from) : ''}</td><td>${h.to ? payDate(h.to) : '—'}</td>
+      <td>${live.filter(b => b.priceId === h.priceId).length}</td></tr>`).join('')}</tbody></table>
+    <p class="lim-cost">${live.length} paying in all${subs.length > live.length ? `, ${subs.length - live.length} ended or not finished` : ''}.</p>`
+    : '<p class="lim-cost">No price set yet. Save one before turning payments on.</p>';
+}
+function renderPayPreview() {
+  const pence = Math.round(Number(document.getElementById('pay-price').value) * 100);
+  const name = document.getElementById('pay-plan').value.trim() || 'Plus';
+  document.getElementById('pay-preview').textContent = pence >= 100
+    ? `The Pricing page will show: ${name}, ${gbp(pence)} a year (${perWeekText(pence)}). Stripe's fees are about ${gbp(Math.round(pence * 0.022 + 20))} of each payment.`
+    : '';
+}
+['pay-price', 'pay-plan'].forEach(id => document.getElementById(id).addEventListener('input', renderPayPreview));
+document.querySelectorAll('input[name="pay-mode"]').forEach(r => r.addEventListener('change', async e => {
+  const mode = e.target.value;
+  const back = () => renderPaySettings();
+  if (mode !== 'off' && !payPricing?.priceId) { showToast('Save a price first', 'error'); back(); return; }
+  if (mode === 'on' && !confirm(`Turn payments on${IS_DEV ? ' on the dev site (test mode)' : ' on the live site'}?\n\nParents and teachers will be able to buy ${payPricing.planName || 'Plus'} for ${gbp(payPricing.amountPence)} a year.`)) { back(); return; }
+  try {
+    await setDoc(doc(db, 'settings', PAYMENTS_DOC), { mode, updatedAt: Date.now(), updatedBy: currentAdminName || '' });
+    logEvent('admin.settings', { target: 'Payments', detail: `${IS_DEV ? 'Dev: ' : ''}${PAY_WORDS[mode]}` });
+    showToast(`Payments: ${mode === 'admins' ? 'admins only' : mode}`, 'success');
+  } catch (err) { showToast('Could not save: ' + err.message, 'error'); }
+  back();
+}));
+document.getElementById('btn-save-price').onclick = async () => {
+  const pence = Math.round(Number(document.getElementById('pay-price').value) * 100);
+  const planName = document.getElementById('pay-plan').value.trim() || 'Plus';
+  const st = document.getElementById('pay-price-status');
+  if (!(pence >= 100 && pence <= 50000)) { st.textContent = 'Choose a price between £1 and £500.'; return; }
+  if (payPricing?.priceId && pence === payPricing.amountPence && planName === payPricing.planName) { st.textContent = 'No change.'; return; }
+  if (payPricing?.priceId && pence !== payPricing.amountPence
+    && !confirm(`Change the price from ${gbp(payPricing.amountPence)} to ${gbp(pence)} a year?\n\nNew buyers pay ${gbp(pence)}. People already subscribed keep the price they signed up at.`)) return;
+  const btn = document.getElementById('btn-save-price');
+  btn.disabled = true; st.textContent = 'Saving in Stripe…';
+  try {
+    await workerAction('billingPrice', { amountPence: pence, planName });
+    st.textContent = 'Saved.';
+    showToast(`${planName}: ${gbp(pence)} a year`, 'success');
+  } catch (err) { st.textContent = 'Could not save: ' + err.message; }
+  finally { btn.disabled = false; renderPaySettings(); }
+};
+
 /* ── Sign-ups: can students create their own accounts? (settings/signup;
    login.html hides the Student option and the rules refuse it when off) ── */
 async function renderSignupSettings() {
@@ -2087,7 +2234,7 @@ function showPanel(name) {
   if (name === 'sharedcards') { document.getElementById('preview-actions').style.display = 'none'; loadSharedCardsAdmin(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
-  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); }
+  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); renderPaySettings(); }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 
@@ -4614,32 +4761,154 @@ async function migratePlusField(users) {
     catch (e) { console.warn('Could not tidy Plus for', u.id, e.message); }
   }
 }
-// Plus on or off for one person (admins only; the rules stop anyone else)
+// Plus given by an admin (users.tierSource 'admin') can have an end date
+// (users.plusUntil, ms). Paid Plus (tierSource 'stripe') is managed in Stripe.
+let billingByUid = {};   // uid -> billing(Test) record
+const MONTH_ADD = { '1m': 1, '3m': 3, '6m': 6, '1y': 12 };
+function giftEnd(len, dateVal) {
+  const d = new Date();
+  if (len === 'none') return null;
+  if (len === '1d') return Date.now() + 86400000;
+  if (len === '7d') return Date.now() + 7 * 86400000;
+  if (MONTH_ADD[len]) { d.setMonth(d.getMonth() + MONTH_ADD[len]); return d.getTime(); }
+  if (len === 'date' && dateVal) return new Date(dateVal + 'T23:59:59').getTime();
+  return NaN;
+}
+// Before the list is shown: older Plus (no tierSource) counts as given by us;
+// free Plus that has run out is switched off
+async function tidyPlusGifts(users) {
+  for (const u of users) {
+    if (u.tier !== 'plus') continue;
+    try {
+      if (u.tierSource !== 'stripe' && Number(u.plusUntil) > 0 && Number(u.plusUntil) <= Date.now()) {
+        await updateDoc(doc(db, 'users', u.id), { tier: 'free', tierSource: deleteField(), plusUntil: deleteField(), plusNote: deleteField() });
+        logEvent('account.plus', { target: u.name || u.email || '', targetId: u.id, detail: `Free Plus ended (it ran until ${payDate(u.plusUntil)})` });
+        u.tier = 'free'; delete u.tierSource; delete u.plusUntil; delete u.plusNote;
+      } else if (!u.tierSource) {
+        await updateDoc(doc(db, 'users', u.id), { tierSource: 'admin' }); u.tierSource = 'admin';
+      }
+    } catch (e) { console.warn('Could not tidy Plus for', u.id, e.message); }
+  }
+}
+async function setPlus(uid, { on, until = null, note = '' }) {
+  const u = usersCache.find(x => x.id === uid) || {};
+  // Plus goes in `tier`. Never write `plan`: that's the student's study plan.
+  const upd = on
+    ? { tier: 'plus', tierSource: 'admin', plusUntil: until || deleteField(), plusNote: note || deleteField() }
+    : { tier: 'free', tierSource: deleteField(), plusUntil: deleteField(), plusNote: deleteField() };
+  if (typeof u.plan === 'string') upd.plan = deleteField();   // an old Plus value in the study plan field
+  await updateDoc(doc(db, 'users', uid), upd);
+  if (plusRequests[uid]) {
+    await setDoc(doc(db, 'plusRequests', uid), { ...plusRequests[uid], status: on ? 'done' : 'declined', decidedAt: Date.now() }).catch(() => {});
+    delete plusRequests[uid];
+  }
+  logEvent('account.plus', { target: u.name || u.email || '', targetId: uid,
+    detail: on ? `Free Plus ${until ? 'until ' + payDate(until) : 'with no end date'}${note ? ` (${note})` : ''}` : 'Plus switched off' });
+  // A parent's Plus covers their students
+  Object.assign(u, on ? { tier: 'plus', tierSource: 'admin' } : { tier: 'free' });
+  if (on && until) u.plusUntil = until; else delete u.plusUntil;
+  if (!on) delete u.tierSource;
+  const kids = await syncFamilyPlus(usersCache);
+  showToast(on ? `Plus given to ${u.name || u.email || 'this person'}${until ? ` until ${payDate(until)}` : ''}${kids ? ` (and ${kids} of their family)` : ''}`
+    : `Plus off for ${u.name || u.email || 'this person'}${kids ? ` (and ${kids} of their family)` : ''}`, 'success');
+  loadUsers();
+}
+let giftUid = null;
+function openGift(uid) {
+  const u = usersCache.find(x => x.id === uid); if (!u) return;
+  giftUid = uid;
+  const has = u.tier === 'plus' && u.tierSource !== 'stripe';
+  document.getElementById('gift-title').textContent = `${has ? 'Change' : 'Give'} Plus: ${u.name || u.email || ''}`;
+  document.getElementById('gift-intro').textContent = has
+    ? (u.plusUntil ? `Free Plus until ${payDate(u.plusUntil)}.` : 'Free Plus with no end date.') + ' Choose a new length, or end it now.'
+    : 'Free Plus, with no payment. It covers their students and co-parent too, and ends on its own.';
+  document.querySelectorAll('input[name="gift-len"]').forEach(r => { r.checked = r.value === (has ? (u.plusUntil ? 'date' : 'none') : '1m'); });
+  document.getElementById('gift-date').value = has && u.plusUntil ? new Date(u.plusUntil).toISOString().slice(0, 10) : '';
+  document.getElementById('gift-date').min = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  document.getElementById('gift-note').value = u.plusNote || '';
+  document.getElementById('gift-end').style.display = has ? '' : 'none';
+  document.getElementById('gift-save').textContent = has ? 'Save' : 'Give Plus';
+  giftPreview();
+  openModal('modal-gift');
+}
+function giftPreview() {
+  const len = document.querySelector('input[name="gift-len"]:checked')?.value;
+  document.getElementById('gift-date-row').hidden = len !== 'date';
+  const t = giftEnd(len, document.getElementById('gift-date').value);
+  document.getElementById('gift-ends').textContent = t === null ? 'Plus stays on until you switch it off.'
+    : Number.isNaN(t) ? 'Choose the date it ends.' : `Plus ends at the end of ${payDate(t)}. They see a reminder in the last 7 days.`;
+}
+document.getElementById('gift-opts').addEventListener('change', giftPreview);
+document.getElementById('gift-date').addEventListener('input', giftPreview);
+document.getElementById('gift-save').onclick = async () => {
+  const len = document.querySelector('input[name="gift-len"]:checked')?.value;
+  const until = giftEnd(len, document.getElementById('gift-date').value);
+  if (Number.isNaN(until) || (until !== null && until <= Date.now())) { showToast('Choose a date in the future', 'error'); return; }
+  const btn = document.getElementById('gift-save'); btn.disabled = true;
+  try { await setPlus(giftUid, { on: true, until, note: document.getElementById('gift-note').value.trim().slice(0, 80) }); closeModal('modal-gift'); }
+  catch (err) { showToast('Could not change Plus: ' + err.message, 'error'); }
+  finally { btn.disabled = false; }
+};
+document.getElementById('gift-end').onclick = async () => {
+  const u = usersCache.find(x => x.id === giftUid) || {};
+  if (!confirm(`End ${u.name || 'their'} free Plus now?`)) return;
+  try { await setPlus(giftUid, { on: false }); closeModal('modal-gift'); }
+  catch (err) { showToast('Could not change Plus: ' + err.message, 'error'); }
+};
+// The Plus box in Users: ticking opens Give Plus; unticking ends free Plus
 document.addEventListener('change', async e => {
   const box = e.target.closest('[data-plus-uid]'); if (!box) return;
   const uid = box.dataset.plusUid, on = box.checked;
+  box.checked = !on;   // nothing changes until it's saved
+  if (on) { openGift(uid); return; }
   const u = usersCache.find(x => x.id === uid) || {};
+  if (!confirm(`Switch Plus off for ${u.name || u.email || 'this person'}?`)) return;
   box.disabled = true;
-  try {
-    // Plus goes in `tier`. Never write `plan`: that's the student's study plan.
-    const upd = { tier: on ? 'plus' : 'free' };
-    if (typeof u.plan === 'string') upd.plan = deleteField();   // an old Plus value in the study plan field
-    await updateDoc(doc(db, 'users', uid), upd);
-    u.tier = on ? 'plus' : 'free'; if (typeof u.plan === 'string') delete u.plan;
-    if (plusRequests[uid]) {
-      await setDoc(doc(db, 'plusRequests', uid), { ...plusRequests[uid], status: on ? 'done' : 'declined', decidedAt: Date.now() }).catch(() => {});
-      delete plusRequests[uid];
-      box.closest('td')?.querySelector('.badge')?.remove();
-      box.closest('tr')?.querySelector('.plus-note')?.remove();
-    }
-    logEvent('account.plus', { target: u.name || u.email || '', targetId: uid, detail: on ? 'Plus switched on' : 'Plus switched off' });
-    // A parent's Plus covers their students
-    const kids = await syncFamilyPlus(usersCache);
-    showToast(`Plus ${on ? 'on' : 'off'} for ${u.name || u.email || 'this person'}${kids ? ` (and ${kids} of their students)` : ''}`, 'success');
-    if (kids) loadUsers();
-  } catch (err) { box.checked = !on; showToast('Could not change Plus: ' + err.message, 'error'); }
+  try { await setPlus(uid, { on: false }); }
+  catch (err) { showToast('Could not change Plus: ' + err.message, 'error'); }
   finally { box.disabled = false; }
 });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-gift-uid]'); if (!b) return;
+  openGift(b.dataset.giftUid);
+});
+// The Plan column for one person
+function planCellHtml(u, roles) {
+  if (roles.includes('admin')) return '<span class="muted">Admin</span>';
+  const asked = plusRequests[u.id] ? ' <span class="badge badge-warning">Asked</span>' : '';
+  const b = billingByUid[u.id];
+  const paid = b && PAID_STATES.includes(b.state);
+  if (paid || u.tierSource === 'stripe') {
+    const badge = !b ? '<span class="badge badge-success">Paid</span>'
+      : b.state === 'cancelling' ? '<span class="badge badge-warning">Cancelling</span>'
+      : b.state === 'past_due' ? '<span class="badge badge-danger" style="background:#fde2e1;color:#b42318;">Past due</span>'
+      : b.state === 'ended' ? '<span class="badge">Ended</span>' : '<span class="badge badge-success">Paid</span>';
+    const when = b ? (b.state === 'cancelling' ? `ends ${payDate(b.cancelAt || b.currentPeriodEnd)}` : b.trialEnd > Date.now() ? `first payment ${payDate(b.trialEnd)}` : b.currentPeriodEnd ? `renews ${payDate(b.currentPeriodEnd)}` : '') : '';
+    return `<label class="plus-switch" title="Paid through Stripe: manage it there"><input type="checkbox" ${u.tier === 'plus' ? 'checked' : ''} disabled> Plus</label> ${badge}
+      <span class="plan-sub">${b?.amountPence ? `${esc(gbp(b.amountPence))} a year` : ''}${when ? ` · ${when}` : ''}${b?.customerId ? ` · <a href="${STRIPE_DASH}customers/${esc(b.customerId)}" target="_blank" rel="noopener">Stripe</a>` : ''}</span>`;
+  }
+  const own = u.tier === 'plus' || u.plan === 'plus';
+  const until = Number(u.plusUntil) || 0;
+  if (own && !(until && until <= Date.now())) {
+    return `<label class="plus-switch" title="Free Plus from Lobe Limpet"><input type="checkbox" data-plus-uid="${esc(u.id)}" checked> Plus</label>
+      <span class="badge badge-primary">${until ? `Free until ${esc(payDate(until))}` : 'Free, no end'}</span>${asked}
+      <span class="plan-sub">${u.plusNote ? esc(u.plusNote) + ' · ' : ''}<button data-gift-uid="${esc(u.id)}">Change</button></span>`;
+  }
+  // Covered by a parent's Plus: show it as Plus (ticked, greyed), naming the parent
+  const fam = u.plusFrom ? (usersCache.find(x => x.id === u.plusFrom) || {}) : null;
+  if (fam) return `<label class="plus-switch plus-family" title="Plus through ${esc(fam.name || 'a parent')}. It follows their plan; tick their Plus off to remove it."><input type="checkbox" checked disabled> Plus</label> <span class="badge badge-success">via ${esc(firstName(fam.name) || 'parent')}</span>${asked}`;
+  return `<label class="plus-switch" title="Give free Plus"><input type="checkbox" data-plus-uid="${esc(u.id)}"> Plus</label>${b?.state === 'ended' ? ' <span class="badge">Paid, ended</span>' : ''}${asked}`;
+}
+// Words for the Plan filter: own, paid, gift, family or free
+function planKeysOf(u, roles) {
+  const b = billingByUid[u.id];
+  if (roles.includes('admin')) return 'own';
+  if ((b && PAID_STATES.includes(b.state)) || (u.tierSource === 'stripe' && u.tier === 'plus')) return 'own paid';
+  const until = Number(u.plusUntil) || 0;
+  if ((u.tier === 'plus' || u.plan === 'plus') && !(until && until <= Date.now())) return 'own gift';
+  if (u.plusFrom && usersCache.some(x => x.id === u.plusFrom)) return 'family';
+  return 'free';
+}
 
 const firstName = n => String(n || '').trim().split(/\s+/)[0];
 
@@ -4691,15 +4960,18 @@ async function loadUsers() {
   const list = document.getElementById('users-list');
   list.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
   // No orderBy: it would hide anyone missing a createdAt date
-  const [snap, reqSnap] = await Promise.all([
+  const [snap, reqSnap, billSnap] = await Promise.all([
     getDocs(collection(db,'users')).catch(() => ({ forEach:()=>{} })),
     getDocs(collection(db, 'plusRequests')).catch(() => ({ forEach:()=>{} })),
+    getDocs(collection(db, BILLING_COLL)).catch(() => ({ forEach:()=>{} })),
   ]);
+  billingByUid = {}; billSnap.forEach(d => { billingByUid[d.id] = d.data(); });
   plusRequests = {}; reqSnap.forEach(d => { if (d.data().status === 'pending') plusRequests[d.id] = d.data(); });
   const users = [];
   snap.forEach(d => users.push({ id: d.id, ...d.data() }));
   usersCache = users;
   await migratePlusField(users);
+  await tidyPlusGifts(users);    // free Plus that has run out is switched off
   await syncFamilyPlus(users);   // keep students covered by a parent's Plus in step
   groupFamilies(users);          // families together, by the main parent's surname
   // Account numbers for anyone still without one (one at a time; quick)
@@ -4714,19 +4986,13 @@ async function loadUsers() {
     <tbody>${users.map(u => {
       const roles = rolesFor(u), student = roles.includes('student');
       // Plan for the filter: own Plus (or admin), Plus through family, or free
-      const planKey = (u.tier === 'plus' || u.plan === 'plus' || roles.includes('admin')) ? 'own' : (u.plusFrom && usersCache.some(x => x.id === u.plusFrom)) ? 'family' : 'free';
+      const planKey = planKeysOf(u, roles);
       const joined = u.createdAt ? (u.createdAt.seconds ? u.createdAt.seconds * 1000 : Number(u.createdAt) || Date.parse(u.createdAt) || 0) : 0;
       return `<tr data-user-row="${esc(u.id)}" data-q="${esc(((u.name || '') + ' ' + (u.email || '') + ' ' + accountSearchText(u.accountNo)).toLowerCase())}" data-roles="${esc(roles.join(' '))}" data-plan="${planKey}" data-joined="${joined}" class="${u._famHead ? 'fam-head' : ''}${u._famMember ? ' fam-member' : ''}">
       <td><span class="user-name">${u._famMember ? '<span class="fam-tick" aria-hidden="true">↳</span>' : ''}<span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
       <td class="muted">${esc(u.email||'—')}${u.accountNo ? `<div class="acct-no" title="Account number">${esc(formatAccountNo(u.accountNo))}</div>` : ''}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
-      <td>${roles.includes('admin') ? '<span class="muted">Admin</span>' : (() => {
-        const own = u.tier === 'plus' || u.plan === 'plus';
-        // Covered by a parent's Plus: show it as Plus (ticked, greyed), naming the parent
-        const fam = !own && u.plusFrom ? (usersCache.find(x => x.id === u.plusFrom) || {}) : null;
-        if (fam) return `<label class="plus-switch plus-family" title="Plus through ${esc(fam.name || 'a parent')}. It follows their plan; tick their Plus off to remove it."><input type="checkbox" checked disabled> Plus</label> <span class="badge badge-success">via ${esc(firstName(fam.name) || 'parent')}</span>${plusRequests[u.id] ? ' <span class="badge badge-warning">Asked</span>' : ''}`;
-        return `<label class="plus-switch" title="Plus: AI features"><input type="checkbox" data-plus-uid="${esc(u.id)}" ${own ? 'checked' : ''}> Plus</label>${plusRequests[u.id] ? ' <span class="badge badge-warning">Asked</span>' : ''}`;
-      })()}</td>
+      <td>${planCellHtml(u, roles)}</td>
       <td class="muted">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>
       <td class="actions">${student
         ? `<button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
@@ -4766,7 +5032,7 @@ function applyUserFilters() {
     const j = Number(tr.dataset.joined) || 0;
     const ok = (!q || q.split(/\s+/).every(w => tr.dataset.q.includes(w)))
       && (!role || tr.dataset.roles.split(' ').includes(role))
-      && (!plan || (plan === 'plus' ? tr.dataset.plan !== 'free' : tr.dataset.plan === plan))
+      && (!plan || (plan === 'plus' ? !tr.dataset.plan.split(' ').includes('free') : tr.dataset.plan.split(' ').includes(plan)))
       && (!when || (j && j >= from && j <= to));
     tr.hidden = !ok;
     if (ok) shown++;
@@ -4841,6 +5107,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261116a"></script>
+<script src="site.js?v=20261116b"></script>
 </body>
 </html>

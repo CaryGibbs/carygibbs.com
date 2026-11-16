@@ -2,11 +2,11 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261116a';
-import { ensureAccountNo } from './account-no.js?v=20261116a';
+import { auth, db } from './firebase-config.js?v=20261116b';
+import { ensureAccountNo } from './account-no.js?v=20261116b';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261116a';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261116b';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
@@ -190,7 +190,10 @@ export function hasRole(profile, role) { return rolesOf(profile).has(role); }
 // feature be switched to Plus later with one check: hasPlus(profile).
 // Plus is stored in profile.tier. (It used to be profile.plan, which is also
 // where the study plan lives, so a few accounts may still have plan 'plus'.)
-export function isPlusTier(profile) { return profile?.tier === 'plus' || profile?.plan === 'plus'; }
+// Plus an admin gave for a set time has users.plusUntil (ms): it stops
+// counting at that moment, here, in the security rules and in the Worker.
+export function plusExpired(profile) { const t = Number(profile?.plusUntil) || 0; return t > 0 && t <= Date.now(); }
+export function isPlusTier(profile) { return (profile?.tier === 'plus' && !plusExpired(profile)) || profile?.plan === 'plus'; }
 // A student covered by a parent's Plus: plusFrom names the parent, checked
 // when the page loads (withFamilyPlus) and by the security rules
 // Whose Plus covers their children: Plus, or an admin

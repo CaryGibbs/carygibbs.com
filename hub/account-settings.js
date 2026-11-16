@@ -5,10 +5,11 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261116a';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261116a';
-import { openDeleteAccount } from './account.js?v=20261116a';
-import { formatAccountNo } from './account-no.js?v=20261116a';
+import { auth } from './firebase-config.js?v=20261116b';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261116b';
+import { openDeleteAccount } from './account.js?v=20261116b';
+import { formatAccountNo } from './account-no.js?v=20261116b';
+import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261116b';
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -61,7 +62,8 @@ export function openAccountSettings({ user, profile = {} } = {}) {
 
         <section class="as-sec">
           <h3>Your plan</h3>
-          <p>${plan}</p>
+          <p id="as-plan">${plan}</p>
+          <span class="as-msg" id="as-plan-msg" role="status"></span>
         </section>
 
         <section class="as-sec">
@@ -100,8 +102,33 @@ export function openAccountSettings({ user, profile = {} } = {}) {
     try { await sendPasswordResetEmail(auth, email); rmsg.textContent = `Sent to ${email}. Check your inbox (and spam).`; }
     catch (e) { rmsg.textContent = `Couldn't send it: ${e.message}`; reset.disabled = false; }
   };
+  fillPlan(user, profile).catch(e => console.warn('Plan details not loaded', e.message));
   const del = document.getElementById('as-delete');
   if (del) del.onclick = () => { close(); openDeleteAccount({ uid: user.uid, name: profile.name || '', self: true }); };
+}
+
+// Paid Plus (renewal date, Manage billing) or free Plus from an admin (end date)
+async function fillPlan(user, profile) {
+  const el = document.getElementById('as-plan');
+  if (!el) return;
+  const [billing, pricing] = await Promise.all([getBilling(user.uid), getPricing()]);
+  const name = esc(pricing.planName || 'Plus');
+  if (paidPlus(billing)) {
+    const amt = billing.amountPence ? `, ${gbp(billing.amountPence)} a year` : '';
+    const end = billing.cancelAt || billing.currentPeriodEnd;
+    const when = billing.state === 'cancelling' ? `Cancelled: ends on ${shortDate(end)}`
+      : billing.state === 'past_due' ? `<strong style="color:var(--color-danger,#c0392b)">Your last payment didn't go through.</strong> Update your card to keep Plus`
+      : billing.trialEnd > Date.now() ? `Free until ${shortDate(billing.trialEnd)}, then renews each year`
+      : `Renews on ${shortDate(billing.currentPeriodEnd)}`;
+    el.innerHTML = `<strong>${name}</strong> (paid${amt}) · ${when} · <button class="as-copy" id="as-billing">Manage billing</button>`;
+    document.getElementById('as-billing').onclick = async e => {
+      e.target.disabled = true; document.getElementById('as-plan-msg').textContent = 'Opening…';
+      try { await openBillingPortal(); } catch (err) { document.getElementById('as-plan-msg').textContent = err.message; e.target.disabled = false; }
+    };
+    return;
+  }
+  const gift = giftOf(profile);
+  if (gift) el.innerHTML = `<strong>Plus</strong> (free${gift.until ? ` until ${shortDate(gift.until)}` : ''})${gift.until ? ' · <a href="plus.html">Keep Plus</a>' : ''}`;
 }
 
 function injectStyle() {

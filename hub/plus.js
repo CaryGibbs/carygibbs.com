@@ -4,6 +4,8 @@
 // this dialog, with a link to the Plus page to upgrade.
 // ============================================================
 
+import { isPlusTier } from './auth.js?v=20261116b';
+
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 export const PLUS_FEATURES = [
@@ -64,7 +66,13 @@ export function plusPillHtml(profile, { short = false } = {}) {
   </style>`);
   const roles = new Set([...(profile?.roles || []), profile?.role].filter(Boolean));
   if (roles.has('admin')) return '';
-  if (profile?.tier === 'plus' || profile?.plan === 'plus') return `<a class="plus-pill have" href="plus.html" title="You have Lobe Limpet Plus">✨ Plus</a>`;
+  if (isPlusTier(profile)) {
+    // Free Plus from an admin that ends soon: say how long is left (from 7 days before)
+    const until = profile?.tierSource !== 'stripe' ? Number(profile?.plusUntil) || 0 : 0;
+    const days = until ? Math.ceil((until - Date.now()) / 86400000) : 99;
+    if (days <= 7) return `<a class="plus-pill" href="plus.html" title="Your free Plus ends on ${new Date(until).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}">✨ Plus<span class="long">: ${days <= 1 ? 'last day' : `${days} days left`}</span></a>`;
+    return `<a class="plus-pill have" href="plus.html" title="You have Lobe Limpet Plus">✨ Plus</a>`;
+  }
   if (profile?._familyPlus === true) return `<a class="plus-pill have" href="plus.html" title="You have Lobe Limpet Plus through your parent">✨ Plus</a>`;
   return `<a class="plus-pill" href="plus.html" title="See what's in Plus">✨ <span class="long">Upgrade to </span>Plus</a>`;
 }

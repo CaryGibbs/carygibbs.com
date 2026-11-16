@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="dev-flag.js?v=20261116a"></script>
+  <script src="dev-flag.js?v=20261116b"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pricing · Lobe Limpet</title>
   <meta name="description" content="Lobe Limpet pricing: free to start, and Plus to keep turning revision lists and your own notes into revision with AI.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116b">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261116a">
+  <link rel="stylesheet" href="site.css?v=20261116b">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
 <div id="site-header"></div>
-<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261116a" alt="" width="140" height="114"></div></div>
+<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261116b" alt="" width="140" height="114"></div></div>
 <main class="wrap"><div class="prose" style="max-width:860px;">
 
 <div class="grid3 two price-cards">
   <div class="card"><h3>Free</h3><p class="price">£0</p><p>Revise for free, with no time limit. Parents and teachers can write their own notes and questions by hand, and <strong>turn their first 2 revision lists into revision with AI, free</strong>.</p></div>
-  <div class="card"><h3>Plus <span class="plus-mark">✨</span></h3><p class="price">£36 <small>a year</small></p><p>Keep turning revision lists, class notes, worksheets and documents into notes and quiz questions with AI, plus every topic in the ready-made packs. One Plus covers your children too.</p></div>
+  <div class="card"><h3><span id="plus-name">Plus</span> <span class="plus-mark">✨</span></h3><p class="price" id="plus-price">£36 <small>a year</small></p><p>Keep turning revision lists, class notes, worksheets and documents into notes and quiz questions with AI, plus every topic in the ready-made packs. One Plus covers your children too.</p></div>
 </div>
 
 <div class="compare-wrap">
@@ -70,12 +70,20 @@
 <p class="note-small">AI is used fairly: each account has a daily allowance that resets at midnight. Almost nobody reaches it in normal revision.</p>
 
 <div class="contact-card" id="plus-card">
-  <h3>Get Plus</h3>
+  <h3 id="plus-card-title">Get Plus</h3>
   <p id="plus-intro">Plus is in early access. Sign in, then ask here and we'll switch it on for your account.</p>
   <div id="plus-ask" hidden>
     <label for="plus-note" style="display:block;font-weight:600;margin:6px 0;">Anything we should know? (optional)</label>
     <textarea id="plus-note" maxlength="500" rows="3" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #ddd;font:inherit;" placeholder="e.g. I'm a teacher with two Year 11 classes"></textarea>
     <button class="btn btn-coral" id="plus-go" style="color:#fff;margin-top:10px;border:none;cursor:pointer;">Ask for Plus</button>
+  </div>
+  <div id="plus-buy" hidden>
+    <button class="btn btn-coral" id="plus-buy-btn" style="color:#fff;margin-top:6px;border:none;cursor:pointer;">Get Plus</button>
+    <p id="plus-buy-note" style="margin:10px 0 0;font-size:0.88rem;color:#5a6b73;"></p>
+  </div>
+  <div id="plus-manage" hidden>
+    <button class="btn btn-secondary" id="plus-manage-btn" style="margin-top:6px;cursor:pointer;">Manage billing</button>
+    <p style="margin:10px 0 0;font-size:0.88rem;color:#5a6b73;">Change your card, see receipts or cancel. If you cancel, Plus carries on to the end of the year you've paid for.</p>
   </div>
   <p id="plus-msg" style="margin-top:12px;font-weight:600;"></p>
   <p id="plus-email" style="margin-top:14px;font-size:0.92rem">Or <a data-email data-subject="Lobe Limpet Plus">email us</a> from the address you sign in with.</p>
@@ -85,27 +93,138 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261116a"></script>
+<script src="site.js?v=20261116b"></script>
 <script type="module">
-// Signed in: ask for Plus with one tap (admins see it on their home page and
-// switch Plus on in Users). Signed out: sign in first, or email.
-import { auth, db } from './firebase-config.js?v=20261116a';
+// Plus: the price comes from Admin → Settings → Payments and pricing.
+// When payments are open, adults buy through Stripe's checkout; students ask
+// a parent. While payments are off, people ask for Plus here instead and an
+// admin switches it on in Users.
+import { auth, db } from './firebase-config.js?v=20261116b';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261116a';
-import { withFamilyPlus } from './auth.js?v=20261116a';
+import { logEvent } from './log.js?v=20261116b';
+import { withFamilyPlus, isPlusTier } from './auth.js?v=20261116b';
+import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261116b';
 const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const paidParam = new URLSearchParams(location.search).get('paid');
+if (paidParam) history.replaceState(null, '', location.pathname);   // a refresh shouldn't repeat the message
+
+const [pricing, mode] = await Promise.all([getPricing(), getPaymentsMode()]);
+const plan = pricing.planName || 'Plus';
+const price = pricing.amountPence ? `${gbp(pricing.amountPence)} a year` : '';
+if (pricing.amountPence) {
+  $('plus-price').innerHTML = `${esc(gbp(pricing.amountPence))} <small>a year</small>`;
+  $('plus-price').title = perWeekText(pricing.amountPence);
+}
+$('plus-name').textContent = plan;
+$('plus-card-title').textContent = `Get ${plan}`;
+
+const showBuy = (note = '') => {
+  $('plus-buy').hidden = false;
+  $('plus-buy-btn').textContent = `Get ${plan}${price ? ' · ' + price : ''}`;
+  $('plus-buy-note').innerHTML = note || `One ${esc(plan)} covers the students you look after, and their other parent too. Pay securely by card with Stripe. Renews each year; cancel any time.`;
+  $('plus-buy-btn').onclick = async () => {
+    $('plus-buy-btn').disabled = true; $('plus-msg').textContent = 'Opening secure checkout…';
+    try { await startCheckout(); }
+    catch (e) { $('plus-msg').textContent = e.message; $('plus-buy-btn').disabled = false; }
+  };
+};
+const showManage = () => {
+  $('plus-manage').hidden = false;
+  $('plus-manage-btn').onclick = async () => {
+    $('plus-manage-btn').disabled = true; $('plus-msg').textContent = 'Opening your billing page…';
+    try { await openBillingPortal(); }
+    catch (e) { $('plus-msg').textContent = e.message; $('plus-manage-btn').disabled = false; }
+  };
+};
+// Back from checkout: the payment reaches us a moment later, so wait for it
+async function waitForPayment(uid) {
+  $('plus-intro').textContent = `Thanks! Switching ${plan} on…`;
+  for (let i = 0; i < 15; i++) {
+    const b = await getBilling(uid);
+    if (paidPlus(b)) return b;
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  return null;
+}
+
 onAuthStateChanged(auth, async user => {
-  if (!user) { $('plus-intro').innerHTML = 'Plus is in early access. <a href="login.html">Sign in</a>, then come back here to ask for it.'; return; }
+  const open = mode === 'on';
+  if (!user) {
+    $('plus-intro').innerHTML = open
+      ? `<a href="login.html?signup=parent">Start free as a parent</a>, or <a href="login.html">sign in</a>, then come back here to get ${esc(plan)}.`
+      : 'Plus is in early access. <a href="login.html">Sign in</a>, then come back here to ask for it.';
+    return;
+  }
   const [me, req] = await Promise.all([
     getDoc(doc(db, 'users', user.uid)).then(d => d.data() || {}).catch(() => ({})),
     getDoc(doc(db, 'plusRequests', user.uid)).then(d => d.exists() ? d.data() : null).catch(() => null),
   ]);
   const roles = new Set([...(me.roles || []), me.role].filter(Boolean));
+  const canPay = paymentsOpenFor(mode, me) && canBuy(me);
+
+  let billing = await getBilling(user.uid);
+  if (paidParam === '1' && !paidPlus(billing)) {
+    billing = await waitForPayment(user.uid);
+    if (!billing) {
+      $('plus-intro').innerHTML = `Payment received. ${esc(plan)} will switch on shortly. If it hasn't within a few minutes, <a href="contact.html">contact us</a>${me.accountNo ? ` with your account number <strong>${esc(me.accountNo)}</strong>` : ''}.`;
+      $('plus-email').hidden = true;
+      return;
+    }
+    $('plus-msg').textContent = `${plan} is on. Enjoy!`;
+  } else if (paidParam === '0') {
+    $('plus-msg').textContent = 'No payment was taken.';
+  }
+
+  // Paying for Plus
+  if (paidPlus(billing)) {
+    const amt = billing.amountPence ? gbp(billing.amountPence) : '';
+    const end = billing.cancelAt || billing.currentPeriodEnd;
+    $('plus-intro').textContent =
+      billing.state === 'cancelling' ? `You've cancelled ${plan}. It carries on until ${dateText(end)}.`
+      : billing.state === 'past_due' ? `Your last payment didn't go through. Update your card in Manage billing to keep ${plan}.`
+      : billing.trialEnd > Date.now() ? `You've got ${plan}. It's free until ${dateText(billing.trialEnd)}, then ${amt} a year from that date.`
+      : `You've got ${plan}. It renews on ${dateText(billing.currentPeriodEnd)}${amt ? ` at ${amt} a year` : ''}.`;
+    $('plus-email').hidden = true;
+    $('plus-card-title').textContent = `Your ${plan}`;
+    showManage();
+    return;
+  }
   // A student covered by a parent's Plus (plusFrom, checked like the rules do)
   await withFamilyPlus(me, user.uid);
   if (me._familyPlus) { $('plus-intro').textContent = roles.has('student') ? "You've got Plus through your parent. Enjoy!" : "You've got Plus through your family's plan. Enjoy!"; $('plus-email').hidden = true; return; }
-  if (me.tier === 'plus' || me.plan === 'plus' || roles.has('admin')) { $('plus-intro').textContent = "You've got Plus. Enjoy!"; $('plus-email').hidden = true; return; }
+  // Plus given free by Lobe Limpet
+  const gift = giftOf(me);
+  if (gift) {
+    $('plus-email').hidden = true;
+    if (!gift.until) { $('plus-intro').textContent = "You've got Plus, free. Enjoy!"; return; }
+    $('plus-intro').textContent = `Your Plus is free until ${dateText(gift.until)}.`;
+    if (canPay) showBuy(gift.until > Date.now() + 49 * 3600000
+      ? `Get ${esc(plan)} now and you won't be charged until ${esc(dateText(gift.until))}. Cancel any time before then and you won't pay anything.`
+      : '');
+    return;
+  }
+  if (roles.has('admin')) {
+    $('plus-intro').textContent = "You've got Plus as an admin."; $('plus-email').hidden = true;
+    if (canPay) showBuy('Admins have Plus anyway: buying here is for testing checkout. Refund it in Stripe afterwards.');
+    return;
+  }
+  if (isPlusTier(me)) { $('plus-intro').textContent = "You've got Plus. Enjoy!"; $('plus-email').hidden = true; return; }
+
+  // Payments open: adults buy, students ask a parent
+  if (paymentsOpenFor(mode, me)) {
+    if (canPay) {
+      $('plus-intro').textContent = `${plan} is ${price || 'a yearly plan'}${pricing.amountPence ? `, ${perWeekText(pricing.amountPence)}` : ''}.`;
+      showBuy();
+    } else {
+      $('plus-intro').textContent = `Ask a parent or guardian to get ${plan} from their account. One ${plan} covers the whole family.`;
+      $('plus-email').hidden = true;
+    }
+    return;
+  }
+
+  // Payments not open yet: ask, and an admin switches Plus on
   if (req?.status === 'pending') { $('plus-intro').textContent = "Thanks, you've asked for Plus. We'll switch it on soon."; $('plus-email').hidden = true; return; }
   $('plus-intro').textContent = "Plus is in early access. Ask here and we'll switch it on for your account.";
   $('plus-ask').hidden = false;

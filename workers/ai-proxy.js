@@ -23,6 +23,13 @@
 //                       only parent (the one who made the account), or an admin (only the owner can delete admins)
 //   action 'logSignedOut'   log a failed sign-in or password reset  anyone (no sign-in),
 //                       at most 30 a day from one internet address
+//   action 'billingCheckout'  a Stripe checkout link for Plus     parents, teachers, admins,
+//                       when Admin → Settings → Payments allows it
+//   action 'billingPortal'    Stripe's "Manage billing" page      anyone with a subscription
+//   action 'billingPrice'     set the Plus price (makes a new      admins only
+//                       Stripe price; settings/pricing)
+//   POST /stripe/webhook (live) and /stripe/webhook/test: Stripe's
+//                       payment events, checked by signature; switch Plus on/off
 //   action 'storageSweep'   delete pictures nothing uses any more    admins only
 //                       (also runs on a schedule if a Cron Trigger is set)
 // AI use is counted per person per day (aiUsage/{uid}_{day}) and per month
@@ -39,6 +46,12 @@
 //                       logs and picture clean-up.
 // Optional Cron Trigger (Settings → Triggers), e.g. "0 3 * * 0" (Sundays 3am):
 //   runs the picture clean-up automatically.
+//   STRIPE_SECRET_KEY_TEST, STRIPE_WEBHOOK_SECRET_TEST, STRIPE_PRODUCT_ID_TEST
+//                       secrets for Stripe's test mode (used from carygibbs.com, the dev site)
+//   STRIPE_SECRET_KEY_LIVE, STRIPE_WEBHOOK_SECRET_LIVE, STRIPE_PRODUCT_ID_LIVE
+//                       the same for live mode (lobelimpet.com). Restricted keys:
+//                       write access to Checkout Sessions, Customers, Subscriptions,
+//                       Customer portal, Prices and Products.
 //   ALLOW_ANON          "true" only while switching over from the old Worker,
 //                       so pages that haven't updated yet keep working
 //                       (unsigned requests then work as they did before).
@@ -84,6 +97,12 @@ export default {
   },
 
   async fetch(request, env, ctx) {
+    // ── Stripe telling us about a payment (no sign-in: checked by signature) ──
+    const path = new URL(request.url).pathname.replace(/\/+$/, '');
+    if (path === '/stripe/webhook' || path === '/stripe/webhook/test') {
+      return stripeWebhook(request, env, path.endsWith('/test') ? 'test' : 'live');
+    }
+
     const origin = request.headers.get('Origin') || '';
     const cors = {
       'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
@@ -123,6 +142,13 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await deleteAccount(env, user, String(body.uid || ''), !!body.check)); }
       catch (e) { return fail(e.status || 500, e.message || 'Could not delete the account'); }
+    }
+
+    // ── Paying for Plus (Stripe) ──
+    if (['billingCheckout', 'billingPortal', 'billingPrice'].includes(body.action)) {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await billingAction(env, user, body, origin)); }
+      catch (e) { return fail(e.status || 500, e.message || 'Something went wrong with payments'); }
     }
 
     // ── Picture clean-up (admins) ──
@@ -172,16 +198,16 @@ export default {
     // A student is covered by a parent's Plus: plusFrom names that parent
     // (it must be one of their parents, and that parent must have Plus)
     let familyPlus = false;
-    if (who && svc && !(who.tier === 'plus' || who.plan === 'plus') && familyOf(who)) {
+    if (who && svc && !ownPlus(who) && familyOf(who)) {
       familyPlus = await fsGet(svc, `users/${who.plusFrom}`).then(isPlusRecord).catch(() => false);
-    } else if (who && svc && !(who.tier === 'plus' || who.plan === 'plus') && coParentOf(who, user.uid)) {
+    } else if (who && svc && !ownPlus(who) && coParentOf(who, user.uid)) {
       // A co-parent: plusVia is a student whose parents include both of them
       familyPlus = await Promise.all([fsGet(svc, `users/${who.plusVia}`), fsGet(svc, `users/${who.plusFrom}`)])
         .then(([s, p]) => parentsOfRec(s).includes(user.uid) && parentsOfRec(s).includes(who.plusFrom) && isPlusRecord(p))
         .catch(() => false);
     }
     if (who) who._familyPlus = familyPlus;   // (shown in usage as "plus (family)")
-    const isPlus = isAdmin || who?.tier === 'plus' || who?.plan === 'plus' || familyPlus;
+    const isPlus = isAdmin || ownPlus(who) || familyPlus;
     let onTrial = false;
     if (task.needsPlus && user) {
       const allowed = who ? isPlus : await hasPlus(user, token);
@@ -294,7 +320,9 @@ function coParentOf(who, uid) {
 }
 const parentsOfRec = d => [d?.parentUid, ...(d?.guardianIds || [])].filter(Boolean);
 // (an admin's children are covered too)
-const isPlusRecord = d => !!d && (d.tier === 'plus' || d.plan === 'plus' || rolesOf(d).has('admin'));
+// Plus of their own: tier 'plus' (until plusUntil, if an admin gave it for a set time)
+const ownPlus = d => !!d && ((d.tier === 'plus' && !(Number(d.plusUntil) > 0 && Number(d.plusUntil) <= Date.now())) || d.plan === 'plus');
+const isPlusRecord = d => !!d && (ownPlus(d) || rolesOf(d).has('admin'));
 
 /* ── Plus or admin? Read the user's own record (their token lets them) ── */
 async function hasPlus(user, token) {
@@ -308,7 +336,9 @@ async function hasPlus(user, token) {
   if (!f) return false;
   const roles = (f.roles?.arrayValue?.values || []).map(v => v.stringValue);
   if (f.role?.stringValue) roles.push(f.role.stringValue);
-  if (f.tier?.stringValue === 'plus' || f.plan?.stringValue === 'plus' || roles.includes('admin')) return true;
+  const restPlus = x => (x?.tier?.stringValue === 'plus' && !(Number(x?.plusUntil?.integerValue ?? x?.plusUntil?.doubleValue) > 0
+    && Number(x?.plusUntil?.integerValue ?? x?.plusUntil?.doubleValue) <= Date.now())) || x?.plan?.stringValue === 'plus';
+  if (restPlus(f) || roles.includes('admin')) return true;
   // Covered by a parent's Plus (students can read their parents' records),
   // or as a co-parent through a student both parents look after
   const from = f.plusFrom?.stringValue;
@@ -323,7 +353,7 @@ async function hasPlus(user, token) {
   }
   const p = await read(from).catch(() => null);
   const pRoles = (p?.roles?.arrayValue?.values || []).map(v => v.stringValue).concat(p?.role?.stringValue || []);
-  return !!p && (p.tier?.stringValue === 'plus' || p.plan?.stringValue === 'plus' || pRoles.includes('admin'));
+  return !!p && (restPlus(p) || pRoles.includes('admin'));
 }
 
 /* ── Does a link load? ── */
@@ -369,7 +399,7 @@ async function readPages(env, user, urls) {
     const tok = await serviceToken(env);
     const who = await fsGet(tok, `users/${user.uid}`);
     const r = rolesOf(who);
-    const ok = user.uid === OWNER_UID || r.has('admin') || r.has('parent') || r.has('teacher') || who?.tier === 'plus';
+    const ok = user.uid === OWNER_UID || r.has('admin') || r.has('parent') || r.has('teacher') || ownPlus(who);
     if (!ok) throw oops(403, 'Making revision from a web page is for parents and teachers');
     const rl = `rateLimits/readpage_${user.uid}_${londonDay()}`;
     const seen = await fsGet(tok, rl);
@@ -681,7 +711,8 @@ async function deleteAccount(env, caller, uid, checkOnly) {
   }
   if (checkOnly) return { ok: true, check: true };
 
-  const writes = [];
+  // A paid Plus subscription is cancelled first (stops here if Stripe says no)
+  const writes = await cancelBillingFor(env, tok, uid);
   // Their record, and the things only they had
   if (target) writes.push(del(`users/${uid}`));
   if (target?.email) writes.push(del(`emailIndex/${String(target.email).trim().toLowerCase()}`));
@@ -767,7 +798,7 @@ async function recordUsage(tok, user, who, day, task, model, input, output) {
     update: { name, fields: {
       uid: { stringValue: user.uid }, day: { stringValue: day },
       name: { stringValue: String(who?.name || '').slice(0, 80) }, email: { stringValue: String(who?.email || user.email || '').slice(0, 120) },
-      plan: { stringValue: who?.tier === 'plus' || who?.plan === 'plus' ? 'plus' : who?._familyPlus ? 'plus (family)' : 'free' },
+      plan: { stringValue: ownPlus(who) ? 'plus' : who?._familyPlus ? 'plus (family)' : 'free' },
       lastAt: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 90 * 86400000)),
     } },
     updateMask: { fieldPaths: ['uid', 'day', 'name', 'email', 'plan', 'lastAt', 'expireAt'] },
@@ -882,4 +913,256 @@ async function storageSweep(env, dryRun) {
     }
   }
   return { ok: true, dryRun, stored: objects.length, inUse: objects.length - unused.length, unused: unused.length, unusedBytes: bytes, deleted, more: unused.length > 500 };
+}
+
+/* ============================================================
+   Paying for Plus (Stripe)
+   The dev site (carygibbs.com) uses Stripe's test mode, the live site
+   (lobelimpet.com) live mode; each has its own price, payments switch and
+   billing records (billingTest / billing). Stripe tells us about payments
+   through the webhook; we then read the subscription fresh from Stripe and
+   copy where it stands, so repeated or out-of-order events do no harm.
+   ============================================================ */
+const STRIPE_API = 'https://api.stripe.com/v1';
+const LIVE_ORIGINS = ['https://lobelimpet.com', 'https://www.lobelimpet.com'];
+const PAID_STATES = ['active', 'cancelling', 'past_due'];
+const stripeCfg = mode => mode === 'live'
+  ? { key: 'STRIPE_SECRET_KEY_LIVE', whsec: 'STRIPE_WEBHOOK_SECRET_LIVE', product: 'STRIPE_PRODUCT_ID_LIVE', billing: 'billing', pricing: 'settings/pricing', payments: 'settings/payments' }
+  : { key: 'STRIPE_SECRET_KEY_TEST', whsec: 'STRIPE_WEBHOOK_SECRET_TEST', product: 'STRIPE_PRODUCT_ID_TEST', billing: 'billingTest', pricing: 'settings/pricingDev', payments: 'settings/paymentsDev' };
+const gbpText = p => '£' + (p % 100 ? (p / 100).toFixed(2) : String(p / 100));
+
+// Stripe's API takes form fields: a[b][0][c]=x
+function formEncode(obj, prefix = '', out = []) {
+  for (const [k, v] of Object.entries(obj || {})) {
+    if (v === undefined || v === null || v === '') continue;
+    const key = prefix ? `${prefix}[${k}]` : k;
+    if (typeof v === 'object') formEncode(v, key, out);
+    else out.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(v))}`);
+  }
+  return out.join('&');
+}
+async function stripeApi(env, mode, method, path, params) {
+  const name = stripeCfg(mode).key;
+  if (!env[name]) throw oops(503, `Payments aren't set up yet (${name} is missing on the Worker)`);
+  const q = params ? formEncode(params) : '';
+  const r = await fetch(`${STRIPE_API}/${path}${method === 'GET' && q ? '?' + q : ''}`, {
+    method, headers: { Authorization: `Bearer ${env[name]}`, ...(method === 'GET' ? {} : { 'Content-Type': 'application/x-www-form-urlencoded' }) },
+    body: method === 'GET' ? undefined : q,
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw oops(r.status >= 500 ? 502 : 400, `Stripe: ${d.error?.message || `error ${r.status}`}`);
+  return d;
+}
+
+// Plain values → Firestore REST values
+function fsVal(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(fsVal) } };
+  if (typeof v === 'object') return { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fsVal(x)])) } };
+  return { stringValue: String(v) };
+}
+const fsSetDoc = (path, obj) => ({ update: { name: `${DOCS}/${path}`, fields: fsVal(obj).mapValue.fields } });
+
+// An entry in the activity log, written here
+async function workerLog(tok, uid, who, action, detail) {
+  const now = new Date();
+  const id = crypto.randomUUID().replace(/-/g, '').slice(0, 20);
+  await fsCommit(tok, [{ update: { name: `${DOCS}/logs/${id}`, fields: {
+    ts: { integerValue: String(now.getTime()) }, at: tsv(now),
+    uid: { stringValue: uid }, name: { stringValue: String(who?.name || who?.email || '').slice(0, 120) },
+    role: { stringValue: [...rolesOf(who)][0] || 'account' },
+    action: { stringValue: action }, cat: { stringValue: action.split('.')[0] },
+    target: { stringValue: String(who?.name || who?.email || '').slice(0, 120) }, targetId: { stringValue: uid },
+    detail: { stringValue: String(detail || '').slice(0, 160) },
+    expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
+  } }, currentDocument: { exists: false } }]).catch(e => console.warn('Log not saved:', e.message));
+}
+
+// Where Stripe sends people back to: a page on one of our own sites
+function safeReturn(raw, origin) {
+  try {
+    const u = new URL(String(raw || ''));
+    if (ALLOWED_ORIGINS.includes(u.origin)) { u.search = ''; u.hash = ''; return u.toString(); }
+  } catch (e) { /* not a web address */ }
+  return (ALLOWED_ORIGINS.includes(origin) ? origin : 'https://lobelimpet.com') + '/';
+}
+
+async function billingAction(env, user, body, origin) {
+  const mode = LIVE_ORIGINS.includes(origin) ? 'live' : 'test';
+  const c = stripeCfg(mode);
+  const tok = await serviceToken(env);
+  const who = await fsGet(tok, `users/${user.uid}`);
+  if (!who) throw oops(403, 'No account found');
+  const roles = rolesOf(who);
+  const isAdmin = user.uid === OWNER_UID || roles.has('admin');
+  const back = safeReturn(body.returnTo, origin);
+
+  // ── Setting the price (admins): a new Stripe price on the Plus product ──
+  if (body.action === 'billingPrice') {
+    if (!isAdmin) throw oops(403, 'Admins only');
+    const pence = Math.round(Number(body.amountPence));
+    if (!Number.isInteger(pence) || pence < 100 || pence > 50000) throw oops(400, 'Choose a price between £1 and £500');
+    const planName = String(body.planName || '').replace(/\s+/g, ' ').trim().slice(0, 40) || 'Plus';
+    const product = env[c.product];
+    if (!product) throw oops(503, `Payments aren't set up yet (${c.product} is missing on the Worker)`);
+    const cur = await fsGet(tok, c.pricing) || {};
+    const productName = /lobe limpet/i.test(planName) ? planName : `Lobe Limpet ${planName}`;
+    const now = Date.now();
+    let priceId = cur.priceId || '';
+    let history = Array.isArray(cur.history) ? cur.history : [];
+    if (!priceId || Number(cur.amountPence) !== pence) {
+      // Stripe prices can't be changed: make a new one. People already
+      // subscribed stay on the price they signed up at.
+      const price = await stripeApi(env, mode, 'POST', 'prices', {
+        product, currency: 'gbp', unit_amount: pence, recurring: { interval: 'year' },
+        nickname: `${planName} ${gbpText(pence)} a year`, metadata: { setBy: user.uid },
+      });
+      history = history.map(h => h.priceId === priceId && !h.to ? { ...h, to: now } : h);
+      history.push({ priceId: price.id, amountPence: pence, planName, from: now, by: String(who.name || user.email || '').slice(0, 80) });
+      priceId = price.id;
+      await stripeApi(env, mode, 'POST', `products/${product}`, { name: productName, default_price: priceId });
+    } else {
+      await stripeApi(env, mode, 'POST', `products/${product}`, { name: productName });
+    }
+    await fsCommit(tok, [fsSetDoc(c.pricing, {
+      planName, amountPence: pence, currency: 'gbp', interval: 'year', priceId, mode,
+      updatedAt: now, updatedBy: String(who.name || user.email || '').slice(0, 80), history: history.slice(-50),
+    })]);
+    await workerLog(tok, user.uid, who, 'admin.settings', `Plus price: ${planName}, ${gbpText(pence)} a year${mode === 'test' ? ' (dev, test mode)' : ''}`);
+    return { ok: true, priceId, amountPence: pence, planName };
+  }
+
+  // ── "Manage billing": Stripe's own page for their subscription ──
+  if (body.action === 'billingPortal') {
+    const b = await fsGet(tok, `${c.billing}/${user.uid}`);
+    if (!b?.customerId) throw oops(404, "There's no billing account for you yet");
+    const s = await stripeApi(env, mode, 'POST', 'billing_portal/sessions', { customer: b.customerId, return_url: back });
+    return { url: s.url };
+  }
+
+  // ── Buying Plus: a Stripe checkout page ──
+  const [payments, pricing, billing] = await Promise.all([
+    fsGet(tok, c.payments), fsGet(tok, c.pricing), fsGet(tok, `${c.billing}/${user.uid}`),
+  ]);
+  const open = payments?.mode === 'on' || (payments?.mode === 'admins' && isAdmin);
+  if (!open) throw oops(403, "Payments aren't open yet");
+  if (!(roles.has('parent') || roles.has('teacher') || isAdmin)) throw oops(403, 'Ask a parent or guardian to get Plus. One Plus covers the whole family.');
+  if (billing && PAID_STATES.includes(billing.state)) throw oops(409, 'You already have Plus. Use Manage billing to change it.');
+  if (!pricing?.priceId) throw oops(503, "Plus can't be bought yet: no price has been set");
+  const meta = { uid: user.uid, accountNo: who.accountNo || '' };
+  const sub = { metadata: meta };
+  // Free Plus from an admin still running: no charge until it ends
+  // (Stripe needs that to be at least 2 days away)
+  const until = Number(who.plusUntil) || 0;
+  if (who.tier === 'plus' && who.tierSource !== 'stripe' && until > Date.now() + 49 * 3600000) sub.trial_end = Math.floor(until / 1000);
+  const site = back.replace(/[^/]*$/, '');
+  const plan = pricing.planName || 'Plus';
+  const params = {
+    mode: 'subscription',
+    line_items: [{ price: pricing.priceId, quantity: 1 }],
+    client_reference_id: user.uid, metadata: meta, subscription_data: sub,
+    billing_address_collection: 'required', allow_promotion_codes: 'true',
+    consent_collection: { terms_of_service: 'required' },
+    custom_text: { terms_of_service_acceptance: { message: `I agree to the [Terms of use](${site}terms.html). ${plan} starts straight away: I understand I lose my 14-day right to cancel once I start using it.` } },
+    success_url: back + '?paid=1', cancel_url: back + '?paid=0',
+  };
+  if (billing?.customerId) params.customer = billing.customerId;
+  else params.customer_email = who.email || user.email || undefined;
+  const s = await stripeApi(env, mode, 'POST', 'checkout/sessions', params);
+  return { url: s.url };
+}
+
+// Stripe-Signature: t=timestamp,v1=hex HMAC-SHA256 of "t.body" (within 5 minutes)
+async function stripeSigOK(raw, header, secret) {
+  let t = '', sigs = [];
+  header.split(',').forEach(p => { const [k, v] = p.split('='); if (k === 't') t = v; if (k === 'v1' && v) sigs.push(v); });
+  if (!t || !sigs.length || Math.abs(Date.now() / 1000 - Number(t)) > 300) return false;
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = [...new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(`${t}.${raw}`)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  return sigs.some(s => s.length === mac.length && [...s].reduce((d, ch, i) => d | (ch.charCodeAt(0) ^ mac.charCodeAt(i)), 0) === 0);
+}
+
+async function stripeWebhook(request, env, mode) {
+  const text = (status, msg) => new Response(msg, { status, headers: { 'Content-Type': 'text/plain' } });
+  if (request.method !== 'POST') return text(405, 'Use POST');
+  const secret = env[stripeCfg(mode).whsec];
+  if (!secret) return text(500, `${stripeCfg(mode).whsec} is missing on the Worker`);
+  const raw = await request.text();
+  if (!(await stripeSigOK(raw, request.headers.get('Stripe-Signature') || '', secret))) return text(400, 'Bad signature');
+  let ev;
+  try { ev = JSON.parse(raw); } catch (e) { return text(400, 'Bad JSON'); }
+  const o = ev.data?.object || {};
+  let subId = null, uidHint = null;
+  if (o.object === 'subscription') subId = o.id;
+  else if (o.object === 'checkout.session') { subId = o.subscription; uidHint = o.client_reference_id || o.metadata?.uid || null; }
+  else if (o.object === 'invoice') subId = o.subscription || o.parent?.subscription_details?.subscription || o.lines?.data?.[0]?.subscription || null;
+  if (subId && typeof subId === 'object') subId = subId.id;
+  if (!subId) return text(200, `Nothing to do for ${ev.type}`);
+  try { await syncSubscription(env, mode, subId, uidHint); }
+  catch (e) { console.warn('Stripe sync failed:', e.message); return text(500, 'Sync failed: ' + e.message); }   // Stripe will try again
+  return text(200, 'ok');
+}
+
+// Copy where a subscription stands to billing(Test)/{uid}, and switch Plus on or off
+async function syncSubscription(env, mode, subId, uidHint) {
+  const c = stripeCfg(mode);
+  const sub = await stripeApi(env, mode, 'GET', `subscriptions/${subId}`);
+  const tok = await serviceToken(env);
+  const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id || '';
+  let uid = sub.metadata?.uid || uidHint;
+  if (!uid && customerId) uid = (await fsQuery(tok, c.billing, 'customerId', 'EQUAL', customerId))[0]?.id;
+  if (!uid) throw oops(400, `No account for subscription ${subId}`);
+  const [who, cur] = await Promise.all([fsGet(tok, `users/${uid}`), fsGet(tok, `${c.billing}/${uid}`)]);
+  if (!who) return;   // the account has been deleted
+  // An older subscription ending doesn't touch a newer one that's running
+  if (cur?.subscriptionId && cur.subscriptionId !== sub.id && PAID_STATES.includes(cur.state) && !['active', 'trialing', 'past_due'].includes(sub.status)) return;
+  const item = sub.items?.data?.[0] || {};
+  const base = { active: 'active', trialing: 'active', past_due: 'past_due', canceled: 'ended', unpaid: 'ended', incomplete_expired: 'ended', paused: 'ended' }[sub.status] || 'pending';
+  const state = base === 'active' && (sub.cancel_at_period_end || sub.cancel_at) ? 'cancelling' : base;
+  const rec = {
+    uid, mode, customerId, subscriptionId: sub.id, status: sub.status, state,
+    currentPeriodEnd: (Number(sub.current_period_end || item.current_period_end) || 0) * 1000,
+    cancelAt: (Number(sub.cancel_at) || 0) * 1000, cancelAtPeriodEnd: !!sub.cancel_at_period_end,
+    trialEnd: (Number(sub.trial_end) || 0) * 1000,
+    priceId: item.price?.id || '', amountPence: Number(item.price?.unit_amount) || 0,
+    accountNo: who.accountNo || sub.metadata?.accountNo || '',
+    name: String(who.name || '').slice(0, 80), email: String(who.email || '').slice(0, 120),
+    startedAt: cur?.subscriptionId === sub.id && cur.startedAt ? cur.startedAt : (Number(sub.start_date) || 0) * 1000,
+    updatedAt: Date.now(),
+  };
+  const writes = [fsSetDoc(`${c.billing}/${uid}`, rec)];
+  const userDoc = `${DOCS}/users/${uid}`;
+  if (PAID_STATES.includes(state)) {
+    // Paid Plus: replaces any free Plus an admin gave (and its end date)
+    writes.push({ update: { name: userDoc, fields: { tier: { stringValue: 'plus' }, tierSource: { stringValue: 'stripe' } } },
+      updateMask: { fieldPaths: ['tier', 'tierSource', 'plusUntil', 'plusNote'] }, currentDocument: { exists: true } });
+  } else if (state === 'ended' && who.tierSource === 'stripe') {
+    // Only Plus that was paid for is taken away; Plus an admin gave stays
+    writes.push({ update: { name: userDoc, fields: { tier: { stringValue: 'free' } } },
+      updateMask: { fieldPaths: ['tier', 'tierSource'] }, currentDocument: { exists: true } });
+  }
+  await fsCommit(tok, writes);
+  if (!cur || cur.state !== state || cur.subscriptionId !== sub.id) {
+    const words = { active: 'Paid Plus is on', cancelling: 'Cancelled: Plus continues to the end of the paid year', past_due: "Payment didn't go through: Plus continues while Stripe retries", ended: 'Paid Plus ended', pending: 'Payment started' }[state];
+    await workerLog(tok, uid, who, 'account.billing', `${words} (${gbpText(rec.amountPence)} a year${mode === 'test' ? ', test mode' : ''})`);
+  }
+}
+
+// Deleting an account: stop its subscriptions so nobody is charged for an account that's gone
+async function cancelBillingFor(env, tok, uid) {
+  const writes = [];
+  for (const mode of ['test', 'live']) {
+    const c = stripeCfg(mode);
+    const b = await fsGet(tok, `${c.billing}/${uid}`);
+    if (!b) continue;
+    if (b.subscriptionId && b.state !== 'ended') {
+      try { await stripeApi(env, mode, 'DELETE', `subscriptions/${b.subscriptionId}`); }
+      catch (e) { if (!/No such subscription|canceled/i.test(e.message)) throw oops(502, `Their Plus subscription couldn't be cancelled, so nothing was deleted. ${e.message}`); }
+    }
+    writes.push(del(`${c.billing}/${uid}`));
+  }
+  return writes;
 }
