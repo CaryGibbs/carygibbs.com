@@ -7,7 +7,8 @@
 //   final    🔥  the last few days before an exam
 // In "auto" the level follows the next exam date: steady until three
 // weeks out, push for the final two weeks, final in the last three
-// days, and back to relaxed the day after the exams end.
+// days, and back to relaxed the day after the exams end. During a run of
+// exams it stays at push while papers are still to come.
 // Saved on the student's record:
 //   plan = { mode, exams:[{ id, name, start:'YYYY-MM-DD', end, packId,
 //                           subjectId, subjectPackId }],   (subject: one paper)
@@ -18,9 +19,9 @@
 // Targets can be changed by an admin (settings/plans).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261115j';
+import { db } from './firebase-config.js?v=20261116a';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { dueEntries } from './srs.js?v=20261115j';
+import { dueEntries } from './srs.js?v=20261116a';
 
 export const LEVEL_DEFAULTS = {
   relaxed: { label: 'Relaxed',   emoji: '🌱', mins: 15, quizzes: 1, reviews: false, either: true,  days: 4, blurb: 'A little and often' },
@@ -97,7 +98,12 @@ export function levelFor(profile, day = isoDay()) {
   const ex = examRun(profile, day);
   if (!ex) return 'relaxed';
   const to = daysBetween(day, ex.start);
-  if (to <= 0) return 'steady';          // during the exams: lighter, revise between papers
+  if (to <= 0) {
+    // During the exams: keep pushing while papers are still to come
+    // (Monday's paper shouldn't drop Friday's revision), then ease off.
+    if (ex.exams.some(e => e.start > day)) return 'push';
+    return ex.end > day ? 'steady' : 'relaxed';   // a span with no paper dates, or the last day
+  }
   if (to <= 3) return 'final';
   if (to <= 14) return 'push';
   return 'steady';

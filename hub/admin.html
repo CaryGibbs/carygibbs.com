@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261115j"></script>
+  <script src="dev-flag.js?v=20261116a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261115j">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261115j">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261115j">
-  <link rel="manifest" href="manifest.webmanifest?v=20261115j">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261116a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261115j">
-  <script src="icons.js?v=20261115j"></script>
+  <link rel="stylesheet" href="theme.css?v=20261116a">
+  <script src="icons.js?v=20261116a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -634,8 +634,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261115j">
-  <link rel="stylesheet" href="stats.css?v=20261115j">
+  <link rel="stylesheet" href="ui.css?v=20261116a">
+  <link rel="stylesheet" href="stats.css?v=20261116a">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1449,34 +1449,34 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261115j';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261115j';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261115j';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261115j';
-import { syncFamilyPlus } from './family-plus.js?v=20261115j';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261115j';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261115j';
-import { openDeleteAccount } from './account.js?v=20261115j';
-import { addDocumentButton } from './doc-text.js?v=20261115j';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261115j';
-import { showPlusUpsell } from './plus.js?v=20261115j';
-import { offerGivePack } from './first-steps.js?v=20261115j';
+import { auth, db, storage } from './firebase-config.js?v=20261116a';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261116a';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261116a';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261116a';
+import { syncFamilyPlus } from './family-plus.js?v=20261116a';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261116a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261116a';
+import { openDeleteAccount } from './account.js?v=20261116a';
+import { addDocumentButton } from './doc-text.js?v=20261116a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261116a';
+import { showPlusUpsell } from './plus.js?v=20261116a';
+import { offerGivePack } from './first-steps.js?v=20261116a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261115j';
-import { mountShell } from './shell.js?v=20261115j';
-import { openInviteDialog, signupLink } from './invite.js?v=20261115j';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261115j';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261115j';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261115j';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261115j';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261115j';
-import { dueEntries } from './srs.js?v=20261115j';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261115j';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261115j';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261116a';
+import { mountShell } from './shell.js?v=20261116a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261116a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261116a';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261116a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261116a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261116a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261116a';
+import { dueEntries } from './srs.js?v=20261116a';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261116a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261116a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1492,8 +1492,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261115j';
-import { inOrder } from './order.js?v=20261115j';
+import { saveEmailIndex } from './email-index.js?v=20261116a';
+import { inOrder } from './order.js?v=20261116a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4841,6 +4841,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261115j"></script>
+<script src="site.js?v=20261116a"></script>
 </body>
 </html>
