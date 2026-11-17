@@ -23,6 +23,9 @@
 //                       only parent (the one who made the account), or an admin (only the owner can delete admins)
 //   action 'logSignedOut'   log a failed sign-in or password reset  anyone (no sign-in),
 //                       at most 30 a day from one internet address
+//   action 'setPassword'  give someone a new password       admins (only the owner for
+//                       other admins; never the owner's), or the parent or
+//                       teacher who made a student's account
 //   action 'billingCheckout'  a Stripe checkout link for Plus     parents, teachers, admins,
 //                       when Admin → Settings → Payments allows it
 //   action 'billingPortal'    Stripe's "Manage billing" page      anyone with a subscription
@@ -142,6 +145,13 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await deleteAccount(env, user, String(body.uid || ''), !!body.check)); }
       catch (e) { return fail(e.status || 500, e.message || 'Could not delete the account'); }
+    }
+
+    // ── Setting someone's password ──
+    if (body.action === 'setPassword') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await setPassword(env, user, String(body.uid || ''), String(body.password || ''))); }
+      catch (e) { return fail(e.status || 500, e.message || "The password couldn't be changed"); }
     }
 
     // ── Paying for Plus (Stripe) ──
@@ -966,7 +976,7 @@ function fsVal(v) {
 const fsSetDoc = (path, obj) => ({ update: { name: `${DOCS}/${path}`, fields: fsVal(obj).mapValue.fields } });
 
 // An entry in the activity log, written here
-async function workerLog(tok, uid, who, action, detail) {
+async function workerLog(tok, uid, who, action, detail, about = null) {
   const now = new Date();
   const id = crypto.randomUUID().replace(/-/g, '').slice(0, 20);
   await fsCommit(tok, [{ update: { name: `${DOCS}/logs/${id}`, fields: {
@@ -974,7 +984,7 @@ async function workerLog(tok, uid, who, action, detail) {
     uid: { stringValue: uid }, name: { stringValue: String(who?.name || who?.email || '').slice(0, 120) },
     role: { stringValue: [...rolesOf(who)][0] || 'account' },
     action: { stringValue: action }, cat: { stringValue: action.split('.')[0] },
-    target: { stringValue: String(who?.name || who?.email || '').slice(0, 120) }, targetId: { stringValue: uid },
+    target: { stringValue: String(about?.name || who?.name || who?.email || '').slice(0, 120) }, targetId: { stringValue: about?.id || uid },
     detail: { stringValue: String(detail || '').slice(0, 160) },
     expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
   } }, currentDocument: { exists: false } }]).catch(e => console.warn('Log not saved:', e.message));
@@ -1165,4 +1175,41 @@ async function cancelBillingFor(env, tok, uid) {
     writes.push(del(`${c.billing}/${uid}`));
   }
   return writes;
+}
+
+/* ============================================================
+   Setting someone's password (Admin → Users, Manage student, class list).
+   Admins: anyone but the owner (other admins only by the owner).
+   Parents and teachers: only a student account they made themselves
+   (parentUid / teacherUid), and only if it's a student account and nothing else.
+   ============================================================ */
+async function setPassword(env, caller, uid, password) {
+  if (!uid) throw oops(400, 'No account given');
+  if (password.length < 8 || password.length > 128) throw oops(400, 'Use a password of at least 8 characters');
+  if (uid === caller.uid) throw oops(400, 'To change your own password, use Account settings → Email me a reset link');
+  if (uid === OWNER_UID) throw oops(403, "The owner's password can't be changed here");
+  const tok = await serviceToken(env);
+  const [target, me] = await Promise.all([fsGet(tok, `users/${uid}`), fsGet(tok, `users/${caller.uid}`)]);
+  if (!target) throw oops(404, 'No account found');
+  const isAdmin = caller.uid === OWNER_UID || rolesOf(me).has('admin');
+  const tRoles = rolesOf(target);
+  const studentOnly = tRoles.size === 1 && tRoles.has('student');
+  if (isAdmin) {
+    if (tRoles.has('admin') && caller.uid !== OWNER_UID) throw oops(403, "Only the owner can change another admin's password");
+  } else if (!(studentOnly && (target.parentUid === caller.uid || target.teacherUid === caller.uid))) {
+    throw oops(403, 'Only the person who made this account (or an admin) can set its password. Send a reset link instead.');
+  }
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:update`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ localId: uid, password }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    if (/WEAK_PASSWORD/.test(t)) throw oops(400, 'That password is too weak. Try a longer one.');
+    if (/USER_NOT_FOUND/.test(t)) throw oops(404, "That account doesn't have a sign-in");
+    throw oops(500, `The password couldn't be changed (${r.status})`);
+  }
+  await workerLog(tok, caller.uid, me, 'account.password', `Set a new password for ${String(target.name || target.email || 'an account').slice(0, 80)}`,
+    { name: target.name || target.email || '', id: uid });
+  return { ok: true };
 }

@@ -68,29 +68,32 @@
     foot.outerHTML = '<footer class="site-foot"><div class="wrap"><div class="foot-grid">' +
       '<div>' + BRAND + '<p class="foot-blurb">Snap a revision list and get everything needed to revise it.</p></div>' +
       '<div><h4>Lobe Limpet</h4><ul><li><a href="./">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li></ul></div>' +
-      '<div><h4>Support</h4><ul><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li><li><a href="about.html">About</a></li><li><a href="press.html">Press and brand</a></li><li><a href="login.html" id="foot-signin">Sign in</a></li></ul></div>' +
-      '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy</a></li><li><a href="terms.html">Terms</a></li></ul></div>' +
+      '<div><h4>Get started</h4><ul><li><a href="login.html?signup=' + signupType + '" id="foot-signup">Sign up free</a></li><li><a href="login.html" id="foot-signin">Sign in</a></li><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li></ul></div>' +
+      '<div><h4>Company</h4><ul><li><a href="about.html">About us</a></li><li><a href="press.html">Press and brand</a></li><li><a data-email></a></li></ul></div>' +
+      '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy notice</a></li><li><a href="terms.html">Terms of use</a></li></ul></div>' +
       '</div><div class="foot-base"><span>© ' + YEAR + ' Lobe Limpet</span><span>Made in the UK</span></div></div></footer>';
   }
 
   // ── Slim footer (signed-in app pages) ───────────────────
-  if (!head && !foot) {
+  if (!head && !foot && page !== 'login.html') {
     var css = document.createElement('style');
     css.textContent =
       '.ll-slimfoot{position:relative;z-index:1;margin:40px auto 24px;padding:16px;text-align:center;font-family:var(--font-ui,Inter,system-ui,sans-serif);font-size:0.82rem;color:var(--color-text-faint,#888);}' +
       '.ll-slimfoot a{color:var(--color-text-muted,#666);text-decoration:none;margin:0 8px;}' +
       '.ll-slimfoot a:hover{color:var(--color-primary,#ff7a59);text-decoration:underline;}' +
-      '.ll-slimfoot .ll-tag{display:block;margin-top:6px;}';
+      '.ll-slimfoot .ll-tag{display:block;margin-top:6px;}' +
+      '.ll-slimfoot .ll-row{margin:2px 0;line-height:1.9;}.ll-slimfoot .ll-small{font-size:0.76rem;}.ll-slimfoot .ll-small a{color:var(--color-text-faint,#999);}';
     document.head.appendChild(css);
     var mount = function () {
       if (document.querySelector('.ll-slimfoot')) return;
       var el = document.createElement('footer');
       el.className = 'll-slimfoot';
       // "My home" is the person's own home in the app (hub, or their
-      // parent/teacher/admin page); "Website" is the public front page.
-      // The sign-in page has no "My home" yet.
-      var homeLink = page === 'login.html' ? '' : '<a href="' + myHome + '"><strong>My home</strong></a>·';
-      el.innerHTML = homeLink + '<a href="./">Lobe Limpet website</a>·<a href="plus.html">Pricing</a>·<a href="help.html">Help</a>·<a href="contact.html">Contact</a>·<a href="about.html">About</a>·<a href="privacy.html">Privacy</a>·<a href="terms.html">Terms</a>' +
+      // parent/teacher/admin page). Website pages open in a new tab so
+      // nothing in the app (a quiz, an unsaved form) is lost.
+      var w = function (href, text) { return '<a href="' + href + '" target="_blank" rel="noopener">' + text + '</a>'; };
+      el.innerHTML = '<div class="ll-row"><a href="' + myHome + '"><strong>My home</strong></a>·' + w('help.html', 'Help &amp; FAQs') + '·' + w('contact.html', 'Contact us') + '·' + w('plus.html', 'Pricing') + '·' + w('./', 'Lobe Limpet website ↗') + '</div>' +
+        '<div class="ll-row ll-small">' + w('about.html', 'About us') + '·' + w('press.html', 'Press and brand') + '·' + w('privacy.html', 'Privacy') + '·' + w('terms.html', 'Terms') + '</div>' +
         '<span class="ll-tag">© ' + YEAR + ' Lobe Limpet · ' + TAGLINE + '</span>';
       (document.querySelector('main.main') || document.body).appendChild(el);
     };
@@ -110,7 +113,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261116b'),
+        import('./firebase-config.js?v=20261117a'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -121,6 +124,8 @@
           if (up) { up.textContent = 'Go to my home'; up.href = myHome; }
           var inBtn = document.getElementById('nav-btn');
           if (inBtn) inBtn.hidden = true;
+          var fu = document.getElementById('foot-signup');
+          if (fu) fu.parentNode.hidden = true;
           ['foot-signin', 'menu-signin'].forEach(function (id) {
             var b = document.getElementById(id);
             if (b) { b.textContent = 'My home'; b.href = myHome; }
@@ -134,13 +139,13 @@
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261116b';
+  hs.src = 'help-sheet.js?v=20261117a';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261116b';
+  pwa.src = 'pwa.js?v=20261117a';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

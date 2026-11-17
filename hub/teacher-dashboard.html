@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261116b"></script>
+  <script src="dev-flag.js?v=20261117a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261116b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261117a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261117a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261117a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261117a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261116b">
-  <script src="icons.js?v=20261116b"></script>
+  <link rel="stylesheet" href="theme.css?v=20261117a">
+  <script src="icons.js?v=20261117a"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -289,7 +289,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261116b">
+  <link rel="stylesheet" href="ui.css?v=20261117a">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -490,25 +490,26 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261116b';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261116b';
-  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261116b';
-  import { showPlusUpsell } from './plus.js?v=20261116b';
-  import { lastActive, lastActiveText } from './gamification.js?v=20261116b';
-  import { mountShell } from './shell.js?v=20261116b';
-  import { byOrder } from './order.js?v=20261116b';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261116b';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261116b';
-  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261116b';
-  import { logEvent } from './log.js?v=20261116b';
-  import { lobeyImg } from './lobey.js?v=20261116b';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261116b';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261116b';
-  import { app as firebaseApp } from './firebase-config.js?v=20261116b';
+  import { auth, db } from './firebase-config.js?v=20261117a';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261117a';
+  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261117a';
+  import { showPlusUpsell } from './plus.js?v=20261117a';
+  import { lastActive, lastActiveText } from './gamification.js?v=20261117a';
+  import { mountShell } from './shell.js?v=20261117a';
+  import { byOrder } from './order.js?v=20261117a';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261117a';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261117a';
+  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261117a';
+  import { logEvent } from './log.js?v=20261117a';
+  import { openPasswordHelp } from './password-help.js?v=20261117a';
+  import { lobeyImg } from './lobey.js?v=20261117a';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261117a';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261117a';
+  import { app as firebaseApp } from './firebase-config.js?v=20261117a';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261116b';
+  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261117a';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -889,6 +890,7 @@
           <div class="student-row-actions">
             <button class="btn btn-secondary" data-cards="${esc(uid)}" title="Flashcard sets they've made"><i data-icon="layers"></i> Flashcards</button>
             <button class="btn btn-secondary" data-view-as="${esc(uid)}" title="Open their hub in a new window"><i data-icon="eye"></i> View as</button>
+            <button class="btn btn-secondary" data-pw="${esc(uid)}" title="Email a reset link, or set a new password"><i data-icon="key-round"></i> Password</button>
             <button class="btn btn-ghost" data-remove="${esc(uid)}" title="Remove from this class">Remove</button>
           </div>
         </div>`;
@@ -896,6 +898,12 @@
     list.querySelectorAll('[data-view-as]').forEach(b => b.onclick = () => openViewAs(b.dataset.viewAs));
     list.querySelectorAll('[data-cards]').forEach(b => b.onclick = () => showStudentCards(b.dataset.cards));
     list.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => removeFromClass(b.dataset.remove));
+    // Password help: anyone gets a reset link; setting one works for accounts this teacher made (the Worker checks)
+    list.querySelectorAll('[data-pw]').forEach(b => b.onclick = () => {
+      const st = activeClassStudents[b.dataset.pw] || {};
+      openPasswordHelp({ uid: b.dataset.pw, name: st.name || '', email: st.email || '',
+        note: 'You can set a new password for students whose accounts you made. For others, send a reset link.' });
+    });
     loadSharedSets(classId);
   }
 
@@ -1328,6 +1336,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261116b"></script>
+<script src="site.js?v=20261117a"></script>
 </body>
 </html>

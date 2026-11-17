@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261116b"></script>
+  <script src="dev-flag.js?v=20261117a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261116b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261117a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261117a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261117a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261117a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261116b">
-  <script src="icons.js?v=20261116b"></script>
+  <link rel="stylesheet" href="theme.css?v=20261117a">
+  <script src="icons.js?v=20261117a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -645,8 +645,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261116b">
-  <link rel="stylesheet" href="stats.css?v=20261116b">
+  <link rel="stylesheet" href="ui.css?v=20261117a">
+  <link rel="stylesheet" href="stats.css?v=20261117a">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1526,35 +1526,36 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261116b';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261116b';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261116b';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261116b';
-import { syncFamilyPlus } from './family-plus.js?v=20261116b';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261116b';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261116b';
-import { openDeleteAccount } from './account.js?v=20261116b';
-import { addDocumentButton } from './doc-text.js?v=20261116b';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261116b';
-import { showPlusUpsell } from './plus.js?v=20261116b';
-import { offerGivePack } from './first-steps.js?v=20261116b';
+import { auth, db, storage } from './firebase-config.js?v=20261117a';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261117a';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261117a';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261117a';
+import { syncFamilyPlus } from './family-plus.js?v=20261117a';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261117a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261117a';
+import { openDeleteAccount } from './account.js?v=20261117a';
+import { openPasswordHelp } from './password-help.js?v=20261117a';
+import { addDocumentButton } from './doc-text.js?v=20261117a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261117a';
+import { showPlusUpsell } from './plus.js?v=20261117a';
+import { offerGivePack } from './first-steps.js?v=20261117a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261116b';
-import { mountShell } from './shell.js?v=20261116b';
-import { openInviteDialog, signupLink } from './invite.js?v=20261116b';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261116b';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261116b';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261116b';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261116b';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261116b';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261116b';
-import { dueEntries } from './srs.js?v=20261116b';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261116b';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261116b';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261117a';
+import { mountShell } from './shell.js?v=20261117a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261117a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261117a';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261117a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261117a';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261117a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261117a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261117a';
+import { dueEntries } from './srs.js?v=20261117a';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261117a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261117a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1570,8 +1571,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261116b';
-import { inOrder } from './order.js?v=20261116b';
+import { saveEmailIndex } from './email-index.js?v=20261117a';
+import { inOrder } from './order.js?v=20261117a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2277,6 +2278,14 @@ document.addEventListener('click', e => {
   if (action === 'student-tidy') { tidyStudentProgress(t.dataset.uid, t); return; }
   if (action === 'delete-user') { openDeleteAccount({ uid: t.dataset.uid, name: t.dataset.name, onDone: () => { showToast('Account deleted', 'success'); loadUsers(); } }); return; }
   if (action === 'edit-roles') { openRolesEditor(t.dataset.uid); return; }
+  if (action === 'pw-user') {
+    const u = usersCache.find(x => x.id === t.dataset.uid) || {};
+    const isAdminU = (Array.isArray(u.roles) ? u.roles : [u.role]).includes('admin');
+    const canSet = currentAdminUid === OWNER_UID || !isAdminU;
+    openPasswordHelp({ uid: u.id, name: u.name || '', email: u.email || '', canSet,
+      note: canSet ? '' : "Only the site owner can set another admin's password." });
+    return;
+  }
   if (action === 'save-roles') { saveRoles(t.dataset.uid); return; }
   if (action === 'cancel-roles') { document.querySelectorAll('.roles-editor-row').forEach(r => r.remove()); return; }
   if (close)  { closeModal(close); return; }
@@ -4997,6 +5006,8 @@ async function loadUsers() {
       <td class="actions">${student
         ? `<button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}"><i data-icon="eye"></i> View as</button>`
         : `<button class="btn btn-ghost btn-sm" data-action="edit-roles" data-uid="${esc(u.id)}"><i data-icon="pencil"></i> Roles</button>`}
+        ${u.id !== currentAdminUid && u.id !== OWNER_UID
+          ? `<button class="btn btn-ghost btn-sm" data-action="pw-user" data-uid="${esc(u.id)}" title="Password: email a reset link or set a new one"><i data-icon="key-round"></i></button>` : ''}
         ${u.id !== currentAdminUid && u.id !== OWNER_UID && (!roles.includes('admin') || currentAdminUid === OWNER_UID)
           ? `<button class="btn btn-ghost btn-sm" data-action="delete-user" data-uid="${esc(u.id)}" data-name="${esc(u.name || u.email || '')}" title="Delete this account"><i data-icon="trash-2"></i></button>` : ''}</td>
     </tr>`; }).join('')}</tbody>
@@ -5107,6 +5118,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261116b"></script>
+<script src="site.js?v=20261117a"></script>
 </body>
 </html>

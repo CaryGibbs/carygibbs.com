@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261116b"></script>
+  <script src="dev-flag.js?v=20261117a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign in — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261116b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261116b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261116b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261116b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261117a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261117a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261117a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261117a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261116b">
-  <script src="icons.js?v=20261116b"></script>
+  <link rel="stylesheet" href="theme.css?v=20261117a">
+  <script src="icons.js?v=20261117a"></script>
   <style>
     body { min-height:100vh; display:flex; flex-direction:column; background:var(--color-bg); overflow-x:hidden; }
     .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
@@ -58,14 +58,19 @@
     .invite-alt a { color:var(--color-primary); }
     .btn-submit.loading { opacity:0.7; pointer-events:none; }
     .btn-submit.loading::after { content:''; display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; margin-left:8px; vertical-align:middle; }
-    .auth-footer { text-align:center; margin-top:var(--space-lg); font-size:0.8rem; color:var(--color-text-faint); font-family:var(--font-ui); animation:fadeIn 0.6s 0.3s ease both; }
+    .auth-footer .af-row { margin: 4px 0; line-height: 1.8; }
+    .auth-footer .af-small { font-size: 0.75rem; opacity: 0.8; }
+    .auth-footer a { color: var(--color-text-muted); text-decoration: none; }
+    .auth-footer a:hover { color: var(--color-primary); text-decoration: underline; }
+    .auth-footer a strong { color: var(--color-primary); }
+    .auth-footer { max-width: 560px; margin-left: auto; margin-right: auto; text-align:center; margin-top:var(--space-lg); font-size:0.8rem; color:var(--color-text-faint); font-family:var(--font-ui); animation:fadeIn 0.6s 0.3s ease both; }
     .teacher-link { text-align:center; margin-top:var(--space-md); font-size:0.82rem; color:var(--color-text-muted); font-family:var(--font-ui); }
     .code-input { text-transform:uppercase; letter-spacing:0.15em; font-weight:700; font-family:var(--font-ui); }
     .pw-tools { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
   .pw-btn { background: none; border: 1px solid var(--color-border); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted); cursor: pointer; }
   .pw-btn:hover { color: var(--color-primary); border-color: var(--color-primary); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261116b">
+  <link rel="stylesheet" href="ui.css?v=20261117a">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -162,9 +167,13 @@
     </div>
   </div>
 
+  <!-- The website, for anyone who came straight to the sign-in page -->
   <div class="auth-footer">
-    <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy notice</a> · <a href="help.html">Help</a>
+    <p class="af-row"><a href="./"><strong>← Lobe Limpet website</strong></a> · <a href="./">For parents</a> · <a href="students.html">For students</a> · <a href="teachers.html">For teachers</a> · <a href="features.html">Features</a> · <a href="plus.html">Pricing</a></p>
+    <p class="af-row"><a href="help.html">Help &amp; FAQs</a> · <a href="contact.html">Contact us</a> · <a href="about.html">About us</a> · <a href="privacy.html">Privacy notice</a> · <a href="terms.html">Terms of use</a></p>
+    <p class="af-row af-small">© <span id="af-year"></span> Lobe Limpet · Knowledge that sticks.</p>
   </div>
+  <script>document.getElementById('af-year').textContent = new Date().getFullYear();</script>
 </div>
 
 <script>
@@ -178,8 +187,8 @@
 <script type="module">
 // Version of the Terms of use agreed at sign-up (users.terms.version); change when the terms change
 const TERMS_VERSION = '2026-11-13';
-  import { auth, db } from './firebase-config.js?v=20261116b';
-  import { redirectByRole, generatePassword } from './auth.js?v=20261116b';
+  import { auth, db } from './firebase-config.js?v=20261117a';
+  import { redirectByRole, generatePassword } from './auth.js?v=20261117a';
   // Password helpers: show/hide, and a memorable suggested password for new accounts
   document.querySelectorAll('[data-pw-show]').forEach(b => b.addEventListener('click', () => {
     const f = document.getElementById(b.dataset.pwShow);
@@ -194,10 +203,10 @@ const TERMS_VERSION = '2026-11-13';
     document.getElementById('pw-hint').textContent = 'Write this down or let your browser save it: you\'ll need it to sign in.';
     f.focus(); f.select();
   });
-  import { logEvent } from './log.js?v=20261116b';
-  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261116b';
-  import { findClass } from './join-class.js?v=20261116b';
-  import { saveEmailIndex } from './email-index.js?v=20261116b';
+  import { logEvent } from './log.js?v=20261117a';
+  import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261117a';
+  import { findClass } from './join-class.js?v=20261117a';
+  import { saveEmailIndex } from './email-index.js?v=20261117a';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     sendPasswordResetEmail, onAuthStateChanged, updateProfile, signOut
@@ -494,6 +503,6 @@ const TERMS_VERSION = '2026-11-13';
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261116b"></script>
+<script src="site.js?v=20261117a"></script>
 </body>
 </html>
