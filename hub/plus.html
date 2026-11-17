@@ -14,6 +14,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="site.css?v=20261116b">
+  <style>
+    .plan-card { display: flex; flex-direction: column; }
+    .plan-plus { border: 2px solid var(--coral, #ff7a59); }
+    .plan-action { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line, #e6ecef); font-size: 0.95rem; }
+    .plan-action p { margin: 0 0 8px; }
+    .plan-action .btn { margin-top: 4px; }
+    .plan-action textarea { margin-top: 2px; }
+    .plan-action:empty { display: none; }
+    .plus-bottom { text-align: center; margin-top: 28px; }
+  </style>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -22,8 +32,25 @@
 <main class="wrap"><div class="prose" style="max-width:860px;">
 
 <div class="grid3 two price-cards">
-  <div class="card"><h3>Free</h3><p class="price">£0</p><p>Revise for free, with no time limit. Parents and teachers can write their own notes and questions by hand, and <strong>turn their first 2 revision lists into revision with AI, free</strong>.</p></div>
-  <div class="card"><h3><span id="plus-name">Family Plus</span> <span class="plus-mark">✨</span></h3><p class="price" id="plus-price">£39.99 <small>a year</small></p><p>Keep turning revision lists, class notes, worksheets and documents into notes and quiz questions with AI, plus every topic in the ready-made packs. One Plus covers your children too.</p></div>
+  <div class="card plan-card"><h3>Free</h3><p class="price">£0</p><p>Revise for free, with no time limit. Parents and teachers can write their own notes and questions by hand, and <strong>turn their first 2 revision lists into revision with AI, free</strong>.</p><div class="plan-action" id="free-action"></div></div>
+  <div class="card plan-card plan-plus" id="plus-card"><h3><span id="plus-name">Family Plus</span> <span class="plus-mark">✨</span></h3><p class="price" id="plus-price">£39.99 <small>a year</small></p><p>Keep turning revision lists, class notes, worksheets and documents into notes and quiz questions with AI, plus every topic in the ready-made packs. One Family Plus covers your children, and their other parent, too.</p><div class="plan-action">
+  <p id="plus-intro">Plus is in early access. Sign in, then ask here and we'll switch it on for your account.</p>
+  <div id="plus-ask" hidden>
+    <label for="plus-note" style="display:block;font-weight:600;margin:6px 0;">Anything we should know? (optional)</label>
+    <textarea id="plus-note" maxlength="500" rows="3" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #ddd;font:inherit;" placeholder="e.g. I'm a teacher with two Year 11 classes"></textarea>
+    <button class="btn btn-coral" id="plus-go" style="color:#fff;margin-top:10px;border:none;cursor:pointer;">Ask for Plus</button>
+  </div>
+  <div id="plus-buy" hidden>
+    <button class="btn btn-coral" id="plus-buy-btn" style="color:#fff;margin-top:6px;border:none;cursor:pointer;">Get Plus</button>
+    <p id="plus-buy-note" style="margin:10px 0 0;font-size:0.88rem;color:#5a6b73;"></p>
+  </div>
+  <div id="plus-manage" hidden>
+    <button class="btn btn-secondary" id="plus-manage-btn" style="margin-top:6px;cursor:pointer;">Manage billing</button>
+    <p style="margin:10px 0 0;font-size:0.88rem;color:#5a6b73;">Change your card, see receipts or cancel. If you cancel, Plus carries on to the end of the year you've paid for.</p>
+  </div>
+  <p id="plus-msg" style="margin-top:12px;font-weight:600;"></p>
+  <p id="plus-email" style="margin-top:14px;font-size:0.92rem">Or <a data-email data-subject="Lobe Limpet Plus">email us</a> from the address you sign in with.</p>
+</div></div>
 </div>
 
 <div class="compare-wrap">
@@ -69,24 +96,10 @@
 </div>
 <p class="note-small">AI is used fairly: each account has a daily allowance that resets at midnight. Almost nobody reaches it in normal revision.</p>
 
-<div class="contact-card" id="plus-card">
-  <h3 id="plus-card-title">Get Plus</h3>
-  <p id="plus-intro">Plus is in early access. Sign in, then ask here and we'll switch it on for your account.</p>
-  <div id="plus-ask" hidden>
-    <label for="plus-note" style="display:block;font-weight:600;margin:6px 0;">Anything we should know? (optional)</label>
-    <textarea id="plus-note" maxlength="500" rows="3" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #ddd;font:inherit;" placeholder="e.g. I'm a teacher with two Year 11 classes"></textarea>
-    <button class="btn btn-coral" id="plus-go" style="color:#fff;margin-top:10px;border:none;cursor:pointer;">Ask for Plus</button>
-  </div>
-  <div id="plus-buy" hidden>
-    <button class="btn btn-coral" id="plus-buy-btn" style="color:#fff;margin-top:6px;border:none;cursor:pointer;">Get Plus</button>
-    <p id="plus-buy-note" style="margin:10px 0 0;font-size:0.88rem;color:#5a6b73;"></p>
-  </div>
-  <div id="plus-manage" hidden>
-    <button class="btn btn-secondary" id="plus-manage-btn" style="margin-top:6px;cursor:pointer;">Manage billing</button>
-    <p style="margin:10px 0 0;font-size:0.88rem;color:#5a6b73;">Change your card, see receipts or cancel. If you cancel, Plus carries on to the end of the year you've paid for.</p>
-  </div>
-  <p id="plus-msg" style="margin-top:12px;font-weight:600;"></p>
-  <p id="plus-email" style="margin-top:14px;font-size:0.92rem">Or <a data-email data-subject="Lobe Limpet Plus">email us</a> from the address you sign in with.</p>
+<div class="contact-card plus-bottom" id="plus-bottom" hidden>
+  <h3>Ready for <span class="js-plan">Family Plus</span>?</h3>
+  <p>Everything in Free, plus AI that turns revision lists, class notes and documents into revision. One plan covers the whole family.</p>
+  <button class="btn btn-coral" id="plus-buy-btn2" style="color:#fff;border:none;cursor:pointer;">Get Family Plus</button>
 </div>
 
 <p><a href="javascript:history.back()">← Back to Lobe Limpet</a></p>
@@ -118,17 +131,24 @@ if (pricing.amountPence) {
   $('plus-price').title = perWeekText(pricing.amountPence);
 }
 $('plus-name').textContent = plan;
-$('plus-card-title').textContent = `Get ${plan}`;
+document.querySelectorAll('.js-plan').forEach(e => { e.textContent = plan; });
 
 const showBuy = (note = '') => {
   $('plus-buy').hidden = false;
   $('plus-buy-btn').textContent = `Get ${plan}${price ? ' · ' + price : ''}`;
-  $('plus-buy-note').innerHTML = note || `One ${esc(plan)} covers the students you look after, and their other parent too. Pay securely by card with Stripe. Renews each year; cancel any time.`;
-  $('plus-buy-btn').onclick = async () => {
-    $('plus-buy-btn').disabled = true; $('plus-msg').textContent = 'Opening secure checkout…';
+  $('plus-buy-note').innerHTML = note || 'Pay securely by card with Stripe. Renews each year; cancel any time.';
+  // The same button again under the comparison table
+  $('plus-bottom').hidden = false;
+  $('plus-buy-btn2').textContent = $('plus-buy-btn').textContent;
+  const buy = async () => {
+    $('plus-buy-btn').disabled = $('plus-buy-btn2').disabled = true; $('plus-msg').textContent = 'Opening secure checkout…';
     try { await startCheckout(); }
-    catch (e) { $('plus-msg').textContent = e.message; $('plus-buy-btn').disabled = false; }
+    catch (e) {
+      $('plus-msg').textContent = e.message; $('plus-buy-btn').disabled = $('plus-buy-btn2').disabled = false;
+      $('plus-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
+  $('plus-buy-btn').onclick = buy; $('plus-buy-btn2').onclick = buy;
 };
 const showManage = () => {
   $('plus-manage').hidden = false;
@@ -149,9 +169,12 @@ async function waitForPayment(uid) {
   return null;
 }
 
+// The Free card: start free, or "your current plan"
+const freeAction = html => { $('free-action').innerHTML = html; };
 onAuthStateChanged(auth, async user => {
   const open = mode === 'on';
   if (!user) {
+    freeAction('<a class="btn btn-secondary" href="login.html?signup=parent">Start free</a>');
     $('plus-intro').innerHTML = open
       ? `<a href="login.html?signup=parent">Start free as a parent</a>, or <a href="login.html">sign in</a>, then come back here to get ${esc(plan)}.`
       : 'Plus is in early access. <a href="login.html">Sign in</a>, then come back here to ask for it.';
@@ -187,7 +210,6 @@ onAuthStateChanged(auth, async user => {
       : billing.trialEnd > Date.now() ? `You've got ${plan}. It's free until ${dateText(billing.trialEnd)}, then ${amt} a year from that date.`
       : `You've got ${plan}. It renews on ${dateText(billing.currentPeriodEnd)}${amt ? ` at ${amt} a year` : ''}.`;
     $('plus-email').hidden = true;
-    $('plus-card-title').textContent = `Your ${plan}`;
     showManage();
     return;
   }
@@ -212,10 +234,12 @@ onAuthStateChanged(auth, async user => {
   }
   if (isPlusTier(me)) { $('plus-intro').textContent = "You've got Plus. Enjoy!"; $('plus-email').hidden = true; return; }
 
+  // On Free: say so on the Free card
+  freeAction('<p style="color:#5a6b73;font-weight:600;">✓ Your current plan</p>');
   // Payments open: adults buy, students ask a parent
   if (paymentsOpenFor(mode, me)) {
     if (canPay) {
-      $('plus-intro').textContent = `${plan} is ${price || 'a yearly plan'}${pricing.amountPence ? `, ${perWeekText(pricing.amountPence)}` : ''}.`;
+      $('plus-intro').hidden = true; $('plus-email').hidden = true;
       showBuy();
     } else {
       $('plus-intro').textContent = `Ask a parent or guardian to get ${plan} from their account. One ${plan} covers the whole family.`;
