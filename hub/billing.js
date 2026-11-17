@@ -24,7 +24,9 @@ export const PRICING_DOC = IS_DEV ? 'pricingDev' : 'pricing';
 export const PAYMENTS_DOC = IS_DEV ? 'paymentsDev' : 'payments';
 export const BILLING_COLL = IS_DEV ? 'billingTest' : 'billing';
 export const STRIPE_DASH = `https://dashboard.stripe.com/${IS_DEV ? 'test/' : ''}`;
-export const DEFAULT_PLAN = 'Plus';
+// Shown until a price is saved in Admin (the Worker never charges these)
+export const DEFAULT_PLAN = 'Family Plus';
+export const DEFAULT_PENCE = 3999;
 
 // "£39.99", "£40"
 export function gbp(pence) {
@@ -41,7 +43,7 @@ export const dateText = ms => new Date(ms).toLocaleDateString('en-GB', { day: 'n
 export async function getPricing() {
   const d = await getDoc(doc(db, 'settings', PRICING_DOC)).catch(() => null);
   const p = d?.exists() ? d.data() : {};
-  return { planName: p.planName || DEFAULT_PLAN, amountPence: Number(p.amountPence) || 0, priceId: p.priceId || '', history: p.history || [] };
+  return { planName: p.planName || DEFAULT_PLAN, amountPence: Number(p.amountPence) || DEFAULT_PENCE, priceId: p.priceId || '', history: p.history || [] };
 }
 export async function getPaymentsMode() {
   const d = await getDoc(doc(db, 'settings', PAYMENTS_DOC)).catch(() => null);
