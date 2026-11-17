@@ -7,7 +7,7 @@
 // email you already know; you can't list them.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261117a';
+import { db } from './firebase-config.js?v=20261117b';
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const key = email => String(email || '').trim().toLowerCase();

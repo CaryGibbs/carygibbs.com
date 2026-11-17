@@ -1075,7 +1075,7 @@ async function billingAction(env, user, body, origin) {
     client_reference_id: user.uid, metadata: meta, subscription_data: sub,
     billing_address_collection: 'required', allow_promotion_codes: 'true',
     consent_collection: { terms_of_service: 'required' },
-    custom_text: { terms_of_service_acceptance: { message: `I agree to the [Terms of use](${site}terms.html). ${plan} starts straight away: I understand I lose my 14-day right to cancel once I start using it.` } },
+    custom_text: { terms_of_service_acceptance: { message: `I agree to the [Terms of use](${site}terms.html#plus-terms) and want ${plan} to start straight away. It renews each year until I cancel, and I can get a full refund if I change my mind within 14 days.` } },
     success_url: back + '?paid=1', cancel_url: back + '?paid=0',
   };
   if (billing?.customerId) params.customer = billing.customerId;

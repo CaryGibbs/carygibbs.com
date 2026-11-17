@@ -5,11 +5,11 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261117a';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261117a';
-import { openDeleteAccount } from './account.js?v=20261117a';
-import { formatAccountNo } from './account-no.js?v=20261117a';
-import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261117a';
+import { auth } from './firebase-config.js?v=20261117b';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261117b';
+import { openDeleteAccount } from './account.js?v=20261117b';
+import { formatAccountNo } from './account-no.js?v=20261117b';
+import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261117b';
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -78,7 +78,7 @@ export function openAccountSettings({ user, profile = {} } = {}) {
             : "Admin accounts can't be deleted here. Ask the site owner to remove your admin role first."}</p>
         </section>` : `<section class="as-sec as-danger">
           <h3>Delete account</h3>
-          <p>Permanently deletes your sign-in, your progress and any revision packs you made. Students you look after must be removed first, unless another parent also looks after them. This can't be undone.</p>
+          <p>Permanently deletes your sign-in, your progress and any revision packs you made, and cancels Plus if you pay for it. Students you look after must be removed first, unless another parent also looks after them. This can't be undone.</p>
           <button class="as-del" id="as-delete">Delete my account…</button>
         </section>`}
       </div>
