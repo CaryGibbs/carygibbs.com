@@ -283,6 +283,8 @@ export default {
         const output = u.output_tokens || 0;
         ctx.waitUntil(recordUsage(svc, user, who, day, taskName, model, input, output).catch(e => console.warn('Usage not saved:', e.message)));
         if (onTrial) ctx.waitUntil(recordTrial(svc, user, who, input + output).catch(e => console.warn('Trial not saved:', e.message)));
+        // Creating with AI on Plus: noted once a day, so a refund request can be checked
+        else if (task.needsPlus && !isAdmin && isPlus) ctx.waitUntil(notePlusUse(svc, user, who, day).catch(() => {}));
       } catch (e) { /* reply wasn't JSON: nothing to count */ }
     }
     return new Response(text, { status: upstream.status, headers: { ...cors, 'Content-Type': 'application/json' } });
@@ -1075,7 +1077,7 @@ async function billingAction(env, user, body, origin) {
     client_reference_id: user.uid, metadata: meta, subscription_data: sub,
     billing_address_collection: 'required', allow_promotion_codes: 'true',
     consent_collection: { terms_of_service: 'required' },
-    custom_text: { terms_of_service_acceptance: { message: `I agree to the [Terms of use](${site}terms.html#plus-terms) and want ${plan} to start straight away. It renews each year until I cancel, and I can get a full refund if I change my mind within 14 days.` } },
+    custom_text: { terms_of_service_acceptance: { message: `I agree to the [Terms of use](${site}terms.html#plus-terms). I want ${plan} to start straight away and understand that once I've used it I lose my right to cancel and get a refund. It renews each year until I cancel.` } },
     success_url: back + '?paid=1', cancel_url: back + '?paid=0',
   };
   if (billing?.customerId) params.customer = billing.customerId;
@@ -1212,4 +1214,19 @@ async function setPassword(env, caller, uid, password) {
   await workerLog(tok, caller.uid, me, 'account.password', `Set a new password for ${String(target.name || target.email || 'an account').slice(0, 80)}`,
     { name: target.name || target.email || '', id: uid });
   return { ok: true };
+}
+
+/* ── "Used Plus": one activity log entry per person per day (fixed id, so
+   repeats are ignored). Terms: refunds only if Plus hasn't been used. ── */
+async function notePlusUse(tok, user, who, day) {
+  const now = new Date();
+  await fsCommit(tok, [{ update: { name: `${DOCS}/logs/plusused_${user.uid}_${day}`, fields: {
+    ts: { integerValue: String(now.getTime()) }, at: tsv(now),
+    uid: { stringValue: user.uid }, name: { stringValue: String(who?.name || who?.email || '').slice(0, 120) },
+    role: { stringValue: [...rolesOf(who)][0] || 'account' },
+    action: { stringValue: 'plus.used' }, cat: { stringValue: 'account' },
+    target: { stringValue: '' }, targetId: { stringValue: '' },
+    detail: { stringValue: 'Created with AI' },
+    expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
+  } }, currentDocument: { exists: false } }]);
 }

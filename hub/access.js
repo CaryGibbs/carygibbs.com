@@ -8,12 +8,27 @@
 // made it, so they and their students use all of it.
 // ============================================================
 
-import { hasPlus } from './auth.js?v=20261117b';
-import { showPlusUpsell } from './plus.js?v=20261117b';
+import { hasPlus, hasRole, isPreview } from './auth.js?v=20261117c';
+import { logEvent } from './log.js?v=20261117c';
+import { showPlusUpsell } from './plus.js?v=20261117c';
 
 export const isPlusOnly = topic => topic?.plusOnly === true;
 // Locked for this person: a Plus only topic and they don't have Plus
 export const topicLocked = (topic, profile) => isPlusOnly(topic) && !hasPlus(profile);
+
+// Someone with Plus used a Plus only topic: noted in the activity log (once a
+// day per topic on this device), so an admin can see whether Plus has been
+// used before agreeing a refund (Terms: refunds only if Plus hasn't been used).
+// The AI Worker notes creating with AI the same way.
+export function notePlusTopicUse(topic, profile, topicId = '') {
+  try {
+    if (!isPlusOnly(topic) || !hasPlus(profile) || hasRole(profile, 'admin') || isPreview()) return;
+    const key = `ll_plusused_${topicId || topic?.name}_${new Date().toISOString().slice(0, 10)}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, '1');
+    logEvent('plus.used', { target: topic?.name || '', targetId: topicId, detail: 'Used a Plus topic' });
+  } catch (e) { /* not essential */ }
+}
 
 export function showTopicLocked(name = '') {
   showPlusUpsell(name ? `"${name}"` : 'This topic');

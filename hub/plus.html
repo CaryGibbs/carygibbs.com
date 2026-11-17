@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="dev-flag.js?v=20261117b"></script>
+  <script src="dev-flag.js?v=20261117c"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pricing · Lobe Limpet</title>
   <meta name="description" content="Lobe Limpet pricing: free to start, and Plus to keep turning revision lists and your own notes into revision with AI.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261117b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261117b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261117b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261117c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261117c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261117c">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261117b">
+  <link rel="stylesheet" href="site.css?v=20261117c">
   <style>
     .plan-card { display: flex; flex-direction: column; }
     .plan-plus { border: 2px solid var(--coral, #ff7a59); }
@@ -28,7 +28,7 @@
 </head>
 <body>
 <div id="site-header"></div>
-<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261117b" alt="" width="140" height="114"></div></div>
+<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261117c" alt="" width="140" height="114"></div></div>
 <main class="wrap"><div class="prose" style="max-width:860px;">
 
 <div class="grid3 two price-cards">
@@ -106,18 +106,18 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261117b"></script>
+<script src="site.js?v=20261117c"></script>
 <script type="module">
 // Plus: the price comes from Admin → Settings → Payments and pricing.
 // When payments are open, adults buy through Stripe's checkout; students ask
 // a parent. While payments are off, people ask for Plus here instead and an
 // admin switches it on in Users.
-import { auth, db } from './firebase-config.js?v=20261117b';
+import { auth, db } from './firebase-config.js?v=20261117c';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261117b';
-import { withFamilyPlus, isPlusTier } from './auth.js?v=20261117b';
-import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261117b';
+import { logEvent } from './log.js?v=20261117c';
+import { withFamilyPlus, isPlusTier } from './auth.js?v=20261117c';
+import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261117c';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const paidParam = new URLSearchParams(location.search).get('paid');
