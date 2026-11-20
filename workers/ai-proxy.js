@@ -784,17 +784,20 @@ async function deleteAccount(env, caller, uid, checkOnly) {
     writes.push({ transform: { document: `${DOCS}/users/${s.id}`, fieldTransforms: [{ fieldPath: 'guardianIds', removeAllFromArray: { values: [{ stringValue: uid }] } }] } });
   }
   // Anything left that they owned or wrote (pack contents were removed in the app first)
-  const [packs, reports, logsBy, logsAbout, invites] = await Promise.all([
+  const [packs, reports, logsBy, logsAbout, invites, support] = await Promise.all([
     fsQuery(tok, 'content', 'ownerUid', 'EQUAL', uid),
     fsQuery(tok, 'libraryReports', 'by', 'EQUAL', uid),
     fsQuery(tok, 'logs', 'uid', 'EQUAL', uid),
     fsQuery(tok, 'logs', 'targetId', 'EQUAL', uid),
     fsQuery(tok, 'invites', 'by', 'EQUAL', uid),
+    fsQuery(tok, 'supportRequests', 'uid', 'EQUAL', uid),
   ]);
   packs.forEach(p => writes.push(del(`content/${p.id}`)));
   reports.forEach(x => writes.push(del(`libraryReports/${x.id}`)));
   new Set([...logsBy, ...logsAbout].map(x => x.id)).forEach(id => writes.push(del(`logs/${id}`)));
   invites.forEach(x => writes.push(del(`invites/${x.id}`)));
+  support.forEach(x => writes.push(del(`supportRequests/${x.id}`)));   // messages they sent us
+  writes.push(del(`supportLimits/${uid}`));
 
   await fsCommit(tok, writes);
 

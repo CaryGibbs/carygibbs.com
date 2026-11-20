@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261120b"></script>
+  <script src="dev-flag.js?v=20261120c"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261120b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261120b">
-  <script src="icons.js?v=20261120b"></script>
+  <link rel="stylesheet" href="theme.css?v=20261120c">
+  <script src="icons.js?v=20261120c"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -582,6 +582,22 @@
   .lib-row strong { font-family: var(--font-ui); }
   .lib-row small { display: block; color: var(--color-text-muted); font-size: 0.78rem; line-height: 1.45; }
   .lib-row .lib-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sp-item { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-button); padding: 14px 16px; margin-bottom: 10px; }
+  .sp-item.is-new { border-left: 4px solid var(--color-accent, #ff7a59); }
+  .sp-top { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .sp-top strong { font-family: var(--font-ui); }
+  .sp-top .sp-when { margin-left: auto; font-size: 0.78rem; color: var(--color-text-muted); }
+  .sp-chip { display: inline-block; font-size: 0.7rem; font-weight: 700; font-family: var(--font-ui); padding: 2px 8px; border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); }
+  .sp-chip.new { background: rgba(255,122,89,0.15); color: #c94a28; }
+  .sp-chip.replied { background: rgba(63,91,208,0.12); color: #3f5bd0; }
+  .sp-chip.done { background: rgba(13,138,124,0.12); color: #0d8a7c; }
+  .sp-chip.q { background: rgba(245,159,0,0.14); color: #a86b00; }
+  .sp-who { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 4px; }
+  .sp-msg { white-space: pre-wrap; margin: 10px 0 0; font-size: 0.92rem; line-height: 1.55; }
+  .sp-qbox { margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: var(--color-surface-2); font-size: 0.85rem; line-height: 1.5; }
+  .sp-qbox b { font-family: var(--font-ui); }
+  .sp-ctx { margin-top: 8px; font-size: 0.75rem; color: var(--color-text-muted); }
+  .sp-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
   .lib-report { font-size: 0.82rem; padding: 8px 12px; border-left: 3px solid var(--color-danger); background: var(--color-surface-2); margin-top: 6px; border-radius: 4px; }
 
   /* ── All students ── */
@@ -646,8 +662,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261120b">
-  <link rel="stylesheet" href="stats.css?v=20261120b">
+  <link rel="stylesheet" href="ui.css?v=20261120c">
+  <link rel="stylesheet" href="stats.css?v=20261120c">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -982,6 +998,31 @@
         </select></label>
       </div>
       <div id="as-list"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
+    </div>
+
+    <!-- ── SUPPORT PANEL (support.js messages and question reports) ── -->
+    <div class="panel" id="panel-support">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Support</div>
+          <div class="panel-subtitle">Messages sent with "Get help" and questions reported in quizzes. Reply by email (choose support@lobelimpet.com as the sender), then mark it done. Messages are kept for 12 months.</div>
+        </div>
+      </div>
+      <div class="as-filters">
+        <label class="log-f">Show<select id="sp-show">
+          <option value="open">Open (new and replied)</option>
+          <option value="new">New</option>
+          <option value="done">Done</option>
+          <option value="all">All</option>
+        </select></label>
+        <label class="log-f">Type<select id="sp-kind">
+          <option value="all">Everything</option>
+          <option value="help">Get help messages</option>
+          <option value="question">Question reports</option>
+        </select></label>
+        <label class="log-f">Search<input type="search" id="sp-search" placeholder="Name, email, account no., words"></label>
+      </div>
+      <div id="sp-list"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
     </div>
 
     <!-- ── ACTIVITY LOG PANEL ─────────────────────────────── -->
@@ -1537,37 +1578,37 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261120b';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261120b';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261120b';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261120b';
-import { syncFamilyPlus } from './family-plus.js?v=20261120b';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261120b';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120b';
-import { openDeleteAccount } from './account.js?v=20261120b';
-import { openPasswordHelp } from './password-help.js?v=20261120b';
-import { addDocumentButton } from './doc-text.js?v=20261120b';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261120b';
-import { showPlusUpsell } from './plus.js?v=20261120b';
-import { offerGivePack } from './first-steps.js?v=20261120b';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261120b';
+import { auth, db, storage } from './firebase-config.js?v=20261120c';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261120c';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261120c';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261120c';
+import { syncFamilyPlus } from './family-plus.js?v=20261120c';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261120c';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120c';
+import { openDeleteAccount } from './account.js?v=20261120c';
+import { openPasswordHelp } from './password-help.js?v=20261120c';
+import { addDocumentButton } from './doc-text.js?v=20261120c';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261120c';
+import { showPlusUpsell } from './plus.js?v=20261120c';
+import { offerGivePack } from './first-steps.js?v=20261120c';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261120c';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261120b';
-import { mountShell } from './shell.js?v=20261120b';
-import { openInviteDialog, signupLink } from './invite.js?v=20261120b';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261120b';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261120b';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261120b';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261120b';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261120b';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120b';
-import { dueEntries } from './srs.js?v=20261120b';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261120b';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261120b';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261120c';
+import { mountShell } from './shell.js?v=20261120c';
+import { openInviteDialog, signupLink } from './invite.js?v=20261120c';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261120c';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261120c';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261120c';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261120c';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261120c';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120c';
+import { dueEntries } from './srs.js?v=20261120c';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261120c';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261120c';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1583,8 +1624,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261120b';
-import { inOrder } from './order.js?v=20261120b';
+import { saveEmailIndex } from './email-index.js?v=20261120c';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261120c';
+import { inOrder } from './order.js?v=20261120c';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1658,7 +1700,7 @@ else requireRole('admin', (user, profile) => {
   currentAdminName = profile.name || profile.email || '';
   iAmAdmin = true;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
-  const start = ['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  const start = ['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'support', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
   adminProfileName = profile.name || '';
   mountShell(user, profile, { view: 'admin', active: start });
@@ -1667,7 +1709,7 @@ else requireRole('admin', (user, profile) => {
   // Address changes (e.g. the sidebar's "View as another student") switch panels too
   window.addEventListener('hashchange', () => {
     const p = location.hash.slice(1);
-    if (['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
+    if (['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'support', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
   });
 });
 
@@ -1740,6 +1782,9 @@ async function renderAdminHome() {
     if (packless.length) items.push({ p: 3, emoji: '🎒', text: `${packless.length} student${packless.length === 1 ? ' has' : 's have'} no revision pack`, sub: packless.slice(0, 4).map(u => esc(u.name || u.email || '')).join(', ') + (packless.length > 4 ? '…' : ''), action: smallBtn('Users', `location.hash='users'`) });
     const noRole = users.filter(u => !rolesOf(u).size);
     if (noRole.length) items.push({ p: 4, emoji: '🏷️', text: `${noRole.length} account${noRole.length === 1 ? ' has' : 's have'} no role`, sub: noRole.slice(0, 3).map(u => esc(u.email || u.name || '')).join(', '), action: smallBtn('Users', `location.hash='users'`) });
+    // Support messages waiting
+    const spNew = await getCountFromServer(query(collection(db, 'supportRequests'), where('status', '==', 'new'))).then(r => r.data().count).catch(() => 0);
+    if (spNew) items.push({ p: 0, emoji: '💬', text: `${spNew} new support message${spNew === 1 ? '' : 's'}`, sub: 'From "Get help" and quiz question reports', action: smallBtn('Support', `location.hash='support'`) });
     items.sort((a, b) => a.p - b.p);
 
     // Recent activity: sign-ups (14 days) and revision (7 days)
@@ -2257,6 +2302,7 @@ function showPanel(name) {
   if (name === 'students') { document.getElementById('preview-actions').style.display = 'none'; loadAllStudents(); }
   if (name === 'library')  { document.getElementById('preview-actions').style.display = 'none'; loadLibraryAdmin(); }
   if (name === 'sharedcards') { document.getElementById('preview-actions').style.display = 'none'; loadSharedCardsAdmin(); }
+  if (name === 'support') { document.getElementById('preview-actions').style.display = 'none'; loadSupport(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
   if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); renderPaySettings(); }
@@ -2271,6 +2317,7 @@ function updateBreadcrumb() {
   if (currentPanel === 'users')    { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">Users</span>`; return; }
   if (currentPanel === 'sharedcards') { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Shared flashcards</span>`; return; }
   if (currentPanel === 'library')  { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Community library</span>`; return; }
+  if (currentPanel === 'support')  { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">Support</span>`; return; }
   if (currentPanel === 'students') { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">All students</span>`; return; }
   if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
@@ -2298,6 +2345,10 @@ document.addEventListener('click', e => {
 
   if (nav)    { showPanel(nav); return; }
   if (action === 'view-as') { openViewAs(t.dataset.uid, t.dataset.name || usersCache?.find?.(u => u.id === t.dataset.uid)?.name || ''); return; }
+  if (action === 'sp-reply') { const s = supportItems.find(x => x.id === t.dataset.id); if (s && s.status === 'new') setSupportStatus(s.id, 'replied', { repliedAt: serverTimestamp() }); return; }
+  if (action === 'sp-status') { setSupportStatus(t.dataset.id, t.dataset.st); return; }
+  if (action === 'sp-delete') { deleteSupport(t.dataset.id); return; }
+  if (action === 'sp-open-q') { openSupportTopic(t.dataset.id); return; }
   if (action === 'student-progress') { openStudentProgress(t.dataset.uid); return; }
   if (action === 'student-tidy') { tidyStudentProgress(t.dataset.uid, t); return; }
   if (action === 'delete-user') { openDeleteAccount({ uid: t.dataset.uid, name: t.dataset.name, onDone: () => { showToast('Account deleted', 'success'); loadUsers(); } }); return; }
@@ -4067,6 +4118,126 @@ async function setSharedCardsOff(id, off) {
   } catch (e) { showToast('Could not change it: ' + e.message, 'error'); }
 }
 
+/* ── Support: Get help messages and question reports ─────── */
+let supportItems = [];
+const spPackNames = {};
+const spMs = x => x?.toMillis ? x.toMillis() : (x || 0);
+async function loadSupport() {
+  const box = document.getElementById('sp-list');
+  box.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
+  try {
+    const snap = await getDocs(query(collection(db, 'supportRequests'), orderBy('at', 'desc'), limit(300)));
+    supportItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Pack names for question reports (and whose pack it is)
+    const packIds = [...new Set(supportItems.map(s => s.question?.packId).filter(id => id && !(id in spPackNames)))];
+    await Promise.all(packIds.map(async id => {
+      const p = (await getDoc(doc(db, 'content', id)).catch(() => null))?.data();
+      spPackNames[id] = p ? `${p.name || 'Untitled pack'}${p.visibility === 'official' ? ' (official)' : p.ownerUid ? (p.ownerUid === currentAdminUid ? ' (yours)' : ' (someone\'s own pack)') : ''}` : 'a pack that no longer exists';
+    }));
+    renderSupport(); refreshSupportBadge();
+  } catch (e) { box.innerHTML = `<div class="empty-state"><p>Could not load support messages: ${esc(e.message)}</p><p style="font-size:0.85rem">If it says "permission", publish the new database rules first.</p></div>`; }
+}
+function renderSupport() {
+  const box = document.getElementById('sp-list');
+  const show = document.getElementById('sp-show').value;
+  const kind = document.getElementById('sp-kind').value;
+  const q = document.getElementById('sp-search').value.trim().toLowerCase();
+  const list = supportItems.filter(s =>
+    (show === 'all' || (show === 'open' ? s.status !== 'done' : s.status === show))
+    && (kind === 'all' || s.kind === kind)
+    && (!q || [s.name, s.email, s.accountNo, String(s.accountNo || '').replace('LL-', ''), s.message, s.question?.text, s.question?.subjectName].join(' ').toLowerCase().includes(q)));
+  const nNew = supportItems.filter(s => s.status === 'new').length;
+  if (!supportItems.length) { box.innerHTML = `<div class="empty-state"><p>No messages yet. When someone uses "Get help" or reports a quiz question, it appears here.</p></div>`; return; }
+  const when = x => spMs(x) ? new Date(spMs(x)).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const roleWord = r => (r || []).filter(x => x !== 'admin').join(', ') || (r || []).join(', ') || 'user';
+  box.innerHTML = `<p style="margin:0 0 var(--space-md);color:var(--color-text-muted)">${nNew} new · showing ${list.length} of ${supportItems.length}</p>`
+    + (list.map(s => {
+      const c = s.ctx || {}, qq = s.question;
+      return `<div class="sp-item${s.status === 'new' ? ' is-new' : ''}">
+        <div class="sp-top">
+          <span class="sp-chip ${esc(s.status)}">${s.status === 'new' ? 'New' : s.status === 'replied' ? 'Replied' : 'Done'}</span>
+          ${s.kind === 'question' ? '<span class="sp-chip q">Question report</span>' : ''}
+          <strong>${esc(SUPPORT_TOPICS[s.category] || s.category || '')}</strong>
+          <span class="sp-when">${esc(when(s.at))}</span>
+        </div>
+        <div class="sp-who">${esc(s.name || 'Someone')} · ${esc(roleWord(s.roles))} · ${esc(s.accountNo || 'no account no.')} · ${esc(s.email || 'no email')}</div>
+        ${s.message ? `<div class="sp-msg">${esc(s.message)}</div>` : ''}
+        ${qq ? `<div class="sp-qbox"><b>${esc(qq.text || '')}</b><br>
+          ${qq.right ? `Answer given: ${esc(qq.right)}<br>` : ''}${qq.yours ? `They answered: ${esc(qq.yours)}${qq.marks ? ` (${esc(qq.marks)})` : ''}<br>` : ''}
+          <small>${esc(spPackNames[qq.packId] || '')}${qq.subjectName ? ` › ${esc(qq.subjectName)}` : ''}${qq.topicName ? ` › ${esc(qq.topicName)}` : ''} · ${esc(qq.type || '')} · question ${esc(qq.questionId || '')}</small></div>` : ''}
+        <div class="sp-ctx">${esc(c.page || '')} · ${esc(c.device || '')} · ${esc(c.screen || '')}${c.site ? ` · ${/carygibbs/.test(c.site) ? 'dev site' : 'live site'}` : ''}${c.viewingAs ? ' · while using "View as"' : ''}${s.repliedAt ? ` · replied ${esc(when(s.repliedAt))}` : ''}${s.doneAt ? ` · done ${esc(when(s.doneAt))}` : ''}</div>
+        <div class="sp-acts">
+          ${s.email ? `<a class="btn btn-primary btn-sm" href="${esc(spMailto(s))}" data-action="sp-reply" data-id="${esc(s.id)}"><i data-icon="mail"></i> Reply by email</a>` : ''}
+          ${qq?.packId ? `<button class="btn btn-secondary btn-sm" data-action="sp-open-q" data-id="${esc(s.id)}"><i data-icon="pencil"></i> Open the topic</button>` : ''}
+          ${s.status === 'done' ? `<button class="btn btn-secondary btn-sm" data-action="sp-status" data-st="new" data-id="${esc(s.id)}">Reopen</button>`
+            : `<button class="btn btn-secondary btn-sm" data-action="sp-status" data-st="done" data-id="${esc(s.id)}"><i data-icon="check"></i> Mark done</button>`}
+          <button class="btn btn-ghost btn-sm" data-action="sp-delete" data-id="${esc(s.id)}"><i data-icon="trash-2"></i> Delete</button>
+        </div>
+      </div>`;
+    }).join('') || `<div class="empty-state"><p>Nothing matches. Try "All".</p></div>`);
+}
+// A reply with their message quoted underneath (no long dashes)
+function spMailto(s) {
+  const first = (s.name || '').split(' ')[0] || 'there';
+  const date = spMs(s.at) ? new Date(spMs(s.at)).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : '';
+  const qq = s.question;
+  const subject = s.kind === 'question' ? `Your Lobe Limpet question report${qq?.subjectName ? ` (${qq.subjectName})` : ''}` : 'Re: your message to Lobe Limpet';
+  const quoted = [qq ? `Question: ${qq.text || ''}` : '', s.message || ''].filter(Boolean).join('\n').split('\n').map(l => '> ' + l).join('\n');
+  const body = `Hi ${first},\n\n\n\nBest wishes,\nLobe Limpet support\n\n\nYour message${date ? ` on ${date}` : ''}:\n${quoted}\n${s.accountNo ? `Account: ${s.accountNo}\n` : ''}`;
+  return `mailto:${encodeURIComponent(s.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+async function setSupportStatus(id, status, extra = {}) {
+  const s = supportItems.find(x => x.id === id); if (!s) return;
+  const upd = { status, ...extra };
+  if (status === 'done') { upd.doneAt = serverTimestamp(); upd.doneBy = currentAdminUid; }
+  try {
+    await updateDoc(doc(db, 'supportRequests', id), upd);
+    Object.assign(s, upd, upd.doneAt ? { doneAt: Date.now() } : {}, upd.repliedAt ? { repliedAt: Date.now() } : {});
+    logEvent('admin.support', { target: s.name || s.email || '', targetId: s.uid, detail: `${status === 'done' ? 'Marked done' : status === 'replied' ? 'Replied' : 'Reopened'}: ${SUPPORT_TOPICS[s.category] || s.category}` });
+    renderSupport(); refreshSupportBadge();
+  } catch (e) { showToast('Could not update it: ' + e.message, 'error'); }
+}
+async function deleteSupport(id) {
+  const s = supportItems.find(x => x.id === id); if (!s) return;
+  if (!confirm(`Delete this message from ${s.name || s.email || 'someone'}? This can't be undone.`)) return;
+  try {
+    await deleteDoc(doc(db, 'supportRequests', id));
+    supportItems = supportItems.filter(x => x.id !== id);
+    logEvent('admin.support', { target: s.name || s.email || '', targetId: s.uid, detail: `Deleted: ${SUPPORT_TOPICS[s.category] || s.category}` });
+    renderSupport(); refreshSupportBadge();
+  } catch (e) { showToast('Could not delete it: ' + e.message, 'error'); }
+}
+function refreshSupportBadge() {
+  const b = document.getElementById('nav-support-count'); if (!b) return;
+  const n = supportItems.filter(s => s.status === 'new').length;
+  b.textContent = n; b.hidden = !n;
+}
+// Open the reported question's topic in the editor (the question is in its list)
+async function openSupportTopic(id) {
+  const qq = supportItems.find(x => x.id === id)?.question; if (!qq?.packId) return;
+  try {
+    const base = `content/${qq.packId}`;
+    const [p, sj, tp] = await Promise.all([
+      getDoc(doc(db, base)),
+      qq.subjectId ? getDoc(doc(db, `${base}/subjects/${qq.subjectId}`)) : null,
+      qq.subjectId && qq.topicId ? getDoc(doc(db, `${base}/subjects/${qq.subjectId}/topics/${qq.topicId}`)) : null,
+    ]);
+    if (!p.exists()) { showToast('That revision pack no longer exists', 'error'); return; }
+    const pd = p.data();
+    selectedGroup = { id: qq.packId, name: pd.name, lockable: !MINE && isOfficialPack(pd) };
+    document.getElementById('subjects-panel-title').textContent = pd.name + ' — Subjects';
+    if (!sj?.exists()) { selectedSubject = null; selectedTopic = null; showPanel('subjects'); loadSubjects(); return; }
+    const sd = sj.data();
+    selectedSubject = { id: qq.subjectId, name: sd.name, emoji: sd.emoji || '📚', level: sd.level || '', examBoard: sd.examBoard || '' };
+    document.getElementById('topics-panel-title').textContent = `${sd.emoji || '📚'} ${sd.name} — Topics`;
+    if (!tp?.exists()) { selectedTopic = null; showPanel('topics'); loadTopics(); return; }
+    openTopic(qq.topicId, tp.data());
+    showToast(`Look for: ${String(qq.text || '').slice(0, 80)}`, 'info');
+  } catch (e) { showToast('Could not open it: ' + e.message, 'error'); }
+}
+['sp-show', 'sp-kind'].forEach(id => document.getElementById(id).addEventListener('change', renderSupport));
+document.getElementById('sp-search').addEventListener('input', renderSupport);
+
 async function loadLibraryAdmin() {
   const box = document.getElementById('lib-admin');
   box.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
@@ -5168,6 +5339,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261120b"></script>
+<script src="site.js?v=20261120c"></script>
 </body>
 </html>

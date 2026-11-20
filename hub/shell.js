@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261120b';
-import { handleSignOut, openViewAs, viewsOf, rememberView, isPlusTier, hasFamilyPlus } from './auth.js?v=20261120b';
-import { themeColour } from './themes.js?v=20261120b';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openAccountSettings } from './account-settings.js?v=20261120b';
-import { plusPillHtml } from './plus.js?v=20261120b';
+import { db } from './firebase-config.js?v=20261120c';
+import { handleSignOut, openViewAs, viewsOf, rememberView, isPlusTier, hasFamilyPlus } from './auth.js?v=20261120c';
+import { themeColour } from './themes.js?v=20261120c';
+import { collection, getDocs, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { openAccountSettings } from './account-settings.js?v=20261120c';
+import { plusPillHtml } from './plus.js?v=20261120c';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -94,6 +94,7 @@ export function mountShell(user, profile, { view, active } = {}) {
       <div class="nav-section-label">People</div>
       ${adminLink('users', 'user', 'Users & roles')}
       ${adminLink('students', 'graduation-cap', 'All students')}
+      ${adminLink('support', 'inbox', 'Support<span class="nav-count" id="nav-support-count" hidden></span>')}
       <div class="nav-section-label">Settings</div>
       ${adminLink('settings', 'settings', 'Settings')}
       ${adminLink('logs', 'clipboard-list', 'Activity log')}`,
@@ -116,6 +117,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     <div class="sidebar-footer">
       <a class="nav-item" href="./"><span class="nav-icon"><i data-icon="globe"></i></span><span>Lobe Limpet website</span></a>
       <a class="nav-item" href="help.html${view === 'teacher' ? '#teachers' : view === 'parent' ? '#parents' : ''}" target="_blank" rel="noopener"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Help &amp; FAQs</span></a>
+      <button class="nav-item" data-get-help><span class="nav-icon"><i data-icon="message-square"></i></span><span>Get help</span></button>
       ${!isPlusTier(profile) && !hasFamilyPlus(profile) && !viewsOf(profile).includes('admin') ? `<a class="nav-item" href="plus.html" style="color:#e0643f;font-weight:700;"><span class="nav-icon"><i data-icon="sparkles"></i></span><span>Upgrade to Plus</span></a>` : ''}
       <button class="sidebar-account" id="shell-account" title="Account settings" aria-label="Account settings for ${esc(profile.name || 'you')}">
         <span class="sidebar-avatar">${esc(initials)}</span>
@@ -157,9 +159,22 @@ export function mountShell(user, profile, { view, active } = {}) {
     button.sidebar-account { width: 100%; background: none; border: 0; border-radius: 10px; font: inherit; text-align: left; cursor: pointer; color: inherit; }
     button.sidebar-account:hover, button.sidebar-account:focus-visible { background: var(--color-surface-2); }
     .sidebar-account-cog { margin-left: auto; color: var(--color-text-muted); display: inline-flex; flex-shrink: 0; }
-    .sidebar-account-cog svg { width: 16px; height: 16px; }</style>`);
+    .sidebar-account-cog svg { width: 16px; height: 16px; }
+    .nav-count { margin-left: 8px; display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 999px; background: #ff7a59; color: #fff; font-size: 0.7rem; font-weight: 700; text-align: center; line-height: 1.5; }
+    .nav-count[hidden] { display: none; }</style>`);
 
   if (view === 'parent') loadChildShortcuts(user);
+  if (view === 'admin') loadSupportCount();
+}
+
+// Admin: how many support messages are waiting (badge on "Support")
+async function loadSupportCount() {
+  const b = document.getElementById('nav-support-count');
+  if (!b) return;
+  try {
+    const n = (await getCountFromServer(query(collection(db, 'supportRequests'), where('status', '==', 'new')))).data().count;
+    b.textContent = n; b.hidden = !n;
+  } catch (e) { /* rules not published yet, or offline */ }
 }
 
 // "View as" shortcuts for each of the user's students

@@ -35,6 +35,8 @@ rules_version = '2';
 //   parentLinks: a parent asks to link with a student's existing account;
 //   the student accepts (becoming a guardian link) or declines.
 //   Library reports: any signed-in user can report; admins read and clear.
+//   Support messages (support.js): any signed-in user can send one (one
+//     every 20 seconds, 20 a day, via supportLimits); only admins read them.
 //   Flashcard share codes (shareCodes): a student's own set, readable by
 //   anyone signed in with the code while on; admins list and turn off.
 //   Settings: any signed-in user can read; admins write.
@@ -520,6 +522,40 @@ service cloud.firestore {
       allow create: if signedIn() && request.resource.data.by == me()
         && request.resource.data.note is string && request.resource.data.note.size() <= 1000;
       allow read, delete: if isAdmin();
+    }
+
+    // ── Support messages (support.js; Admin → Support) ────
+    // supportLimits/{uid}: when the person last sent one and how many today.
+    // Written in the same batch as the message, so it can't be skipped.
+    function dayNo() { return int(request.time.toMillis() / 86400000); }
+    match /supportLimits/{uid} {
+      allow get: if signedIn() && (uid == me() || isAdmin());
+      allow create, update: if signedIn() && uid == me()
+        && request.resource.data.keys().hasOnly(['at', 'day', 'count'])
+        && request.resource.data.at == request.time
+        && request.resource.data.day == dayNo()
+        && (resource == null || request.time > resource.data.at + duration.value(20, 's'))
+        && request.resource.data.count == ((resource != null && resource.data.day == dayNo()) ? resource.data.count + 1 : 1)
+        && request.resource.data.count <= 20;
+      allow delete: if isAdmin();
+    }
+    match /supportRequests/{id} {
+      allow create: if signedIn()
+        && request.resource.data.uid == me()
+        && request.resource.data.keys().hasOnly(['uid', 'at', 'expireAt', 'status', 'kind', 'category', 'message', 'name', 'email', 'accountNo', 'roles', 'ctx', 'question'])
+        && request.resource.data.at == request.time
+        && request.resource.data.expireAt is timestamp
+        && request.resource.data.status == 'new'
+        && request.resource.data.kind in ['help', 'question']
+        && request.resource.data.category is string && request.resource.data.category.size() <= 40
+        && request.resource.data.message is string && request.resource.data.message.size() <= 2000
+        && request.resource.data.email is string && request.resource.data.email.size() <= 200
+        && request.resource.data.ctx is map && request.resource.data.ctx.size() <= 12
+        && (!('question' in request.resource.data) || (request.resource.data.question is map && request.resource.data.question.size() <= 14))
+        && getAfter(/databases/$(database)/documents/supportLimits/$(me())).data.at == request.time;
+      allow get, list: if isAdmin();
+      allow update: if isAdmin() && changedKeys().hasOnly(['status', 'note', 'doneAt', 'doneBy', 'repliedAt']);
+      allow delete: if isAdmin();
     }
 
     // ── App settings ──────────────────────────────────────

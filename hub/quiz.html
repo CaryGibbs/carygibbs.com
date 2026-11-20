@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261120b"></script>
+  <script src="dev-flag.js?v=20261120c"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261120b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261120b">
-  <script src="icons.js?v=20261120b"></script>
-  <script src="help-sheet.js?v=20261120b" defer></script>
+  <link rel="stylesheet" href="theme.css?v=20261120c">
+  <script src="icons.js?v=20261120c"></script>
+  <script src="help-sheet.js?v=20261120c" defer></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -100,6 +100,10 @@
 
     /* ── Question card ───────────────────────────────────── */
     .q-header { margin-bottom: var(--space-lg); }
+    .q-report { float: right; display: inline-flex; align-items: center; gap: 5px; background: none; border: 0; padding: 2px 4px; margin-top: -2px;
+      font: inherit; font-size: 0.72rem; letter-spacing: 0.04em; color: var(--color-text-muted); cursor: pointer; border-radius: 6px; opacity: 0.8; }
+    .q-report:hover, .q-report:focus-visible { opacity: 1; color: var(--color-text); background: var(--color-surface-2); }
+    .q-report svg { width: 13px; height: 13px; }
     .q-number {
       font-family: var(--font-ui); font-size: 0.8rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.08em;
@@ -372,7 +376,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261120b">
+  <link rel="stylesheet" href="ui.css?v=20261120c">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -429,6 +433,7 @@
       <div class="q-number">
         Question <span id="q-num">1</span> of <span id="q-total">10</span>
         <span class="q-type-pill" id="q-type-pill"></span>
+        <button type="button" class="q-report" id="q-report" title="Report a problem with this question"><i data-icon="flag"></i> Report</button>
       </div>
       <div class="q-text" id="q-text"></div>
       <img id="q-image" class="q-image" style="display:none;">
@@ -593,18 +598,18 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261120b';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261120b';
-import { marksLeft, marksLeftText } from './marks.js?v=20261120b';
-import { showPlusUpsell } from './plus.js?v=20261120b';
-import { askClaude, jsonOf } from './ai.js?v=20261120b';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261120b';
-import { logEvent } from './log.js?v=20261120b';
-import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261120b';
-import { showBadgePops } from './badge-pop.js?v=20261120b';
-import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261120b';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261120b';
-import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261120b';
+import { auth, db } from './firebase-config.js?v=20261120c';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261120c';
+import { marksLeft, marksLeftText } from './marks.js?v=20261120c';
+import { showPlusUpsell } from './plus.js?v=20261120c';
+import { askClaude, jsonOf } from './ai.js?v=20261120c';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261120c';
+import { logEvent } from './log.js?v=20261120c';
+import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261120c';
+import { showBadgePops } from './badge-pop.js?v=20261120c';
+import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261120c';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261120c';
+import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261120c';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -1664,6 +1669,22 @@ function showXpEarned(result, minutes) {
     }).join('');
   }
 }
+
+/* ── Report this question (support.js → Admin → Support) ── */
+document.getElementById('q-report').onclick = async () => {
+  const q = questions[currentIdx];
+  if (!q) return;
+  const a = answerLog[currentIdx] || {};
+  try {
+    const { openSupport } = await import('./support.js?v=20261120c');
+    openSupport({ kind: 'question', question: {
+      packId: q.loc?.p || groupId, subjectId: q.loc?.s || subjectId, topicId: q.loc?.t || q.topicId || topicId, questionId: q.id,
+      subjectName: q.subjectName || (reviewMode ? '' : subjectName), topicName: reviewMode ? '' : topicName,
+      type: q.type, text: q.question || q.sentence || q.instruction || '',
+      right: a.right || '', yours: a.yours || '', marks: a.marks || '',
+    } });
+  } catch (e) { showToast('Could not open the report form. Please try again.', 'error'); }
+};
 
 /* ── Answer review: every question, right and wrong, and why ── */
 function logAnswer(extra) {

@@ -113,7 +113,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261120b'),
+        import('./firebase-config.js?v=20261120c'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -137,15 +137,27 @@
     ('requestIdleCallback' in window) ? requestIdleCallback(check, { timeout: 1500 }) : setTimeout(check, 300);
   }
 
+  // ── "Get help" buttons (data-get-help) open the support form ──
+  // support.js is only loaded when one is pressed. data-get-help="plus"
+  // picks that topic to start with.
+  if (!window.__llGetHelp) window.__llGetHelp = true, document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-get-help]');
+    if (!b) return;
+    e.preventDefault();
+    import('./support.js?v=20261120c').then(function (m) {
+      m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
+    }).catch(function () { location.href = 'contact.html'; });
+  });
+
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261120b';
+  hs.src = 'help-sheet.js?v=20261120c';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261120b';
+  pwa.src = 'pwa.js?v=20261120c';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

@@ -8,6 +8,16 @@
 // Loaded by site.js on every page except Help itself.
 // ============================================================
 (function () {
+  // "Get help" buttons (data-get-help) open the support form (support.js),
+  // also on pages that load this file without site.js (the quiz)
+  if (!window.__llGetHelp) window.__llGetHelp = true, document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-get-help]');
+    if (!b) return;
+    e.preventDefault();
+    import('./support.js?v=20261120c').then(function (m) {
+      m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
+    }).catch(function () { location.href = 'contact.html'; });
+  });
   if (/help\.html$/.test(location.pathname)) return;
 
   var helpDoc = null;
@@ -38,7 +48,7 @@
     '.hs-body details{border-top:1px solid #e8eef0;padding:10px 0;} .hs-body summary{cursor:pointer;font-weight:600;color:#123a4a;}' +
     '.hs-body details p{margin:8px 0 4px;}' +
     '.hs-foot{padding:10px 22px 18px;border-top:1px solid #eef2f3;font-size:.88rem;}' +
-    '.hs-foot a{color:#5d7c89;}' +
+    '.hs-foot a{color:#5d7c89;} .hs-foot{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;} .hs-stuck{color:#5d7c89;} .hs-foot .hs-stuck a{color:#e85f3d;font-weight:600;}' +
     '@media (max-width:600px){.hs-panel{left:0;right:0;top:auto;bottom:0;width:100%;max-height:85vh;border-radius:18px 18px 0 0;transform:translateY(30px);}' +
       '.hs-panel.on{transform:translateY(0);} .hs-foot{padding-bottom:calc(18px + env(safe-area-inset-bottom));}}' +
     '@media (prefers-reduced-motion:reduce){.hs-scrim,.hs-panel{transition:none;}}';
@@ -92,7 +102,7 @@
       panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-labelledby', 'hs-title');
       panel.innerHTML = '<div class="hs-head"><h2 id="hs-title"></h2><button class="hs-close" type="button" aria-label="Close">\u00d7</button></div>' +
         '<div class="hs-body"></div>' +
-        '<div class="hs-foot"><a data-hs-full href="' + href + '">Open full Help \u2197</a></div>';
+        '<div class="hs-foot"><a data-hs-full href="' + href + '">Open full Help \u2197</a><span class="hs-stuck">Still stuck? <a href="contact.html" data-get-help>Send us a message</a></span></div>';
       panel.querySelector('#hs-title').textContent = c.title;
       panel.querySelector('.hs-body').innerHTML = c.html;
       // Links inside: other Help answers open here; anything else in a new tab
@@ -101,6 +111,7 @@
       });
       panel.querySelector('.hs-foot a').target = '_blank';
       panel.querySelector('.hs-foot a').rel = 'noopener';
+      panel.querySelector('[data-get-help]').addEventListener('click', close);
       document.body.appendChild(scrim); document.body.appendChild(panel);
       scrim.addEventListener('click', close);
       panel.querySelector('.hs-close').addEventListener('click', close);
