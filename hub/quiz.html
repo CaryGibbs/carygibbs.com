@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261120c"></script>
+  <script src="dev-flag.js?v=20261120d"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261120c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261120c">
-  <script src="icons.js?v=20261120c"></script>
-  <script src="help-sheet.js?v=20261120c" defer></script>
+  <link rel="stylesheet" href="theme.css?v=20261120d">
+  <script src="icons.js?v=20261120d"></script>
+  <script src="help-sheet.js?v=20261120d" defer></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -376,7 +376,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261120c">
+  <link rel="stylesheet" href="ui.css?v=20261120d">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -385,7 +385,7 @@
 <nav class="topnav">
   <a id="nav-back-link" href="hub.html" class="nav-back">← Back</a>
   <div class="nav-title" id="nav-title">Quiz</div>
-  <div style="display:flex;align-items:center;gap:8px;"><div class="nav-tally" id="nav-tally" aria-live="polite"><span class="ok" title="Right so far">✓ <b id="tally-ok">0</b></span><span class="no" title="Wrong so far">✗ <b id="tally-no">0</b></span></div><div class="nav-progress" id="nav-progress"></div><a class="help-btn help-compact" href="help.html" target="_blank" rel="noopener" aria-label="Help" title="Help"><i data-icon="circle-help"></i><span>Help</span></a></div>
+  <div style="display:flex;align-items:center;gap:8px;"><div class="nav-tally" id="nav-tally" aria-live="polite"><span class="ok" title="Right so far">✓ <b id="tally-ok">0</b></span><span class="no" title="Wrong so far">✗ <b id="tally-no">0</b></span></div><div class="nav-progress" id="nav-progress"></div><a class="help-btn help-compact" href="help.html#menu-student" target="_blank" rel="noopener" aria-label="Help" title="Help"><i data-icon="circle-help"></i><span>Help</span></a></div>
 </nav>
 <div class="progress-bar-wrap">
   <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
@@ -598,18 +598,18 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261120c';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261120c';
-import { marksLeft, marksLeftText } from './marks.js?v=20261120c';
-import { showPlusUpsell } from './plus.js?v=20261120c';
-import { askClaude, jsonOf } from './ai.js?v=20261120c';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261120c';
-import { logEvent } from './log.js?v=20261120c';
-import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261120c';
-import { showBadgePops } from './badge-pop.js?v=20261120c';
-import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261120c';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261120c';
-import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261120c';
+import { auth, db } from './firebase-config.js?v=20261120d';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261120d';
+import { marksLeft, marksLeftText } from './marks.js?v=20261120d';
+import { showPlusUpsell } from './plus.js?v=20261120d';
+import { askClaude, jsonOf } from './ai.js?v=20261120d';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261120d';
+import { logEvent } from './log.js?v=20261120d';
+import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261120d';
+import { showBadgePops } from './badge-pop.js?v=20261120d';
+import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261120d';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261120d';
+import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261120d';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -1676,7 +1676,7 @@ document.getElementById('q-report').onclick = async () => {
   if (!q) return;
   const a = answerLog[currentIdx] || {};
   try {
-    const { openSupport } = await import('./support.js?v=20261120c');
+    const { openSupport } = await import('./support.js?v=20261120d');
     openSupport({ kind: 'question', question: {
       packId: q.loc?.p || groupId, subjectId: q.loc?.s || subjectId, topicId: q.loc?.t || q.topicId || topicId, questionId: q.id,
       subjectName: q.subjectName || (reviewMode ? '' : subjectName), topicName: reviewMode ? '' : topicName,

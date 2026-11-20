@@ -14,7 +14,7 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261120c').then(function (m) {
+    import('./support.js?v=20261120d').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
@@ -47,6 +47,12 @@
     '.hs-body p{margin:0 0 12px;} .hs-body a{color:#e85f3d;}' +
     '.hs-body details{border-top:1px solid #e8eef0;padding:10px 0;} .hs-body summary{cursor:pointer;font-weight:600;color:#123a4a;}' +
     '.hs-body details p{margin:8px 0 4px;}' +
+    '.hs-lead{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5d7c89;margin:4px 0 2px !important;}' +
+    '.hs-menu-acts{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 8px;}' +
+    '.hs-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:10px 18px;font:600 .93rem Inter,system-ui,sans-serif;text-decoration:none;background:#f1f4f5;color:#123a4a !important;}' +
+    '.hs-btn:hover{background:#e2e9eb;} .hs-btn-go{background:#ff7a59;color:#fff !important;} .hs-btn-go:hover{background:#e8643f;}' +
+    '.hs-small{font-size:.8rem;color:#5d7c89;margin:4px 0 6px !important;}' +
+    '.hs-panel.is-menu .hs-foot{display:none;}' +
     '.hs-foot{padding:10px 22px 18px;border-top:1px solid #eef2f3;font-size:.88rem;}' +
     '.hs-foot a{color:#5d7c89;} .hs-foot{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;} .hs-stuck{color:#5d7c89;} .hs-foot .hs-stuck a{color:#e85f3d;font-weight:600;}' +
     '@media (max-width:600px){.hs-panel{left:0;right:0;top:auto;bottom:0;width:100%;max-height:85vh;border-radius:18px 18px 0 0;transform:translateY(30px);}' +
@@ -74,8 +80,30 @@
     }
   };
 
+  // The Help menu (help.html#menu-parent etc.): popular answers for that
+  // view, then "See all Help & FAQs" and "Send us a message"
+  var MENU = {
+    parent:  ['setup', 'revision-list', 'link-own', 'whats-free', 'plus-family', 'password'],
+    teacher: ['teachers', 'setup', 'revision-list', 'whats-free', 'ai-allowance', 'password'],
+    student: ['start', 'review', 'make-cards', 'marking', 'rewards', 'password'],
+    admin:   ['setup', 'plus-cancel', 'plus-refund', 'ai-allowance', 'password'],
+  };
+  var menuFor = function (doc, view) {
+    var ids = MENU[view] || MENU.parent;
+    var qs = ids.map(function (i) { var d = doc.getElementById(i); return d && d.tagName === 'DETAILS' ? d.outerHTML : ''; }).join('');
+    return { title: 'Help', menu: true, html:
+      '<p class="hs-lead">Popular questions</p>' + qs +
+      '<div class="hs-menu-acts">' +
+        '<a class="hs-btn hs-btn-go" href="contact.html" data-get-help>Send us a message</a>' +
+        '<a class="hs-btn" data-hs-full href="help.html" target="_blank" rel="noopener">See all Help &amp; FAQs \u2197</a>' +
+      '</div>' +
+      '<p class="hs-small">Messages get a reply by email, usually within two working days.</p>' };
+  };
+
   // What to show for an anchor: one answer, or a section's questions
   var contentFor = function (doc, id) {
+    var mm = /^menu-(\w+)$/.exec(id);
+    if (mm) return menuFor(doc, mm[1]);
     var el = doc.getElementById(id);
     if (!el) return null;
     if (el.tagName === 'DETAILS') {
@@ -111,7 +139,8 @@
       });
       panel.querySelector('.hs-foot a').target = '_blank';
       panel.querySelector('.hs-foot a').rel = 'noopener';
-      panel.querySelector('[data-get-help]').addEventListener('click', close);
+      if (c.menu) panel.classList.add('is-menu');
+      panel.querySelectorAll('[data-get-help]').forEach(function (b) { b.addEventListener('click', close); });
       document.body.appendChild(scrim); document.body.appendChild(panel);
       scrim.addEventListener('click', close);
       panel.querySelector('.hs-close').addEventListener('click', close);

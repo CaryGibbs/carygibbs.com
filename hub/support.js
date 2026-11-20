@@ -10,11 +10,11 @@
 // checked by the database rules).
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261120c';
+import { auth, db } from './firebase-config.js?v=20261120d';
 import { doc, getDoc, collection, writeBatch, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const SUPPORT_EMAIL = 'support@lobelimpet.com';
-const VERSION = '20261120c';
+const VERSION = '20261120d';
 const DAY = 86400000;
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

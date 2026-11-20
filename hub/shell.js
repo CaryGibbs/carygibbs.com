@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261120c';
-import { handleSignOut, openViewAs, viewsOf, rememberView, isPlusTier, hasFamilyPlus } from './auth.js?v=20261120c';
-import { themeColour } from './themes.js?v=20261120c';
+import { db } from './firebase-config.js?v=20261120d';
+import { handleSignOut, openViewAs, viewsOf, rememberView, isPlusTier, hasFamilyPlus } from './auth.js?v=20261120d';
+import { themeColour } from './themes.js?v=20261120d';
 import { collection, getDocs, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openAccountSettings } from './account-settings.js?v=20261120c';
-import { plusPillHtml } from './plus.js?v=20261120c';
+import { openAccountSettings } from './account-settings.js?v=20261120d';
+import { plusPillHtml } from './plus.js?v=20261120d';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -116,8 +116,7 @@ export function mountShell(user, profile, { view, active } = {}) {
     </nav>
     <div class="sidebar-footer">
       <a class="nav-item" href="./"><span class="nav-icon"><i data-icon="globe"></i></span><span>Lobe Limpet website</span></a>
-      <a class="nav-item" href="help.html${view === 'teacher' ? '#teachers' : view === 'parent' ? '#parents' : ''}" target="_blank" rel="noopener"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Help &amp; FAQs</span></a>
-      <button class="nav-item" data-get-help><span class="nav-icon"><i data-icon="message-square"></i></span><span>Get help</span></button>
+      <a class="nav-item" href="help.html#menu-${view}" target="_blank" rel="noopener"><span class="nav-icon"><i data-icon="circle-help"></i></span><span>Help</span></a>
       ${!isPlusTier(profile) && !hasFamilyPlus(profile) && !viewsOf(profile).includes('admin') ? `<a class="nav-item" href="plus.html" style="color:#e0643f;font-weight:700;"><span class="nav-icon"><i data-icon="sparkles"></i></span><span>Upgrade to Plus</span></a>` : ''}
       <button class="sidebar-account" id="shell-account" title="Account settings" aria-label="Account settings for ${esc(profile.name || 'you')}">
         <span class="sidebar-avatar">${esc(initials)}</span>

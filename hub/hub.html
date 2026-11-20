@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261120c"></script>
+  <script src="dev-flag.js?v=20261120d"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Hub</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261120c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261120c">
-  <script src="icons.js?v=20261120c"></script>
-  <link rel="stylesheet" href="stats.css?v=20261120c">
+  <link rel="stylesheet" href="theme.css?v=20261120d">
+  <script src="icons.js?v=20261120d"></script>
+  <link rel="stylesheet" href="stats.css?v=20261120d">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -293,7 +293,7 @@
     .join-msg.err { color: #e03131; }
     .join-msg.ok { color: #0ca678; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261120c">
+  <link rel="stylesheet" href="ui.css?v=20261120d">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -307,7 +307,7 @@
     <span id="plus-link"></span>
     <span class="nav-user">Hey, <strong id="nav-name">...</strong></span>
     <a class="help-btn" href="profile.html" aria-label="Profile" title="Profile"><i data-icon="user"></i><span>Profile</span></a>
-    <a class="help-btn" href="help.html" aria-label="Help" title="Help"><i data-icon="circle-help"></i><span>Help</span></a>
+    <a class="help-btn" href="help.html#menu-student" aria-label="Help" title="Help"><i data-icon="circle-help"></i><span>Help</span></a>
     <button class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;" onclick="doSignOut()">Sign out</button>
   </div>
 </nav>
@@ -319,8 +319,7 @@
   <a class="jump-link" href="#badges"><i data-icon="award"></i> Badges</a>
   <a class="jump-link" href="cards.html"><i data-icon="layers"></i> My flashcards</a>
   <a class="jump-link" href="profile.html"><i data-icon="user"></i> Full profile</a>
-  <a class="jump-link" href="help.html"><i data-icon="circle-help"></i> Help</a>
-  <a class="jump-link" href="contact.html" data-get-help><i data-icon="message-square"></i> Get help</a>
+  <a class="jump-link" href="help.html#menu-student"><i data-icon="circle-help"></i> Help</a>
   <a class="jump-link" href="./"><i data-icon="globe"></i> Website</a>
 </div>
 
@@ -386,24 +385,24 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261120c';
-import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261120c';
-import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261120c';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261120c';
-import { findClass, joinClass, cleanCode } from './join-class.js?v=20261120c';
-import { listPacks, samePackIds } from './packs.js?v=20261120c';
-import { plusPillHtml } from './plus.js?v=20261120c';
-import { inOrder } from './order.js?v=20261120c';
-import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261120c';
-import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261120c';
-import { showLinkRequests } from './parent-link.js?v=20261120c';
-import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261120c';
-import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261120c';
-import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261120c';
-import { logEvent } from './log.js?v=20261120c';
-import { loadCardSets } from './card-sets.js?v=20261120c';
-import { lobeySays, lobeyImg, syncLobey, LINES, STREAK_MILESTONES } from './lobey.js?v=20261120c';
-import { openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT, hasStarted, startHereHtml, wireStartHere, openBorrow, PARENT_NOTE } from './student-start.js?v=20261120c';
+import { auth, db } from './firebase-config.js?v=20261120d';
+import { requireAuth, handleSignOut, showToast, isPreview, isStudent, hasRole } from './auth.js?v=20261120d';
+import { getLevelInfo, currentStreak, streakStatus, repairOffer, REPAIR, awardXp, loadStreakSettings } from './gamification.js?v=20261120d';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261120d';
+import { findClass, joinClass, cleanCode } from './join-class.js?v=20261120d';
+import { listPacks, samePackIds } from './packs.js?v=20261120d';
+import { plusPillHtml } from './plus.js?v=20261120d';
+import { inOrder } from './order.js?v=20261120d';
+import { videosOf, readsOf, readLabel, namedLinks } from './videos.js?v=20261120d';
+import { topicLocked, plusTagHtml, addAccessCss, showTopicLocked } from './access.js?v=20261120d';
+import { showLinkRequests } from './parent-link.js?v=20261120d';
+import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from './srs.js?v=20261120d';
+import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261120d';
+import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261120d';
+import { logEvent } from './log.js?v=20261120d';
+import { loadCardSets } from './card-sets.js?v=20261120d';
+import { lobeySays, lobeyImg, syncLobey, LINES, STREAK_MILESTONES } from './lobey.js?v=20261120d';
+import { openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT, hasStarted, startHereHtml, wireStartHere, openBorrow, PARENT_NOTE } from './student-start.js?v=20261120d';
 import {
   collection, getDocs, doc, getDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -1020,6 +1019,6 @@ window.showToast = function(msg, type='info') {
 window.addEventListener('error',function(e){if(e&&e.target&&e.target.tagName==='SCRIPT'||/import|export|module/i.test(String(e&&e.message)))setTimeout(offer,1500);},true);
 setTimeout(function(){var w=document.getElementById('welcome-sub');if(w&&/Loading/.test(w.textContent))offer();},12000);})();
 </script>
-<script src="site.js?v=20261120c"></script>
+<script src="site.js?v=20261120d"></script>
 </body>
 </html>
