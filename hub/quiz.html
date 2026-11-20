@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261117d"></script>
+  <script src="dev-flag.js?v=20261120a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261117d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261117d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261117d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261117d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261117d">
-  <script src="icons.js?v=20261117d"></script>
-  <script src="help-sheet.js?v=20261117d" defer></script>
+  <link rel="stylesheet" href="theme.css?v=20261120a">
+  <script src="icons.js?v=20261120a"></script>
+  <script src="help-sheet.js?v=20261120a" defer></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -359,7 +359,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261117d">
+  <link rel="stylesheet" href="ui.css?v=20261120a">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -579,15 +579,16 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261117d';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261117d';
-import { askClaude, jsonOf } from './ai.js?v=20261117d';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261117d';
-import { logEvent } from './log.js?v=20261117d';
-import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261117d';
-import { showBadgePops } from './badge-pop.js?v=20261117d';
-import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261117d';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261117d';
+import { auth, db } from './firebase-config.js?v=20261120a';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf } from './auth.js?v=20261120a';
+import { askClaude, jsonOf } from './ai.js?v=20261120a';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261120a';
+import { logEvent } from './log.js?v=20261120a';
+import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261120a';
+import { showBadgePops } from './badge-pop.js?v=20261120a';
+import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261120a';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261120a';
+import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261120a';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -622,6 +623,33 @@ let scoreAtStart   = 0;
 let unmarked       = new Set(); // written answers the AI couldn't mark: not counted right or wrong    // score when the current question was shown
 let answerLog      = [];   // per question: what the student answered, the right answer and why
 let recentQuizIds  = [];   // ids served earlier in this visit (Try again)
+const subjectCache = {};   // pack/subject → { name, level, examBoard, spelling } for marking
+
+// The subject a question belongs to (level and spelling setting for marking)
+async function subjectOf(q) {
+  const p = q?.loc?.p || groupId, s = q?.loc?.s || subjectId;
+  if (!p || !s) return { name: q?.subjectName || subjectName };
+  const key = p + '/' + s;
+  if (!subjectCache[key]) {
+    subjectCache[key] = getDoc(doc(db, `content/${p}/subjects/${s}`))
+      .then(snap => snap?.exists?.() ? snap.data() : {})
+      .catch(() => ({}))
+      .then(d => ({ name: d.name || q?.subjectName || subjectName, level: d.level || '', examBoard: d.examBoard || '', spelling: d.spelling || '' }));
+  }
+  return subjectCache[key];
+}
+
+// Typed answers to other questions nearby, so a near-miss that is really a different answer isn't accepted
+function nearbyAnswers(q) {
+  const out = [];
+  for (const o of (questionPool.length ? questionPool : questions)) {
+    if (o === q || o.id === q.id) continue;
+    if (o.type === 'fill') { out.push(o.answer, ...(o.alternatives || [])); }
+    else if (o.type === 'mcq') (o.options || []).forEach(op => out.push(op.text));
+    else if (o.type === 'match') (o.pairs || []).forEach(pr => out.push(pr.left));
+  }
+  return out;
+}
 
 const TYPE_INFO = {
   mcq:   { name: 'Multiple choice',   desc: 'Pick the right answer from a list', level: 'Easier' },
@@ -968,6 +996,7 @@ function renderQuestion() {
   // Render type-specific input
   if (q.type === 'mcq')   renderMCQ(q);
   if (q.type === 'tf')    renderTF(q);
+  if (q.type === 'fill' || q.type === 'short') subjectOf(q);   // fetch the subject's level and spelling setting early
   if (q.type === 'fill')  renderFill(q);
   if (q.type === 'match') renderMatch(q);
   if (q.type === 'short') renderShort(q);
@@ -1206,7 +1235,7 @@ function showMatchReview() {
 }
 
 /* ── Submit answer ───────────────────────────────────────── */
-window._submitAnswer = function() {
+window._submitAnswer = async function() {
   const q = questions[currentIdx];
   if (answered) return;
 
@@ -1231,18 +1260,22 @@ window._submitAnswer = function() {
 
   else if (q.type === 'fill') {
     const inp = document.getElementById('fill-input');
-    const userAns = inp.value.trim().toLowerCase();
+    const userAns = inp.value.trim();
     if (!userAns) { showToast('Type your answer first', 'error'); return; }
-
-    const correctAns = (q.answer || '').toLowerCase();
-    const alts = (q.alternatives || []).map(a => a.toLowerCase());
-    const correct = userAns === correctAns || alts.includes(userAns);
     answered = true;
-    logAnswer({ yours: inp.value.trim(), right: q.answer || '' });
     inp.disabled = true;
-    inp.classList.add(correct ? 'correct' : 'wrong');
+    document.getElementById('btn-submit').style.display = 'none';
 
-    if (correct) { score++; showFeedback(true, q.explanation || ''); }
+    // Spelling marked like a teacher would: a small slip still counts, unless the subject is strict
+    const subj = await subjectOf(q);
+    const check = checkTyped(userAns, [q.answer, ...(q.alternatives || [])], { mode: spellingMode(subj), others: nearbyAnswers(q) });
+    logAnswer({ yours: userAns, right: q.answer || '' });
+    inp.classList.add(check.correct ? 'correct' : 'wrong');
+
+    if (check.correct) {
+      score++;
+      showFeedback(true, q.explanation || '', '', check.nearMiss ? check.answer : '');
+    }
     else showFeedback(false, q.explanation || '', `Correct answer: ${q.answer}`);
     showNextBtn();
   }
@@ -1270,13 +1303,18 @@ async function markShortWritten(q, userAnswer) {
   if (lobeyShows()) document.getElementById('ai-thinking-text').textContent = pick(LINES.marking);
   document.getElementById('ai-result').style.display = 'none';
 
-  const prompt = `You are marking a GCSE student's short answer question.
+  // Mark at the student's real level, and spelling the way an examiner would
+  const subj = await subjectOf(q);
+  const level = subj.level || 'GCSE';
+  const about = [level, subj.examBoard, subj.name].filter(Boolean).join(' ');
+  const prompt = `You are marking a ${level} student's short answer question${subj.name ? ` (${about})` : ''}.
 
 Question: ${q.question}
 Mark scheme / model answer: ${q.markScheme}
 Student's answer: ${userAnswer}
 
-Score the student's answer out of 5 marks. Be fair but rigorous.
+Score the student's answer out of 5 marks. Be fair but rigorous about the content, as a teacher marking a test would be.
+${markingSpellingRules(spellingMode(subj))}
 
 Respond ONLY with a JSON object in this exact format (no markdown, no backticks):
 {"score":3,"outOf":5,"feedback":"Specific feedback in 2-3 sentences. What they got right. What was missing or could be improved."}`;
@@ -1331,7 +1369,7 @@ function showModelAnswer(q) {
 }
 
 /* ── Feedback helpers ────────────────────────────────────── */
-function showFeedback(correct, explanation, correctAnswer) {
+function showFeedback(correct, explanation, correctAnswer, spellAs) {
   const banner = document.getElementById('feedback-banner');
   banner.classList.add('visible', correct ? 'correct' : 'wrong');
 
@@ -1341,7 +1379,9 @@ function showFeedback(correct, explanation, correctAnswer) {
 
   document.getElementById('feedback-explanation').textContent = explanation || '';
   const caEl = document.getElementById('feedback-correct-answer');
-  caEl.innerHTML = correctAnswer ? `<strong>Answer:</strong> ${esc(correctAnswer)}` : '';
+  // A near-miss counts, with a gentle note on the spelling
+  caEl.innerHTML = spellAs ? `<strong>Watch the spelling:</strong> ${esc(spellAs)}`
+    : correctAnswer ? `<strong>Answer:</strong> ${esc(correctAnswer)}` : '';
 }
 
 // Running score after each answer (Milly's idea)

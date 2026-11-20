@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261117d"></script>
+  <script src="dev-flag.js?v=20261120a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261117d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261117d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261117d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261117d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261117d">
-  <script src="icons.js?v=20261117d"></script>
+  <link rel="stylesheet" href="theme.css?v=20261120a">
+  <script src="icons.js?v=20261120a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -646,8 +646,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261117d">
-  <link rel="stylesheet" href="stats.css?v=20261117d">
+  <link rel="stylesheet" href="ui.css?v=20261120a">
+  <link rel="stylesheet" href="stats.css?v=20261120a">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1271,6 +1271,14 @@
       </div>
     </div>
     <div class="form-group" style="margin-top:var(--space-md);">
+      <label>Spelling in typed answers</label>
+      <select id="subject-spelling-input">
+        <option value="relaxed">Relaxed: small slips still count, like an exam board</option>
+        <option value="strict">Strict: spelling must be right (languages, spelling tests)</option>
+      </select>
+      <p style="font-size:0.78rem;color:var(--color-text-muted);margin-top:4px;">Relaxed gives the mark with a "watch the spelling" note. Language subjects start as Strict.</p>
+    </div>
+    <div class="form-group" style="margin-top:var(--space-md);">
       <label>Official resources <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-text-faint)">(optional, one per line: Label | link)</span></label>
       <textarea id="subject-res-input" rows="4" style="width:100%;font-size:0.88rem;" placeholder="Specification | https://www.aqa.org.uk/...&#10;Past papers and mark schemes | https://www.aqa.org.uk/...&#10;BBC Bitesize | https://www.bbc.co.uk/bitesize/..."></textarea>
       <div style="display:flex;justify-content:flex-end;margin-top:6px;">
@@ -1527,36 +1535,37 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261117d';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261117d';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261117d';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261117d';
-import { syncFamilyPlus } from './family-plus.js?v=20261117d';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261117d';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261117d';
-import { openDeleteAccount } from './account.js?v=20261117d';
-import { openPasswordHelp } from './password-help.js?v=20261117d';
-import { addDocumentButton } from './doc-text.js?v=20261117d';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261117d';
-import { showPlusUpsell } from './plus.js?v=20261117d';
-import { offerGivePack } from './first-steps.js?v=20261117d';
+import { auth, db, storage } from './firebase-config.js?v=20261120a';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261120a';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261120a';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261120a';
+import { syncFamilyPlus } from './family-plus.js?v=20261120a';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261120a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120a';
+import { openDeleteAccount } from './account.js?v=20261120a';
+import { openPasswordHelp } from './password-help.js?v=20261120a';
+import { addDocumentButton } from './doc-text.js?v=20261120a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261120a';
+import { showPlusUpsell } from './plus.js?v=20261120a';
+import { offerGivePack } from './first-steps.js?v=20261120a';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261120a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261117d';
-import { mountShell } from './shell.js?v=20261117d';
-import { openInviteDialog, signupLink } from './invite.js?v=20261117d';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261117d';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261117d';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261117d';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261117d';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261117d';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261117d';
-import { dueEntries } from './srs.js?v=20261117d';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261117d';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261117d';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261120a';
+import { mountShell } from './shell.js?v=20261120a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261120a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261120a';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261120a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261120a';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261120a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261120a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120a';
+import { dueEntries } from './srs.js?v=20261120a';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261120a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261120a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1572,8 +1581,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261117d';
-import { inOrder } from './order.js?v=20261117d';
+import { saveEmailIndex } from './email-index.js?v=20261120a';
+import { inOrder } from './order.js?v=20261120a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2623,6 +2632,13 @@ async function openSubjectModal(id) {
   document.getElementById('subject-res-input').value = '';
   document.getElementById('subject-board-input').value = '';
   document.getElementById('subject-level-input').value = '';
+  const spellSel = document.getElementById('subject-spelling-input');
+  spellSel.value = 'relaxed'; spellSel.dataset.touched = '';
+  spellSel.onchange = () => { spellSel.dataset.touched = '1'; };
+  // A new language subject starts as strict, until the setting is changed by hand
+  document.getElementById('subject-name-input').oninput = e => {
+    if (!spellSel.dataset.touched && !id) spellSel.value = isLanguageSubject(e.target.value) ? 'strict' : 'relaxed';
+  };
   const sug = document.getElementById('link-suggestions'); sug.hidden = true; sug.innerHTML = '';
   if (id) {
     const snap = await getDoc(doc(db, subjectsPath(), id));
@@ -2631,6 +2647,7 @@ async function openSubjectModal(id) {
       document.getElementById('subject-emoji-input').value = snap.data().emoji || '';
       document.getElementById('subject-board-input').value = snap.data().examBoard || '';
       document.getElementById('subject-level-input').value = snap.data().level || '';
+      spellSel.value = spellingMode(snap.data());
       document.getElementById('subject-res-input').value = (snap.data().resources || []).map(r => `${r.label} | ${r.url}`).join('\n');
     }
   }
@@ -2655,13 +2672,14 @@ async function saveSubject() {
   }
   const examBoard = document.getElementById('subject-board-input').value;
   const level = document.getElementById('subject-level-input').value;
+  const spelling = document.getElementById('subject-spelling-input').value === 'strict' ? 'strict' : 'relaxed';
   try {
     if (editingItem) {
-      await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji, resources, examBoard, level });
+      await updateDoc(doc(db, subjectsPath(), editingItem.id), { name, emoji, resources, examBoard, level, spelling });
       logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Edited' });
     } else {
       const snap = await getDocs(collection(db, subjectsPath()));
-      await addDoc(collection(db, subjectsPath()), { name, emoji, resources, examBoard, level, order: snap.size, createdAt: serverTimestamp() });
+      await addDoc(collection(db, subjectsPath()), { name, emoji, resources, examBoard, level, spelling, order: snap.size, createdAt: serverTimestamp() });
       logEvent('content.subject', { target: `${selectedGroup?.name || ''} › ${name}`, detail: 'Created' });
     }
     closeModal('modal-subject');
@@ -5145,6 +5163,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261117d"></script>
+<script src="site.js?v=20261120a"></script>
 </body>
 </html>
