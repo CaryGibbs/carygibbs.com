@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261120a"></script>
+  <script src="dev-flag.js?v=20261120b"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261120a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261120a">
-  <script src="icons.js?v=20261120a"></script>
-  <link rel="stylesheet" href="stats.css?v=20261120a">
+  <link rel="stylesheet" href="theme.css?v=20261120b">
+  <script src="icons.js?v=20261120b"></script>
+  <link rel="stylesheet" href="stats.css?v=20261120b">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -184,7 +184,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261120a">
+  <link rel="stylesheet" href="ui.css?v=20261120b">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -448,27 +448,28 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261120a';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261120a';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261120a';
-import { showPlusUpsell } from './plus.js?v=20261120a';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261120a';
-import { saveEmailIndex, findByEmail } from './email-index.js?v=20261120a';
-import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261120a';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261120a';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261120a';
-import { logEvent } from './log.js?v=20261120a';
-import { lobeyImg, lobeySays } from './lobey.js?v=20261120a';
-import { openInviteDialog } from './invite.js?v=20261120a';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120a';
-import { dueEntries, scheduledCount } from './srs.js?v=20261120a';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261120a';
-import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261120a';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261120a';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120a';
-import { openDeleteAccount } from './account.js?v=20261120a';
-import { openPasswordHelp } from './password-help.js?v=20261120a';
-import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261120a';
+import { auth, db } from './firebase-config.js?v=20261120b';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261120b';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261120b';
+import { showPlusUpsell } from './plus.js?v=20261120b';
+import { marksFullThisWeek } from './marks.js?v=20261120b';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261120b';
+import { saveEmailIndex, findByEmail } from './email-index.js?v=20261120b';
+import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261120b';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261120b';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261120b';
+import { logEvent } from './log.js?v=20261120b';
+import { lobeyImg, lobeySays } from './lobey.js?v=20261120b';
+import { openInviteDialog } from './invite.js?v=20261120b';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120b';
+import { dueEntries, scheduledCount } from './srs.js?v=20261120b';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261120b';
+import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261120b';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261120b';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120b';
+import { openDeleteAccount } from './account.js?v=20261120b';
+import { openPasswordHelp } from './password-help.js?v=20261120b';
+import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261120b';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -674,7 +675,7 @@ async function refreshFromChildRecords() {
     records[id] = p;
     syncMyChildPlus(parentUid, shellProfile, id, p);   // my Plus covers my students
     const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'packIds', 'currentPackId', 'myPackId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'lastActiveAt', 'xp', 'level',
-                  'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength'];
+                  'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength', 'aiMarksFull'];
     const fresh = {};
     keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
     liveStats[id] = fresh;
@@ -786,6 +787,8 @@ function renderHome() {
     }
     const r = repairOffer(k);
     if (r && !(r.done || r.progress.done)) items.push({ p: 2, emoji: '🔥', text: `${esc(k.first)} can win back a ${r.from}-day streak today`, sub: `${r.progress.mins} of ${REPAIR.MINUTES} minutes done.`, act: btn('Message', `openNotifyModal('${k.uid}')`) });
+    // Free AI marks used up this week (no Plus): Plus gives unlimited marking
+    if (marksFullThisWeek(k) && !hasPlus(shellProfile || {})) items.push({ p: 2.8, emoji: '✍️', text: `${esc(k.first)} has used this week's free AI marks`, sub: 'Written answers are self-checked until Monday. Plus gives unlimited, examiner-style marking.', act: btn('See Plus', `location.href='plus.html'`) });
     if (due >= 10) items.push({ p: 3, emoji: '🔁', text: `${esc(k.first)} has ${due} reviews due`, sub: 'Reviews make what they learnt stick.', act: btn('View as', `viewAs('${k.uid}')`) });
     // Weakest subject over the last 30 days
     const bySub = {};
@@ -1556,6 +1559,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261120a"></script>
+<script src="site.js?v=20261120b"></script>
 </body>
 </html>

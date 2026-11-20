@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="dev-flag.js?v=20261120a"></script>
+  <script src="dev-flag.js?v=20261120b"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pricing · Lobe Limpet</title>
   <meta name="description" content="Lobe Limpet pricing: free to start, and Plus to keep turning revision lists and your own notes into revision with AI.">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120b">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261120a">
+  <link rel="stylesheet" href="site.css?v=20261120b">
   <style>
     .plan-card { display: flex; flex-direction: column; }
     .plan-plus { border: 2px solid var(--coral, #ff7a59); }
@@ -28,12 +28,12 @@
 </head>
 <body>
 <div id="site-header"></div>
-<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261120a" alt="" width="140" height="114"></div></div>
+<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision, and unlimited, examiner-style marking.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261120b" alt="" width="140" height="114"></div></div>
 <main class="wrap"><div class="prose" style="max-width:860px;">
 
 <div class="grid3 two price-cards">
-  <div class="card plan-card"><h3>Free</h3><p class="price">£0</p><p>Revise for free, with no time limit. Parents and teachers can write their own notes and questions by hand, and <strong>turn their first 2 revision lists into revision with AI, free</strong>.</p><div class="plan-action" id="free-action"></div></div>
-  <div class="card plan-card plan-plus" id="plus-card"><h3><span id="plus-name">Family Plus</span> <span class="plus-mark">✨</span></h3><p class="price" id="plus-price">£39.99 <small>a year</small></p><p>Keep turning revision lists, class notes, worksheets and documents into notes and quiz questions with AI, plus every topic in the ready-made packs. One Family Plus covers your children, and their other parent, too.</p><div class="plan-action">
+  <div class="card plan-card"><h3>Free</h3><p class="price">£0</p><p>Revise for free, with no time limit, including free AI marks for written answers every week. Parents and teachers can write their own notes and questions by hand, and <strong>turn their first 2 revision lists into revision with AI, free</strong>.</p><div class="plan-action" id="free-action"></div></div>
+  <div class="card plan-card plan-plus" id="plus-card"><h3><span id="plus-name">Family Plus</span> <span class="plus-mark">✨</span></h3><p class="price" id="plus-price">£39.99 <small>a year</small></p><p>Keep turning revision lists, class notes, worksheets and documents into notes and quiz questions with AI, plus every topic in the ready-made packs and unlimited, examiner-style marking of written answers. One Family Plus covers your children, and their other parent, too.</p><div class="plan-action">
   <p id="plus-intro">Plus is in early access. Sign in, then ask here and we'll switch it on for your account.</p>
   <div id="plus-ask" hidden>
     <label for="plus-note" style="display:block;font-weight:600;margin:6px 0;">Anything we should know? (optional)</label>
@@ -59,7 +59,9 @@
   <tbody>
     <tr class="group"><td colspan="3">Revising</td></tr>
     <tr><td>Quizzes with multiple choice, true or false, fill the gap, match the pairs and written answers</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
-    <tr><td>Written answers marked by AI, with feedback</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Written answers marked by AI, with feedback (spelling marked the way an exam board would)</td><td class="c"><span class="yes">✓</span><small>Free AI marks every week</small></td><td class="c"><span class="yes">✓</span><small>Unlimited</small></td></tr>
+    <tr><td>Examiner-style feedback: the points you got and missed, and how to reach full marks</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Spelling, punctuation and grammar (SPaG) feedback on longer answers in subjects such as RE, History and Geography</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Smart review: questions come back in your weaker areas until they stick</td><td class="c"><span class="yes">✓</span><small>Unlimited</small></td><td class="c"><span class="yes">✓</span><small>Unlimited</small></td></tr>
     <tr><td>Subject maps, one-page cheat sheets and tap-to-learn notes</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Revision packs from parents, teachers and the community library</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
@@ -106,18 +108,18 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261120a"></script>
+<script src="site.js?v=20261120b"></script>
 <script type="module">
 // Plus: the price comes from Admin → Settings → Payments and pricing.
 // When payments are open, adults buy through Stripe's checkout; students ask
 // a parent. While payments are off, people ask for Plus here instead and an
 // admin switches it on in Users.
-import { auth, db } from './firebase-config.js?v=20261120a';
+import { auth, db } from './firebase-config.js?v=20261120b';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261120a';
-import { withFamilyPlus, isPlusTier } from './auth.js?v=20261120a';
-import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261120a';
+import { logEvent } from './log.js?v=20261120b';
+import { withFamilyPlus, isPlusTier } from './auth.js?v=20261120b';
+import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261120b';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const paidParam = new URLSearchParams(location.search).get('paid');

@@ -12,7 +12,9 @@
 //                      plus a one-off free try for parents and teachers
 //                      (aiTrial/{uid}, settings/aiLimits.trial tokens)
 //   task 'learning'    learning notes, cheat sheets, cards    any signed-in user
-//   task 'marking'     marking written quiz answers           any signed-in user
+//   task 'marking'     marking written quiz answers           any signed-in user;
+//                      without Plus, a number of marks a week (aiMarks/{uid}_{monday},
+//                      settings/aiLimits.freeMarksWeek, default 15, 0 = no limit)
 //   (generation may include page pictures, to read scanned PDFs and diagrams)
 //   action 'checkLinks'  checking resource links load        any signed-in user
 //   action 'readPage'    the words of up to 3 web pages, for  parents, teachers, admins
@@ -83,6 +85,15 @@ const LIMIT_DEFAULTS = { free: 50000, plus: 200000, freeMonth: 150000, plusMonth
 // per account (about two worksheets turned into notes and questions)
 const TRIAL_DEFAULT = 60000;
 const TRIAL_USED_UP = "You've used your free try of creating with AI. Lobe Limpet Plus lets you keep turning class notes into revision.";
+// Free AI marks of written answers a week (Monday to Sunday, UK time), without Plus
+const FREE_MARKS_DEFAULT = 15;
+// The Monday that starts this week, UK time: "2026-11-16"
+const londonWeek = (d = new Date()) => {
+  const [y, m, dd] = londonDay(d).split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, dd));
+  t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7));
+  return t.toISOString().slice(0, 10);
+};
 const londonMonth = (d = new Date()) => londonDay(d).slice(0, 7);
 // "1 December": when this month's allowance starts again
 const nextMonthText = (d = new Date()) => {
@@ -231,6 +242,19 @@ export default {
         onTrial = true;
       }
     }
+    // Free AI marks a week without Plus (counted here, not in the browser)
+    let marksCap = 0, marksWeek = '';
+    if (taskName === 'marking' && user && who && svc && !isPlus) {
+      marksCap = Number(limits?.freeMarksWeek ?? FREE_MARKS_DEFAULT);
+      if (marksCap > 0) {
+        marksWeek = londonWeek();
+        const marks = await fsGet(svc, `aiMarks/${user.uid}_${marksWeek}`).catch(() => null);
+        if ((marks?.count || 0) >= marksCap) {
+          return reply(402, { error: { code: 'marks_used_up', cap: marksCap,
+            message: `You've used this week's ${marksCap} free AI marks. They start again on Monday. Lobe Limpet Plus gives unlimited marking.` } });
+        }
+      }
+    }
     if (user && who && !isAdmin) {
       const lim = { ...LIMIT_DEFAULTS, ...(limits || {}) };
       const cap = Number(who.aiLimit) > 0 ? Number(who.aiLimit) : Number(isPlus ? lim.plus : lim.free);
@@ -283,6 +307,7 @@ export default {
         const output = u.output_tokens || 0;
         ctx.waitUntil(recordUsage(svc, user, who, day, taskName, model, input, output).catch(e => console.warn('Usage not saved:', e.message)));
         if (onTrial) ctx.waitUntil(recordTrial(svc, user, who, input + output).catch(e => console.warn('Trial not saved:', e.message)));
+        if (marksWeek) ctx.waitUntil(recordMark(svc, user, who, marksWeek, marksCap).catch(e => console.warn('Mark not counted:', e.message)));
         // Creating with AI on Plus: noted once a day, so a refund request can be checked
         else if (task.needsPlus && !isAdmin && isPlus) ctx.waitUntil(notePlusUse(svc, user, who, day).catch(() => {}));
       } catch (e) { /* reply wasn't JSON: nothing to count */ }
@@ -823,6 +848,27 @@ async function recordUsage(tok, user, who, day, task, model, input, output) {
 
 /* ── Free try: running total in aiTrial/{uid} (only this Worker can write it),
    copied to users/{uid}.aiTrialUsed so the app can show what's left ── */
+// One free AI mark used this week. When the last one goes, the student's
+// record says so (aiMarksFull = the week), so their parent can see it.
+async function recordMark(tok, user, who, week, cap) {
+  const inc = (fieldPath, n) => ({ fieldPath, increment: { integerValue: String(n) } });
+  await fsCommit(tok, [{
+    update: { name: `${DOCS}/aiMarks/${user.uid}_${week}`, fields: {
+      uid: { stringValue: user.uid }, week: { stringValue: week }, lastAt: tsv(new Date()),
+      expireAt: tsv(new Date(Date.now() + 60 * 86400000)),
+    } },
+    updateMask: { fieldPaths: ['uid', 'week', 'lastAt', 'expireAt'] },
+    updateTransforms: [inc('count', 1)],
+  }]);
+  const now = await fsGet(tok, `aiMarks/${user.uid}_${week}`).catch(() => null);
+  if ((now?.count || 0) >= cap && who?.aiMarksFull !== week) {
+    await fsCommit(tok, [{
+      update: { name: `${DOCS}/users/${user.uid}`, fields: { aiMarksFull: { stringValue: week } } },
+      updateMask: { fieldPaths: ['aiMarksFull'] },
+    }]);
+  }
+}
+
 async function recordTrial(tok, user, who, tokens) {
   const inc = (fieldPath, n) => ({ fieldPath, increment: { integerValue: String(n) } });
   await fsCommit(tok, [{

@@ -6,7 +6,7 @@
 // app has always used, so nothing breaks.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261120a';
+import { db, auth } from './firebase-config.js?v=20261120b';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const PROXY_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
@@ -62,7 +62,7 @@ export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallb
   }).then(async r => {
     const data = await r.json().catch(() => ({}));
     if (!r.ok || data.error || !data.content) {
-      const e = new Error(data.error?.message || `AI request failed (${r.status})`); e.status = r.status; throw e;
+      const e = new Error(data.error?.message || `AI request failed (${r.status})`); e.status = r.status; e.code = data.error?.code || ''; e.cap = data.error?.cap; throw e;
     }
     // Newer models think before they reply; if the thinking used up a short
     // marking reply, it's cut off. Treat that as a failure so the fallback
@@ -75,7 +75,7 @@ export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallb
   try { return await send(chosen); }
   catch (e) {
     // Not allowed, not signed in or too big: another model won't help
-    if (chosen === FALLBACK_MODEL || noFallback || [401, 403, 413].includes(e.status)) throw e;
+    if (chosen === FALLBACK_MODEL || noFallback || [401, 402, 403, 413].includes(e.status)) throw e;
     console.warn(`Model ${chosen} failed (${e.message}); retrying with ${FALLBACK_MODEL}`);
     return send(FALLBACK_MODEL);
   }

@@ -4,13 +4,14 @@
 // this dialog, with a link to the Plus page to upgrade.
 // ============================================================
 
-import { isPlusTier } from './auth.js?v=20261120a';
+import { isPlusTier } from './auth.js?v=20261120b';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 export const PLUS_FEATURES = [
   'Every topic in the ready-made Lobe Limpet packs (each subject has free sample topics)',
   'Create notes and questions with AI, from your own notes, a document or just a topic name',
+  'Unlimited AI marking of written answers, with examiner-style feedback and spelling, punctuation and grammar (SPaG) feedback on longer answers',
   'Make flashcards with AI, and fill in meanings for the terms you type',
   'Upload PDFs and Word documents to build revision from',
   'Read scanned pages, photos and diagrams with AI',

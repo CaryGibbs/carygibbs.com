@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261120a"></script>
+  <script src="dev-flag.js?v=20261120b"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120a">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120a">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120a">
-  <link rel="manifest" href="manifest.webmanifest?v=20261120a">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120b">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120b">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120b">
+  <link rel="manifest" href="manifest.webmanifest?v=20261120b">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261120a">
-  <script src="icons.js?v=20261120a"></script>
+  <link rel="stylesheet" href="theme.css?v=20261120b">
+  <script src="icons.js?v=20261120b"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -646,8 +646,8 @@
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261120a">
-  <link rel="stylesheet" href="stats.css?v=20261120a">
+  <link rel="stylesheet" href="ui.css?v=20261120b">
+  <link rel="stylesheet" href="stats.css?v=20261120b">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1078,7 +1078,9 @@
         <div class="ai-field"><label>Free accounts</label><p>Learning notes, cheat sheets and marking written answers.</p>
           <div class="lim-pair"><label>Tokens a day <input type="text" inputmode="numeric" id="lim-free" data-tokens class="lim-input"></label>
             <label>Tokens a month <input type="text" inputmode="numeric" id="lim-free-month" data-tokens class="lim-input"></label></div>
-          <p class="lim-cost" id="lim-free-cost"></p></div>
+          <p class="lim-cost" id="lim-free-cost"></p>
+          <div class="lim-pair" style="margin-top:8px;"><label>Free AI marks a week <input type="number" id="lim-free-marks" min="0" step="1" class="lim-input"></label></div>
+          <p class="lim-cost">Written answers marked by AI each week (Monday to Sunday, UK time) without Plus. After that, students check their answer against the model answer, and their parent sees a note. 0 = no weekly limit. Plus is unlimited. Each mark is about 1,000 tokens.</p></div>
         <div class="ai-field"><label>Plus accounts</label><p>Also covers creating notes, questions and flashcards with AI.</p>
           <div class="lim-pair"><label>Tokens a day <input type="text" inputmode="numeric" id="lim-plus" data-tokens class="lim-input"></label>
             <label>Tokens a month <input type="text" inputmode="numeric" id="lim-plus-month" data-tokens class="lim-input"></label>
@@ -1535,37 +1537,37 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261120a';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261120a';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261120a';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261120a';
-import { syncFamilyPlus } from './family-plus.js?v=20261120a';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261120a';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120a';
-import { openDeleteAccount } from './account.js?v=20261120a';
-import { openPasswordHelp } from './password-help.js?v=20261120a';
-import { addDocumentButton } from './doc-text.js?v=20261120a';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261120a';
-import { showPlusUpsell } from './plus.js?v=20261120a';
-import { offerGivePack } from './first-steps.js?v=20261120a';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261120a';
+import { auth, db, storage } from './firebase-config.js?v=20261120b';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261120b';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261120b';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261120b';
+import { syncFamilyPlus } from './family-plus.js?v=20261120b';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261120b';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120b';
+import { openDeleteAccount } from './account.js?v=20261120b';
+import { openPasswordHelp } from './password-help.js?v=20261120b';
+import { addDocumentButton } from './doc-text.js?v=20261120b';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261120b';
+import { showPlusUpsell } from './plus.js?v=20261120b';
+import { offerGivePack } from './first-steps.js?v=20261120b';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261120b';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261120a';
-import { mountShell } from './shell.js?v=20261120a';
-import { openInviteDialog, signupLink } from './invite.js?v=20261120a';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261120a';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261120a';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261120a';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261120a';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261120a';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120a';
-import { dueEntries } from './srs.js?v=20261120a';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261120a';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261120a';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261120b';
+import { mountShell } from './shell.js?v=20261120b';
+import { openInviteDialog, signupLink } from './invite.js?v=20261120b';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261120b';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261120b';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261120b';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261120b';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261120b';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120b';
+import { dueEntries } from './srs.js?v=20261120b';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261120b';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261120b';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1581,8 +1583,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261120a';
-import { inOrder } from './order.js?v=20261120a';
+import { saveEmailIndex } from './email-index.js?v=20261120b';
+import { inOrder } from './order.js?v=20261120b';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1956,7 +1958,7 @@ document.getElementById('btn-test-ai').onclick = async () => {
 /* ── AI usage and limits ─────────────────────────────────────
    The Worker counts tokens per person per day in aiUsage/{uid}_{day}
    and enforces settings/aiLimits (see workers/ai-proxy.js). */
-const LIMIT_DEFAULTS = { free: 50000, plus: 200000, freeMonth: 150000, plusMonth: 400000, plusPriceYear: 36 };
+const LIMIT_DEFAULTS = { free: 50000, plus: 200000, freeMonth: 150000, plusMonth: 400000, plusPriceYear: 36, freeMarksWeek: 15 };
 const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 const fmtTok = n => n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M` : n >= 1000 ? `${Math.round(n / 1000)}k` : String(n || 0);
 /* ── Personal AI limits (users.aiLimit; the Worker uses it instead of the
@@ -2166,6 +2168,7 @@ async function renderAiLimits() {
   document.getElementById('lim-free-month').value = tokBox(lim.freeMonth);
   document.getElementById('lim-plus-month').value = tokBox(lim.plusMonth);
   document.getElementById('lim-plus-price').value = lim.plusPriceYear;
+  document.getElementById('lim-free-marks').value = lim.freeMarksWeek;
   renderLimitCosts();
   document.getElementById('limits-status').textContent = snap?.exists() ? `Saved ${new Date(lim.updatedAt || Date.now()).toLocaleDateString('en-GB')}` : 'Using defaults';
   await renderPersonalLimits().catch(e => console.warn('Personal limits:', e.message));
@@ -2214,9 +2217,11 @@ async function renderAiLimits() {
 document.getElementById('btn-save-limits').onclick = async () => {
   const num = id => Math.max(0, Math.round(tokNum(document.getElementById(id).value)));
   const free = num('lim-free'), plus = num('lim-plus'), freeMonth = num('lim-free-month'), plusMonth = num('lim-plus-month'), plusPriceYear = num('lim-plus-price');
+  const freeMarksWeek = Math.max(0, Math.round(Number(document.getElementById('lim-free-marks').value) || 0));
   try {
-    await setDoc(doc(db, 'settings', 'aiLimits'), { free, plus, freeMonth, plusMonth, plusPriceYear, updatedAt: Date.now() });
-    logEvent('admin.settings', { target: 'AI limits', detail: `Free ${fmtTok(free)} a day / ${fmtTok(freeMonth)} a month, Plus ${fmtTok(plus)} a day / ${fmtTok(plusMonth)} a month` });
+    // merge: keep other settings in this document (e.g. the free try of creating with AI)
+    await setDoc(doc(db, 'settings', 'aiLimits'), { free, plus, freeMonth, plusMonth, plusPriceYear, freeMarksWeek, updatedAt: Date.now() }, { merge: true });
+    logEvent('admin.settings', { target: 'AI limits', detail: `Free ${fmtTok(free)} a day / ${fmtTok(freeMonth)} a month, ${freeMarksWeek || 'unlimited'} AI marks a week; Plus ${fmtTok(plus)} a day / ${fmtTok(plusMonth)} a month` });
     showToast('Limits saved', 'success'); renderAiLimits();
   } catch (e) { showToast('Could not save: ' + e.message, 'error'); }
 };
@@ -5163,6 +5168,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261120a"></script>
+<script src="site.js?v=20261120b"></script>
 </body>
 </html>

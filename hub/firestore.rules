@@ -442,6 +442,12 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow write: if false;
     }
+    // Free AI marks used this week, without Plus (Worker only): aiMarks/{uid}_{monday}
+    match /aiMarks/{id} {
+      allow get: if signedIn() && (isAdmin() || id.split('_')[0] == me());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
     match /rateLimits/{id} { allow read, write: if false; }
 
     // ── Parent link requests (parent-link.js) ─────────────
