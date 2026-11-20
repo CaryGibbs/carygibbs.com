@@ -1,0 +1,5 @@
+# Lobe Limpet
+User-agent: *
+Allow: /
+
+Sitemap: https://lobelimpet.com/sitemap.xml

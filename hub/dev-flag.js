@@ -11,6 +11,10 @@
   var C = '#7c3aed';
   window.LL_DEV = true;
 
+  // Keep the dev copy out of search results (the live site is lobelimpet.com)
+  var ni = document.createElement('meta'); ni.name = 'robots'; ni.content = 'noindex, nofollow';
+  document.head ? document.head.appendChild(ni) : document.documentElement.appendChild(ni);
+
   // Tab title (kept when pages change their title later)
   // (only once the page's own <title> exists: setting it earlier would replace it)
   var mark = function () { if (document.title && document.title.indexOf('DEV · ') !== 0) document.title = 'DEV · ' + document.title; };
