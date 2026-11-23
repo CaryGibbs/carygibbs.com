@@ -8,6 +8,8 @@
 // ============================================================
 (function () {
   var CONTACT_EMAIL = 'support@lobelimpet.com';
+  // <a data-email="privacy"> → privacy@lobelimpet.com (also billing, press, safeguarding)
+  var EMAIL_DOMAIN = 'lobelimpet.com';
   var TAGLINE = 'Knowledge that sticks.';
   var YEAR = new Date().getFullYear();
 
@@ -103,8 +105,10 @@
   // ── Email links: <a data-email> becomes a mailto link ───
   var fill = function () {
     document.querySelectorAll('[data-email]').forEach(function (a) {
-      a.href = 'mailto:' + CONTACT_EMAIL + (a.dataset.subject ? '?subject=' + encodeURIComponent(a.dataset.subject) : '');
-      if (!a.textContent.trim()) a.textContent = CONTACT_EMAIL;
+      var box = (a.dataset.email || '').replace(/[^a-z]/g, '');
+      var addr = box ? box + '@' + EMAIL_DOMAIN : CONTACT_EMAIL;
+      a.href = 'mailto:' + addr + (a.dataset.subject ? '?subject=' + encodeURIComponent(a.dataset.subject) : '');
+      if (!a.textContent.trim()) a.textContent = addr;
     });
   };
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fill) : fill();
