@@ -329,6 +329,10 @@
         <input type="checkbox" id="manage-plan-reviews" checked style="margin-top:3px;">
         <span>Daily goal includes clearing due reviews<br><span class="form-hint" style="font-weight:400;">On Steady, Exam push and Final days. Untick to make reviews optional: they still show up, they just don't block the goal.</span></span>
       </label>
+      <label class="check-row" style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;font-weight:600;font-size:0.9rem;cursor:pointer;">
+        <input type="checkbox" id="manage-reminders" style="margin-top:3px;">
+        <span>Allow reminders on their phone<br><span class="form-hint" style="font-weight:400;">At most one a day: 4:30pm if reviews are waiting, or 7pm if their streak would end. They still choose to turn them on, in their Profile.</span></span>
+      </label>
       <div class="plan-exams" id="manage-exams"></div>
       <div class="form-hint">Don't know the dates of each paper yet? Add one row for the week with All subjects. Once you do, add a row per paper with its subject, and the plan revises each one in the days before it.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
@@ -685,7 +689,7 @@ async function refreshFromChildRecords() {
     records[id] = p;
     syncMyChildPlus(parentUid, shellProfile, id, p);   // my Plus covers my students
     const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'packIds', 'currentPackId', 'myPackId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'lastActiveAt', 'xp', 'level',
-                  'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength', 'aiMarksFull'];
+                  'study', 'studySubjects', 'parentUid', 'guardianIds', 'classPacks', 'srs', 'cardLength', 'aiMarksFull', 'remindersAllowed', 'ageBand'];
     const fresh = {};
     keep.forEach(k => { if (p[k] !== undefined) fresh[k] = p[k]; });
     liveStats[id] = fresh;
@@ -1178,6 +1182,7 @@ function renderPlanEditor() {
   };
   sel.onchange = hint; hint();
   document.getElementById('manage-plan-reviews').checked = !managePlan.reviewsOff;
+  document.getElementById('manage-reminders').checked = childrenData[managingChildId]?.remindersAllowed === true;
   const box = document.getElementById('manage-exams');
   // Which revision pack the exams are on (sets the subjects in the day-by-day plan)
   const stu = childrenData[managingChildId] || {};
@@ -1283,16 +1288,18 @@ window._saveChild = async function() {
     if (managePlan.overrides) plan.overrides = managePlan.overrides;   // keep day-by-day changes
     if (managePlan.reviewsOff) plan.reviewsOff = true;                 // reviews optional (default: required)
     const was = { ...(childrenData[managingChildId] || {}) };
+    const remindersAllowed = document.getElementById('manage-reminders').checked;
     await updateDoc(doc(db, 'users', managingChildId), {
-      name, theme: manageTheme, groupIds, packIds, cardLength, plan,
+      name, theme: manageTheme, groupIds, packIds, cardLength, plan, remindersAllowed,
       groupId: groupIds[0] || null
     });
+    if ((was.remindersAllowed === true) !== remindersAllowed) logEvent('student.edit', { target: name, targetId: managingChildId, detail: remindersAllowed ? 'Allowed reminders' : 'Turned off reminders' });
     const planText = p => `${p?.mode || 'auto'}${p?.reviewsOff ? ' · reviews optional' : ''}${(p?.exams || []).length ? ' · ' + p.exams.map(e => `${e.name} ${e.start}${e.end ? '–' + e.end : ''}`).join('; ') : ''}`;
     if (planText(was.plan) !== planText(plan)) logEvent('plan.change', { target: name, targetId: managingChildId, detail: planText(plan) });
     const changed = [was.name !== name && 'name', was.theme !== manageTheme && 'theme', JSON.stringify([...(was.groupIds || [])].sort()) !== JSON.stringify([...groupIds].sort()) && 'packs', (was.cardLength || 'full') !== cardLength && 'card length'].filter(Boolean);
     if (changed.length) logEvent('student.edit', { target: name, targetId: managingChildId, detail: 'Changed ' + changed.join(', ') });
     // Remember what was saved, so the list doesn't redraw from the copy read when the page opened
-    const saved = { name, theme: manageTheme, groupIds, cardLength, plan };
+    const saved = { name, theme: manageTheme, groupIds, cardLength, plan, remindersAllowed };
     liveStats[managingChildId] = { ...(liveStats[managingChildId] || {}), ...saved };
     Object.assign(childrenData[managingChildId], saved);
     renderChildren();

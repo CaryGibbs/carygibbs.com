@@ -223,6 +223,12 @@
     <div class="card-length-options" id="lobey-options"></div>
   </div>
 
+  <!-- Reminders (push notifications) -->
+  <div class="section" id="reminders-section" hidden>
+    <div class="section-title"><i data-icon="bell"></i> Reminders</div>
+    <div id="reminders-box"></div>
+  </div>
+
   <!-- Level ladder -->
   <div class="section">
     <div class="section-title"><i data-icon="trophy"></i> Levels</div>
@@ -299,6 +305,7 @@ import { packNames, flatPackIds } from './packs.js?v=20261120d';
 import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261120d';
 import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261120d';
 import { LOBEY_LEVELS, lobeyLevel, setLobeyLevel, syncLobey, lobeyImg } from './lobey.js?v=20261120d';
+import { mountReminders } from './reminders.js?v=20261123e';
 
 async function showPacks(user, profile) {
   if (!isStudent(profile)) return;
@@ -433,6 +440,7 @@ requireAuth(async (user, profile) => {
   const showAcctNo = () => { const el = document.getElementById('acct-no-line'); if (el && profile.accountNo) { el.hidden = false; el.innerHTML = `Your account number: <b style="font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em">${formatAccountNo(profile.accountNo)}</b>. Quote it if you or your parent contact us.`; } };
   showAcctNo(); if (!profile.accountNo) setTimeout(showAcctNo, 2500);
   if (!isPreview()) showPeople(user, profile);
+  if (!isPreview()) { document.getElementById('reminders-section').hidden = false; mountReminders(document.getElementById('reminders-box'), user.uid, profile).catch(e => console.warn('Reminders', e.message)); }
   showPacks(user, profile);
 
   // Apply theme

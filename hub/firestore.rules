@@ -170,7 +170,8 @@ service cloud.firestore {
       // add admin with a valid admin invite
       function selfUpdateOK() {
         return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'tierSource', 'plusUntil', 'plusNote',
-                                      'ageBand', 'trialEnds', 'parentConfirmedAt'])   // under-16s can't remove the parent requirement
+                                      'ageBand', 'trialEnds', 'parentConfirmedAt',      // under-16s can't remove the parent requirement
+                                      'remindersAllowed'])                              // a parent allows reminders
           && accountNoOK()
           && !gainsPlus()
           && teacherIdsUpdateOK()
@@ -225,6 +226,16 @@ service cloud.firestore {
         isOwner()
         || (isAdmin() && uid != ownerUid())
         || (resource.data.get('parentUid', '') == me() && resource.data.get('guardianIds', []).removeAll([me()]).size() == 0));
+
+      // Reminders on this person's devices (Web Push subscriptions); only
+      // they can add or remove them, and only the AI Worker sends to them
+      match /push/{pid} {
+        allow read, delete: if signedIn() && me() == uid;
+        allow create, update: if signedIn() && me() == uid
+          && request.resource.data.keys().hasOnly(['endpoint', 'p256dh', 'auth', 'at', 'ua'])
+          && request.resource.data.endpoint is string && request.resource.data.endpoint.matches('https://.*')
+          && request.resource.data.endpoint.size() < 1000;
+      }
 
       // A parent's list of their students
       match /children/{sid} {

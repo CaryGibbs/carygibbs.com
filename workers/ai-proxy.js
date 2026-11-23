@@ -54,6 +54,9 @@
 //                       link (30 a day from one internet address)
 //   action 'acceptParentInvite'  a parent accepts: linked straight away (the
 //                       student asked), logged, the invite used up
+//   action 'pushKey'      the public key for push notifications (made the
+//                       first time, kept in secrets/vapid, which the app can't read)
+//   action 'pushTest'     send a test reminder to your own devices
 //   action 'startPreview'   admins: both getting-started emails, sent to you now
 //   action 'weeklyPreview'  admins: this week's parent summary for a parent
 //                       (yourself by default), sent to your own email now
@@ -81,6 +84,8 @@
 //   runs the picture clean-up automatically.
 // Cron Trigger "0 17,18 * * SUN" (exactly this): the weekly parent summary,
 //   Sundays at 6pm UK time (17:00 UTC in summer, 18:00 UTC in winter).
+// Cron Trigger "0,30 15-19 * * *": student reminders on their phones (push),
+//   4:30pm (reviews waiting) and 7pm (streak at risk) UK time, at most one a day.
 // Cron Trigger "30 9 * * *": getting-started emails to parents with no
 //   students yet (day 2 and day 7 after sign-up), every morning.
 //   STRIPE_SECRET_KEY_TEST, STRIPE_WEBHOOK_SECRET_TEST, STRIPE_PRODUCT_ID_TEST
@@ -144,6 +149,11 @@ export default {
   async scheduled(event, env, ctx) {
     // Weekly parent summary: Cron Trigger "0 17,18 * * SUN" fires at 17:00 and
     // 18:00 UTC on Sundays; only the one that is 6pm in London sends
+    // Student reminders: Cron Trigger "0,30 15-19 * * *" (sends at 4:30pm and 7pm UK time)
+    if (String(event.cron || '').includes('15-19')) {
+      ctx.waitUntil(studentReminders(env).catch(e => console.warn('Reminders failed', e.message)));
+      return;
+    }
     // Getting-started emails: Cron Trigger "30 9 * * *" (every morning)
     if (String(event.cron || '').startsWith('30 9 ')) {
       ctx.waitUntil(startNudges(env).catch(e => console.warn('Getting-started emails failed', e.message)));
@@ -233,6 +243,13 @@ export default {
     }
 
     // ── Accounts by email: checked here so nobody can look up names or roles ──
+    // ── Reminders on a student's phone: the push key, and a test ──
+    if (body.action === 'pushKey' || body.action === 'pushTest') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await pushAction(env, user, body)); }
+      catch (e) { return fail(e.status || 500, e.message || 'Something went wrong'); }
+    }
+
     if (['checkEmail', 'requestLink', 'shareStudent', 'parentInvite', 'acceptParentInvite'].includes(body.action)) {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await accountAction(env, user, { ...body, origin })); }
@@ -2160,4 +2177,149 @@ async function acceptParentInviteFor(env, user, me, body) {
   await fsCommit(tok, writes);
   await workerLog(tok, user.uid, me, 'student.parent_invite_accepted', 'Accepted an Invite a parent link', { name: st.name || '', id: sid });
   return { ok: true, studentFirst: firstName(st.name) || '', why: r.inv.why || '' };
+}
+
+/* ============================================================
+   Student reminders (Web Push)
+   Students turn on "Remind me" on their own device (Profile); under 16s
+   with a parent need the parent to allow it first (users.remindersAllowed,
+   Manage student). 16+ and students with no parent choose for themselves.
+   Subscriptions: users/{uid}/push/{id} { endpoint, p256dh, auth }.
+   At most one a day (pushSent/{uid}_{day}):
+     4:30pm  reviews waiting and nothing revised yet today
+     7pm     a streak of 2+ that ends tonight if they don't revise
+   Encryption is RFC 8291 (aes128gcm) with a VAPID (RFC 8292) signature.
+   ============================================================ */
+const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64u = s => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(s).length + 3) % 4)), c => c.charCodeAt(0));
+const cat = (...parts) => { const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0)); let i = 0; parts.forEach(p => { out.set(p, i); i += p.length; }); return out; };
+const utf8 = s => new TextEncoder().encode(s);
+
+let vapidCache = null;
+async function vapidKeys(env, tok) {
+  if (vapidCache) return vapidCache;
+  let v = await fsGet(tok, 'secrets/vapid');
+  if (!v?.privateJwk) {
+    const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    const jwk = await crypto.subtle.exportKey('jwk', kp.privateKey);
+    const pub = b64u(await crypto.subtle.exportKey('raw', kp.publicKey));
+    // Only made once: if two runs race, the first one wins
+    const r = await fetch(`${FS}:commit`, { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ writes: [{ update: { name: `${DOCS}/secrets/vapid`, fields: { privateJwk: { stringValue: JSON.stringify(jwk) }, publicKey: { stringValue: pub } } }, currentDocument: { exists: false } }] }) });
+    v = r.ok ? { privateJwk: JSON.stringify(jwk), publicKey: pub } : await fsGet(tok, 'secrets/vapid');
+  }
+  const key = await crypto.subtle.importKey('jwk', JSON.parse(v.privateJwk), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  vapidCache = { publicKey: v.publicKey, key };
+  return vapidCache;
+}
+
+async function hkdf(salt, ikm, info, len) {
+  const k = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info }, k, len * 8));
+}
+// Encrypt a payload for one subscription (RFC 8291)
+async function encryptPush(sub, payload) {
+  const uaPublic = unb64u(sub.p256dh), authSecret = unb64u(sub.auth);
+  const as = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const asPublic = new Uint8Array(await crypto.subtle.exportKey('raw', as.publicKey));
+  const uaKey = await crypto.subtle.importKey('raw', uaPublic, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const ecdh = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, as.privateKey, 256));
+  const ikm = await hkdf(authSecret, ecdh, cat(utf8('WebPush: info\0'), uaPublic, asPublic), 32);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const cek = await hkdf(salt, ikm, utf8('Content-Encoding: aes128gcm\0'), 16);
+  const nonce = await hkdf(salt, ikm, utf8('Content-Encoding: nonce\0'), 12);
+  const aes = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aes, cat(utf8(payload), new Uint8Array([2]))));
+  const rs = new Uint8Array([0, 0, 16, 0]);   // record size 4096
+  return cat(salt, rs, new Uint8Array([asPublic.length]), asPublic, ct);
+}
+async function vapidAuth(env, tok, endpoint) {
+  const { publicKey, key } = await vapidKeys(env, tok);
+  const head = b64u(utf8(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
+  const claims = b64u(utf8(JSON.stringify({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: 'mailto:support@lobelimpet.com' })));
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, utf8(`${head}.${claims}`));
+  return `vapid t=${head}.${claims}.${b64u(sig)}, k=${publicKey}`;
+}
+// Send to one subscription: 'ok', 'gone' (remove it) or 'failed'
+async function sendPush(env, tok, sub, message) {
+  try {
+    const body = await encryptPush(sub, JSON.stringify(message));
+    const r = await fetch(sub.endpoint, { method: 'POST', body, headers: {
+      Authorization: await vapidAuth(env, tok, sub.endpoint), TTL: '14400', Urgency: 'normal',
+      'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream' } });
+    if (r.status === 404 || r.status === 410) return 'gone';
+    if (!r.ok) { console.warn('Push failed', r.status, (await r.text()).slice(0, 200)); return 'failed'; }
+    return 'ok';
+  } catch (e) { console.warn('Push error', e.message); return 'failed'; }
+}
+
+async function pushSubs(tok, uid) {
+  const r = await fetch(`${FS}/users/${uid}/push?pageSize=20`, { headers: { Authorization: `Bearer ${tok}` } });
+  if (!r.ok) return [];
+  return ((await r.json()).documents || []).map(d => ({ id: d.name.split('/').pop(), ...fields(d.fields) })).filter(s => s.endpoint && s.p256dh && s.auth);
+}
+async function pushToUser(env, tok, uid, message) {
+  const subs = await pushSubs(tok, uid);
+  let sent = 0;
+  for (const sub of subs) {
+    const res = await sendPush(env, tok, sub, message);
+    if (res === 'ok') sent++;
+    if (res === 'gone') await fsCommit(tok, [del(`users/${uid}/push/${sub.id}`)]).catch(() => {});
+  }
+  return sent;
+}
+// Everyone with at least one device turned on
+async function usersWithPush(tok) {
+  const r = await fetch(`${FS}:runQuery`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'push', allDescendants: true }], select: { fields: [{ fieldPath: '__name__' }] } } }),
+  });
+  if (!r.ok) return [];
+  return [...new Set((await r.json()).filter(x => x.document).map(x => x.document.name.split('/').slice(-3)[0]))];
+}
+const remindersOn = st => {
+  const hasParent = !!(st.parentUid || (st.guardianIds || []).length);
+  return st.remindersAllowed === true || !hasParent || st.ageBand === '16+';
+};
+
+async function pushAction(env, user, body) {
+  const tok = await serviceToken(env);
+  if (body.action === 'pushKey') return { publicKey: (await vapidKeys(env, tok)).publicKey };
+  const me = await fsGet(tok, `users/${user.uid}`);
+  const sent = await pushToUser(env, tok, user.uid, { title: 'Lobe Limpet', body: "Reminders are on. We'll nudge you when reviews are waiting or your streak needs you.", url: 'hub.html', tag: 'test' });
+  if (!sent) throw oops(404, "Couldn't reach this device. Try turning reminders off and on again.");
+  return { ok: true, sent, allowed: remindersOn(me || {}) };
+}
+
+async function studentReminders(env, { force = '' } = {}) {
+  if (!env.FIREBASE_SERVICE_ACCOUNT) return { sent: 0 };
+  const now = new Date();
+  const hm = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
+  const kind = force || (hm === '16:30' ? 'review' : hm === '19:00' ? 'streak' : '');
+  if (!kind) return { sent: 0, skipped: hm };
+  const tok = await serviceToken(env);
+  const today = londonDay();
+  const uids = await usersWithPush(tok);
+  if (!uids.length) return { sent: 0 };
+  const already = await fsExisting(tok, uids.map(u => `pushSent/${u}_${today}`));
+  let sent = 0;
+  for (const uid of uids) {
+    if (already.has(`pushSent/${uid}_${today}`)) continue;
+    const st = await fsGet(tok, `users/${uid}`);
+    if (!st || !rolesOf(st).has('student') || !remindersOn(st)) continue;
+    const w = studentWeek(st, today);
+    if (w.lastDay === today) continue;   // already revised today
+    let msg = null;
+    if (kind === 'review' && w.waiting > 0) {
+      msg = { title: `${w.waiting} review${w.waiting === 1 ? '' : 's'} waiting`, body: 'A quick review now keeps them stuck. Lobey believes in you!', url: 'hub.html', tag: 'review' };
+    } else if (kind === 'streak' && w.streak >= 2) {
+      msg = { title: `Keep your ${w.streak}-day streak going 🔥`, body: 'One quick quiz before bed keeps it alive.', url: 'hub.html', tag: 'streak' };
+    }
+    if (!msg) continue;
+    if (await pushToUser(env, tok, uid, msg)) {
+      sent++;
+      await fsCommit(tok, [{ update: { name: `${DOCS}/pushSent/${uid}_${today}`, fields: { kind: { stringValue: kind }, at: tsv(now), expireAt: tsv(new Date(Date.now() + 3 * 86400000)) } } }]).catch(() => {});
+    }
+  }
+  return { sent };
 }
