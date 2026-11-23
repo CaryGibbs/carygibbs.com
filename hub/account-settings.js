@@ -10,7 +10,7 @@ import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from '.
 import { openDeleteAccount } from './account.js?v=20261120d';
 import { formatAccountNo } from './account-no.js?v=20261120d';
 import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261120d';
-import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { sendPasswordEmail } from './mail.js?v=20261123a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ROLE = { admin: 'Admin', teacher: 'Teacher', parent: 'Parent', student: 'Student' };
@@ -99,7 +99,7 @@ export function openAccountSettings({ user, profile = {} } = {}) {
   reset.onclick = async () => {
     if (!email) { rmsg.textContent = 'No email address on this account.'; return; }
     reset.disabled = true; rmsg.textContent = 'Sending…';
-    try { await sendPasswordResetEmail(auth, email); rmsg.textContent = `Sent to ${email}. Check your inbox (and spam).`; }
+    try { await sendPasswordEmail(email); rmsg.textContent = `Sent to ${email}. Check your inbox (and spam).`; }
     catch (e) { rmsg.textContent = `Couldn't send it: ${e.message}`; reset.disabled = false; }
   };
   fillPlan(user, profile).catch(e => console.warn('Plan details not loaded', e.message));

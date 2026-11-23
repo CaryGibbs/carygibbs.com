@@ -12,7 +12,7 @@ import { db } from './firebase-config.js?v=20261120d';
 import { handleSignOut, openViewAs, viewsOf, rememberView, isPlusTier, hasFamilyPlus } from './auth.js?v=20261120d';
 import { themeColour } from './themes.js?v=20261120d';
 import { collection, getDocs, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openAccountSettings } from './account-settings.js?v=20261120d';
+import { openAccountSettings } from './account-settings.js?v=20261123a';
 import { plusPillHtml } from './plus.js?v=20261120d';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');

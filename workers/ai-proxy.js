@@ -35,6 +35,14 @@
 //                       Stripe price; settings/pricing)
 //   POST /stripe/webhook (live) and /stripe/webhook/test: Stripe's
 //                       payment events, checked by signature; switch Plus on/off
+//   action 'sendEmail'    emails sent through Resend (see emails section)
+//                       kind 'welcome': to yourself, once, just after sign-up
+//                       kind 'studentSetup': "choose your password" to a new
+//                       student, by the parent or teacher who made the account
+//                       (or an admin); 30 a day per sender
+//   action 'passwordEmail'  "Forgot your password?" (no sign-in): our own
+//                       email with a link to set-password.html; 10 a day from
+//                       one internet address, 3 a day per email address
 //   action 'storageSweep'   delete pictures nothing uses any more    admins only
 //                       (also runs on a schedule if a Cron Trigger is set)
 // AI use is counted per person per day (aiUsage/{uid}_{day}) and per month
@@ -57,6 +65,9 @@
 //                       the same for live mode (lobelimpet.com). Restricted keys:
 //                       write access to Checkout Sessions, Customers, Subscriptions,
 //                       Customer portal, Prices and Products.
+//   RESEND_API_KEY      secret: API key from resend.com (Sending access is enough).
+//                       Without it, the app falls back to Firebase's own emails.
+//   EMAIL_FROM          optional, e.g. "Lobe Limpet <hello@lobelimpet.com>" (the default)
 //   ALLOW_ANON          "true" only while switching over from the old Worker,
 //                       so pages that haven't updated yet keep working
 //                       (unsigned requests then work as they did before).
@@ -141,6 +152,12 @@ export default {
       catch (e) { return reply(200, { ok: false }); }
     }
 
+    // ── Signed out: "Forgot your password?" email (our own wording, via Resend) ──
+    if (body.action === 'passwordEmail') {
+      try { return reply(200, await passwordEmail(env, request, body, origin)); }
+      catch (e) { return reply(200, { ok: false, error: e.message }); }
+    }
+
     // ── Who is asking? ──
     const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
     let user = null;
@@ -163,6 +180,13 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await setPassword(env, user, String(body.uid || ''), String(body.password || ''))); }
       catch (e) { return fail(e.status || 500, e.message || "The password couldn't be changed"); }
+    }
+
+    // ── Emails: welcome after sign-up, choose-a-password for a new student ──
+    if (body.action === 'sendEmail') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await sendEmailAction(env, user, body, origin)); }
+      catch (e) { return fail(e.status || 500, e.message || "The email couldn't be sent"); }
     }
 
     // ── Paying for Plus (Stripe) ──
@@ -1278,4 +1302,239 @@ async function notePlusUse(tok, user, who, day) {
     detail: { stringValue: 'Created with AI' },
     expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
   } }, currentDocument: { exists: false } }]);
+}
+
+/* ============================================================
+   Emails (sent through Resend, from lobelimpet.com)
+   Account emails only: welcome, choose-your-password, forgot password.
+   No news or marketing here: those need the person's consent and an
+   unsubscribe link, so they'll go out separately.
+   ============================================================ */
+const EMAIL_FROM_DEFAULT = 'Lobe Limpet <hello@lobelimpet.com>';
+const EMAIL_REPLY_TO = 'support@lobelimpet.com';
+const SETUP_EMAILS_PER_DAY = 30;      // choose-your-password emails, per sender
+const RESET_PER_IP_DAY = 10;          // forgot-password emails from one internet address
+const RESET_PER_EMAIL_DAY = 3;        // and to one email address
+const LOGO_URL = 'https://lobelimpet.com/assets/images/brand/icon-192.png';
+
+// The app's address for links in emails: the live site, or the dev copy
+function siteFor(origin) {
+  if (LIVE_ORIGINS.includes(origin)) return 'https://lobelimpet.com';
+  if (ALLOWED_ORIGINS.includes(origin)) return `${origin}/hub`;
+  return 'https://lobelimpet.com';
+}
+const escH = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const firstName = n => String(n || '').trim().split(/\s+/)[0] || '';
+
+async function resendSend(env, { to, subject, html, text, kind }) {
+  if (!env.RESEND_API_KEY) throw oops(503, 'Email is not set up yet');
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: env.EMAIL_FROM || EMAIL_FROM_DEFAULT, to: [to], reply_to: EMAIL_REPLY_TO,
+      subject, html, text, tags: [{ name: 'kind', value: kind }] }),
+  });
+  if (!r.ok) {
+    console.warn('Resend failed', r.status, (await r.text()).slice(0, 300));
+    throw oops(502, `The email couldn't be sent (${r.status})`);
+  }
+  return (await r.json()).id || '';
+}
+
+// One look for every email: logo, words, a button, a small footer
+function emailHtml({ heading, paras, button, after = [], footer }) {
+  const p = t => `<p style="margin:0 0 16px;font-size:16px;line-height:1.55;color:#1f3440;">${t}</p>`;
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escH(heading)}</title></head>
+<body style="margin:0;padding:0;background:#eef5f6;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef5f6;"><tr><td align="center" style="padding:28px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+<tr><td style="padding:28px 28px 8px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="padding-right:10px;"><img src="${LOGO_URL}" width="40" height="40" alt="" style="display:block;border-radius:10px;"></td>
+    <td style="font-size:22px;font-weight:800;color:#123a4a;letter-spacing:-0.01em;">lobe <span style="color:#e8603e;">limpet</span></td>
+  </tr></table>
+</td></tr>
+<tr><td style="padding:12px 28px 8px;">
+  <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:#123a4a;">${escH(heading)}</h1>
+  ${paras.map(p).join('')}
+  ${button ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;"><tr><td style="background:#123a4a;border-radius:10px;">
+    <a href="${escH(button.url)}" style="display:inline-block;padding:14px 26px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;">${escH(button.label)}</a>
+  </td></tr></table>` : ''}
+  ${after.map(p).join('')}
+</td></tr>
+<tr><td style="padding:8px 28px 26px;border-top:1px solid #e3ecee;">
+  <p style="margin:14px 0 0;font-size:13px;line-height:1.5;color:#5d7c89;">${footer}</p>
+</td></tr>
+</table>
+<p style="margin:14px 0 0;font-size:12px;color:#7d97a1;font-family:Arial,sans-serif;">Lobe Limpet · Knowledge that sticks.</p>
+</td></tr></table></body></html>`;
+}
+const stripTags = s => String(s).replace(/<br\s*\/?>/g, '\n').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+function emailText({ heading, paras, button, after = [], footer }) {
+  return [heading, '', ...paras.map(stripTags), ...(button ? [`${button.label}: ${button.url}`] : []), '', ...after.map(stripTags), '', stripTags(footer)].join('\n\n').replace(/\n{3,}/g, '\n\n');
+}
+
+// The words for each email
+function welcomeEmail(role, name, site) {
+  const hi = firstName(name) ? `Hi ${escH(firstName(name))},` : 'Hi,';
+  const signIn = `${site}/login.html`;
+  const help = `Any questions, just reply to this email or use Help in the app. We read every message.`;
+  const footer = `You're getting this because you created a Lobe Limpet account with this email address. If that wasn't you, reply and let us know.`;
+  const steps = {
+    parent: [
+      '<strong>Add your student.</strong> They get their own sign-in, and you see how they\'re getting on.',
+      '<strong>Pick their revision packs,</strong> or turn class notes and worksheets into your own.',
+      '<strong>Keep an eye on progress</strong> and set a simple weekly plan if it helps.',
+    ],
+    teacher: [
+      '<strong>Make a class</strong> and share its join code with your students.',
+      '<strong>Add revision packs to the class,</strong> or make your own from your notes.',
+      '<strong>See who\'s revising</strong> and which topics need another look.',
+    ],
+    student: [
+      '<strong>Choose a pack</strong> and try a 10-question quiz.',
+      '<strong>Come back for your daily review.</strong> It brings questions back just before you\'d forget them.',
+      '<strong>Use flashcards and the subject map</strong> to learn the bits that don\'t stick yet.',
+    ],
+  }[role] || [];
+  const content = {
+    heading: 'Welcome to Lobe Limpet',
+    paras: [hi, 'Thanks for joining. Here\'s how to get going:', ...steps.map((t, i) => `${i + 1}. ${t}`)],
+    button: { label: 'Open Lobe Limpet', url: signIn },
+    after: [help, 'The Lobe Limpet team'],
+    footer,
+  };
+  return { subject: 'Welcome to Lobe Limpet', html: emailHtml(content), text: emailText(content) };
+}
+function setupEmail(studentName, email, inviterName, byTeacher, link) {
+  const who = inviterName ? escH(inviterName) : (byTeacher ? 'Your teacher' : 'Your parent or carer');
+  const whoMid = inviterName ? escH(inviterName) : (byTeacher ? 'your teacher' : 'your parent or carer');
+  const content = {
+    heading: 'Choose your password',
+    paras: [
+      firstName(studentName) ? `Hi ${escH(firstName(studentName))},` : 'Hi,',
+      `${who} has made you a Lobe Limpet account, for revising with quizzes, flashcards and a daily review.`,
+      'Choose a password to get started:',
+    ],
+    button: { label: 'Choose my password', url: link },
+    after: [
+      `You'll sign in with this email address: <strong>${escH(email)}</strong>.`,
+      'The button works for one hour. If it has run out, go to the sign-in page, tap "Forgot your password?" and we\'ll send a new one.',
+      'The Lobe Limpet team',
+    ],
+    footer: `You're getting this because ${whoMid} added this email address to Lobe Limpet. Not expecting it? Reply and let us know.`,
+  };
+  return { subject: byTeacher ? 'Your Lobe Limpet account is ready' : `${inviterName ? firstName(inviterName) : 'Someone'} has set up Lobe Limpet for you`, html: emailHtml(content), text: emailText(content) };
+}
+function resetEmail(email, link) {
+  const content = {
+    heading: 'Choose a new password',
+    paras: [`We had a request to change the password for <strong>${escH(email)}</strong>.`],
+    button: { label: 'Choose a new password', url: link },
+    after: ['The button works for one hour. If you didn\'t ask for this, you can ignore this email: your password stays the same.', 'The Lobe Limpet team'],
+    footer: 'You\'re getting this because someone entered this email address on the Lobe Limpet sign-in page.',
+  };
+  return { subject: 'Choose a new Lobe Limpet password', html: emailHtml(content), text: emailText(content) };
+}
+
+// A password link for an account, pointing at our own page rather than Firebase's
+async function passwordLink(tok, email, site) {
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:sendOobCode`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requestType: 'PASSWORD_RESET', email, returnOobLink: true }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || !d.oobLink) {
+    if (/EMAIL_NOT_FOUND|USER_NOT_FOUND/.test(JSON.stringify(d))) return null;
+    throw oops(500, `Couldn't make a password link (${r.status})`);
+  }
+  const code = new URL(d.oobLink).searchParams.get('oobCode');
+  if (!code) throw oops(500, "Couldn't make a password link");
+  return `${site}/set-password.html?oobCode=${encodeURIComponent(code)}`;
+}
+async function authEmailOf(tok, uid) {
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:lookup`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ localId: [uid] }),
+  });
+  const d = await r.json().catch(() => ({}));
+  return d.users?.[0]?.email || '';
+}
+// Create a marker document only if it isn't there yet: true if we made it
+async function claimOnce(tok, path, extra = {}) {
+  const r = await fetch(`${FS}:commit`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ writes: [{ update: { name: `${DOCS}/${path}`, fields: { at: tsv(new Date()), ...extra } }, currentDocument: { exists: false } }] }),
+  });
+  return r.ok;
+}
+// Add one to a daily counter (expires after two days); returns the count before
+async function bumpCounter(tok, path) {
+  const seen = await fsGet(tok, path);
+  await fsCommit(tok, [{ update: { name: `${DOCS}/${path}`, fields: { expireAt: tsv(new Date(Date.now() + 2 * 86400000)) } },
+    updateMask: { fieldPaths: ['expireAt'] }, updateTransforms: [{ fieldPath: 'count', increment: { integerValue: '1' } }] }]);
+  return seen?.count || 0;
+}
+
+async function sendEmailAction(env, user, body, origin) {
+  if (!env.RESEND_API_KEY) throw oops(503, 'Email is not set up yet');
+  const tok = await serviceToken(env);
+  const site = siteFor(origin);
+  const kind = String(body.kind || '');
+
+  if (kind === 'welcome') {
+    const me = await fsGet(tok, `users/${user.uid}`);
+    if (!me || !user.email) return { ok: false, skipped: 'no account' };
+    if (!(Number(me.createdAt) > Date.now() - 86400000)) return { ok: false, skipped: 'not a new account' };
+    if (!(await claimOnce(tok, `emailSent/welcome_${user.uid}`))) return { ok: true, already: true };
+    const roles = rolesOf(me);
+    const role = roles.has('teacher') ? 'teacher' : roles.has('student') ? 'student' : 'parent';
+    try {
+      const id = await resendSend(env, { to: user.email, kind: 'welcome', ...welcomeEmail(role, me.name, site) });
+      await workerLog(tok, user.uid, me, 'email.welcome', `Welcome email sent to ${user.email}`);
+      return { ok: true, id };
+    } catch (e) {
+      await fsCommit(tok, [del(`emailSent/welcome_${user.uid}`)]).catch(() => {});   // so it can be tried again
+      throw e;
+    }
+  }
+
+  if (kind === 'studentSetup') {
+    const uid = String(body.uid || '');
+    if (!uid) throw oops(400, 'No account given');
+    const [target, me] = await Promise.all([fsGet(tok, `users/${uid}`), fsGet(tok, `users/${user.uid}`)]);
+    if (!target) throw oops(404, 'No account found');
+    const tRoles = rolesOf(target);
+    const studentOnly = tRoles.size === 1 && tRoles.has('student');
+    const isAdmin = user.uid === OWNER_UID || rolesOf(me).has('admin');
+    const maker = target.parentUid === user.uid || target.teacherUid === user.uid;
+    if (!studentOnly || !(maker || isAdmin)) throw oops(403, 'Only the person who made this account (or an admin) can send this');
+    const day = londonDay();
+    if ((await bumpCounter(tok, `rateLimits/email_${user.uid}_${day}`)) >= SETUP_EMAILS_PER_DAY) throw oops(429, 'That\'s a lot of emails today. Please try again tomorrow.');
+    const email = await authEmailOf(tok, uid);
+    if (!email) throw oops(404, "That account doesn't have an email address");
+    const link = await passwordLink(tok, email, site);
+    if (!link) throw oops(404, "That account doesn't have a sign-in");
+    const byTeacher = target.teacherUid === user.uid && target.parentUid !== user.uid;
+    const id = await resendSend(env, { to: email, kind: 'student_setup', ...setupEmail(target.name, email, me?.name || '', byTeacher, link) });
+    await workerLog(tok, user.uid, me, 'email.student_setup', `Choose-a-password email sent to ${email}`, { name: target.name || email, id: uid });
+    return { ok: true, id };
+  }
+
+  throw oops(400, 'Unknown email');
+}
+
+// "Forgot your password?": always says ok (so nobody can test which emails have accounts)
+async function passwordEmail(env, request, body, origin) {
+  if (!env.RESEND_API_KEY || !env.FIREBASE_SERVICE_ACCOUNT) return { ok: false, notSetUp: true };
+  const email = String(body.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) return { ok: false, error: 'Please enter a valid email address.' };
+  const tok = await serviceToken(env);
+  const day = londonDay();
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if ((await bumpCounter(tok, `rateLimits/reset_ip_${await sha(ip + PROJECT_ID)}_${day}`)) >= RESET_PER_IP_DAY) return { ok: true };
+  if ((await bumpCounter(tok, `rateLimits/reset_em_${await sha(email + PROJECT_ID)}_${day}`)) >= RESET_PER_EMAIL_DAY) return { ok: true };
+  const link = await passwordLink(tok, email, siteFor(origin));
+  if (link) await resendSend(env, { to: email, kind: 'password_reset', ...resetEmail(email, link) });
+  return { ok: true };
 }

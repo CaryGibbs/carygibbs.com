@@ -2,14 +2,14 @@
 // LOBE LIMPET: helping someone with their password
 // Used by Admin → Users, a parent's Manage student and a teacher's class list.
 //   Email a reset link: anyone can be sent one (the same email as "Forgot
-//   password?" on the sign-in page). Firebase sends it.
+//   password?" on the sign-in page), sent by the Worker (mail.js), or by Firebase as a fallback.
 //   Set a new password: done by the AI Worker (action setPassword), which
 //   allows admins (only the owner for other admins), and the parent or
 //   teacher who made a student's account. Logged in the activity log.
 // ============================================================
 
 import { auth } from './firebase-config.js?v=20261120d';
-import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { sendPasswordEmail } from './mail.js?v=20261123a';
 import { workerAction } from './ai.js?v=20261120d';
 import { generatePassword } from './auth.js?v=20261120d';
 import { logEvent } from './log.js?v=20261120d';
@@ -59,8 +59,8 @@ export function openPasswordHelp({ uid, name = '', email = '', canSet = true, no
   send.onclick = async () => {
     send.disabled = true; smsg.textContent = 'Sending…';
     try {
-      await sendPasswordResetEmail(auth, email, { url: new URL('login.html', location.href).href });
-      smsg.textContent = `Sent to ${email}. It may say "reset your password" and can take a few minutes (check spam).`;
+      const how = await sendPasswordEmail(email);
+      smsg.textContent = how === 'ours' ? `Sent to ${email}. The link works for an hour and can take a few minutes to arrive (check spam).` : `Sent to ${email}. It may say "reset your password" and can take a few minutes (check spam).`;
       logEvent('account.reset_sent', { target: name || email, targetId: uid });
     } catch (e) { smsg.textContent = `Couldn't send it: ${e.message}`; send.disabled = false; }
   };

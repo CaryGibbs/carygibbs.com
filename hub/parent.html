@@ -456,6 +456,7 @@ import { showPlusUpsell } from './plus.js?v=20261120d';
 import { marksFullThisWeek } from './marks.js?v=20261120d';
 import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261120d';
 import { saveEmailIndex, findByEmail } from './email-index.js?v=20261120d';
+import { sendStudentSetup } from './mail.js?v=20261123a';
 import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261120d';
 import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261120d';
 import { mountShell, refreshShellChildren } from './shell.js?v=20261120d';
@@ -469,7 +470,7 @@ import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-v
 import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261120d';
 import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120d';
 import { openDeleteAccount } from './account.js?v=20261120d';
-import { openPasswordHelp } from './password-help.js?v=20261120d';
+import { openPasswordHelp } from './password-help.js?v=20261123a';
 import { sendLinkRequest, myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261120d';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
@@ -1031,16 +1032,20 @@ window._addChild = async function() {
       name, email, theme: selectedTheme, createdAt: Date.now(), groupIds,
       streak: 0, sessions: []
     });
-    let emailed = false;
+    let how = 'password';
     if (ownPassword) {
-      const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestType: 'PASSWORD_RESET', email, continueUrl: new URL('login.html', location.href).href })
-      }).catch(() => null);
-      emailed = !!r?.ok;
+      // Our own "choose your password" email; Firebase's reset email if that can't go
+      if (await sendStudentSetup(childUid)) how = 'emailed';
+      else {
+        const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requestType: 'PASSWORD_RESET', email, continueUrl: new URL('login.html', location.href).href })
+        }).catch(() => null);
+        how = r?.ok ? 'emailed-reset' : 'email-failed';
+      }
     }
     document.getElementById('modal-add').classList.remove('open');
-    showAddedDone(name, email, ownPassword ? (emailed ? 'emailed' : 'email-failed') : 'password');
+    showAddedDone(name, email, how);
   } catch(e) {
     showErr('add-error', friendlyError(e.code) || e.message);
   } finally { btn.classList.remove('loading'); }
@@ -1050,6 +1055,8 @@ window._addChild = async function() {
 function showAddedDone(name, email, how) {
   const first = name.split(' ')[0] || name;
   const msg = how === 'emailed'
+    ? `<p>We've emailed <strong>${esc(email)}</strong> a link for ${esc(first)} to choose a password. It works for an hour; after that, ${esc(first)} can tap "Forgot your password?" on the sign-in page for a new one. If it hasn't arrived in a few minutes, check the spam folder.</p>`
+    : how === 'emailed-reset'
     ? `<p>We've emailed <strong>${esc(email)}</strong> a link for ${esc(first)} to choose a password. The email may say "reset your password": that's the one. If it hasn't arrived in a few minutes, check the spam folder.</p>`
     : how === 'email-failed'
     ? `<p>The account is ready, but the email to <strong>${esc(email)}</strong> didn't send. ${esc(first)} can go to the sign-in page, tap "Forgot password?" and enter that email to choose a password.</p>`
