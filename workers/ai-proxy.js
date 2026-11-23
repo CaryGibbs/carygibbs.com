@@ -63,7 +63,7 @@
 //                       logs and picture clean-up.
 // Optional Cron Trigger (Settings → Triggers), e.g. "0 3 * * 0" (Sundays 3am):
 //   runs the picture clean-up automatically.
-// Cron Trigger "0 17,18 * * 0" (exactly this): the weekly parent summary,
+// Cron Trigger "0 17,18 * * SUN" (exactly this): the weekly parent summary,
 //   Sundays at 6pm UK time (17:00 UTC in summer, 18:00 UTC in winter).
 //   STRIPE_SECRET_KEY_TEST, STRIPE_WEBHOOK_SECRET_TEST, STRIPE_PRODUCT_ID_TEST
 //                       secrets for Stripe's test mode (used from carygibbs.com, the dev site)
@@ -124,9 +124,9 @@ const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZon
 export default {
   // Weekly picture clean-up, if a Cron Trigger is set on the Worker
   async scheduled(event, env, ctx) {
-    // Weekly parent summary: Cron Trigger "0 17,18 * * 0" fires at 17:00 and
+    // Weekly parent summary: Cron Trigger "0 17,18 * * SUN" fires at 17:00 and
     // 18:00 UTC on Sundays; only the one that is 6pm in London sends
-    if (event.cron === WEEKLY_CRON) {
+    if (/17,18/.test(String(event.cron || ''))) {
       ctx.waitUntil(weeklySummaries(env).catch(e => console.warn('Weekly summary failed', e.message)));
       return;
     }
@@ -1570,7 +1570,7 @@ async function passwordEmail(env, request, body, origin) {
    settings, or the link in the email). Families with no revision in
    the last 4 weeks (and no new account) aren't sent one.
    ============================================================ */
-const WEEKLY_CRON = '0 17,18 * * 0';
+const WEEKLY_CRON = '0 17,18 * * SUN';
 const WORKER_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
 const WEEKLY_FIELDS = ['name', 'email', 'role', 'roles', 'parentUid', 'guardianIds', 'sessions', 'study', 'streak',
   'lastRevisionDate', 'shields', 'srs', 'plan', 'planGoals', 'emailPrefs', 'createdAt'];
