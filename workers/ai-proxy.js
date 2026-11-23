@@ -1337,7 +1337,7 @@ const EMAIL_REPLY_TO = 'support@lobelimpet.com';
 const SETUP_EMAILS_PER_DAY = 30;      // choose-your-password emails, per sender
 const RESET_PER_IP_DAY = 10;          // forgot-password emails from one internet address
 const RESET_PER_EMAIL_DAY = 3;        // and to one email address
-const LOGO_URL = 'https://lobelimpet.com/assets/images/brand/icon-192.png';
+const LOGO_URL = 'https://lobelimpet.com/assets/images/brand/email-logo.png';   // transparent Lobey (no tile)
 
 // The app's address for links in emails: the live site, or the dev copy
 function siteFor(origin) {
@@ -1372,7 +1372,7 @@ function emailHtml({ heading, paras, button, after = [], footer }) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
 <tr><td style="padding:28px 28px 8px;">
   <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-    <td style="padding-right:10px;"><img src="${LOGO_URL}" width="40" height="40" alt="" style="display:block;border-radius:10px;"></td>
+    <td style="padding-right:10px;"><img src="${LOGO_URL}" width="40" height="40" alt="" style="display:block;"></td>
     <td style="font-size:22px;font-weight:800;color:#123a4a;letter-spacing:-0.01em;">lobe <span style="color:#e8603e;">limpet</span></td>
   </tr></table>
 </td></tr>
@@ -1708,7 +1708,7 @@ async function weeklyEmail(env, parent, students, today) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef5f6;"><tr><td align="center" style="padding:28px 12px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1f3440;">
 <tr><td style="padding:28px 28px 4px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
-  <td style="padding-right:10px;"><img src="${LOGO_URL}" width="40" height="40" alt="" style="display:block;border-radius:10px;"></td>
+  <td style="padding-right:10px;"><img src="${LOGO_URL}" width="40" height="40" alt="" style="display:block;"></td>
   <td style="font-size:22px;font-weight:800;color:#123a4a;">lobe <span style="color:#e8603e;">limpet</span></td></tr></table></td></tr>
 <tr><td style="padding:14px 28px 0;">
   <p style="margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5d7c89;">Week of ${escH(range)}</p>
