@@ -189,8 +189,17 @@ service cloud.firestore {
               || hasRole(userDoc(inv.get('by', '')), 'admin'));
       }
 
+      // Adults' records: other adults (co-parents, family Plus checks) and the
+      // students linked to them (their parents and teachers) can read them;
+      // other students can't (safeguarding)
+      function linkedToMe(id) {
+        let mine = userDoc(me());
+        return id == mine.get('parentUid', '') || id in mine.get('guardianIds', []) || id in mine.get('teacherIds', []);
+      }
       allow get: if signedIn() && (
-        me() == uid || isAdmin() || guardianOf(resource.data) || teacherOf(resource.data) || isAdult(resource.data));
+        me() == uid || isAdmin() || guardianOf(resource.data) || teacherOf(resource.data)
+        || (isAdult(resource.data) && exists(/databases/$(database)/documents/users/$(me()))
+            && (isAdult(userDoc(me())) || linkedToMe(uid))));
       allow list: if isAdmin();
 
       allow create: if signedIn() && (
@@ -272,7 +281,9 @@ service cloud.firestore {
         return exists(/databases/$(database)/documents/users/$(id))
           && (guardianOf(userDoc(id)) || teacherOf(userDoc(id)));
       }
-      allow get: if signedIn();
+      // Only admins (and the AI Worker) can read it: nobody can look up
+      // who uses an email address (safeguarding)
+      allow get: if isAdmin();
       allow list: if isAdmin();
       allow create, update: if signedIn()
         && (resource == null || resource.data.uid == request.resource.data.uid || isAdmin())
@@ -459,24 +470,18 @@ service cloud.firestore {
     match /parentLinks/{id} {
       function stu() { return userDoc(request.resource.data.studentUid); }
       allow get, list: if signedIn() && (resource.data.by == me() || resource.data.studentUid == me() || isAdmin());
-      allow create: if signedIn()
-        && request.resource.data.by == me()
-        && id == me() + '_' + request.resource.data.studentUid
-        && request.resource.data.status == 'pending'
-        && (hasRole(userDoc(me()), 'parent') || hasRole(userDoc(me()), 'admin'))
-        && exists(/databases/$(database)/documents/users/$(request.resource.data.studentUid))
-        && hasRole(stu(), 'student')
-        && stu().get('parentUid', '') != me() && !(me() in stu().get('guardianIds', []));
+      // Requests are made by the AI Worker (requestLink), which checks the
+      // account is at least a day old and tells the student's other parents
+      allow create: if false;
       allow update: if signedIn() && (
         // the student answers, or removes a parent they linked
         (resource.data.studentUid == me() && changedKeys().hasOnly(['status', 'decidedAt'])
           && ((resource.data.status == 'pending' && request.resource.data.status in ['accepted', 'declined'])
               || (resource.data.status == 'accepted' && request.resource.data.status == 'removed')))
-        // the parent cancels, or asks again after a no
+        // the parent cancels (asking again goes through the Worker)
         || (resource.data.by == me() && request.resource.data.by == me()
           && request.resource.data.studentUid == resource.data.studentUid
-          && (request.resource.data.status == 'cancelled'
-              || (request.resource.data.status == 'pending' && resource.data.status != 'accepted'))));
+          && request.resource.data.status == 'cancelled'));
       allow delete: if isAdmin();
     }
 

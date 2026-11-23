@@ -3,12 +3,15 @@
 // The security rules stop anyone browsing the list of users, so
 // "find the account with this email" can't search users any more.
 // Instead each account has a small entry at emailIndex/{email}
-// holding just { uid, name, role }. You can only look up an exact
-// email you already know; you can't list them.
+// holding just { uid, name, role }.
+// Only admins and the AI Worker can read it (safeguarding): the app asks
+// the Worker with checkAccount(), which says only whether the email is
+// used and by what kind of account, never a name or account id.
 // ============================================================
 
 import { db } from './firebase-config.js?v=20261120d';
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { workerAction } from './ai.js?v=20261120d';
 
 const key = email => String(email || '').trim().toLowerCase();
 
@@ -20,12 +23,9 @@ export async function saveEmailIndex(uid, email, name = '', roles = []) {
   catch (e) { console.warn('Email index not saved:', e.message); }
 }
 
-// Find an account by exact email: { id, name, role } or null
-export async function findByEmail(email) {
+// Is this email used? { exists, kind: 'student' | 'adult' | 'self', mine }
+export async function checkAccount(email) {
   const k = key(email);
-  if (!k) return null;
-  const snap = await getDoc(doc(db, 'emailIndex', k));
-  if (!snap.exists()) return null;
-  const d = snap.data();
-  return { id: d.uid, name: d.name || '', roles: d.roles || [], email: k };
+  if (!k) return { exists: false };
+  return workerAction('checkEmail', { email: k });
 }

@@ -1625,7 +1625,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261120d';
+import { saveEmailIndex } from './email-index.js?v=20261123e';
 import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261120d';
 import { inOrder } from './order.js?v=20261120d';
 import {
@@ -2333,7 +2333,7 @@ function updateBreadcrumb() {
 }
 
 /* ── Delegation ──────────────────────────────────────────── */
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   const t = e.target.closest('[data-action],[data-nav],[data-close],[data-bc],[data-qtype],[data-qtab]');
   if (!t) return;
 
@@ -2345,12 +2345,20 @@ document.addEventListener('click', e => {
   const qtab   = t.dataset.qtab;
 
   if (nav)    { showPanel(nav); return; }
-  if (action === 'view-as') { openViewAs(t.dataset.uid, t.dataset.name || usersCache?.find?.(u => u.id === t.dataset.uid)?.name || ''); return; }
+  if (action === 'view-as') {
+    const vu = usersCache?.find?.(u => u.id === t.dataset.uid) || asState.students.find(u => u.id === t.dataset.uid);
+    if (vu && isPrivateStudent(vu) && !(await unlockStudent(vu, 'View as'))) return;
+    openViewAs(t.dataset.uid, t.dataset.name || vu?.name || ''); return;
+  }
   if (action === 'sp-reply') { const s = supportItems.find(x => x.id === t.dataset.id); if (s && s.status === 'new') setSupportStatus(s.id, 'replied', { repliedAt: serverTimestamp() }); return; }
   if (action === 'sp-status') { setSupportStatus(t.dataset.id, t.dataset.st); return; }
   if (action === 'sp-delete') { deleteSupport(t.dataset.id); return; }
   if (action === 'sp-open-q') { openSupportTopic(t.dataset.id); return; }
-  if (action === 'student-progress') { openStudentProgress(t.dataset.uid); return; }
+  if (action === 'student-progress') {
+    const pu = asState.students.find(x => x.id === t.dataset.uid);
+    if (pu && isPrivateStudent(pu) && !(await unlockStudent(pu, 'Progress'))) return;
+    openStudentProgress(t.dataset.uid); return;
+  }
   if (action === 'student-tidy') { tidyStudentProgress(t.dataset.uid, t); return; }
   if (action === 'delete-user') { openDeleteAccount({ uid: t.dataset.uid, name: t.dataset.name, onDone: () => { showToast('Account deleted', 'success'); loadUsers(); } }); return; }
   if (action === 'edit-roles') { openRolesEditor(t.dataset.uid); return; }
@@ -4453,18 +4461,62 @@ function renderAllStudents() {
       const who = [...u.adults.map(id => `${esc(nameOf(id))} <span class="as-sub" style="display:inline">(parent)</span>`),
                    ...u.teachers.map(id => `${esc(nameOf(id))} <span class="as-sub" style="display:inline">(teacher)</span>`)];
       return `<tr>
-        <td class="as-name"><strong>${esc(u.name || '—')}</strong><small>${esc(u.email || '')}</small>${u.accountNo ? `<small class="acct-no">${esc(formatAccountNo(u.accountNo))}</small>` : ''}</td>
+        <td class="as-name"><strong>${esc(u.name || '—')}</strong><small>${emailShown(u)}</small>${u.accountNo ? `<small class="acct-no">${esc(formatAccountNo(u.accountNo))}</small>` : ''}</td>
         <td data-l="Looked after by">${who.length ? who.join('<br>') : '<span class="as-sub">Independent</span>'}</td>
         <td data-l="Packs" class="as-packs">${u.packNames.length ? u.packNames.map(esc).join('<br>') : '<span class="as-quiet">None</span>'}</td>
-        <td data-l="This week" class="as-num">${fmtTime(u.wk.secs)}<span class="as-sub">${u.wk.quizzes} quiz${u.wk.quizzes === 1 ? '' : 'zes'}${u.wk.avg !== null ? ` · ${u.wk.avg}%` : ''}</span></td>
+        ${isPrivateStudent(u) ? `<td data-l="This week" class="as-num as-quiet" colspan="3">Hidden · tap Progress to see</td>` : `<td data-l="This week" class="as-num">${fmtTime(u.wk.secs)}<span class="as-sub">${u.wk.quizzes} quiz${u.wk.quizzes === 1 ? '' : 'zes'}${u.wk.avg !== null ? ` · ${u.wk.avg}%` : ''}</span></td>
         <td data-l="Streak" class="as-num">${u.streak ? `${u.streak} 🔥` : '0'}</td>
-        <td data-l="Reviews due" class="as-num">${u.due}</td>
+        <td data-l="Reviews due" class="as-num">${u.due}</td>`}
         <td data-l="Last active" class="as-num${u.wk.last < weekAgo ? ' as-quiet' : ''}">${lastActiveText(u.wk.lastInfo)}</td>
         <td class="actions">
           <button class="btn btn-secondary btn-sm" data-action="student-progress" data-uid="${esc(u.id)}"><i data-icon="chart-column"></i> Progress</button>
           <button class="btn btn-secondary btn-sm" data-action="view-as" data-uid="${esc(u.id)}" data-name="${esc(u.name || '')}"><i data-icon="eye"></i> View as</button>
         </td></tr>`;
     }).join('')}</tbody></table>`;
+}
+
+/* ── Student privacy (safeguarding) ────────────────────────
+   Other families' students: their email and progress are hidden from
+   admins until the admin gives a reason (logged as admin.unlock_student,
+   with the reason). Your own students (you're their parent) stay open.
+   Search by email still works, for support. Lasts until the page reloads. */
+const unlockedStudents = new Set();
+function isPrivateStudent(u) {
+  if (!u || unlockedStudents.has(u.id)) return false;
+  const r = rolesOf(u);
+  if (!(r.has('student') && r.size === 1)) return false;
+  return ![u.parentUid, ...(u.guardianIds || [])].includes(currentAdminUid);
+}
+function emailShown(u) { return isPrivateStudent(u) ? '<span class="muted" title="Hidden for privacy">Email hidden</span>' : esc(u.email || ''); }
+function unlockStudent(u, what) {
+  return new Promise(resolve => {
+    document.getElementById('unlock-student')?.remove();
+    document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay open" id="unlock-student"><div class="modal" style="max-width:440px;">
+      <div class="modal-header"><h2>Why do you need to see this?</h2></div>
+      <p style="font-size:0.92rem;line-height:1.5;color:var(--color-text-muted);margin:0 0 12px;">${esc(u.name || 'This student')} isn't one of your students, so their details are private. Your reason is saved in the activity log.</p>
+      <select id="ul-why" style="width:100%;margin-bottom:8px;">
+        <option value="">Choose a reason…</option>
+        <option>Answering a support message</option>
+        <option>Their parent or teacher asked me to</option>
+        <option>Fixing a problem with their account</option>
+        <option>Safeguarding concern</option>
+        <option>Other</option>
+      </select>
+      <input type="text" id="ul-note" placeholder="A few words (required for Other)" maxlength="160" style="width:100%;">
+      <div class="modal-footer" style="margin-top:14px;"><button class="btn btn-secondary" id="ul-cancel">Cancel</button><button class="btn btn-primary" id="ul-ok">Continue</button></div>
+    </div></div>`);
+    const box = document.getElementById('unlock-student');
+    const done = v => { box.remove(); resolve(v); };
+    document.getElementById('ul-cancel').onclick = () => done(false);
+    document.getElementById('ul-ok').onclick = () => {
+      const why = document.getElementById('ul-why').value, note = document.getElementById('ul-note').value.trim();
+      if (!why || (why === 'Other' && !note)) { document.getElementById('ul-why').focus(); return; }
+      unlockedStudents.add(u.id);
+      logEvent('admin.unlock_student', { target: u.name || '', targetId: u.id, detail: `${what}: ${why}${note ? ` (${note})` : ''}`.slice(0, 160) });
+      done(true);
+      if (document.getElementById('as-list')) try { renderAllStudents?.(); } catch (e) {}
+    };
+  });
 }
 
 function openStudentProgress(uid) {
@@ -5221,7 +5273,7 @@ async function loadUsers() {
       const joined = u.createdAt ? (u.createdAt.seconds ? u.createdAt.seconds * 1000 : Number(u.createdAt) || Date.parse(u.createdAt) || 0) : 0;
       return `<tr data-user-row="${esc(u.id)}" data-q="${esc(((u.name || '') + ' ' + (u.email || '') + ' ' + accountSearchText(u.accountNo)).toLowerCase())}" data-roles="${esc(roles.join(' '))}" data-plan="${planKey}" data-joined="${joined}" class="${u._famHead ? 'fam-head' : ''}${u._famMember ? ' fam-member' : ''}">
       <td><span class="user-name">${u._famMember ? '<span class="fam-tick" aria-hidden="true">↳</span>' : ''}<span class="user-icon"><i data-icon="${roleIcon[primaryRole(roles)] || 'user'}"></i></span>${esc(u.name||'—')}</span>${plusRequests[u.id] ? `<div class="plus-note"><strong>Asked for Plus${plusRequests[u.id].at ? ' ' + agoText(plusRequests[u.id].at) : ''}</strong>${plusRequests[u.id].note ? `: “${esc(plusRequests[u.id].note)}”` : ''}</div>` : ''}</td>
-      <td class="muted hide-sm">${esc(u.email||'—')}${u.accountNo ? `<div class="acct-no" title="Account number">${esc(formatAccountNo(u.accountNo))}</div>` : ''}</td>
+      <td class="muted hide-sm">${u.email ? emailShown(u) : '—'}${u.accountNo ? `<div class="acct-no" title="Account number">${esc(formatAccountNo(u.accountNo))}</div>` : ''}</td>
       <td>${roles.map(r => `<span class="badge ${roleColour[r]||'badge-primary'}">${r}</span>`).join(' ')}</td>
       <td>${planCellHtml(u, roles)}</td>
       <td class="muted hide-sm">${u.createdAt ? new Date(u.createdAt.seconds ? u.createdAt.seconds*1000 : u.createdAt).toLocaleDateString('en-GB') : '—'}</td>

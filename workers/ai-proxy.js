@@ -40,6 +40,14 @@
 //                       kind 'studentSetup': "choose your password" to a new
 //                       student, by the parent or teacher who made the account
 //                       (or an admin); 30 a day per sender
+//   action 'checkEmail'   parents, teachers, admins: does an account use this
+//                       email? Answers only exists / student or adult / already
+//                       yours (never names). 100 a day.
+//   action 'requestLink'  parents: ask to link to a student by email. Accounts
+//                       under a day old can't; the student's existing parents
+//                       are emailed. 20 a day.
+//   action 'shareStudent' a student's parent shares them with another parent
+//                       account (by email)
 //   action 'startPreview'   admins: both getting-started emails, sent to you now
 //   action 'weeklyPreview'  admins: this week's parent summary for a parent
 //                       (yourself by default), sent to your own email now
@@ -210,6 +218,13 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await sendEmailAction(env, user, body, origin)); }
       catch (e) { return fail(e.status || 500, e.message || "The email couldn't be sent"); }
+    }
+
+    // ── Accounts by email: checked here so nobody can look up names or roles ──
+    if (['checkEmail', 'requestLink', 'shareStudent'].includes(body.action)) {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await accountAction(env, user, body)); }
+      catch (e) { return fail(e.status || 500, e.message || 'Something went wrong'); }
     }
 
     // ── Getting-started emails: send yourself both now (admins) ──
@@ -1956,4 +1971,111 @@ async function startPreview(env, user) {
     if (!r.ok) throw oops(502, `The preview couldn't be sent (${r.status})`);
   }
   return { ok: true, to: user.email };
+}
+
+/* ============================================================
+   Accounts by email (safeguarding). The emailIndex can only be read
+   here, so nobody can find out who uses an email address or get a
+   name from it. Link requests are made here too, so the checks
+   (account at least a day old, student's other parents told) can't be
+   skipped.
+   ============================================================ */
+const normEmail = e => String(e || '').trim().toLowerCase();
+async function accountByEmail(tok, email) {
+  const idx = await fsGet(tok, `emailIndex/${encodeURIComponent(normEmail(email))}`);
+  if (!idx?.uid) return null;
+  const u = await fsGet(tok, `users/${idx.uid}`);
+  return u ? { id: idx.uid, ...u } : null;
+}
+const parentsOfDoc = d => [...new Set([d?.parentUid, ...(d?.guardianIds || [])].filter(Boolean))];
+async function authCreatedAt(tok, uid) {
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:lookup`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ localId: [uid] }),
+  });
+  const d = await r.json().catch(() => ({}));
+  return Number(d.users?.[0]?.createdAt) || 0;
+}
+
+async function accountAction(env, user, body) {
+  const tok = await serviceToken(env);
+  const me = await fsGet(tok, `users/${user.uid}`);
+  const myRoles = rolesOf(me);
+  const isAdmin = user.uid === OWNER_UID || myRoles.has('admin');
+  const day = londonDay();
+  const email = normEmail(body.email);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw oops(400, 'Please enter a valid email address.');
+
+  if (body.action === 'checkEmail') {
+    if (!(isAdmin || myRoles.has('parent') || myRoles.has('teacher'))) throw oops(403, 'Not allowed');
+    if ((await bumpCounter(tok, `rateLimits/lookup_${user.uid}_${day}`)) >= 100) throw oops(429, 'Too many look-ups today. Please try again tomorrow.');
+    const acc = await accountByEmail(tok, email);
+    if (!acc) return { exists: false };
+    const r = rolesOf(acc);
+    const kind = acc.id === user.uid ? 'self' : (r.has('student') && r.size === 1) ? 'student' : 'adult';
+    const mine = kind === 'student' && (parentsOfDoc(acc).includes(user.uid) || (acc.teacherIds || []).includes(user.uid));
+    return { exists: true, kind, mine };
+  }
+
+  if (body.action === 'requestLink') {
+    if (!(isAdmin || myRoles.has('parent'))) throw oops(403, 'Only parent accounts can ask to link with a student');
+    const created = await authCreatedAt(tok, user.uid);
+    if (!isAdmin && created && Date.now() - created < 86400000) throw oops(403, "New accounts can't send link requests for their first day. Please try again tomorrow, or ask your student to send you an Invite a parent link from their account.");
+    if ((await bumpCounter(tok, `rateLimits/link_${user.uid}_${day}`)) >= 20) throw oops(429, 'Too many requests today. Please try again tomorrow.');
+    const st = await accountByEmail(tok, email);
+    const r = rolesOf(st);
+    if (!st || !(r.has('student') && r.size === 1)) throw oops(404, "There's no student account with that email.");
+    if (parentsOfDoc(st).includes(user.uid)) return { ok: true, status: 'already' };
+    const id = `${user.uid}_${st.id}`;
+    const prev = await fsGet(tok, `parentLinks/${id}`);
+    if (prev?.status === 'pending') return { ok: true, status: 'waiting' };
+    const typed = String(body.typedName || '').trim().slice(0, 80);
+    const now = Date.now();
+    const sv = v => ({ stringValue: String(v ?? '') });
+    await fsCommit(tok, [{ update: { name: `${DOCS}/parentLinks/${id}`, fields: {
+      by: sv(user.uid), byName: sv(me?.name || ''), byEmail: sv(me?.email || user.email || ''),
+      studentUid: sv(st.id), studentEmail: sv(st.email || email), studentName: sv(typed || st.name || ''),
+      status: sv('pending'), at: { integerValue: String(now) },
+    } } }]);
+    await workerLog(tok, user.uid, me, 'student.link_request', 'Asked to link an existing student account', { name: typed || 'a student', id: st.id });
+    // Tell the student's existing parents, so nobody can quietly attach themselves
+    const others = parentsOfDoc(st).filter(p => p !== user.uid);
+    if (others.length && env.RESEND_API_KEY) {
+      const docs = await Promise.all(others.map(p => fsGet(tok, `users/${p}`)));
+      const first = escH(firstName(st.name) || 'your student');
+      await Promise.all(docs.filter(d => d?.email).map(d => resendSend(env, { to: d.email, kind: 'link_alert',
+        ...(() => { const c = {
+          heading: `Someone asked to link with ${first}`,
+          paras: [firstName(d.name) ? `Hi ${escH(firstName(d.name))},` : 'Hi,',
+            `<strong>${escH(me?.name || 'Someone')}</strong> (${escH(me?.email || user.email || '')}) has asked to be a parent or carer on ${first}'s Lobe Limpet account. If ${first} accepts, they'll see ${first}'s revision progress.`,
+            `If you know them (for example, another parent or carer), there's nothing to do. If you don't, please ask ${first} to tap <strong>Decline</strong>, and let us know at safeguarding@lobelimpet.com.`],
+          after: ['The Lobe Limpet team'],
+          footer: `You're getting this because you look after ${first} on Lobe Limpet. We always tell you when someone asks to link with them.`,
+        }; return { subject: `Someone asked to link with ${firstName(st.name) || 'your student'} on Lobe Limpet`, html: emailHtml(c), text: emailText(c) }; })(),
+      }).catch(e => console.warn('Link alert not sent', e.message))));
+    }
+    return { ok: true, status: 'sent' };
+  }
+
+  if (body.action === 'shareStudent') {
+    const sid = String(body.studentUid || '');
+    const st = sid ? await fsGet(tok, `users/${sid}`) : null;
+    if (!st || !(parentsOfDoc(st).includes(user.uid) || isAdmin)) throw oops(403, 'You can only share your own students');
+    const other = await accountByEmail(tok, email);
+    if (!other) throw oops(404, 'No Lobe Limpet account uses that email. Ask them to create a parent account first.');
+    if (other.id === user.uid) throw oops(400, "That's your own account.");
+    const or = rolesOf(other);
+    if (!(or.has('parent') || or.has('admin'))) throw oops(400, "That account isn't a parent account. They need to sign up as a parent.");
+    if (parentsOfDoc(st).includes(other.id)) return { ok: true, already: true };
+    const sv = v => ({ stringValue: String(v ?? '') });
+    await fsCommit(tok, [
+      { transform: { document: `${DOCS}/users/${sid}`, fieldTransforms: [{ fieldPath: 'guardianIds', appendMissingElements: { values: [sv(other.id)] } }] } },
+      { update: { name: `${DOCS}/users/${other.id}/children/${sid}`, fields: {
+        name: sv(st.name), email: sv(st.email), theme: sv(st.theme || 'edge'),
+        groupIds: { arrayValue: { values: (st.groupIds || []).map(sv) } },
+        createdAt: { integerValue: String(Date.now()) }, sharedBy: sv(user.uid) } } },
+    ]);
+    await workerLog(tok, user.uid, me, 'student.share', `Shared with ${email}`, { name: st.name || '', id: sid });
+    return { ok: true };
+  }
+  throw oops(400, 'Unknown action');
 }

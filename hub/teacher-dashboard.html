@@ -511,7 +511,7 @@
   import { createUserWithEmailAndPassword, updateProfile, getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { sendStudentSetup } from './mail.js?v=20261123a';
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, findByEmail } from './email-index.js?v=20261120d';
+  import { saveEmailIndex, checkAccount } from './email-index.js?v=20261123e';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -1008,7 +1008,7 @@
       // Only point to the join code if the account really exists
       btn.classList.add('loading');
       let found = null;
-      try { found = await findByEmail(email); } catch (e) { found = null; }
+      try { found = (await checkAccount(email))?.exists ? true : null; } catch (e) { found = null; }
       btn.classList.remove('loading');
       if (found) { linkExisting(name, email, classPacksNow); return; }
     }

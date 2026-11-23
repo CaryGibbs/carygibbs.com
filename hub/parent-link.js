@@ -2,7 +2,9 @@
 // LOBE LIMPET: linking a parent to a student who already has an account
 // A student who signed up themselves owns their account, so a parent
 // can't just take it over. Instead:
-//   1. The parent asks (Add student with that email): parentLinks/{parentUid}_{studentUid}
+//   1. The parent asks (Add student with that email). The AI Worker makes the
+//      request (action requestLink: accounts under a day old can't, and the
+//      student's existing parents are emailed): parentLinks/{parentUid}_{studentUid}
 //      { by, byName, byEmail, studentUid, studentEmail, studentName, status: 'pending', at }
 //   2. The student sees the request in their hub: Accept or Decline.
 //   3. Accept adds the parent to the student's guardianIds (never parentUid,
@@ -23,16 +25,6 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 export const linkId = (parentUid, studentUid) => `${parentUid}_${studentUid}`;
 
 /* ── Parent side ─────────────────────────────────────────── */
-export async function sendLinkRequest({ parentUid, parentName, parentEmail, student, typedName }) {
-  const id = linkId(parentUid, student.id);
-  await setDoc(doc(db, 'parentLinks', id), {
-    by: parentUid, byName: parentName || '', byEmail: parentEmail || '',
-    studentUid: student.id, studentEmail: student.email || '', studentName: typedName || student.name || '',
-    status: 'pending', at: Date.now(),
-  });
-  logEvent('student.link_request', { target: typedName || student.name || student.email, targetId: student.id, detail: 'Asked to link an existing student account' });
-  return id;
-}
 export async function myLinkRequests(parentUid) {
   const snap = await getDocs(query(collection(db, 'parentLinks'), where('by', '==', parentUid))).catch(() => null);
   const out = []; snap?.forEach(d => out.push({ id: d.id, ...d.data() }));
@@ -80,12 +72,14 @@ export async function showLinkRequests(container, uid, profile) {
     .plink h3 { font-family: var(--font-heading); font-size: 1.05rem; margin: 0 0 6px; }
     .plink p { font-size: 0.9rem; color: var(--color-text-muted); margin: 0 0 12px; line-height: 1.5; }
     .plink .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .plink .plink-warn { background: color-mix(in srgb, var(--color-warning, #f5a623) 14%, transparent); border-radius: 10px; padding: 10px 12px; color: var(--color-text); }
   </style>`);
   pending.forEach(link => {
     const box = document.createElement('div');
     box.className = 'plink';
-    box.innerHTML = `<h3>👪 ${esc(link.byName || 'A parent')} wants to link with your account</h3>
-      <p>${esc(link.byName || 'They')} (${esc(link.byEmail || 'parent account')}) asked to be your parent or carer on Lobe Limpet. If you accept, they can see your revision progress and set up revision packs and study plans for you. You can remove them later from your Profile.</p>
+    box.innerHTML = `<h3>👪 ${esc(link.byName || 'Someone')} wants to link with your account</h3>
+      <p><strong>${esc(link.byName || 'They')}</strong> (${esc(link.byEmail || 'no email shown')}) asked to be your parent or carer on Lobe Limpet. If you accept, they can see your revision progress and set up revision packs and study plans for you. You can remove them later from your Profile.</p>
+      <p class="plink-warn"><strong>Only accept your own parent or carer.</strong> Don't recognise this name or email? Tap Decline and tell an adult you trust. ${profile.parentUid || (profile.guardianIds || []).length ? 'Your parent has been told about this request.' : ''}</p>
       <div class="row"><button class="btn btn-primary" data-acc>Accept</button><button class="btn btn-ghost" data-dec>Decline</button></div>`;
     container.before(box);
     const busy = on => box.querySelectorAll('button').forEach(b => { b.disabled = on; });
