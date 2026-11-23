@@ -1055,7 +1055,7 @@ window._addChild = async function() {
 function showAddedDone(name, email, how) {
   const first = name.split(' ')[0] || name;
   const msg = how === 'emailed'
-    ? `<p>We've emailed <strong>${esc(email)}</strong> a link for ${esc(first)} to choose a password. It works for an hour; after that, ${esc(first)} can tap "Forgot your password?" on the sign-in page for a new one. If it hasn't arrived in a few minutes, check the spam folder.</p>`
+    ? `<p>We've emailed <strong>${esc(email)}</strong> a link for ${esc(first)} to choose a password. It works for an hour; after that, ${esc(first)} can tap "Forgot your password?" on the sign-in page for a new one. If it hasn't arrived in a few minutes, check the spam folder (or the "Other" tab in Outlook).</p>`
     : how === 'emailed-reset'
     ? `<p>We've emailed <strong>${esc(email)}</strong> a link for ${esc(first)} to choose a password. The email may say "reset your password": that's the one. If it hasn't arrived in a few minutes, check the spam folder.</p>`
     : how === 'email-failed'
