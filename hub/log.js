@@ -86,6 +86,13 @@ export const ACTIONS = {
   'student.link_accept': { label: 'Accepted a parent link',  cat: 'family' },
   'student.link_decline': { label: 'Declined a parent link', cat: 'family' },
   'student.link_remove': { label: 'Removed a linked parent', cat: 'family' },
+  'student.parent_invite': { label: 'Made an Invite a parent link', cat: 'family' },
+  'student.parent_invite_accepted': { label: 'Joined from an Invite a parent link', cat: 'family' },
+  'admin.unlock_student': { label: "Unlocked a student's details", cat: 'admin' },
+  'email.welcome':       { label: 'Welcome email sent',      cat: 'email' },
+  'email.student_setup': { label: 'Choose-a-password email sent', cat: 'email' },
+  'email.weekly':        { label: 'Weekly parent summaries sent', cat: 'email' },
+  'email.start':         { label: 'Getting-started emails sent', cat: 'email' },
   'plan.change':         { label: 'Changed a study plan',    cat: 'plan' },
   'plan.day':            { label: 'Changed a plan day',      cat: 'plan' },
   'study.quiz':          { label: 'Finished a quiz',         cat: 'study' },
@@ -97,6 +104,7 @@ export const ACTIONS = {
 export const CATS = {
   account: 'Accounts', admin: 'Admin', content: 'Content', class: 'Classes',
   family: 'Students', plan: 'Study plans', study: 'Studying', cards: 'Flashcards',
+  email: 'Emails',
 };
 
 // Who is acting. Set by auth.js once the profile has loaded; the role
