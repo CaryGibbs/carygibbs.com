@@ -40,6 +40,10 @@
 //                       kind 'studentSetup': "choose your password" to a new
 //                       student, by the parent or teacher who made the account
 //                       (or an admin); 30 a day per sender
+//   action 'weeklyPreview'  admins: this week's parent summary for a parent
+//                       (yourself by default), sent to your own email now
+//   GET/POST /email/unsubscribe  turns off a parent's weekly summary
+//                       (link in the email; signed, so it can't be guessed)
 //   action 'passwordEmail'  "Forgot your password?" (no sign-in): our own
 //                       email with a link to set-password.html; 10 a day from
 //                       one internet address, 3 a day per email address
@@ -59,6 +63,8 @@
 //                       logs and picture clean-up.
 // Optional Cron Trigger (Settings → Triggers), e.g. "0 3 * * 0" (Sundays 3am):
 //   runs the picture clean-up automatically.
+// Cron Trigger "0 17,18 * * 0" (exactly this): the weekly parent summary,
+//   Sundays at 6pm UK time (17:00 UTC in summer, 18:00 UTC in winter).
 //   STRIPE_SECRET_KEY_TEST, STRIPE_WEBHOOK_SECRET_TEST, STRIPE_PRODUCT_ID_TEST
 //                       secrets for Stripe's test mode (used from carygibbs.com, the dev site)
 //   STRIPE_SECRET_KEY_LIVE, STRIPE_WEBHOOK_SECRET_LIVE, STRIPE_PRODUCT_ID_LIVE
@@ -118,12 +124,20 @@ const londonDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZon
 export default {
   // Weekly picture clean-up, if a Cron Trigger is set on the Worker
   async scheduled(event, env, ctx) {
+    // Weekly parent summary: Cron Trigger "0 17,18 * * 0" fires at 17:00 and
+    // 18:00 UTC on Sundays; only the one that is 6pm in London sends
+    if (event.cron === WEEKLY_CRON) {
+      ctx.waitUntil(weeklySummaries(env).catch(e => console.warn('Weekly summary failed', e.message)));
+      return;
+    }
     ctx.waitUntil(storageSweep(env, false).catch(e => console.warn('Sweep failed', e.message)));
   },
 
   async fetch(request, env, ctx) {
     // ── Stripe telling us about a payment (no sign-in: checked by signature) ──
     const path = new URL(request.url).pathname.replace(/\/+$/, '');
+    // Turning off the weekly email from its link (no sign-in: checked by a signed code)
+    if (path === '/email/unsubscribe') return unsubscribePage(request, env);
     if (path === '/stripe/webhook' || path === '/stripe/webhook/test') {
       return stripeWebhook(request, env, path.endsWith('/test') ? 'test' : 'live');
     }
@@ -187,6 +201,13 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await sendEmailAction(env, user, body, origin)); }
       catch (e) { return fail(e.status || 500, e.message || "The email couldn't be sent"); }
+    }
+
+    // ── Weekly parent summary: send yourself a preview now (admins) ──
+    if (body.action === 'weeklyPreview') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await weeklyPreview(env, user, body)); }
+      catch (e) { return fail(e.status || 500, e.message || "The preview couldn't be sent"); }
     }
 
     // ── Paying for Plus (Stripe) ──
@@ -1537,4 +1558,271 @@ async function passwordEmail(env, request, body, origin) {
   const link = await passwordLink(tok, email, siteFor(origin));
   if (link) await resendSend(env, { to: email, kind: 'password_reset', ...resetEmail(email, link) });
   return { ok: true };
+}
+
+/* ============================================================
+   Weekly parent summary (Sundays, 6pm UK time)
+   One email per parent, a card per student they look after: time
+   revising (and the change on last week), days revised, quizzes and
+   average, streak or reviews waiting, topics going well and worth
+   another look, exam countdown and daily goals, and a suggestion.
+   On for every parent unless users.emailPrefs.weekly is false (Account
+   settings, or the link in the email). Families with no revision in
+   the last 4 weeks (and no new account) aren't sent one.
+   ============================================================ */
+const WEEKLY_CRON = '0 17,18 * * 0';
+const WORKER_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
+const WEEKLY_FIELDS = ['name', 'email', 'role', 'roles', 'parentUid', 'guardianIds', 'sessions', 'study', 'streak',
+  'lastRevisionDate', 'shields', 'srs', 'plan', 'planGoals', 'emailPrefs', 'createdAt'];
+
+const dayAdd = (day, n) => { const [y, m, d] = day.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); };
+const dayGap = (a, b) => { const t = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); }; return Math.round((t(b) - t(a)) / 86400000); };
+const dayLabel = (day, opts) => { const [y, m, d] = day.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { timeZone: 'UTC', ...opts }); };
+const londonHour = (d = new Date()) => Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }).format(d));
+const fmtMins = mins => { const h = Math.floor(mins / 60), m = mins % 60; return h ? `${h}h${m ? ` ${String(m).padStart(2, '0')}m` : ''}` : `${m}m`; };
+const listAnd = a => a.length <= 1 ? (a[0] || '') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`;
+
+// Everyone, with just the fields the summary needs
+async function usersForWeekly(tok) {
+  const out = []; let page = '';
+  const mask = WEEKLY_FIELDS.map(f => `mask.fieldPaths=${f}`).join('&');
+  do {
+    const r = await fetch(`${FS}/users?pageSize=300&${mask}${page ? `&pageToken=${page}` : ''}`, { headers: { Authorization: `Bearer ${tok}` } });
+    if (!r.ok) throw oops(500, `Couldn't read accounts (${r.status})`);
+    const d = await r.json();
+    (d.documents || []).forEach(x => out.push({ id: x.name.split('/').pop(), ...fields(x.fields) }));
+    page = d.nextPageToken || '';
+  } while (page);
+  return out;
+}
+
+// One student's week, ending on `today` (a London day)
+function studentWeek(st, today) {
+  const start = dayAdd(today, -6), prevStart = dayAdd(today, -13);
+  const inRange = (day, a, b) => day >= a && day <= b;
+  const sessions = (st.sessions || []).filter(s => s && s.date).map(s => ({ ...s, day: londonDay(new Date(s.date)) }));
+  const secsOf = s => typeof s.secondsSpent === 'number' ? s.secondsSpent : (s.minutesSpent || 0) * 60;
+  const study = st.study || {};
+  const secsBetween = (a, b) => {
+    let t = 0;
+    Object.entries(study).forEach(([day, subs]) => { if (inRange(day, a, b)) Object.values(subs || {}).forEach(v => { t += Number(v) || 0; }); });
+    sessions.forEach(s => { if (inRange(s.day, a, b)) t += secsOf(s); });
+    return t;
+  };
+  const mins = Math.round(secsBetween(start, today) / 60);
+  const prevMins = Math.round(secsBetween(prevStart, dayAdd(start, -1)) / 60);
+  const days = new Set();
+  Object.entries(study).forEach(([day, subs]) => { if (inRange(day, start, today) && Object.values(subs || {}).some(v => v > 0)) days.add(day); });
+  sessions.forEach(s => { if (inRange(s.day, start, today)) days.add(s.day); });
+  const week = sessions.filter(s => inRange(s.day, start, today));
+  const quizzes = week.filter(s => !s.review);
+  const reviews = week.filter(s => s.review).length;
+  const avg = quizzes.length ? Math.round(quizzes.reduce((a, s) => a + (Number(s.pct) || 0), 0) / quizzes.length) : null;
+  // Topics this week: average score per topic
+  const byTopic = {};
+  quizzes.forEach(s => {
+    const name = String(s.topic || s.subject || '').trim(); if (!name) return;
+    (byTopic[name] = byTopic[name] || []).push(Number(s.pct) || 0);
+  });
+  const topics = Object.entries(byTopic).map(([name, a]) => ({ name, pct: Math.round(a.reduce((x, y) => x + y, 0) / a.length) }));
+  const good = topics.filter(t => t.pct >= 80).sort((a, b) => b.pct - a.pct).slice(0, 2);
+  const weak = topics.filter(t => t.pct < 65).sort((a, b) => a.pct - b.pct).slice(0, 2);
+  // Streak (as the app shows it: only if they revised recently enough)
+  const cover = Math.min(Number(st.shields) || 0, 2);
+  const lastRev = st.lastRevisionDate ? londonDay(new Date(st.lastRevisionDate)) : null;
+  const streak = lastRev && dayGap(lastRev, today) <= 1 + cover ? (Number(st.streak) || 0) : 0;
+  const waiting = Object.values(st.srs || {}).filter(e => e && e.d && e.d <= today).length;
+  // Last time they revised at all
+  const allDays = [...Object.keys(study).filter(d => Object.values(study[d] || {}).some(v => v > 0)), ...sessions.map(s => s.day)].sort();
+  const lastDay = allDays.length ? allDays[allDays.length - 1] : null;
+  const lastSession = sessions.filter(s => s.day === lastDay).pop();
+  // Plan: next exam within 60 days, and daily goals hit this week
+  const exams = (st.plan?.exams || []).filter(e => e && e.start && (e.end || e.start) >= today).sort((a, b) => (a.start < b.start ? -1 : 1));
+  const exam = exams[0] && dayGap(today, exams[0].start) <= 60 ? exams[0] : null;
+  const goals = st.plan && typeof st.plan === 'object' ? Object.keys(st.planGoals || {}).filter(d => inRange(d, start, today)).length : null;
+  return { mins, prevMins, days: days.size, quizzes: quizzes.length, reviews, avg, good, weak, streak, waiting,
+    lastDay, lastSubject: lastSession?.subject || '', exam, goals, recent: !!lastDay && dayGap(lastDay, today) <= 28 };
+}
+
+function studentCard(st, w, today) {
+  const first = escH(firstName(st.name) || 'Your student');
+  const verdict = w.days >= 4 || w.mins >= 90 ? ['A strong week', '#1d7a4f'] : w.days >= 2 ? ['A steady week', '#123a4a'] : w.days === 1 ? ['A quiet week', '#8a6d1f'] : ['No revision this week', '#8a6d1f'];
+  const diff = w.mins - w.prevMins;
+  const change = w.prevMins || w.mins ? (diff > 0 ? `<span style="color:#1d7a4f;">▲ ${fmtMins(diff)}</span>` : diff < 0 ? `<span style="color:#b4502f;">▼ ${fmtMins(-diff)}</span>` : 'same as last week') : '&nbsp;';
+  const tile = (val, label, colour = '#123a4a') => `<td width="25%" align="center" style="background:#fff;border-radius:10px;padding:10px 4px;"><div style="font-size:20px;font-weight:800;color:${colour};">${val}</div><div style="font-size:12px;color:#5d7c89;">${label}</div></td>`;
+  const fourth = w.streak >= 2 ? tile(`${w.streak} days`, 'streak<br>&nbsp;', '#e8603e')
+    : w.waiting ? tile(String(w.waiting), 'reviews<br>waiting') : tile(String(w.reviews), `review${w.reviews === 1 ? '' : 's'}<br>done`);
+  const lines = [];
+  if (w.good.length) lines.push(`<strong style="color:#1d7a4f;">Going well:</strong> ${w.good.map(t => `${escH(t.name)} (${t.pct}%)`).join(', ')}`);
+  if (w.weak.length) lines.push(`<strong style="color:#b4502f;">Worth another look:</strong> ${w.weak.map(t => `${escH(t.name)} (${t.pct}%)`).join(', ')}`);
+  const plan = [];
+  if (w.exam) { const n = dayGap(today, w.exam.start); plan.push(n <= 0 ? `${escH(w.exam.name || 'Exams')} now` : n === 1 ? `${escH(w.exam.name || 'Exams')} tomorrow` : `${escH(w.exam.name || 'Exams')} in ${n} days`); }
+  if (w.goals !== null && w.days) plan.push(`Daily goal hit on ${w.goals} of 7 days`);
+  if (plan.length) lines.push(`<strong style="color:#123a4a;">Plan:</strong> ${plan.join('. ')}.`);
+  if (w.days <= 1 && w.lastDay) lines.push(`<strong style="color:#123a4a;">Last revised:</strong> ${dayGap(w.lastDay, today) < 7 ? dayLabel(w.lastDay, { weekday: 'long' }) : dayLabel(w.lastDay, { day: 'numeric', month: 'long' })}${w.lastSubject ? `, ${escH(w.lastSubject)}` : ''}.`);
+  let tip;
+  if (w.days >= 2 && w.weak.length) tip = `<strong>Try this:</strong> ask ${first} to explain ${escH(w.weak[0].name)} to you. Teaching something is one of the best ways to make it stick.`;
+  else if (w.days >= 4) tip = `<strong>Try this:</strong> a good week to say well done. Noticing the effort keeps it going.`;
+  else if (w.waiting) tip = `Busy weeks happen. A 10-minute review would clear ${w.waiting > 15 ? 'some' : 'most'} of what's waiting and get things moving again.`;
+  else if (w.days <= 1) tip = `Busy weeks happen. A short quiz early in the week is an easy way to get going again.`;
+  return `<tr><td style="padding:0 20px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6fafb;border:1px solid #e3ecee;border-radius:14px;">
+<tr><td style="padding:18px 18px 6px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td style="font-size:20px;font-weight:800;color:#123a4a;">${first}</td>
+  <td align="right" style="font-size:14px;font-weight:700;color:${verdict[1]};">${verdict[0]}</td></tr></table></td></tr>
+<tr><td style="padding:6px 12px 2px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="6"><tr>
+  ${tile(fmtMins(w.mins), `revising<br>${change}`)}${tile(`${w.days} of 7`, 'days<br>&nbsp;')}${tile(String(w.quizzes), `quiz${w.quizzes === 1 ? '' : 'zes'}<br>${w.avg !== null ? `${w.avg}% average` : '&nbsp;'}`)}${fourth}
+</tr></table></td></tr>
+${lines.length ? `<tr><td style="padding:10px 18px ${tip ? 4 : 14}px;font-size:15px;line-height:1.55;">${lines.map(l => `<p style="margin:0 0 8px;">${l}</p>`).join('')}</td></tr>` : ''}
+${tip ? `<tr><td style="padding:${lines.length ? 0 : 10}px 18px 18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fff3ee;border-radius:10px;"><tr><td style="padding:12px 14px;font-size:14px;line-height:1.5;color:#7a3a22;">${tip}</td></tr></table></td></tr>` : ''}
+</table></td></tr>`;
+}
+function studentText(st, w) {
+  const out = [`${firstName(st.name) || 'Your student'}: ${fmtMins(w.mins)} revising on ${w.days} of 7 days, ${w.quizzes} quiz${w.quizzes === 1 ? '' : 'zes'}${w.avg !== null ? ` (${w.avg}% average)` : ''}${w.streak >= 2 ? `, ${w.streak}-day streak` : ''}${w.waiting ? `, ${w.waiting} reviews waiting` : ''}.`];
+  if (w.good.length) out.push(`Going well: ${w.good.map(t => `${t.name} (${t.pct}%)`).join(', ')}`);
+  if (w.weak.length) out.push(`Worth another look: ${w.weak.map(t => `${t.name} (${t.pct}%)`).join(', ')}`);
+  return out.join('\n');
+}
+
+async function unsubToken(env, uid) {
+  const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(`${sa.private_key_id || ''}:${sa.private_key}:weekly`), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${uid}:weekly`)));
+  return [...sig].slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function weeklyEmail(env, parent, students, today) {
+  const site = 'https://lobelimpet.com';
+  const start = dayAdd(today, -6);
+  const sameMonth = start.slice(0, 7) === today.slice(0, 7);
+  const range = `${dayLabel(start, sameMonth ? { day: 'numeric' } : { day: 'numeric', month: 'long' })} to ${dayLabel(today, { day: 'numeric', month: 'long' })}`;
+  const firsts = students.map(s => firstName(s.st.name) || 'your student');
+  const who = listAnd(firsts);
+  const unsub = `${WORKER_URL}/email/unsubscribe?u=${encodeURIComponent(parent.id)}&k=${await unsubToken(env, parent.id)}`;
+  const hi = firstName(parent.name) ? `Hi ${escH(firstName(parent.name))}, here's` : `Here's`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your week in revision</title></head>
+<body style="margin:0;padding:0;background:#eef5f6;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef5f6;"><tr><td align="center" style="padding:28px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1f3440;">
+<tr><td style="padding:28px 28px 4px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+  <td style="padding-right:10px;"><img src="${LOGO_URL}" width="40" height="40" alt="" style="display:block;border-radius:10px;"></td>
+  <td style="font-size:22px;font-weight:800;color:#123a4a;">lobe <span style="color:#e8603e;">limpet</span></td></tr></table></td></tr>
+<tr><td style="padding:14px 28px 0;">
+  <p style="margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5d7c89;">Week of ${escH(range)}</p>
+  <h1 style="margin:0 0 14px;font-size:24px;line-height:1.3;color:#123a4a;">Your week in revision</h1>
+  <p style="margin:0 0 18px;font-size:16px;line-height:1.55;">${hi} how ${escH(who)} got on this week.</p>
+</td></tr>
+${students.map(s => studentCard(s.st, s.w, today)).join('\n')}
+<tr><td style="padding:4px 28px 8px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;"><tr><td style="background:#123a4a;border-radius:10px;">
+    <a href="${site}/parent.html" style="display:inline-block;padding:14px 26px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;">See full progress</a></td></tr></table>
+  <p style="margin:0 0 16px;font-size:15px;line-height:1.55;">The Lobe Limpet team</p>
+</td></tr>
+<tr><td style="padding:8px 28px 26px;border-top:1px solid #e3ecee;">
+  <p style="margin:14px 0 0;font-size:13px;line-height:1.5;color:#5d7c89;">You get this every Sunday because you look after ${escH(who)} on Lobe Limpet. <a href="${unsub}" style="color:#5d7c89;">Turn off these emails</a>, or change it any time in Account settings.</p>
+</td></tr></table>
+<p style="margin:14px 0 0;font-size:12px;color:#7d97a1;font-family:Arial,sans-serif;">Lobe Limpet · Knowledge that sticks.</p>
+</td></tr></table></body></html>`;
+  const text = [`Your week in revision (${range})`, `${firstName(parent.name) ? `Hi ${firstName(parent.name)}, here's` : `Here's`} how ${who} got on this week.`,
+    ...students.map(s => studentText(s.st, s.w)), `See full progress: ${site}/parent.html`, 'The Lobe Limpet team',
+    `Turn off these emails: ${unsub}`].join('\n\n');
+  let subject = `${firsts.length > 3 ? 'Your students' : who}'s week on Lobe Limpet`.replace(/s's week/, "s' week");
+  subject = subject[0].toUpperCase() + subject.slice(1);
+  return { from: env.EMAIL_FROM || EMAIL_FROM_DEFAULT, to: [parent.email], reply_to: EMAIL_REPLY_TO, subject, html, text,
+    headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+    tags: [{ name: 'kind', value: 'weekly' }] };
+}
+
+// Who gets an email, and with which students
+function weeklyPlan(users, today) {
+  const byId = Object.fromEntries(users.map(u => [u.id, u]));
+  const kids = {};
+  users.filter(u => rolesOf(u).has('student')).forEach(st => {
+    [...new Set([st.parentUid, ...(st.guardianIds || [])].filter(Boolean))].forEach(p => { (kids[p] = kids[p] || []).push(st); });
+  });
+  const out = [];
+  Object.entries(kids).forEach(([pid, sts]) => {
+    const parent = byId[pid];
+    if (!parent || !parent.email || parent.emailPrefs?.weekly === false) return;
+    const students = sts.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))).map(st => ({ st, w: studentWeek(st, today) }));
+    const fresh = Number(parent.createdAt) > Date.now() - 28 * 86400000;
+    if (!fresh && !students.some(s => s.w.recent)) return;   // nobody has revised for 4 weeks
+    out.push({ parent: { id: pid, ...parent }, students });
+  });
+  return out;
+}
+
+async function weeklySummaries(env, { force = false } = {}) {
+  if (!env.RESEND_API_KEY || !env.FIREBASE_SERVICE_ACCOUNT) return { sent: 0, skipped: 'not set up' };
+  if (!force && (londonHour() !== 18 || new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/London', weekday: 'long' }) !== 'Sunday')) return { sent: 0, skipped: 'not 6pm Sunday' };
+  const tok = await serviceToken(env);
+  const today = londonDay();
+  const plan = weeklyPlan(await usersForWeekly(tok), today);
+  // Already sent this week? (one marker per parent per week)
+  const marker = id => `emailSent/weekly_${id}_${today}`;
+  const done = await fsExisting(tok, plan.map(p => marker(p.parent.id)));
+  const todo = plan.filter(p => !done.has(marker(p.parent.id)));
+  let sent = 0;
+  for (let i = 0; i < todo.length; i += 100) {
+    const chunk = todo.slice(i, i + 100);
+    const emails = await Promise.all(chunk.map(p => weeklyEmail(env, p.parent, p.students, today)));
+    const r = await fetch('https://api.resend.com/emails/batch', {
+      method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(emails),
+    });
+    if (!r.ok) { console.warn('Weekly batch failed', r.status, (await r.text()).slice(0, 300)); continue; }
+    sent += chunk.length;
+    await fsCommit(tok, chunk.map(p => ({ update: { name: `${DOCS}/${marker(p.parent.id)}`, fields: {
+      at: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 60 * 86400000)) } } }))).catch(e => console.warn('Markers not saved', e.message));
+  }
+  await workerLog(tok, 'system', { name: 'Lobe Limpet' }, 'email.weekly', `Weekly summary sent to ${sent} parent${sent === 1 ? '' : 's'}`);
+  return { sent };
+}
+
+// Admins: send this week's summary for a parent (default: yourself) to your own inbox
+async function weeklyPreview(env, user, body) {
+  if (!env.RESEND_API_KEY) throw oops(503, 'Email is not set up yet');
+  const tok = await serviceToken(env);
+  const me = await fsGet(tok, `users/${user.uid}`);
+  if (!(user.uid === OWNER_UID || rolesOf(me).has('admin'))) throw oops(403, 'Admins only');
+  const pid = String(body.parentUid || user.uid);
+  const today = londonDay();
+  const parent = pid === user.uid ? me : await fsGet(tok, `users/${pid}`);
+  if (!parent) throw oops(404, 'No account found');
+  const [a, b] = await Promise.all([fsQuery(tok, 'users', 'parentUid', 'EQUAL', pid), fsQuery(tok, 'users', 'guardianIds', 'ARRAY_CONTAINS', pid)]);
+  const seen = new Set();
+  const sts = [...a, ...b].filter(s => rolesOf(s).has('student') && !seen.has(s.id) && seen.add(s.id));
+  if (!sts.length) throw oops(404, 'This account has no students, so there is nothing to summarise');
+  const students = sts.map(st => ({ st, w: studentWeek(st, today) }));
+  const email = await weeklyEmail(env, { id: pid, ...parent }, students, today);
+  email.to = [user.email];
+  email.subject = `[Preview] ${email.subject}`;
+  delete email.headers;   // no unsubscribe header on a preview
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(email),
+  });
+  if (!r.ok) throw oops(502, `The preview couldn't be sent (${r.status})`);
+  return { ok: true, to: user.email, students: students.length };
+}
+
+// The "Turn off these emails" link: a page with a button (GET), then the change (POST,
+// also what mail apps send for one-click unsubscribe)
+async function unsubscribePage(request, env) {
+  const url = new URL(request.url);
+  const uid = url.searchParams.get('u') || '', k = url.searchParams.get('k') || '';
+  const page = (title, body) => new Response(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head>
+<body style="margin:0;background:#eef5f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1f3440;">
+<div style="max-width:460px;margin:60px auto;background:#fff;border-radius:16px;padding:28px;">
+<p style="margin:0 0 18px;font-size:22px;font-weight:800;color:#123a4a;">lobe <span style="color:#e8603e;">limpet</span></p>
+<h1 style="font-size:22px;color:#123a4a;margin:0 0 12px;">${title}</h1>${body}</div></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  const ok = uid && k && env.FIREBASE_SERVICE_ACCOUNT && k === await unsubToken(env, uid);
+  if (!ok) return page('This link doesn\'t work', '<p style="line-height:1.55;">You can turn the weekly email off in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.</p>');
+  if (request.method === 'POST') {
+    const tok = await serviceToken(env);
+    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: { emailPrefs: { mapValue: { fields: { weekly: { booleanValue: false } } } } } },
+      updateMask: { fieldPaths: ['emailPrefs.weekly'] }, currentDocument: { exists: true } }]).catch(() => {});
+    return page('Weekly emails turned off', '<p style="line-height:1.55;">You won\'t get the Sunday summary any more. You can turn it back on any time in Lobe Limpet, under Account settings.</p><p><a href="https://lobelimpet.com/parent.html" style="color:#123a4a;font-weight:700;">Go to Lobe Limpet</a></p>');
+  }
+  return page('Turn off the weekly email?', `<p style="line-height:1.55;">You'll stop getting the Sunday summary of your students' revision. Account emails (like password links) still come when you ask for them.</p>
+<form method="post"><button style="background:#123a4a;color:#fff;border:0;border-radius:10px;padding:14px 24px;font-size:16px;font-weight:700;cursor:pointer;">Turn off weekly emails</button></form>`);
 }

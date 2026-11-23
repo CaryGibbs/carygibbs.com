@@ -5,7 +5,9 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261120d';
+import { auth, db } from './firebase-config.js?v=20261120d';
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { workerAction } from './ai.js?v=20261120d';
 import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261120d';
 import { openDeleteAccount } from './account.js?v=20261120d';
 import { formatAccountNo } from './account-no.js?v=20261120d';
@@ -25,6 +27,8 @@ export function openAccountSettings({ user, profile = {} } = {}) {
   const isAdmin = user.uid === OWNER_UID || viewsOf(profile).includes('admin');
   const roles = viewsOf(profile).map(v => ROLE[v] || v).join(', ') || 'Account';
   const email = profile.email || user.email || '';
+  const isParent = viewsOf(profile).includes('parent');
+  const weeklyOn = profile.emailPrefs?.weekly !== false;
   const plus = hasPlus(profile);
   const trial = aiTrialLeft(profile);
   const plan = plus
@@ -66,6 +70,16 @@ export function openAccountSettings({ user, profile = {} } = {}) {
           <span class="as-msg" id="as-plan-msg" role="status"></span>
         </section>
 
+        ${isParent || isAdmin ? `<section class="as-sec" id="as-emails">
+          <h3>Emails</h3>
+          ${isParent ? `<label class="as-check"><input type="checkbox" id="as-weekly" ${weeklyOn ? 'checked' : ''}>
+            <span>Weekly summary of your students' revision<small>Sundays at 6pm: time spent, quiz scores, topics to revisit.</small></span></label>
+          <span class="as-msg" id="as-weekly-msg" role="status"></span>` : ''}
+          ${isAdmin ? `<p class="as-hint" style="margin-top:10px;">Admin: send yourself this week's summary for your own students, as it would look on Sunday.</p>
+          <button class="btn btn-secondary" id="as-weekly-preview">Email me a preview</button>
+          <span class="as-msg" id="as-preview-msg" role="status"></span>` : ''}
+        </section>` : ''}
+
         <section class="as-sec">
           <h3>Terms and privacy</h3>
           <p>${terms} How we look after your details: <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a>.</p>
@@ -101,6 +115,23 @@ export function openAccountSettings({ user, profile = {} } = {}) {
     reset.disabled = true; rmsg.textContent = 'Sending…';
     try { await sendPasswordEmail(email); rmsg.textContent = `Sent to ${email}. Check your inbox (and spam).`; }
     catch (e) { rmsg.textContent = `Couldn't send it: ${e.message}`; reset.disabled = false; }
+  };
+  const weekly = document.getElementById('as-weekly'), wmsg = document.getElementById('as-weekly-msg');
+  if (weekly) weekly.onchange = async () => {
+    const on = weekly.checked;
+    wmsg.textContent = 'Saving…';
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { 'emailPrefs.weekly': on });
+      profile.emailPrefs = { ...(profile.emailPrefs || {}), weekly: on };
+      wmsg.textContent = on ? "On. You'll get it on Sunday evenings." : "Off. You won't get the weekly summary.";
+    } catch (e) { weekly.checked = !on; wmsg.textContent = `Couldn't save: ${e.message}`; }
+  };
+  const prev = document.getElementById('as-weekly-preview'), pmsg = document.getElementById('as-preview-msg');
+  if (prev) prev.onclick = async () => {
+    prev.disabled = true; pmsg.textContent = 'Sending…';
+    try { const r = await workerAction('weeklyPreview'); pmsg.textContent = `Sent to ${r.to}.`; }
+    catch (e) { pmsg.textContent = e.message; }
+    finally { prev.disabled = false; }
   };
   fillPlan(user, profile).catch(e => console.warn('Plan details not loaded', e.message));
   const del = document.getElementById('as-delete');
@@ -149,6 +180,9 @@ function injectStyle() {
   .as-dl dt { color: var(--color-text-muted); } .as-dl dd { margin: 0; word-break: break-word; }
   .as-hint { color: var(--color-text-muted); font-size: 0.82rem !important; }
   .as-msg { display: inline-block; margin-left: 10px; font-size: 0.85rem; color: var(--color-text-muted); }
+  .as-check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 0.92rem; }
+  .as-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--color-primary); flex-shrink: 0; }
+  .as-check small { display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-top: 2px; }
   .as-danger { border: 1px solid color-mix(in srgb, var(--color-danger, #c0392b) 45%, transparent); border-radius: 12px; padding: 14px; margin-top: 10px; }
   .as-danger h3 { color: var(--color-danger, #c0392b); }
   .as-del { background: none; border: 1px solid var(--color-danger, #c0392b); color: var(--color-danger, #c0392b); border-radius: 999px; padding: 8px 16px; font: inherit; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
