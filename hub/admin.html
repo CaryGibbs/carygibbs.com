@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261123g"></script>
+  <script src="dev-flag.js?v=20261123h"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261123g">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261123g">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261123g">
-  <link rel="manifest" href="manifest.webmanifest?v=20261123g">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261123h">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261123h">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261123h">
+  <link rel="manifest" href="manifest.webmanifest?v=20261123h">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261123g">
-  <script src="icons.js?v=20261123g"></script>
+  <link rel="stylesheet" href="theme.css?v=20261123h">
+  <script src="icons.js?v=20261123h"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -676,8 +676,8 @@
   .news-sent-row small { color: var(--color-text-muted); }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261123g">
-  <link rel="stylesheet" href="stats.css?v=20261123g">
+  <link rel="stylesheet" href="ui.css?v=20261123h">
+  <link rel="stylesheet" href="stats.css?v=20261123h">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1065,9 +1065,20 @@
           </div>
         </div>
         <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong>Preview</strong><span class="news-msg" id="nw-count"></span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;"><strong>Preview</strong><span><span class="news-msg" id="nw-count"></span> <button class="btn btn-ghost btn-sm" id="nw-who"><i data-icon="users"></i> Who's on the list</button></span></div>
           <iframe class="news-frame" id="nw-frame" title="Email preview"></iframe>
         </div>
+      </div>
+      <div class="card" id="nw-list-card" style="margin-top:16px;" hidden>
+        <h3 style="margin-bottom:4px;">Who's on the list</h3>
+        <p class="news-help" style="margin:0 0 10px;">People who asked for news and tips. To add someone who signed up before the tick box, they need to have told you they want it (a text or email is fine): enter their account email and how they agreed. They can unsubscribe from any email.</p>
+        <div class="news-row2" style="grid-template-columns:1fr 1.4fr auto;align-items:end;">
+          <div class="form-group" style="margin:0;"><label for="nw-add-email">Their account email</label><input type="email" id="nw-add-email" placeholder="name@example.com"></div>
+          <div class="form-group" style="margin:0;"><label for="nw-add-note">How they agreed</label><input type="text" id="nw-add-note" maxlength="200" placeholder="e.g. Said yes by text, 23 Nov"></div>
+          <button class="btn btn-secondary" id="nw-add"><i data-icon="user-plus"></i> Add</button>
+        </div>
+        <p class="news-msg" id="nw-add-msg" role="status" style="margin:8px 0 4px;"></p>
+        <div id="nw-people"></div>
       </div>
       <div class="card" style="margin-top:16px;"><h3 style="margin-bottom:6px;">Sent</h3><div id="nw-sent"><p class="news-msg">Nothing sent yet.</p></div></div>
     </div>
@@ -1625,37 +1636,37 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261123g';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261123g';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261123g';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261123g';
-import { syncFamilyPlus } from './family-plus.js?v=20261123g';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261123g';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261123g';
-import { openDeleteAccount } from './account.js?v=20261123g';
-import { openPasswordHelp } from './password-help.js?v=20261123g';
-import { addDocumentButton } from './doc-text.js?v=20261123g';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261123g';
-import { showPlusUpsell } from './plus.js?v=20261123g';
-import { offerGivePack } from './first-steps.js?v=20261123g';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261123g';
+import { auth, db, storage } from './firebase-config.js?v=20261123h';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261123h';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261123h';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261123h';
+import { syncFamilyPlus } from './family-plus.js?v=20261123h';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261123h';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261123h';
+import { openDeleteAccount } from './account.js?v=20261123h';
+import { openPasswordHelp } from './password-help.js?v=20261123h';
+import { addDocumentButton } from './doc-text.js?v=20261123h';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261123h';
+import { showPlusUpsell } from './plus.js?v=20261123h';
+import { offerGivePack } from './first-steps.js?v=20261123h';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261123h';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261123g';
-import { mountShell } from './shell.js?v=20261123g';
-import { openInviteDialog, signupLink } from './invite.js?v=20261123g';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261123g';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261123g';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261123g';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261123g';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261123g';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261123g';
-import { dueEntries } from './srs.js?v=20261123g';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261123g';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261123g';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261123h';
+import { mountShell } from './shell.js?v=20261123h';
+import { openInviteDialog, signupLink } from './invite.js?v=20261123h';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261123h';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261123h';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261123h';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261123h';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261123h';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261123h';
+import { dueEntries } from './srs.js?v=20261123h';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261123h';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261123h';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1671,9 +1682,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261123g';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261123g';
-import { inOrder } from './order.js?v=20261123g';
+import { saveEmailIndex } from './email-index.js?v=20261123h';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261123h';
+import { inOrder } from './order.js?v=20261123h';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4244,9 +4255,47 @@ async function loadNewsSent() {
     });
   } catch (e) { box.innerHTML = `<p class="news-msg">Couldn't load sent emails: ${esc(e.message)}. If it says "permission", publish the new database rules.</p>`; }
 }
+const NEWS_HOW = { 'sign-up': 'Ticked at sign-up', settings: 'Turned on in Account settings', admin: 'Added by an admin' };
+async function loadNewsPeople() {
+  const box = nwEl('nw-people');
+  box.innerHTML = '<p class="news-msg">Loading…</p>';
+  try {
+    const { people } = await workerAction('newsSend', { mode: 'list' });
+    nwEl('nw-count').textContent = `On the list: ${people.length} ${people.length === 1 ? 'person' : 'people'}`;
+    if (!people.length) { box.innerHTML = '<p class="news-msg">Nobody yet.</p>'; return; }
+    box.innerHTML = people.map(p => `<div class="news-sent-row"><div><strong>${esc(p.name || '(no name)')}</strong> <small>${esc(p.email)} · ${esc(p.roles.join(', '))}</small><br><small>${esc(NEWS_HOW[p.how] || 'On the list')}${p.at ? ` on ${new Date(p.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}${p.note ? `: ${esc(p.note)}` : ''}</small></div><div><button class="btn btn-ghost btn-sm" data-nw-off="${esc(p.uid)}" data-nw-name="${esc(p.name || p.email)}">Take off</button></div></div>`).join('');
+    box.querySelectorAll('[data-nw-off]').forEach(b => b.onclick = async () => {
+      if (!confirm(`Take ${b.dataset.nwName} off the news and tips list?`)) return;
+      b.disabled = true;
+      try { await workerAction('newsSend', { mode: 'remove', uid: b.dataset.nwOff }); loadNewsPeople(); }
+      catch (e) { b.disabled = false; alert(e.message); }
+    });
+  } catch (e) { box.innerHTML = `<p class="news-msg">Couldn't load the list: ${esc(e.message)}</p>`; }
+}
+function wireNewsPeople() {
+  nwEl('nw-who').onclick = () => {
+    const c = nwEl('nw-list-card'); c.hidden = !c.hidden;
+    if (!c.hidden) { loadNewsPeople(); c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  };
+  nwEl('nw-add').onclick = async () => {
+    const b = nwEl('nw-add'), m = nwEl('nw-add-msg');
+    const email = nwEl('nw-add-email').value.trim(), note = nwEl('nw-add-note').value.trim();
+    if (!email) { m.textContent = 'Enter the email they use for Lobe Limpet.'; return; }
+    if (note.length < 3) { m.textContent = 'Say how they agreed, for example "Said yes by text, 23 Nov".'; return; }
+    b.disabled = true; m.textContent = 'Adding…';
+    try {
+      const r = await workerAction('newsSend', { mode: 'add', email, note });
+      m.textContent = r.already ? `${r.name || email} is already on the list.` : `Added ${r.name || email}.`;
+      if (!r.already) { nwEl('nw-add-email').value = ''; nwEl('nw-add-note').value = ''; }
+      loadNewsPeople();
+    } catch (e) { m.textContent = e.message; }
+    finally { b.disabled = false; }
+  };
+}
 async function loadNews() {
   if (!newsReady) {
     newsReady = true;
+    wireNewsPeople();
     let draft = null;
     try { const d = await getDoc(doc(db, 'newsDrafts', 'current')); if (d.exists()) draft = d.data(); } catch (e) { console.warn('News draft not loaded', e.message); }
     newsToForm(draft || NEWS_FIRST);
@@ -5549,6 +5598,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261123g"></script>
+<script src="site.js?v=20261123h"></script>
 </body>
 </html>

@@ -63,7 +63,9 @@
 //   action 'teacherPreview' admins: this week's class summary for a teacher
 //                       (yourself by default), sent to your own email now
 //   action 'newsSend'     admins: the news and tips email (mode count / test / send),
-//                       only to people who asked for it (emailPrefs.news)
+//                       only to people who asked for it (emailPrefs.news); mode list
+//                       (who's on it), add (someone who agreed, with a note of how),
+//                       remove
 //   GET/POST /email/unsubscribe  turns off a weekly summary, getting-started
 //                       emails or news (t=teacher / start / news)
 //                       (signed, so it can't be guessed). Used by mail apps'
@@ -2363,10 +2365,39 @@ async function newsAction(env, user, body) {
   const tok = await serviceToken(env);
   const me = await fsGet(tok, `users/${user.uid}`);
   if (!(user.uid === OWNER_UID || rolesOf(me).has('admin'))) throw oops(403, 'Admins only');
-  const mode = ['count', 'test', 'send'].includes(body.mode) ? body.mode : 'count';
+  const mode = ['count', 'test', 'send', 'list', 'add', 'remove'].includes(body.mode) ? body.mode : 'count';
+
+  // Add someone who has told you they want news and tips (their agreement is recorded)
+  if (mode === 'add') {
+    const note = String(body.note || '').trim().slice(0, 200);
+    if (note.length < 3) throw oops(400, 'Say how they agreed, for example "Said yes by text, 23 Nov"');
+    const acc = await accountByEmail(tok, body.email);
+    if (!acc) throw oops(404, 'No Lobe Limpet account uses that email address');
+    if (rolesOf(acc).has('student') && rolesOf(acc).size === 1) throw oops(400, "That's a student account. News and tips are only for parents, teachers and adult learners.");
+    if (acc.emailPrefs?.news === true) return { ok: true, already: true, name: acc.name || '' };
+    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${acc.id}`, fields: { emailPrefs: fsVal({ news: true, newsAt: Date.now(), newsHow: 'admin', newsNote: note, newsBy: me?.name || user.email || '' }) } },
+      updateMask: { fieldPaths: ['emailPrefs.news', 'emailPrefs.newsAt', 'emailPrefs.newsHow', 'emailPrefs.newsNote', 'emailPrefs.newsBy'] }, currentDocument: { exists: true } }]);
+    await workerLog(tok, user.uid, me, 'email.news_add', `Added to news and tips: ${note.slice(0, 100)}`, { id: acc.id, name: acc.name || acc.email });
+    return { ok: true, name: acc.name || '' };
+  }
+  // Take someone off the list (as if they'd unsubscribed)
+  if (mode === 'remove') {
+    const uid = String(body.uid || '');
+    if (!/^[A-Za-z0-9]{10,40}$/.test(uid)) throw oops(400, 'Bad account');
+    const acc = await fsGet(tok, `users/${uid}`);
+    if (!acc) throw oops(404, 'No account found');
+    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: { emailPrefs: fsVal({ news: false }) } },
+      updateMask: { fieldPaths: ['emailPrefs.news'] }, currentDocument: { exists: true } }]);
+    await workerLog(tok, user.uid, me, 'email.news_remove', 'Taken off news and tips', { id: uid, name: acc.name || acc.email });
+    return { ok: true };
+  }
+
   const users = mode === 'test' ? [] : await usersForWeekly(tok);
   const list = users.filter(newsWanted);
   if (mode === 'count') return { count: list.length };
+  if (mode === 'list') return { people: list.map(u => ({ uid: u.id, name: u.name || '', email: u.email, roles: [...rolesOf(u)],
+    at: Number(u.emailPrefs?.newsAt) || null, how: u.emailPrefs?.newsHow || '', note: u.emailPrefs?.newsNote || '' }))
+    .sort((a, b) => String(a.name).localeCompare(String(b.name))) };
 
   const n = {
     subject: String(body.subject || '').trim().slice(0, 140),

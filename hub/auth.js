@@ -2,11 +2,11 @@
 // CLASP — Shared Auth Utilities (Firestore version)
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261123g';
-import { ensureAccountNo } from './account-no.js?v=20261123g';
+import { auth, db } from './firebase-config.js?v=20261123h';
+import { ensureAccountNo } from './account-no.js?v=20261123h';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent, setLogActor, pageRole } from './log.js?v=20261123g';
+import { logEvent, setLogActor, pageRole } from './log.js?v=20261123h';
 
 // Never wait forever on the network: give up after `ms` so the UI can recover
 function withTimeout(promise, ms, label = 'Request') {
