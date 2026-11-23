@@ -70,9 +70,12 @@ export function openAccountSettings({ user, profile = {} } = {}) {
           <span class="as-msg" id="as-plan-msg" role="status"></span>
         </section>
 
-        ${isParent || isAdmin ? `<section class="as-sec" id="as-emails">
+        <section class="as-sec" id="as-emails">
           <h3>Emails</h3>
-          ${isParent ? `<label class="as-check"><input type="checkbox" id="as-weekly" ${weeklyOn ? 'checked' : ''}>
+          <label class="as-check"><input type="checkbox" id="as-news" ${profile.emailPrefs?.news ? 'checked' : ''}>
+            <span>Occasional news and revision tips<small>About once a month at most. Account emails, like password links, always come.</small></span></label>
+          <span class="as-msg" id="as-news-msg" role="status"></span>
+          ${isParent ? `<label class="as-check" style="margin-top:10px;"><input type="checkbox" id="as-weekly" ${weeklyOn ? 'checked' : ''}>
             <span>Weekly summary of your students' revision<small>Sundays at 6pm: time spent, quiz scores, topics to revisit.</small></span></label>
           <span class="as-msg" id="as-weekly-msg" role="status"></span>` : ''}
           ${isAdmin ? `<p class="as-hint" style="margin-top:10px;">Admin: send yourself this week's summary for your own students, as it would look on Sunday.</p>
@@ -81,7 +84,7 @@ export function openAccountSettings({ user, profile = {} } = {}) {
           <p class="as-hint" style="margin-top:10px;">The two getting-started emails new parents get if they haven't added a student (days 2 and 7).</p>
           <button class="btn btn-secondary" id="as-start-preview">Email me the getting-started emails</button>
           <span class="as-msg" id="as-start-msg" role="status"></span>` : ''}
-        </section>` : ''}
+        </section>
 
         <section class="as-sec">
           <h3>Terms and privacy</h3>
@@ -118,6 +121,16 @@ export function openAccountSettings({ user, profile = {} } = {}) {
     reset.disabled = true; rmsg.textContent = 'Sending…';
     try { await sendPasswordEmail(email); rmsg.textContent = `Sent to ${email}. Check your inbox (and spam).`; }
     catch (e) { rmsg.textContent = `Couldn't send it: ${e.message}`; reset.disabled = false; }
+  };
+  const news = document.getElementById('as-news'), nmsg = document.getElementById('as-news-msg');
+  if (news) news.onchange = async () => {
+    const on = news.checked;
+    nmsg.textContent = 'Saving…';
+    try {
+      await updateDoc(doc(db, 'users', user.uid), on ? { 'emailPrefs.news': true, 'emailPrefs.newsAt': Date.now(), 'emailPrefs.newsHow': 'settings' } : { 'emailPrefs.news': false });
+      profile.emailPrefs = { ...(profile.emailPrefs || {}), news: on };
+      nmsg.textContent = on ? "On. Thanks!" : "Off.";
+    } catch (e) { news.checked = !on; nmsg.textContent = `Couldn't save: ${e.message}`; }
   };
   const weekly = document.getElementById('as-weekly'), wmsg = document.getElementById('as-weekly-msg');
   if (weekly) weekly.onchange = async () => {

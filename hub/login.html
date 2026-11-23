@@ -159,6 +159,11 @@
         <label class="age-label"><input type="checkbox" id="signup-age13"> <span>I'm 13 or over</span></label>
         <p class="form-hint">Under 13? Ask a parent or carer to sign up as a parent and create your account for you.</p>
       </div>
+      <!-- News and tips: adults only, unticked (consent) -->
+      <div class="form-group age-check" id="news-group">
+        <label class="age-label"><input type="checkbox" id="signup-news"> <span>Send me occasional news and revision tips</span></label>
+        <p class="form-hint">About once a month at most. Stop any time.</p>
+      </div>
       <div class="form-group age-check" id="terms-group">
         <label class="age-label"><input type="checkbox" id="signup-terms"> <span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of use</a></span></label>
         <p class="form-hint">How we look after your details: <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a>.</p>
@@ -313,6 +318,7 @@ const TERMS_VERSION = '2026-11-13';
     document.getElementById('school-group').style.display = type==='teacher' ? 'block' : 'none';
     document.getElementById('class-code-group').style.display = type==='student' ? 'block' : 'none';
     document.getElementById('age-group').style.display = type==='student' ? 'block' : 'none';
+    document.getElementById('news-group').style.display = type==='student' ? 'none' : 'block';
   };
 
   window._handleLogin = async function() {
@@ -358,6 +364,9 @@ const TERMS_VERSION = '2026-11-13';
     if (signupType === 'student' && !age13) { showError("Please confirm you're 13 or over. If you're under 13, a parent or carer needs to create your account."); return; }
     if (!document.getElementById('signup-terms').checked) { showError('Please read and agree to the Terms of use.'); return; }
     const terms = { version: TERMS_VERSION, at: Date.now() };   // agreed at sign-up
+    // News and tips: only if an adult ticked the box (with when, as a record of consent)
+    const newsPrefs = signupType !== 'student' && document.getElementById('signup-news')?.checked
+      ? { emailPrefs: { news: true, newsAt: Date.now(), newsHow: 'sign-up' } } : {};
 
     // Validate class code if provided
     let classInfo = null;
@@ -377,13 +386,13 @@ const TERMS_VERSION = '2026-11-13';
       if (signupType === 'parent') {
         await setDoc(doc(db, 'users', uid), {
           name, email, role: 'parent', theme: 'parent',
-          createdAt: Date.now(), children: {}, terms
+          createdAt: Date.now(), children: {}, terms, ...newsPrefs
         });
         await saveEmailIndex(uid, email, name, ['parent']);
       } else if (signupType === 'teacher') {
         await setDoc(doc(db, 'users', uid), {
           name, email, school, role: 'teacher', roles: ['teacher'], theme: 'parent',
-          createdAt: Date.now(), terms
+          createdAt: Date.now(), terms, ...newsPrefs
         });
         await saveEmailIndex(uid, email, name, ['teacher']);
       } else {
