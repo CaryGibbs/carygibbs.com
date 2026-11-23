@@ -65,7 +65,7 @@
 //   action 'newsSend'     admins: the news and tips email (mode count / test / send),
 //                       only to people who asked for it (emailPrefs.news); mode list
 //                       (who's on it), add (someone who agreed, with a note of how),
-//                       remove
+//                       remove, candidates / addMany (beta testers who agreed)
 //   GET/POST /email/unsubscribe  turns off a weekly summary, getting-started
 //                       emails or news (t=teacher / start / news)
 //                       (signed, so it can't be guessed). Used by mail apps'
@@ -2365,7 +2365,7 @@ async function newsAction(env, user, body) {
   const tok = await serviceToken(env);
   const me = await fsGet(tok, `users/${user.uid}`);
   if (!(user.uid === OWNER_UID || rolesOf(me).has('admin'))) throw oops(403, 'Admins only');
-  const mode = ['count', 'test', 'send', 'list', 'add', 'remove'].includes(body.mode) ? body.mode : 'count';
+  const mode = ['count', 'test', 'send', 'list', 'add', 'remove', 'candidates', 'addMany'].includes(body.mode) ? body.mode : 'count';
 
   // Add someone who has told you they want news and tips (their agreement is recorded)
   if (mode === 'add') {
@@ -2390,6 +2390,25 @@ async function newsAction(env, user, body) {
       updateMask: { fieldPaths: ['emailPrefs.news'] }, currentDocument: { exists: true } }]);
     await workerLog(tok, user.uid, me, 'email.news_remove', 'Taken off news and tips', { id: uid, name: acc.name || acc.email });
     return { ok: true };
+  }
+
+  // Beta testers who agreed to news when they joined: accounts that have never
+  // made a choice (not on the list, never unsubscribed), not students.
+  // 'candidates' lists them; 'addMany' adds the ones you picked, with a note.
+  if (mode === 'candidates' || mode === 'addMany') {
+    const all = await usersForWeekly(tok);
+    const open = all.filter(u => u.email && u.emailPrefs?.news === undefined && !(rolesOf(u).has('student') && rolesOf(u).size === 1));
+    if (mode === 'candidates') return { people: open.map(u => ({ uid: u.id, name: u.name || '', email: u.email, roles: [...rolesOf(u)] }))
+      .sort((a, b) => String(a.name).localeCompare(String(b.name))) };
+    const note = String(body.note || '').trim().slice(0, 200);
+    if (note.length < 3) throw oops(400, 'Say how they agreed');
+    const pick = new Set((Array.isArray(body.uids) ? body.uids : []).map(String));
+    const add = open.filter(u => pick.has(u.id));
+    if (!add.length) return { ok: true, added: 0 };
+    await fsCommit(tok, add.map(u => ({ update: { name: `${DOCS}/users/${u.id}`, fields: { emailPrefs: fsVal({ news: true, newsAt: Date.now(), newsHow: 'admin', newsNote: note, newsBy: me?.name || user.email || '' }) } },
+      updateMask: { fieldPaths: ['emailPrefs.news', 'emailPrefs.newsAt', 'emailPrefs.newsHow', 'emailPrefs.newsNote', 'emailPrefs.newsBy'] }, currentDocument: { exists: true } })));
+    await workerLog(tok, user.uid, me, 'email.news_add', `Added ${add.length} to news and tips: ${note.slice(0, 90)}`);
+    return { ok: true, added: add.length };
   }
 
   const users = mode === 'test' ? [] : await usersForWeekly(tok);

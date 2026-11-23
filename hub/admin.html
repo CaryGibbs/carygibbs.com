@@ -1078,6 +1078,15 @@
           <button class="btn btn-secondary" id="nw-add"><i data-icon="user-plus"></i> Add</button>
         </div>
         <p class="news-msg" id="nw-add-msg" role="status" style="margin:8px 0 4px;"></p>
+        <p style="margin:0 0 10px;"><button class="btn btn-ghost btn-sm" id="nw-beta"><i data-icon="users"></i> Add beta testers who agreed…</button></p>
+        <div id="nw-beta-box" hidden style="border:1px solid var(--color-border);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+          <p class="news-help" style="margin:0 0 8px;">Everyone with an account who has never chosen either way (not students, and not anyone who unsubscribed). Untick anyone who hasn't agreed.</p>
+          <div id="nw-beta-list"></div>
+          <div class="news-row2" style="grid-template-columns:1fr auto;align-items:end;margin-top:8px;">
+            <div class="form-group" style="margin:0;"><label for="nw-beta-note">How they agreed</label><input type="text" id="nw-beta-note" maxlength="200" value="Beta tester: agreed to news and tips when joining the beta"></div>
+            <button class="btn btn-primary" id="nw-beta-add">Add ticked people</button>
+          </div>
+        </div>
         <div id="nw-people"></div>
       </div>
       <div class="card" style="margin-top:16px;"><h3 style="margin-bottom:6px;">Sent</h3><div id="nw-sent"><p class="news-msg">Nothing sent yet.</p></div></div>
@@ -4272,7 +4281,30 @@ async function loadNewsPeople() {
     });
   } catch (e) { box.innerHTML = `<p class="news-msg">Couldn't load the list: ${esc(e.message)}</p>`; }
 }
+function wireNewsBeta() {
+  nwEl('nw-beta').onclick = async () => {
+    const box = nwEl('nw-beta-box'), list = nwEl('nw-beta-list');
+    box.hidden = !box.hidden; if (box.hidden) return;
+    list.innerHTML = '<p class="news-msg">Loading…</p>';
+    try {
+      const { people } = await workerAction('newsSend', { mode: 'candidates' });
+      list.innerHTML = people.length ? people.map(p => `<label style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:0.9rem;"><input type="checkbox" checked value="${esc(p.uid)}"> <span><strong>${esc(p.name || '(no name)')}</strong> <small style="color:var(--color-text-muted)">${esc(p.email)} · ${esc(p.roles.join(', '))}</small></span></label>`).join('')
+        : '<p class="news-msg">Nobody: everyone has already chosen.</p>';
+    } catch (e) { list.innerHTML = `<p class="news-msg">${esc(e.message)}</p>`; }
+  };
+  nwEl('nw-beta-add').onclick = async () => {
+    const uids = [...nwEl('nw-beta-list').querySelectorAll('input:checked')].map(i => i.value);
+    const note = nwEl('nw-beta-note').value.trim(), m = nwEl('nw-add-msg'), b = nwEl('nw-beta-add');
+    if (!uids.length) { m.textContent = 'Tick at least one person.'; return; }
+    if (!confirm(`Add ${uids.length} ${uids.length === 1 ? 'person' : 'people'} to the news and tips list?`)) return;
+    b.disabled = true; m.textContent = 'Adding…';
+    try { const r = await workerAction('newsSend', { mode: 'addMany', uids, note }); m.textContent = `Added ${r.added}.`; nwEl('nw-beta-box').hidden = true; loadNewsPeople(); }
+    catch (e) { m.textContent = e.message; }
+    finally { b.disabled = false; }
+  };
+}
 function wireNewsPeople() {
+  wireNewsBeta();
   nwEl('nw-who').onclick = () => {
     const c = nwEl('nw-list-card'); c.hidden = !c.hidden;
     if (!c.hidden) { loadNewsPeople(); c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
