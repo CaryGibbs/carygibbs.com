@@ -43,7 +43,8 @@
 //   action 'weeklyPreview'  admins: this week's parent summary for a parent
 //                       (yourself by default), sent to your own email now
 //   GET/POST /email/unsubscribe  turns off a parent's weekly summary
-//                       (link in the email; signed, so it can't be guessed)
+//                       (signed, so it can't be guessed). Used by mail apps'
+//                       one-click unsubscribe and by lobelimpet.com/unsubscribe.html
 //   action 'passwordEmail'  "Forgot your password?" (no sign-in): our own
 //                       email with a link to set-password.html; 10 a day from
 //                       one internet address, 3 a day per email address
@@ -1698,7 +1699,9 @@ async function weeklyEmail(env, parent, students, today) {
   const range = `${dayLabel(start, sameMonth ? { day: 'numeric' } : { day: 'numeric', month: 'long' })} to ${dayLabel(today, { day: 'numeric', month: 'long' })}`;
   const firsts = students.map(s => firstName(s.st.name) || 'your student');
   const who = listAnd(firsts);
-  const unsub = `${WORKER_URL}/email/unsubscribe?u=${encodeURIComponent(parent.id)}&k=${await unsubToken(env, parent.id)}`;
+  const q = `u=${encodeURIComponent(parent.id)}&k=${await unsubToken(env, parent.id)}`;
+  const unsub = `${site}/unsubscribe.html?${q}`;              // the link people click
+  const oneClick = `${WORKER_URL}/email/unsubscribe?${q}`;    // what mail apps call directly
   const hi = firstName(parent.name) ? `Hi ${escH(firstName(parent.name))}, here's` : `Here's`;
   const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your week in revision</title></head>
 <body style="margin:0;padding:0;background:#eef5f6;">
@@ -1729,7 +1732,7 @@ ${students.map(s => studentCard(s.st, s.w, today)).join('\n')}
   let subject = `${firsts.length > 3 ? 'Your students' : who}'s week on Lobe Limpet`.replace(/s's week/, "s' week");
   subject = subject[0].toUpperCase() + subject.slice(1);
   return { from: env.EMAIL_FROM || EMAIL_FROM_DEFAULT, to: [parent.email], reply_to: EMAIL_REPLY_TO, subject, html, text,
-    headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+    headers: { 'List-Unsubscribe': `<${oneClick}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
     tags: [{ name: 'kind', value: 'weekly' }] };
 }
 
@@ -1816,6 +1819,18 @@ async function unsubscribePage(request, env) {
 <p style="margin:0 0 18px;font-size:22px;font-weight:800;color:#123a4a;">lobe <span style="color:#e8603e;">limpet</span></p>
 <h1 style="font-size:22px;color:#123a4a;margin:0 0 12px;">${title}</h1>${body}</div></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   const ok = uid && k && env.FIREBASE_SERVICE_ACCOUNT && k === await unsubToken(env, uid);
+  // From the unsubscribe page on lobelimpet.com: answer in JSON
+  const origin = request.headers.get('Origin') || '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    const h = { 'Access-Control-Allow-Origin': origin, 'Vary': 'Origin', 'Content-Type': 'application/json' };
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...h, 'Access-Control-Allow-Methods': 'POST' } });
+    if (!ok) return new Response(JSON.stringify({ ok: false }), { headers: h });
+    if (request.method !== 'POST') return new Response(JSON.stringify({ ok: true }), { headers: h });
+    const tok = await serviceToken(env);
+    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: { emailPrefs: { mapValue: { fields: { weekly: { booleanValue: false } } } } } },
+      updateMask: { fieldPaths: ['emailPrefs.weekly'] }, currentDocument: { exists: true } }]);
+    return new Response(JSON.stringify({ ok: true, done: true }), { headers: h });
+  }
   if (!ok) return page('This link doesn\'t work', '<p style="line-height:1.55;">You can turn the weekly email off in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.</p>');
   if (request.method === 'POST') {
     const tok = await serviceToken(env);

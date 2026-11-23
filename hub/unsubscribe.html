@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="edge">
+<head>
+  <script src="dev-flag.js?v=20261120e"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <title>Weekly emails — Lobe Limpet</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120d">
+  <link rel="stylesheet" href="theme.css?v=20261120d">
+  <link rel="stylesheet" href="ui.css?v=20261120d">
+  <style>
+    body { min-height:100vh; background:var(--color-bg); }
+    .wrap { max-width:440px; margin:0 auto; padding:var(--space-xl) var(--space-lg); min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+    .logo { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:var(--space-lg); text-decoration:none; color:var(--color-text); }
+    .logo img { width:44px; height:44px; border-radius:12px; }
+    .logo span { font-family:var(--font-heading); font-size:2rem; font-weight:800; letter-spacing:-0.02em; }
+    .logo b { color:var(--color-primary); }
+    h1 { font-size:1.4rem; margin:0 0 10px; }
+    p { line-height:1.55; color:var(--color-text-muted); margin:0 0 var(--space-md); }
+    .btn-wide { width:100%; padding:14px; font-size:1rem; }
+    .foot { text-align:center; margin-top:var(--space-lg); font-size:0.85rem; }
+    .foot a { color:var(--color-text-muted); }
+    [hidden] { display:none !important; }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <a class="logo" href="./"><img src="assets/images/brand/icon-192.png" alt=""><span>lobe <b>limpet</b></span></a>
+  <div class="card">
+    <div id="v-ask">
+      <h1>Turn off the weekly email?</h1>
+      <p>You'll stop getting the Sunday summary of your students' revision. Account emails, like password links, still come when you ask for them.</p>
+      <button class="btn btn-primary btn-wide" id="off">Turn off weekly emails</button>
+      <p id="err" role="alert" style="margin:12px 0 0;color:var(--color-danger);"></p>
+    </div>
+    <div id="v-done" hidden>
+      <h1>Weekly emails turned off</h1>
+      <p>You won't get the Sunday summary any more. You can turn it back on any time in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.</p>
+      <a class="btn btn-secondary btn-wide" href="parent.html">Go to Lobe Limpet</a>
+    </div>
+    <div id="v-bad" hidden>
+      <h1>This link doesn't work</h1>
+      <p>You can turn the weekly email off in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.</p>
+      <a class="btn btn-secondary btn-wide" href="login.html">Sign in</a>
+    </div>
+  </div>
+  <p class="foot"><a href="help.html">Help</a> · <a href="contact.html">Contact us</a></p>
+</main>
+<script>
+  (function () {
+    var WORKER = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev/email/unsubscribe';
+    var q = new URLSearchParams(location.search);
+    var u = q.get('u') || '', k = q.get('k') || '';
+    var show = function (id) { ['v-ask', 'v-done', 'v-bad'].forEach(function (v) { document.getElementById(v).hidden = v !== id; }); };
+    var url = WORKER + '?u=' + encodeURIComponent(u) + '&k=' + encodeURIComponent(k);
+    if (!u || !k) { show('v-bad'); return; }
+    // Check the link first, so a broken one says so straight away
+    fetch(url).then(function (r) { return r.json(); }).then(function (d) { if (!d.ok) show('v-bad'); }).catch(function () {});
+    document.getElementById('off').onclick = function () {
+      var b = this, err = document.getElementById('err');
+      b.disabled = true; b.textContent = 'Turning off…'; err.textContent = '';
+      fetch(url, { method: 'POST' }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d.done) show('v-done');
+        else if (!d.ok) show('v-bad');
+        else throw new Error();
+      }).catch(function () {
+        b.disabled = false; b.textContent = 'Turn off weekly emails';
+        err.textContent = "That didn't work. Please try again, or turn it off in Account settings.";
+      });
+    };
+  })();
+</script>
+</body>
+</html>
