@@ -4479,8 +4479,11 @@ function renderAllStudents() {
    Other families' students: their email and progress are hidden from
    admins until the admin gives a reason (logged as admin.unlock_student,
    with the reason). Your own students (you're their parent) stay open.
-   Search by email still works, for support. Lasts until the page reloads. */
-const unlockedStudents = new Set();
+   Search by email still works, for support. Lasts until this browser tab
+   is closed (sessionStorage), so going to View as and back doesn't ask again. */
+const UNLOCK_KEY = 'll_unlocked_students';
+const unlockedStudents = new Set((() => { try { return JSON.parse(sessionStorage.getItem(UNLOCK_KEY) || '[]'); } catch (e) { return []; } })());
+const saveUnlocked = () => { try { sessionStorage.setItem(UNLOCK_KEY, JSON.stringify([...unlockedStudents])); } catch (e) {} };
 function isPrivateStudent(u) {
   if (!u || unlockedStudents.has(u.id)) return false;
   const r = rolesOf(u);
@@ -4511,7 +4514,7 @@ function unlockStudent(u, what) {
     document.getElementById('ul-ok').onclick = () => {
       const why = document.getElementById('ul-why').value, note = document.getElementById('ul-note').value.trim();
       if (!why || (why === 'Other' && !note)) { document.getElementById('ul-why').focus(); return; }
-      unlockedStudents.add(u.id);
+      unlockedStudents.add(u.id); saveUnlocked();
       logEvent('admin.unlock_student', { target: u.name || '', targetId: u.id, detail: `${what}: ${why}${note ? ` (${note})` : ''}`.slice(0, 160) });
       done(true);
       if (document.getElementById('as-list')) try { renderAllStudents?.(); } catch (e) {}
