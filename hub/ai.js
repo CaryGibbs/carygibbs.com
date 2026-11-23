@@ -74,8 +74,8 @@ export async function askClaude(task, prompt, maxTokens = 1500, { model, noFallb
   });
   try { return await send(chosen); }
   catch (e) {
-    // Not allowed, not signed in or too big: another model won't help
-    if (chosen === FALLBACK_MODEL || noFallback || [401, 402, 403, 413].includes(e.status)) throw e;
+    // Not allowed, not signed in, too big or AI paused (out of credit): another model won't help
+    if (chosen === FALLBACK_MODEL || noFallback || [401, 402, 403, 413].includes(e.status) || e.code === 'ai_paused') throw e;
     console.warn(`Model ${chosen} failed (${e.message}); retrying with ${FALLBACK_MODEL}`);
     return send(FALLBACK_MODEL);
   }

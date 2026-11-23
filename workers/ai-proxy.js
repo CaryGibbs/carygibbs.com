@@ -73,6 +73,9 @@
 // allowances in settings/aiLimits (free, plus, freeMonth, plusMonth; personal
 // users.aiLimit / users.aiLimitMonth; admins unlimited).
 // Only the models below can be used, and each task has a size limit.
+// If Anthropic refuses (out of credit, key wrong): people see "AI tools are paused",
+// and admin@lobelimpet.com gets one email a day plus an "AI paused" activity log entry.
+// Overloaded or rate-limited: "The AI is very busy right now".
 //
 // Settings (Cloudflare → Workers → this Worker → Settings → Variables):
 //   ANTHROPIC_API_KEY   secret: the Anthropic API key
@@ -404,6 +407,20 @@ export default {
       body: JSON.stringify({ model, max_tokens: maxTokens, messages }),
     });
     const text = await upstream.text();
+    // Anthropic said no: show plain words, never Anthropic's own message
+    // (credit, key or "API access turned off" → paused, and tell the admins once a day;
+    // overloaded or rate-limited → busy, try again shortly)
+    if (!upstream.ok) {
+      const problem = aiProblem(upstream.status, text);
+      if (problem) {
+        if (problem.kind === 'paused') ctx.waitUntil(aiPausedAlert(env, svc, day, upstream.status, problem.detail, origin).catch(e => console.warn('AI paused alert not sent:', e.message)));
+        const message = problem.kind === 'paused'
+          ? "Lobe Limpet's AI tools are paused for a moment. Please try again later. We've been told and are sorting it."
+          : 'The AI is very busy right now. Please wait a minute and try again.';
+        return reply(503, { error: { code: problem.kind === 'paused' ? 'ai_paused' : 'ai_busy',
+          message: isAdmin ? `${message} (Anthropic ${upstream.status}: ${problem.detail})` : message } });
+      }
+    }
     // Count what was used (after replying, so it doesn't slow anything down)
     if (svc && upstream.ok) {
       try {
@@ -1383,6 +1400,55 @@ async function notePlusUse(tok, user, who, day) {
     detail: { stringValue: 'Created with AI' },
     expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
   } }, currentDocument: { exists: false } }]);
+}
+
+/* ── When Anthropic refuses: which kind of problem is it? ──
+   paused: out of credit, API access turned off, or the key is wrong
+           (only fixed in the Claude Console, so the admins are told)
+   busy:   overloaded or too many requests at once (goes away by itself)
+   null:   anything else (e.g. a prompt it didn't like): passed on as before */
+function aiProblem(status, text) {
+  let err = {};
+  try { err = JSON.parse(text).error || {}; } catch (e) { /* not JSON */ }
+  const detail = String(err.message || text || '').replace(/\s+/g, ' ').slice(0, 200);
+  const type = String(err.type || '');
+  if (status === 401 || status === 402 || status === 403 || type === 'authentication_error' || type === 'permission_error' || type === 'billing_error'
+      || /credit balance|billing|purchase credits|api access|usage credits/i.test(detail)) return { kind: 'paused', detail };
+  if (status === 429 || status === 529 || status >= 500 || type === 'overloaded_error' || type === 'rate_limit_error' || type === 'api_error') return { kind: 'busy', detail };
+  return null;
+}
+
+/* ── AI paused: one activity log entry and one email to the admins a day
+   (fixed id aipaused_{day}, so only the first refusal of the day sends) ── */
+const ALERT_TO = 'admin@lobelimpet.com';
+async function aiPausedAlert(env, svc, day, status, detail, origin) {
+  if (!env.FIREBASE_SERVICE_ACCOUNT) return;
+  const tok = svc || await serviceToken(env);
+  const now = new Date();
+  try {
+    await fsCommit(tok, [{ update: { name: `${DOCS}/logs/aipaused_${day}`, fields: {
+      ts: { integerValue: String(now.getTime()) }, at: tsv(now),
+      uid: { stringValue: '' }, name: { stringValue: 'Lobe Limpet' }, role: { stringValue: 'system' },
+      action: { stringValue: 'admin.ai_paused' }, cat: { stringValue: 'admin' },
+      target: { stringValue: 'Anthropic API' }, targetId: { stringValue: '' },
+      detail: { stringValue: `${status}: ${detail}`.slice(0, 160) },
+      expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
+    } }, currentDocument: { exists: false } }]);
+  } catch (e) { return; }   // already logged today (or the log couldn't be saved): no email
+  if (!env.RESEND_API_KEY) return;
+  const where = LIVE_ORIGINS.includes(origin) ? 'lobelimpet.com' : (origin || 'the app').replace(/^https:\/\//, '');
+  const parts = {
+    heading: "Lobe Limpet's AI is paused",
+    paras: [
+      `Anthropic refused an AI request from ${escH(where)} at ${now.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' })}. Until it's fixed, Create with AI, AI marking and learning notes won't work for anyone.`,
+      `<strong>What Anthropic said (${status}):</strong> ${escH(detail)}`,
+      'Usually this means the Claude Console balance has run out. Top it up (and turn on auto-reload) in the Console under Settings → Billing. If it says the key is wrong, check ANTHROPIC_API_KEY on the Worker.',
+    ],
+    button: { label: 'Open the Claude Console', url: 'https://console.anthropic.com/settings/billing' },
+    after: ["People using the app see: \"Lobe Limpet's AI tools are paused for a moment. Please try again later.\" It works again as soon as Anthropic accepts requests; nothing needs changing in the app."],
+    footer: "You'll get at most one of these a day. It's also in Admin → Activity log (\"AI paused\").",
+  };
+  await resendSend(env, { to: ALERT_TO, subject: "⚠️ Lobe Limpet's AI is paused", html: emailHtml(parts), text: emailText(parts), kind: 'alert' });
 }
 
 /* ============================================================

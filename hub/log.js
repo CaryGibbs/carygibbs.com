@@ -37,6 +37,7 @@ export const ACTIONS = {
   'admin.forget_progress': { label: "Removed a subject from a student's progress", cat: 'admin' },
   'admin.settings':      { label: 'Changed settings',        cat: 'admin' },
   'admin.support':       { label: 'Handled a support message', cat: 'admin' },
+  'admin.ai_paused':     { label: 'AI paused (Anthropic refused)', cat: 'admin' },
   'content.pack':        { label: 'Revision pack',           cat: 'content' },
   'content.subject':     { label: 'Subject',                 cat: 'content' },
   'content.topic':       { label: 'Topic',                   cat: 'content' },
