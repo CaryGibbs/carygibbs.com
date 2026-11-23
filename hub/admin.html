@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261120e"></script>
+  <script src="dev-flag.js?v=20261123g"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261120d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261123g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261123g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261123g">
+  <link rel="manifest" href="manifest.webmanifest?v=20261123g">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261120d">
-  <script src="icons.js?v=20261120d"></script>
+  <link rel="stylesheet" href="theme.css?v=20261123g">
+  <script src="icons.js?v=20261123g"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -662,9 +662,22 @@
     .log-f:first-child { flex-basis: 100%; }
   }
   .trial-note { display: block; margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(255,122,89,0.10); color: var(--color-text); font-size: 0.88rem; }
+  /* News email panel */
+  .news-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .news-grid textarea { width: 100%; min-height: 420px; font-family: var(--font-ui, Inter, sans-serif); font-size: 0.9rem; line-height: 1.5; }
+  .news-row2 { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; }
+  .news-help { font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.5; margin: -4px 0 12px; }
+  .news-help code { font-size: 0.78rem; }
+  .news-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-top: 12px; border-top: 1px solid var(--color-border); }
+  .news-msg { font-size: 0.86rem; color: var(--color-text-muted); }
+  .news-frame { width: 100%; height: 760px; border: 1px solid var(--color-border); border-radius: 12px; background: #eef5f6; }
+  .news-sent-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 0.9rem; }
+  .news-sent-row:last-child { border-bottom: 0; }
+  .news-sent-row small { color: var(--color-text-muted); }
+  @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261120d">
-  <link rel="stylesheet" href="stats.css?v=20261120d">
+  <link rel="stylesheet" href="ui.css?v=20261123g">
+  <link rel="stylesheet" href="stats.css?v=20261123g">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1024,6 +1037,39 @@
         <label class="log-f">Search<input type="search" id="sp-search" placeholder="Name, email, account no., words"></label>
       </div>
       <div id="sp-list"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>
+    </div>
+
+    <!-- ── NEWS EMAIL PANEL (news and tips list) ───────────── -->
+    <div class="panel" id="panel-news">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">News email</div>
+          <div class="panel-subtitle">Occasional news and revision tips. It only goes to people who ticked "Send me occasional news and revision tips" (at sign-up or in Account settings), never to student-only accounts, and each email has an unsubscribe link. Send yourself a test first.</div>
+        </div>
+      </div>
+      <div class="news-grid">
+        <div class="card">
+          <div class="form-group"><label for="nw-subject">Subject line</label><input type="text" id="nw-subject" maxlength="140"></div>
+          <div class="form-group"><label for="nw-heading">Heading in the email</label><input type="text" id="nw-heading" maxlength="140"></div>
+          <div class="form-group"><label for="nw-text">The words</label><textarea id="nw-text" maxlength="8000"></textarea></div>
+          <p class="news-help">A blank line starts a new paragraph. <code>## </code> at the start of a line makes a heading, <code>- </code> a bullet. <code>**words**</code> for bold, <code>[words](https://…)</code> for a link, <code>{name}</code> for their first name. A line with just <code>[button]</code> puts the button there (otherwise it goes at the end).</p>
+          <div class="news-row2">
+            <div class="form-group"><label for="nw-blabel">Button words</label><input type="text" id="nw-blabel" maxlength="40" placeholder="Leave empty for no button"></div>
+            <div class="form-group"><label for="nw-burl">Button link</label><input type="url" id="nw-burl" placeholder="https://lobelimpet.com/…"></div>
+          </div>
+          <div class="news-actions">
+            <button class="btn btn-secondary" id="nw-test"><i data-icon="mail"></i> Send me a test</button>
+            <button class="btn btn-primary" id="nw-send"><i data-icon="send"></i> Send to the list</button>
+            <button class="btn btn-ghost btn-sm" id="nw-reset">Start a new one</button>
+            <span class="news-msg" id="nw-msg" role="status"></span>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong>Preview</strong><span class="news-msg" id="nw-count"></span></div>
+          <iframe class="news-frame" id="nw-frame" title="Email preview"></iframe>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;"><h3 style="margin-bottom:6px;">Sent</h3><div id="nw-sent"><p class="news-msg">Nothing sent yet.</p></div></div>
     </div>
 
     <!-- ── ACTIVITY LOG PANEL ─────────────────────────────── -->
@@ -1579,37 +1625,37 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261120d';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261120d';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261120d';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261120d';
-import { syncFamilyPlus } from './family-plus.js?v=20261120d';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261120d';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261120d';
-import { openDeleteAccount } from './account.js?v=20261120d';
-import { openPasswordHelp } from './password-help.js?v=20261123a';
-import { addDocumentButton } from './doc-text.js?v=20261120d';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261120d';
-import { showPlusUpsell } from './plus.js?v=20261120d';
-import { offerGivePack } from './first-steps.js?v=20261120d';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261120d';
+import { auth, db, storage } from './firebase-config.js?v=20261123g';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261123g';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261123g';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261123g';
+import { syncFamilyPlus } from './family-plus.js?v=20261123g';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261123g';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261123g';
+import { openDeleteAccount } from './account.js?v=20261123g';
+import { openPasswordHelp } from './password-help.js?v=20261123g';
+import { addDocumentButton } from './doc-text.js?v=20261123g';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261123g';
+import { showPlusUpsell } from './plus.js?v=20261123g';
+import { offerGivePack } from './first-steps.js?v=20261123g';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261123g';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261120d';
-import { mountShell } from './shell.js?v=20261120d';
-import { openInviteDialog, signupLink } from './invite.js?v=20261120d';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261120d';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261120d';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261120d';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261120d';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261120d';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261120d';
-import { dueEntries } from './srs.js?v=20261120d';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261120d';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261120d';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261123g';
+import { mountShell } from './shell.js?v=20261123g';
+import { openInviteDialog, signupLink } from './invite.js?v=20261123g';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261123g';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261123g';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261123g';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261123g';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261123g';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261123g';
+import { dueEntries } from './srs.js?v=20261123g';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261123g';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261123g';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1625,9 +1671,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261123e';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261120d';
-import { inOrder } from './order.js?v=20261120d';
+import { saveEmailIndex } from './email-index.js?v=20261123g';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261123g';
+import { inOrder } from './order.js?v=20261123g';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1701,7 +1747,7 @@ else requireRole('admin', (user, profile) => {
   currentAdminName = profile.name || profile.email || '';
   iAmAdmin = true;
   // Open the panel named in the address (e.g. admin.html#users from the parent page)
-  const start = ['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'support', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  const start = ['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'support', 'news', 'settings', 'logs'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
   adminFirstName = (profile.name || '').split(' ')[0];
   adminProfileName = profile.name || '';
   mountShell(user, profile, { view: 'admin', active: start });
@@ -1710,7 +1756,7 @@ else requireRole('admin', (user, profile) => {
   // Address changes (e.g. the sidebar's "View as another student") switch panels too
   window.addEventListener('hashchange', () => {
     const p = location.hash.slice(1);
-    if (['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'support', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
+    if (['home', 'groups', 'library', 'sharedcards', 'users', 'students', 'support', 'news', 'settings', 'logs'].includes(p) && p !== currentPanel) showPanel(p);
   });
 });
 
@@ -2304,6 +2350,7 @@ function showPanel(name) {
   if (name === 'library')  { document.getElementById('preview-actions').style.display = 'none'; loadLibraryAdmin(); }
   if (name === 'sharedcards') { document.getElementById('preview-actions').style.display = 'none'; loadSharedCardsAdmin(); }
   if (name === 'support') { document.getElementById('preview-actions').style.display = 'none'; loadSupport(); }
+  if (name === 'news') { document.getElementById('preview-actions').style.display = 'none'; loadNews(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
   if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); renderPaySettings(); }
@@ -2319,6 +2366,7 @@ function updateBreadcrumb() {
   if (currentPanel === 'sharedcards') { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Shared flashcards</span>`; return; }
   if (currentPanel === 'library')  { bc.innerHTML = `<span>Content</span>${sep}<span class="breadcrumb-current">Community library</span>`; return; }
   if (currentPanel === 'support')  { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">Support</span>`; return; }
+  if (currentPanel === 'news')     { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">News email</span>`; return; }
   if (currentPanel === 'students') { bc.innerHTML = `<span>People</span>${sep}<span class="breadcrumb-current">All students</span>`; return; }
   if (currentPanel === 'logs')     { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Activity log</span>`; return; }
   if (currentPanel === 'settings') { bc.innerHTML = `<span>Settings</span>${sep}<span class="breadcrumb-current">Settings</span>`; return; }
@@ -4131,6 +4179,112 @@ async function setSharedCardsOff(id, off) {
 let supportItems = [];
 const spPackNames = {};
 const spMs = x => x?.toMillis ? x.toMillis() : (x || 0);
+/* ── News email (Admin → News email) ─────────────────────────
+   Written here, sent by the AI Worker (action newsSend) only to people
+   who asked for news and tips. The draft is kept in newsDrafts/current
+   (admins only) so it's the same on every device. */
+const NEWS_FIRST = {
+  subject: "What's new on Lobe Limpet, and a tip for mock season",
+  heading: 'News and tips from Lobe Limpet',
+  text: "Hi {name},\n\nThanks for signing up for news and tips from Lobe Limpet. This is our first one. We'll keep them short, and only send one when there's something worth saying.\n\n## New on Lobe Limpet\n- **A Sunday summary for parents.** Every Sunday at 6pm, a short email on how your students' week went: time spent, quiz scores, and the topics worth another look.\n- **A Sunday summary for teachers.** A round-up of each class: who's revising, who's gone quiet, and the topics the class found hardest.\n- **Reminders on their phone.** A nudge at 4:30pm when reviews are waiting, and at 7pm if a streak is at risk. For under-16s, you turn these on from the Manage box on your Home page.\n- **Students can sign up themselves.** From 13, students can start on their own. Under-16s invite a parent or carer in their first week, so you stay in the picture.\n\n## Tip of the month: little and often before the mocks\nMany Year 11 and Year 13 students have mock exams between now and February. Ten minutes a day from now will do more than a long session over the Christmas holidays, because coming back to a topic as it starts to fade is what makes it stick.\n\nA simple routine that works: the daily review first, then one short quiz on a topic that feels shaky.\n\nIf you'd like to help without nagging, ask them to explain one topic to you this week. You don't need to know the answer, and teaching something is one of the best ways to remember it. We've put more ideas like this in our new [guide to helping your child revise](https://lobelimpet.com/help-your-child-revise.html).\n\n## Tell us what you think\nLobe Limpet is shaped by the families and teachers who use it. If something isn't working, or there's a feature you'd love, just reply to this email. We read every message.\n\n[button]\n\nThe Lobe Limpet team",
+  button: { label: 'Open Lobe Limpet', url: 'https://lobelimpet.com/login.html' },
+};
+let newsReady = false, newsSaveT = null;
+const nwEl = id => document.getElementById(id);
+function newsFromForm() {
+  return { subject: nwEl('nw-subject').value.trim(), heading: nwEl('nw-heading').value.trim(), text: nwEl('nw-text').value,
+    button: nwEl('nw-burl').value.trim() ? { label: nwEl('nw-blabel').value.trim() || 'Open Lobe Limpet', url: nwEl('nw-burl').value.trim() } : null };
+}
+function newsToForm(n) {
+  nwEl('nw-subject').value = n.subject || ''; nwEl('nw-heading').value = n.heading || ''; nwEl('nw-text').value = n.text || '';
+  nwEl('nw-blabel').value = n.button?.label || ''; nwEl('nw-burl').value = n.button?.url || '';
+}
+// The same layout the Worker sends (a close match, for checking as you write)
+function newsPreviewHtml(n, name) {
+  const inl = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, '<a href="$2" style="color:#e8603e;font-weight:600;" target="_blank">$1</a>');
+  const paras = txt => { const out = []; let para = []; const flush = () => { if (para.length) out.push(para.map(inl).join('<br>')); para = []; };
+    String(txt || '').split('\n').forEach(raw => { const l = raw.trim();
+      if (!l) return flush();
+      if (/^##\s+/.test(l)) { flush(); out.push(`<strong style="display:block;font-size:18px;line-height:1.35;color:#123a4a;margin-top:6px;">${inl(l.replace(/^##\s+/, ''))}</strong>`); return; }
+      if (/^[-•]\s+/.test(l)) { flush(); out.push(`<span style="color:#e8603e;font-weight:800;">•</span>&nbsp; ${inl(l.replace(/^[-•]\s+/, ''))}`); return; }
+      para.push(l); });
+    flush(); return out.map(x => x.replace(/\{name\}/g, esc(name)).replace(/^/, '<p style="margin:0 0 16px;font-size:16px;line-height:1.55;color:#1f3440;">') + '</p>'); };
+  const [before, after = ''] = String(n.text || '').split(/^\s*\[button\]\s*$/m);
+  const btn = n.button?.url ? `<table cellpadding="0" cellspacing="0" style="margin:8px 0 20px;"><tr><td style="background:#123a4a;border-radius:10px;"><span style="display:inline-block;padding:14px 26px;font-size:16px;font-weight:700;color:#fff;">${esc(n.button.label || 'Open Lobe Limpet')}</span></td></tr></table>` : '';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#eef5f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+<div style="padding:16px 10px;"><div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;">
+<div style="padding:24px 24px 8px;font-size:22px;font-weight:800;color:#123a4a;">lobe <span style="color:#e8603e;">limpet</span></div>
+<div style="padding:8px 24px 4px;"><p style="margin:0 0 6px;font-size:12px;color:#5d7c89;">Subject: <strong>${esc((n.subject || '').replace(/\{name\}/g, name))}</strong></p>
+<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:#123a4a;">${esc(n.heading || n.subject || '')}</h1>${paras(before).join('')}${btn}${paras(after).join('')}</div>
+<div style="padding:8px 24px 22px;border-top:1px solid #e3ecee;"><p style="margin:14px 0 0;font-size:13px;line-height:1.5;color:#5d7c89;">You're getting this because you asked for occasional news and revision tips from Lobe Limpet. <u>Unsubscribe</u>, or change it any time in Account settings.</p></div>
+</div></div></body></html>`;
+}
+function renderNewsPreview() {
+  const first = String(adminProfileName || '').trim().split(/\s+/)[0] || 'there';
+  nwEl('nw-frame').srcdoc = newsPreviewHtml(newsFromForm(), first);
+}
+function newsChanged() {
+  renderNewsPreview();
+  clearTimeout(newsSaveT);
+  newsSaveT = setTimeout(() => setDoc(doc(db, 'newsDrafts', 'current'), { ...newsFromForm(), savedAt: Date.now() })
+    .then(() => { nwEl('nw-msg').textContent = 'Draft saved.'; })
+    .catch(e => { nwEl('nw-msg').textContent = `Draft not saved: ${e.message}`; }), 1200);
+}
+async function loadNewsSent() {
+  const box = nwEl('nw-sent');
+  try {
+    const snap = await getDocs(query(collection(db, 'newsIssues'), orderBy('sentAt', 'desc'), limit(30)));
+    if (snap.empty) { box.innerHTML = '<p class="news-msg">Nothing sent yet.</p>'; return; }
+    box.innerHTML = snap.docs.map(d => { const x = d.data();
+      return `<div class="news-sent-row"><div><strong>${esc(x.subject || '')}</strong><br><small>Sent ${new Date(x.sentAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}${x.by ? ` by ${esc(x.by)}` : ''}</small></div><div style="text-align:right;white-space:nowrap;">${x.sent || 0} ${x.sent === 1 ? 'person' : 'people'}<br><button class="btn btn-ghost btn-sm" data-reuse="${esc(d.id)}">Copy into editor</button></div></div>`; }).join('');
+    box.querySelectorAll('[data-reuse]').forEach(b => b.onclick = () => {
+      const x = snap.docs.find(d => d.id === b.dataset.reuse)?.data(); if (!x) return;
+      if (!confirm('Replace what\'s in the editor with this email?')) return;
+      newsToForm(x); newsChanged(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  } catch (e) { box.innerHTML = `<p class="news-msg">Couldn't load sent emails: ${esc(e.message)}. If it says "permission", publish the new database rules.</p>`; }
+}
+async function loadNews() {
+  if (!newsReady) {
+    newsReady = true;
+    let draft = null;
+    try { const d = await getDoc(doc(db, 'newsDrafts', 'current')); if (d.exists()) draft = d.data(); } catch (e) { console.warn('News draft not loaded', e.message); }
+    newsToForm(draft || NEWS_FIRST);
+    ['nw-subject', 'nw-heading', 'nw-text', 'nw-blabel', 'nw-burl'].forEach(id => nwEl(id).addEventListener('input', newsChanged));
+    nwEl('nw-reset').onclick = () => {
+      if (!confirm('Clear the editor and start a new email? (Sent emails are kept below.)')) return;
+      newsToForm({ subject: '', heading: '', text: 'Hi {name},\n\n\n\n[button]\n\nThe Lobe Limpet team', button: { label: 'Open Lobe Limpet', url: 'https://lobelimpet.com/login.html' } });
+      newsChanged();
+    };
+    nwEl('nw-test').onclick = async () => {
+      const b = nwEl('nw-test'), m = nwEl('nw-msg');
+      b.disabled = true; m.textContent = 'Sending a test…';
+      try { const r = await workerAction('newsSend', { mode: 'test', ...newsFromForm() }); m.textContent = `Test sent to ${r.to}.`; }
+      catch (e) { m.textContent = e.message; }
+      finally { b.disabled = false; }
+    };
+    nwEl('nw-send').onclick = async () => {
+      const b = nwEl('nw-send'), m = nwEl('nw-msg'), n = newsFromForm();
+      if (n.subject.length < 3 || !n.text.trim()) { m.textContent = 'Add a subject line and the words first.'; return; }
+      b.disabled = true; m.textContent = 'Counting…';
+      try {
+        const { count } = await workerAction('newsSend', { mode: 'count' });
+        if (!count) { m.textContent = 'Nobody has asked for news and tips yet, so there\'s no one to send it to.'; return; }
+        if (!confirm(`Send "${n.subject}" to ${count} ${count === 1 ? 'person' : 'people'} now?\n\nThis can't be undone. Anyone who already got this email won't get it twice.`)) { m.textContent = ''; return; }
+        const issueId = (n.subject.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'news') + '-' + new Date().toISOString().slice(0, 10);
+        m.textContent = 'Sending…';
+        const r = await workerAction('newsSend', { mode: 'send', issueId, ...n });
+        m.textContent = `Sent to ${r.sent} ${r.sent === 1 ? 'person' : 'people'}${r.already ? ` (${r.already} already had it)` : ''}${r.failed ? `. ${r.failed} didn't go: try Send again later.` : '.'}`;
+        loadNewsSent();
+      } catch (e) { m.textContent = e.message; }
+      finally { b.disabled = false; }
+    };
+  }
+  renderNewsPreview();
+  workerAction('newsSend', { mode: 'count' }).then(r => { nwEl('nw-count').textContent = `On the list: ${r.count} ${r.count === 1 ? 'person' : 'people'}`; }).catch(() => {});
+  loadNewsSent();
+}
+
 async function loadSupport() {
   const box = document.getElementById('sp-list');
   box.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div>`;
@@ -5395,6 +5549,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261120d"></script>
+<script src="site.js?v=20261123g"></script>
 </body>
 </html>

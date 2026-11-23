@@ -8,12 +8,12 @@
 // On phones the sidebar becomes a slide-out menu.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261120d';
-import { handleSignOut, openViewAs, viewsOf, rememberView, isPlusTier, hasFamilyPlus } from './auth.js?v=20261120d';
-import { themeColour } from './themes.js?v=20261120d';
+import { db } from './firebase-config.js?v=20261123g';
+import { handleSignOut, openViewAs, viewsOf, rememberView, isPlusTier, hasFamilyPlus } from './auth.js?v=20261123g';
+import { themeColour } from './themes.js?v=20261123g';
 import { collection, getDocs, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { openAccountSettings } from './account-settings.js?v=20261123d';
-import { plusPillHtml } from './plus.js?v=20261120d';
+import { openAccountSettings } from './account-settings.js?v=20261123g';
+import { plusPillHtml } from './plus.js?v=20261123g';
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const onAdminPage = () => /admin\.html$/.test(location.pathname) && !new URLSearchParams(location.search).get('mine');
@@ -95,6 +95,7 @@ export function mountShell(user, profile, { view, active } = {}) {
       ${adminLink('users', 'user', 'Users & roles')}
       ${adminLink('students', 'graduation-cap', 'All students')}
       ${adminLink('support', 'inbox', 'Support<span class="nav-count" id="nav-support-count" hidden></span>')}
+      ${adminLink('news', 'send', 'News email')}
       <div class="nav-section-label">Settings</div>
       ${adminLink('settings', 'settings', 'Settings')}
       ${adminLink('logs', 'clipboard-list', 'Activity log')}`,

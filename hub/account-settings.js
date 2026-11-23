@@ -5,14 +5,14 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261120d';
+import { auth, db } from './firebase-config.js?v=20261123g';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { workerAction } from './ai.js?v=20261120d';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261120d';
-import { openDeleteAccount } from './account.js?v=20261120d';
-import { formatAccountNo } from './account-no.js?v=20261120d';
-import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261120d';
-import { sendPasswordEmail } from './mail.js?v=20261123a';
+import { workerAction } from './ai.js?v=20261123g';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261123g';
+import { openDeleteAccount } from './account.js?v=20261123g';
+import { formatAccountNo } from './account-no.js?v=20261123g';
+import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261123g';
+import { sendPasswordEmail } from './mail.js?v=20261123g';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ROLE = { admin: 'Admin', teacher: 'Teacher', parent: 'Parent', student: 'Student' };
@@ -28,7 +28,9 @@ export function openAccountSettings({ user, profile = {} } = {}) {
   const roles = viewsOf(profile).map(v => ROLE[v] || v).join(', ') || 'Account';
   const email = profile.email || user.email || '';
   const isParent = viewsOf(profile).includes('parent');
+  const isTeacher = viewsOf(profile).includes('teacher');
   const weeklyOn = profile.emailPrefs?.weekly !== false;
+  const classOn = profile.emailPrefs?.teacherWeekly !== false;
   const plus = hasPlus(profile);
   const trial = aiTrialLeft(profile);
   const plan = plus
@@ -78,9 +80,15 @@ export function openAccountSettings({ user, profile = {} } = {}) {
           ${isParent ? `<label class="as-check" style="margin-top:10px;"><input type="checkbox" id="as-weekly" ${weeklyOn ? 'checked' : ''}>
             <span>Weekly summary of your students' revision<small>Sundays at 6pm: time spent, quiz scores, topics to revisit.</small></span></label>
           <span class="as-msg" id="as-weekly-msg" role="status"></span>` : ''}
+          ${isTeacher ? `<label class="as-check" style="margin-top:10px;"><input type="checkbox" id="as-class" ${classOn ? 'checked' : ''}>
+            <span>Weekly summary of your classes<small>Sundays at 6pm: who's revising, who's gone quiet, topics the class found hardest.</small></span></label>
+          <span class="as-msg" id="as-class-msg" role="status"></span>` : ''}
           ${isAdmin ? `<p class="as-hint" style="margin-top:10px;">Admin: send yourself this week's summary for your own students, as it would look on Sunday.</p>
           <button class="btn btn-secondary" id="as-weekly-preview">Email me a preview</button>
           <span class="as-msg" id="as-preview-msg" role="status"></span>
+          <p class="as-hint" style="margin-top:10px;">The teachers' Sunday class summary, for your own classes.</p>
+          <button class="btn btn-secondary" id="as-class-preview">Email me a class summary preview</button>
+          <span class="as-msg" id="as-class-prev-msg" role="status"></span>
           <p class="as-hint" style="margin-top:10px;">The two getting-started emails new parents get if they haven't added a student (days 2 and 7).</p>
           <button class="btn btn-secondary" id="as-start-preview">Email me the getting-started emails</button>
           <span class="as-msg" id="as-start-msg" role="status"></span>` : ''}
@@ -148,6 +156,23 @@ export function openAccountSettings({ user, profile = {} } = {}) {
     try { const r = await workerAction('weeklyPreview'); pmsg.textContent = `Sent to ${r.to}.`; }
     catch (e) { pmsg.textContent = e.message; }
     finally { prev.disabled = false; }
+  };
+  const cls = document.getElementById('as-class'), cmsg = document.getElementById('as-class-msg');
+  if (cls) cls.onchange = async () => {
+    const on = cls.checked;
+    cmsg.textContent = 'Saving…';
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { 'emailPrefs.teacherWeekly': on });
+      profile.emailPrefs = { ...(profile.emailPrefs || {}), teacherWeekly: on };
+      cmsg.textContent = on ? "On. You'll get it on Sunday evenings." : "Off. You won't get the class summary.";
+    } catch (e) { cls.checked = !on; cmsg.textContent = `Couldn't save: ${e.message}`; }
+  };
+  const cprev = document.getElementById('as-class-preview'), cpmsg = document.getElementById('as-class-prev-msg');
+  if (cprev) cprev.onclick = async () => {
+    cprev.disabled = true; cpmsg.textContent = 'Sending…';
+    try { const r = await workerAction('teacherPreview'); cpmsg.textContent = `Sent to ${r.to}.`; }
+    catch (e) { cpmsg.textContent = e.message; }
+    finally { cprev.disabled = false; }
   };
   const sprev = document.getElementById('as-start-preview'), smsg2 = document.getElementById('as-start-msg');
   if (sprev) sprev.onclick = async () => {

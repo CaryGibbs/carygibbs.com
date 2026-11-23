@@ -60,7 +60,12 @@
 //   action 'startPreview'   admins: both getting-started emails, sent to you now
 //   action 'weeklyPreview'  admins: this week's parent summary for a parent
 //                       (yourself by default), sent to your own email now
-//   GET/POST /email/unsubscribe  turns off a parent's weekly summary
+//   action 'teacherPreview' admins: this week's class summary for a teacher
+//                       (yourself by default), sent to your own email now
+//   action 'newsSend'     admins: the news and tips email (mode count / test / send),
+//                       only to people who asked for it (emailPrefs.news)
+//   GET/POST /email/unsubscribe  turns off a weekly summary, getting-started
+//                       emails or news (t=teacher / start / news)
 //                       (signed, so it can't be guessed). Used by mail apps'
 //                       one-click unsubscribe and by lobelimpet.com/unsubscribe.html
 //   action 'passwordEmail'  "Forgot your password?" (no sign-in): our own
@@ -85,8 +90,8 @@
 //                       logs and picture clean-up.
 // Optional Cron Trigger (Settings → Triggers), e.g. "0 3 * * 0" (Sundays 3am):
 //   runs the picture clean-up automatically.
-// Cron Trigger "0 17,18 * * SUN" (exactly this): the weekly parent summary,
-//   Sundays at 6pm UK time (17:00 UTC in summer, 18:00 UTC in winter).
+// Cron Trigger "0 17,18 * * SUN" (exactly this): the weekly parent and teacher
+//   summaries, Sundays at 6pm UK time (17:00 UTC in summer, 18:00 UTC in winter).
 // Cron Trigger "0,30 15-19 * * *": student reminders on their phones (push),
 //   4:30pm (reviews waiting) and 7pm (streak at risk) UK time, at most one a day.
 // Cron Trigger "30 9 * * *": getting-started emails to parents with no
@@ -163,7 +168,7 @@ export default {
       return;
     }
     if (/17,18/.test(String(event.cron || ''))) {
-      ctx.waitUntil(weeklySummaries(env).catch(e => console.warn('Weekly summary failed', e.message)));
+      ctx.waitUntil(sundaySummaries(env).catch(e => console.warn('Sunday summaries failed', e.message)));
       return;
     }
     ctx.waitUntil(storageSweep(env, false).catch(e => console.warn('Sweep failed', e.message)));
@@ -271,6 +276,20 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await weeklyPreview(env, user, body)); }
       catch (e) { return fail(e.status || 500, e.message || "The preview couldn't be sent"); }
+    }
+
+    // ── Teacher class summary: send yourself a preview now (admins) ──
+    if (body.action === 'teacherPreview') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await teacherPreview(env, user, body)); }
+      catch (e) { return fail(e.status || 500, e.message || "The preview couldn't be sent"); }
+    }
+
+    // ── News and tips email (admins) ──
+    if (body.action === 'newsSend') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await newsAction(env, user, body)); }
+      catch (e) { return fail(e.status || 500, e.message || "The news email couldn't be sent"); }
     }
 
     // ── Paying for Plus (Stripe) ──
@@ -1699,7 +1718,7 @@ async function passwordEmail(env, request, body, origin) {
 const WEEKLY_CRON = '0 17,18 * * SUN';
 const WORKER_URL = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev';
 const WEEKLY_FIELDS = ['name', 'email', 'role', 'roles', 'parentUid', 'guardianIds', 'sessions', 'study', 'streak',
-  'lastRevisionDate', 'shields', 'srs', 'plan', 'planGoals', 'emailPrefs', 'createdAt'];
+  'lastRevisionDate', 'shields', 'srs', 'plan', 'planGoals', 'emailPrefs', 'createdAt', 'teacherIds'];
 
 const dayAdd = (day, n) => { const [y, m, d] = day.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); };
 const dayGap = (a, b) => { const t = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); }; return Math.round((t(b) - t(a)) / 86400000); };
@@ -1766,7 +1785,7 @@ function studentWeek(st, today) {
   const exams = (st.plan?.exams || []).filter(e => e && e.start && (e.end || e.start) >= today).sort((a, b) => (a.start < b.start ? -1 : 1));
   const exam = exams[0] && dayGap(today, exams[0].start) <= 60 ? exams[0] : null;
   const goals = st.plan && typeof st.plan === 'object' ? Object.keys(st.planGoals || {}).filter(d => inRange(d, start, today)).length : null;
-  return { mins, prevMins, days: days.size, quizzes: quizzes.length, reviews, avg, good, weak, streak, waiting,
+  return { mins, prevMins, days: days.size, quizzes: quizzes.length, reviews, avg, good, weak, topics, streak, waiting,
     lastDay, lastSubject: lastSession?.subject || '', exam, goals, recent: !!lastDay && dayGap(lastDay, today) <= 28 };
 }
 
@@ -1880,12 +1899,12 @@ function weeklyPlan(users, today) {
   return out;
 }
 
-async function weeklySummaries(env, { force = false } = {}) {
+async function weeklySummaries(env, { force = false, users = null } = {}) {
   if (!env.RESEND_API_KEY || !env.FIREBASE_SERVICE_ACCOUNT) return { sent: 0, skipped: 'not set up' };
   if (!force && (londonHour() !== 18 || new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/London', weekday: 'long' }) !== 'Sunday')) return { sent: 0, skipped: 'not 6pm Sunday' };
   const tok = await serviceToken(env);
   const today = londonDay();
-  const plan = weeklyPlan(await usersForWeekly(tok), today);
+  const plan = weeklyPlan(users || await usersForWeekly(tok), today);
   // Already sent this week? (one marker per parent per week)
   const marker = id => `emailSent/weekly_${id}_${today}`;
   const done = await fsExisting(tok, plan.map(p => marker(p.parent.id)));
@@ -1938,8 +1957,11 @@ async function weeklyPreview(env, user, body) {
 async function unsubscribePage(request, env) {
   const url = new URL(request.url);
   const uid = url.searchParams.get('u') || '', k = url.searchParams.get('k') || '';
-  const kind = url.searchParams.get('t') === 'start' ? 'start' : 'weekly';   // which emails: weekly summary or getting-started tips
-  const prefOff = { emailPrefs: { mapValue: { fields: { [kind]: { booleanValue: false } } } } };
+  // Which emails: weekly parent summary (default), getting-started tips, teacher class summary or news
+  const t = url.searchParams.get('t');
+  const kind = ['start', 'teacher', 'news'].includes(t) ? t : 'weekly';
+  const pref = { weekly: 'weekly', start: 'start', teacher: 'teacherWeekly', news: 'news' }[kind];
+  const prefOff = { emailPrefs: { mapValue: { fields: { [pref]: { booleanValue: false } } } } };
   const page = (title, body) => new Response(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head>
 <body style="margin:0;background:#eef5f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1f3440;">
 <div style="max-width:460px;margin:60px auto;background:#fff;border-radius:16px;padding:28px;">
@@ -1955,17 +1977,23 @@ async function unsubscribePage(request, env) {
     if (request.method !== 'POST') return new Response(JSON.stringify({ ok: true }), { headers: h });
     const tok = await serviceToken(env);
     await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: prefOff },
-      updateMask: { fieldPaths: [`emailPrefs.${kind}`] }, currentDocument: { exists: true } }]);
+      updateMask: { fieldPaths: [`emailPrefs.${pref}`] }, currentDocument: { exists: true } }]);
     return new Response(JSON.stringify({ ok: true, done: true }), { headers: h });
   }
   if (!ok) return page('This link doesn\'t work', '<p style="line-height:1.55;">You can turn the weekly email off in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.</p>');
   if (request.method === 'POST') {
     const tok = await serviceToken(env);
     await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: prefOff },
-      updateMask: { fieldPaths: [`emailPrefs.${kind}`] }, currentDocument: { exists: true } }]).catch(() => {});
+      updateMask: { fieldPaths: [`emailPrefs.${pref}`] }, currentDocument: { exists: true } }]).catch(() => {});
     if (kind === 'start') return page('Tips turned off', '<p style="line-height:1.55;">We won\'t send you any more getting-started emails.</p><p><a href="https://lobelimpet.com/parent.html" style="color:#123a4a;font-weight:700;">Go to Lobe Limpet</a></p>');
+    if (kind === 'teacher') return page('Class summaries turned off', '<p style="line-height:1.55;">You won\'t get the Sunday class summary any more. You can turn it back on any time in Lobe Limpet, under Account settings.</p><p><a href="https://lobelimpet.com/teacher-dashboard.html" style="color:#123a4a;font-weight:700;">Go to Lobe Limpet</a></p>');
+    if (kind === 'news') return page('Unsubscribed', '<p style="line-height:1.55;">You won\'t get any more news and tips emails. You can sign up again any time in Lobe Limpet, under Account settings.</p><p><a href="https://lobelimpet.com/login.html" style="color:#123a4a;font-weight:700;">Go to Lobe Limpet</a></p>');
     return page('Weekly emails turned off', '<p style="line-height:1.55;">You won\'t get the Sunday summary any more. You can turn it back on any time in Lobe Limpet, under Account settings.</p><p><a href="https://lobelimpet.com/parent.html" style="color:#123a4a;font-weight:700;">Go to Lobe Limpet</a></p>');
   }
+  if (kind === 'news') return page('Unsubscribe from news and tips?', `<p style="line-height:1.55;">You'll stop getting our occasional news and revision tips. Account emails (like password links) still come when you ask for them.</p>
+<form method="post"><button style="background:#123a4a;color:#fff;border:0;border-radius:10px;padding:14px 24px;font-size:16px;font-weight:700;cursor:pointer;">Unsubscribe</button></form>`);
+  if (kind === 'teacher') return page('Turn off the class summary?', `<p style="line-height:1.55;">You'll stop getting the Sunday summary of your classes' revision. Account emails (like password links) still come when you ask for them.</p>
+<form method="post"><button style="background:#123a4a;color:#fff;border:0;border-radius:10px;padding:14px 24px;font-size:16px;font-weight:700;cursor:pointer;">Turn off class summaries</button></form>`);
   return page('Turn off the weekly email?', `<p style="line-height:1.55;">You'll stop getting the Sunday summary of your students' revision. Account emails (like password links) still come when you ask for them.</p>
 <form method="post"><button style="background:#123a4a;color:#fff;border:0;border-radius:10px;padding:14px 24px;font-size:16px;font-weight:700;cursor:pointer;">Turn off weekly emails</button></form>`);
 }
@@ -2066,6 +2094,330 @@ async function startPreview(env, user) {
     if (!r.ok) throw oops(502, `The preview couldn't be sent (${r.status})`);
   }
   return { ok: true, to: user.email };
+}
+
+/* ============================================================
+   Teacher weekly class summary (Sundays, 6pm UK time, same Cron
+   Trigger as the parent summary)
+   One email per teacher, a card per class with students: how many
+   revised this week, total time (and the change on last week),
+   quizzes and average, topics the class found hardest and easiest,
+   who hasn't revised for a week, and the most regular revisers.
+   On for every teacher unless users.emailPrefs.teacherWeekly is false
+   (Account settings, or the link in the email). Teachers whose
+   students haven't revised for 4 weeks (and no new account) aren't
+   sent one.
+   ============================================================ */
+// A collection's documents, with their fields
+async function fsDocs(tok, path) {
+  const out = []; let page = '';
+  do {
+    const r = await fetch(`${FS}/${path}?pageSize=300${page ? `&pageToken=${page}` : ''}`, { headers: { Authorization: `Bearer ${tok}` } });
+    if (!r.ok) break;
+    const d = await r.json();
+    (d.documents || []).forEach(x => out.push({ id: x.name.split('/').pop(), ...fields(x.fields) }));
+    page = d.nextPageToken || '';
+  } while (page);
+  return out;
+}
+
+// A teacher's classes, each with the ids of its students
+async function teacherClasses(tok, tid) {
+  const classes = await fsDocs(tok, `users/${tid}/classes`);
+  await Promise.all(classes.map(async c => { c.studentIds = await fsList(tok, `users/${tid}/classes/${c.id}/students`); }));
+  return classes.filter(c => c.studentIds.length).sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+}
+
+const shortName = n => { const p = String(n || '').trim().split(/\s+/).filter(Boolean); return p.length > 1 ? `${p[0]} ${p[p.length - 1][0]}.` : (p[0] || 'A student'); };
+
+// One class's week, from each student's week
+function classWeek(cls, byId, today) {
+  const studs = cls.studentIds.map(id => byId[id]).filter(Boolean).map(st => ({ st, w: studentWeek(st, today) }));
+  const n = studs.length;
+  const active = studs.filter(s => s.w.days > 0);
+  const mins = studs.reduce((a, s) => a + s.w.mins, 0);
+  const prevMins = studs.reduce((a, s) => a + s.w.prevMins, 0);
+  const quizzes = studs.reduce((a, s) => a + s.w.quizzes, 0);
+  const avg = quizzes ? Math.round(studs.reduce((a, s) => a + (s.w.avg || 0) * s.w.quizzes, 0) / quizzes) : null;
+  // Topics: the average of each student's average, and how many students tried it
+  const byTopic = {};
+  studs.forEach(s => (s.w.topics || []).forEach(t => { (byTopic[t.name] = byTopic[t.name] || []).push(t.pct); }));
+  const need = n >= 4 ? 2 : 1;
+  const topics = Object.entries(byTopic).filter(([, a]) => a.length >= need)
+    .map(([name, a]) => ({ name, pct: Math.round(a.reduce((x, y) => x + y, 0) / a.length), n: a.length }));
+  const weak = topics.filter(t => t.pct < 65).sort((a, b) => a.pct - b.pct).slice(0, 3);
+  const good = topics.filter(t => t.pct >= 80).sort((a, b) => b.pct - a.pct || b.n - a.n).slice(0, 2);
+  const quiet = studs.filter(s => !s.w.days).sort((a, b) => String(a.st.name || '').localeCompare(String(b.st.name || '')));
+  const regulars = studs.filter(s => s.w.days >= 3).sort((a, b) => b.w.days - a.w.days || b.w.mins - a.w.mins).slice(0, 3);
+  return { name: cls.name || 'Your class', subject: cls.subject || '', n, active: active.length, mins, prevMins, quizzes, avg,
+    weak, good, quiet, regulars, recent: studs.some(s => s.w.recent) };
+}
+
+function classCard(c) {
+  const tile = (val, label, colour = '#123a4a') => `<td width="25%" align="center" style="background:#fff;border-radius:10px;padding:10px 4px;"><div style="font-size:20px;font-weight:800;color:${colour};">${val}</div><div style="font-size:12px;color:#5d7c89;">${label}</div></td>`;
+  const share = c.n ? c.active / c.n : 0;
+  const verdict = share >= 0.6 ? ['A strong week', '#1d7a4f'] : share >= 0.3 ? ['A steady week', '#123a4a'] : c.active ? ['A quiet week', '#8a6d1f'] : ['No revision this week', '#8a6d1f'];
+  const diff = c.mins - c.prevMins;
+  const change = c.prevMins || c.mins ? (diff > 0 ? `<span style="color:#1d7a4f;">▲ ${fmtMins(diff)}</span>` : diff < 0 ? `<span style="color:#b4502f;">▼ ${fmtMins(-diff)}</span>` : 'same as last week') : '&nbsp;';
+  const names = (list, max = 6) => escH(listAnd([...list.slice(0, max).map(s => shortName(s.st.name)), ...(list.length > max ? [`${list.length - max} more`] : [])]));
+  const lines = [];
+  if (c.weak.length) lines.push(`<strong style="color:#b4502f;">Found hardest:</strong> ${c.weak.map(t => `${escH(t.name)} (${t.pct}%)`).join(', ')}`);
+  if (c.good.length) lines.push(`<strong style="color:#1d7a4f;">Going well:</strong> ${c.good.map(t => `${escH(t.name)} (${t.pct}%)`).join(', ')}`);
+  if (c.regulars.length) lines.push(`<strong style="color:#123a4a;">Most regular:</strong> ${c.regulars.map(s => `${escH(shortName(s.st.name))} (${s.w.days} days)`).join(', ')}`);
+  if (c.quiet.length && c.active) lines.push(`<strong style="color:#8a6d1f;">No revision this week:</strong> ${names(c.quiet)}`);
+  let tip;
+  if (c.weak.length) tip = `<strong>Try this:</strong> a five-minute starter quiz on ${escH(c.weak[0].name)} next lesson, then set it as a short revision task.`;
+  else if (!c.active) tip = `Quiet weeks happen. Setting one 10-question quiz before the next lesson is an easy way to get the class going again.`;
+  else if (share < 0.5) tip = `<strong>Try this:</strong> a quick reminder in class that ten minutes a day counts, and that daily reviews bring back what they're about to forget.`;
+  else if (c.regulars.length) tip = `<strong>Try this:</strong> a good week to mention the effort in class. Noticing it keeps it going.`;
+  const sub = [c.subject, `${c.n} student${c.n === 1 ? '' : 's'}`].filter(Boolean).map(escH).join(' · ');
+  return `<tr><td style="padding:0 20px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6fafb;border:1px solid #e3ecee;border-radius:14px;">
+<tr><td style="padding:18px 18px 6px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td style="font-size:20px;font-weight:800;color:#123a4a;">${escH(c.name)}<div style="font-size:13px;font-weight:400;color:#5d7c89;">${sub}</div></td>
+  <td align="right" valign="top" style="font-size:14px;font-weight:700;color:${verdict[1]};">${verdict[0]}</td></tr></table></td></tr>
+<tr><td style="padding:6px 12px 2px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="6"><tr>
+  ${tile(`${c.active} of ${c.n}`, 'revised<br>&nbsp;')}${tile(fmtMins(c.mins), `in total<br>${change}`)}${tile(String(c.quizzes), `quiz${c.quizzes === 1 ? '' : 'zes'}<br>&nbsp;`)}${tile(c.avg === null ? '–' : `${c.avg}%`, 'average<br>score')}
+</tr></table></td></tr>
+${lines.length ? `<tr><td style="padding:10px 18px ${tip ? 4 : 14}px;font-size:15px;line-height:1.55;">${lines.map(l => `<p style="margin:0 0 8px;">${l}</p>`).join('')}</td></tr>` : ''}
+${tip ? `<tr><td style="padding:${lines.length ? 0 : 10}px 18px 18px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fff3ee;border-radius:10px;"><tr><td style="padding:12px 14px;font-size:14px;line-height:1.5;color:#7a3a22;">${tip}</td></tr></table></td></tr>` : ''}
+</table></td></tr>`;
+}
+function classText(c) {
+  const out = [`${c.name}: ${c.active} of ${c.n} revised, ${fmtMins(c.mins)} in total, ${c.quizzes} quiz${c.quizzes === 1 ? '' : 'zes'}${c.avg !== null ? ` (${c.avg}% average)` : ''}.`];
+  if (c.weak.length) out.push(`Found hardest: ${c.weak.map(t => `${t.name} (${t.pct}%)`).join(', ')}`);
+  if (c.good.length) out.push(`Going well: ${c.good.map(t => `${t.name} (${t.pct}%)`).join(', ')}`);
+  if (c.quiet.length && c.active) out.push(`No revision this week: ${listAnd(c.quiet.map(s => shortName(s.st.name)))}`);
+  return out.join('\n');
+}
+
+async function teacherEmail(env, teacher, classes, today) {
+  const site = 'https://lobelimpet.com';
+  const start = dayAdd(today, -6);
+  const sameMonth = start.slice(0, 7) === today.slice(0, 7);
+  const range = `${dayLabel(start, sameMonth ? { day: 'numeric' } : { day: 'numeric', month: 'long' })} to ${dayLabel(today, { day: 'numeric', month: 'long' })}`;
+  const q = `u=${encodeURIComponent(teacher.id)}&k=${await unsubToken(env, teacher.id, 'teacher')}&t=teacher`;
+  const unsub = `${site}/unsubscribe.html?${q}`;
+  const oneClick = `${WORKER_URL}/email/unsubscribe?${q}`;
+  const total = classes.reduce((a, c) => a + c.n, 0), active = classes.reduce((a, c) => a + c.active, 0);
+  const hi = firstName(teacher.name) ? `Hi ${escH(firstName(teacher.name))}, here's` : `Here's`;
+  const intro = `${hi} how ${classes.length === 1 ? escH(classes[0].name) : 'your classes'} got on this week: ${active} of ${total} student${total === 1 ? '' : 's'} revised.`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your classes this week</title></head>
+<body style="margin:0;padding:0;background:#eef5f6;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef5f6;"><tr><td align="center" style="padding:28px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1f3440;">
+<tr><td style="padding:28px 28px 4px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>
+  <td style="padding-right:10px;"><img src="${LOGO_URL}" width="40" height="40" alt="" style="display:block;"></td>
+  <td style="font-size:22px;font-weight:800;color:#123a4a;">lobe <span style="color:#e8603e;">limpet</span></td></tr></table></td></tr>
+<tr><td style="padding:14px 28px 0;">
+  <p style="margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5d7c89;">Week of ${escH(range)}</p>
+  <h1 style="margin:0 0 14px;font-size:24px;line-height:1.3;color:#123a4a;">Your ${classes.length === 1 ? 'class' : 'classes'} this week</h1>
+  <p style="margin:0 0 18px;font-size:16px;line-height:1.55;">${intro}</p>
+</td></tr>
+${classes.map(classCard).join('\n')}
+<tr><td style="padding:4px 28px 8px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;"><tr><td style="background:#123a4a;border-radius:10px;">
+    <a href="${site}/teacher-dashboard.html" style="display:inline-block;padding:14px 26px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;">See class progress</a></td></tr></table>
+  <p style="margin:0 0 16px;font-size:15px;line-height:1.55;">The Lobe Limpet team</p>
+</td></tr>
+<tr><td style="padding:8px 28px 26px;border-top:1px solid #e3ecee;">
+  <p style="margin:14px 0 0;font-size:13px;line-height:1.5;color:#5d7c89;">You get this every Sunday because you teach classes on Lobe Limpet. <a href="${unsub}" style="color:#5d7c89;">Turn off these emails</a>, or change it any time in Account settings.</p>
+</td></tr></table>
+<p style="margin:14px 0 0;font-size:12px;color:#7d97a1;font-family:Arial,sans-serif;">Lobe Limpet · Knowledge that sticks.</p>
+</td></tr></table></body></html>`;
+  const text = [`Your classes this week (${range})`, stripTags(intro), ...classes.map(classText),
+    `See class progress: ${site}/teacher-dashboard.html`, 'The Lobe Limpet team', `Turn off these emails: ${unsub}`].join('\n\n');
+  const subject = classes.length === 1 ? `${classes[0].name}: the week on Lobe Limpet` : 'Your classes this week on Lobe Limpet';
+  return { from: env.EMAIL_FROM || EMAIL_FROM_DEFAULT, to: [teacher.email], reply_to: EMAIL_REPLY_TO, subject, html, text,
+    headers: { 'List-Unsubscribe': `<${oneClick}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+    tags: [{ name: 'kind', value: 'teacher_weekly' }] };
+}
+
+// Teachers who might get one: the teacher role, an email, not turned off, and a student
+// somewhere who lists them
+function teacherCandidates(users) {
+  const linked = new Set();
+  users.filter(u => rolesOf(u).has('student')).forEach(st => (st.teacherIds || []).forEach(t => linked.add(t)));
+  return users.filter(u => linked.has(u.id) && rolesOf(u).has('teacher') && u.email && u.emailPrefs?.teacherWeekly !== false);
+}
+
+async function teacherSummaries(env, { force = false, users = null } = {}) {
+  if (!env.RESEND_API_KEY || !env.FIREBASE_SERVICE_ACCOUNT) return { sent: 0, skipped: 'not set up' };
+  if (!force && (londonHour() !== 18 || new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/London', weekday: 'long' }) !== 'Sunday')) return { sent: 0, skipped: 'not 6pm Sunday' };
+  const tok = await serviceToken(env);
+  const today = londonDay();
+  users = users || await usersForWeekly(tok);
+  const byId = Object.fromEntries(users.map(u => [u.id, u]));
+  const marker = id => `emailSent/teacher_${id}_${today}`;
+  const cands = teacherCandidates(users);
+  const done = await fsExisting(tok, cands.map(t => marker(t.id)));
+  const plan = [];
+  for (const t of cands.filter(t => !done.has(marker(t.id)))) {
+    const classes = (await teacherClasses(tok, t.id).catch(() => [])).map(c => classWeek(c, byId, today)).filter(c => c.n);
+    const fresh = Number(t.createdAt) > Date.now() - 28 * 86400000;
+    if (!classes.length || (!fresh && !classes.some(c => c.recent))) continue;
+    plan.push({ t, classes });
+  }
+  let sent = 0;
+  for (let i = 0; i < plan.length; i += 100) {
+    const chunk = plan.slice(i, i + 100);
+    const emails = await Promise.all(chunk.map(p => teacherEmail(env, p.t, p.classes, today)));
+    const r = await fetch('https://api.resend.com/emails/batch', {
+      method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(emails),
+    });
+    if (!r.ok) { console.warn('Teacher batch failed', r.status, (await r.text()).slice(0, 300)); continue; }
+    sent += chunk.length;
+    await fsCommit(tok, chunk.map(p => ({ update: { name: `${DOCS}/${marker(p.t.id)}`, fields: {
+      at: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 60 * 86400000)) } } }))).catch(e => console.warn('Markers not saved', e.message));
+  }
+  await workerLog(tok, 'system', { name: 'Lobe Limpet' }, 'email.teacher_weekly', `Weekly class summary sent to ${sent} teacher${sent === 1 ? '' : 's'}`);
+  return { sent };
+}
+
+// Sunday 6pm: parents, then teachers, reading everyone once
+async function sundaySummaries(env) {
+  if (!env.RESEND_API_KEY || !env.FIREBASE_SERVICE_ACCOUNT) return;
+  if (londonHour() !== 18 || new Date().toLocaleDateString('en-GB', { timeZone: 'Europe/London', weekday: 'long' }) !== 'Sunday') return;
+  const users = await usersForWeekly(await serviceToken(env));
+  await weeklySummaries(env, { users }).catch(e => console.warn('Weekly summary failed', e.message));
+  await teacherSummaries(env, { users }).catch(e => console.warn('Teacher summary failed', e.message));
+}
+
+// Admins: send this week's class summary (your own classes, or a teacher's) to your own inbox
+async function teacherPreview(env, user, body) {
+  if (!env.RESEND_API_KEY) throw oops(503, 'Email is not set up yet');
+  const tok = await serviceToken(env);
+  const me = await fsGet(tok, `users/${user.uid}`);
+  if (!(user.uid === OWNER_UID || rolesOf(me).has('admin'))) throw oops(403, 'Admins only');
+  const tid = String(body.teacherUid || user.uid);
+  const teacher = tid === user.uid ? me : await fsGet(tok, `users/${tid}`);
+  if (!teacher) throw oops(404, 'No account found');
+  const today = londonDay();
+  const classes = await teacherClasses(tok, tid);
+  if (!classes.length) throw oops(404, 'This account has no classes with students in them, so there is nothing to summarise');
+  const ids = [...new Set(classes.flatMap(c => c.studentIds))];
+  const byId = {};
+  await Promise.all(ids.slice(0, 400).map(async id => { const d = await fsGet(tok, `users/${id}`).catch(() => null); if (d) byId[id] = { id, ...d }; }));
+  const weeks = classes.map(c => classWeek(c, byId, today)).filter(c => c.n);
+  const email = await teacherEmail(env, { id: tid, ...teacher }, weeks, today);
+  email.to = [user.email];
+  email.subject = `[Preview] ${email.subject}`;
+  delete email.headers;
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(email),
+  });
+  if (!r.ok) throw oops(502, `The preview couldn't be sent (${r.status})`);
+  return { ok: true, to: user.email, classes: weeks.length };
+}
+
+/* ============================================================
+   News and tips (Admin → News email)
+   Only to people who ticked "Send me occasional news and revision
+   tips" (users.emailPrefs.news true), never to student-only accounts.
+   Admins write it in plain text: blank lines between paragraphs,
+   "## " for a heading, "- " for a bullet, **bold**, [words](https://link),
+   {name} for the first name, and a line "[button]" for where the
+   button goes (otherwise it goes at the end).
+   mode 'count': how many it would go to. 'test': just to you.
+   'send': to everyone on the list, once per issue (emailSent markers),
+   recorded in newsIssues/{issueId} and the activity log.
+   ============================================================ */
+const NEWS_MAX_TEXT = 8000;
+function newsInline(s) {
+  return escH(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, (m, t, u) => `<a href="${u.replace(/&amp;/g, '&').replace(/"/g, '%22')}" style="color:#e8603e;font-weight:600;">${t}</a>`);
+}
+function newsParas(text, name) {
+  const who = escH(firstName(name) || 'there');
+  const out = []; let para = [];
+  const flush = () => { if (para.length) out.push(para.map(newsInline).join('<br>')); para = []; };
+  String(text || '').replace(/\r/g, '').split('\n').forEach(raw => {
+    const l = raw.trim();
+    if (!l) return flush();
+    if (/^##\s+/.test(l)) { flush(); out.push(`<strong style="display:block;font-size:18px;line-height:1.35;color:#123a4a;margin-top:6px;">${newsInline(l.replace(/^##\s+/, ''))}</strong>`); return; }
+    if (/^[-•]\s+/.test(l)) { flush(); out.push(`<span style="color:#e8603e;font-weight:800;">•</span>&nbsp; ${newsInline(l.replace(/^[-•]\s+/, ''))}`); return; }
+    para.push(l);
+  });
+  flush();
+  return out.map(p => p.replace(/\{name\}/g, who));
+}
+function newsEmail(n, person, unsub) {
+  const [before, after = ''] = String(n.text).split(/^\s*\[button\]\s*$/m);
+  const content = {
+    heading: n.heading || n.subject,
+    paras: newsParas(before, person.name),
+    button: n.button?.url ? { label: n.button.label || 'Open Lobe Limpet', url: n.button.url } : null,
+    after: newsParas(after, person.name),
+    footer: `You're getting this because you asked for occasional news and revision tips from Lobe Limpet. <a href="${unsub}" style="color:#5d7c89;">Unsubscribe</a>, or change it any time in Account settings.`,
+  };
+  // Plain-text version: links keep their address, "words (https://…)"
+  const lt = x => String(x).replace(/<a href="([^"]+)"[^>]*>(.*?)<\/a>/g, (m, u, t) => `${t} (${u.replace(/&amp;/g, '&')})`);
+  const plain = { ...content, paras: content.paras.map(lt), after: content.after.map(lt), footer: lt(content.footer) };
+  return { subject: n.subject.replace(/\{name\}/g, firstName(person.name) || 'there'), html: emailHtml(content), text: emailText(plain) };
+}
+const newsWanted = u => u.email && u.emailPrefs?.news === true && !(rolesOf(u).has('student') && rolesOf(u).size === 1);
+
+async function newsAction(env, user, body) {
+  if (!env.RESEND_API_KEY) throw oops(503, 'Email is not set up yet');
+  const tok = await serviceToken(env);
+  const me = await fsGet(tok, `users/${user.uid}`);
+  if (!(user.uid === OWNER_UID || rolesOf(me).has('admin'))) throw oops(403, 'Admins only');
+  const mode = ['count', 'test', 'send'].includes(body.mode) ? body.mode : 'count';
+  const users = mode === 'test' ? [] : await usersForWeekly(tok);
+  const list = users.filter(newsWanted);
+  if (mode === 'count') return { count: list.length };
+
+  const n = {
+    subject: String(body.subject || '').trim().slice(0, 140),
+    heading: String(body.heading || '').trim().slice(0, 140),
+    text: String(body.text || '').slice(0, NEWS_MAX_TEXT),
+    button: body.button && /^https:\/\/\S+$/.test(String(body.button.url || '')) ? { label: String(body.button.label || '').slice(0, 40), url: String(body.button.url) } : null,
+  };
+  if (n.subject.length < 3) throw oops(400, 'Add a subject line');
+  if (!n.text.trim()) throw oops(400, 'Add the words of the email');
+  const send = (to, e, uid) => ({ from: env.EMAIL_FROM || EMAIL_FROM_DEFAULT, to: [to], reply_to: EMAIL_REPLY_TO, ...e,
+    ...(uid ? { headers: { 'List-Unsubscribe': `<${WORKER_URL}/email/unsubscribe?u=${encodeURIComponent(uid)}&k=__K__&t=news>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } } : {}),
+    tags: [{ name: 'kind', value: 'news' }] });
+
+  if (mode === 'test') {
+    const k = await unsubToken(env, user.uid, 'news');
+    const e = newsEmail(n, me || {}, `https://lobelimpet.com/unsubscribe.html?u=${encodeURIComponent(user.uid)}&k=${k}&t=news`);
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(send(user.email, { ...e, subject: `[Test] ${e.subject}` })),
+    });
+    if (!r.ok) throw oops(502, `The test couldn't be sent (${r.status})`);
+    return { ok: true, to: user.email };
+  }
+
+  const issue = String(body.issueId || '');
+  if (!/^[a-z0-9-]{6,60}$/.test(issue)) throw oops(400, 'Bad issue id');
+  const marker = uid => `emailSent/news_${issue}_${uid}`;
+  const done = await fsExisting(tok, list.map(u => marker(u.id)));
+  const todo = list.filter(u => !done.has(marker(u.id)));
+  let sent = 0;
+  for (let i = 0; i < todo.length; i += 100) {
+    const chunk = todo.slice(i, i + 100);
+    const emails = await Promise.all(chunk.map(async u => {
+      const k = await unsubToken(env, u.id, 'news');
+      const e = send(u.email, newsEmail(n, u, `https://lobelimpet.com/unsubscribe.html?u=${encodeURIComponent(u.id)}&k=${k}&t=news`), u.id);
+      e.headers['List-Unsubscribe'] = e.headers['List-Unsubscribe'].replace('__K__', k);
+      return e;
+    }));
+    const r = await fetch('https://api.resend.com/emails/batch', {
+      method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(emails),
+    });
+    if (!r.ok) { console.warn('News batch failed', r.status, (await r.text()).slice(0, 300)); continue; }
+    sent += chunk.length;
+    await fsCommit(tok, chunk.map(u => ({ update: { name: `${DOCS}/${marker(u.id)}`, fields: {
+      at: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 180 * 86400000)) } } }))).catch(e => console.warn('Markers not saved', e.message));
+  }
+  const prev = await fsGet(tok, `newsIssues/${issue}`).catch(() => null);
+  await fsCommit(tok, [fsSetDoc(`newsIssues/${issue}`, { subject: n.subject, heading: n.heading, text: n.text, button: n.button,
+    sentAt: Date.now(), firstSentAt: prev?.firstSentAt || Date.now(), sent: (Number(prev?.sent) || 0) + sent, by: me?.name || user.email || '' })]).catch(e => console.warn('Issue not saved', e.message));
+  await workerLog(tok, user.uid, me, 'email.news', `News email "${n.subject.slice(0, 80)}" sent to ${sent} ${sent === 1 ? 'person' : 'people'}`);
+  return { ok: true, sent, already: done.size, failed: todo.length - sent };
 }
 
 /* ============================================================

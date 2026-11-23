@@ -158,6 +158,21 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .prose .kid { background: var(--sea); border-radius: var(--radius); padding: 20px 22px; margin: 18px 0 8px; }
 .prose .kid h2 { margin-top: 0; }
 .prose .kid p, .prose .kid li { color: var(--deep); }
+/* Parent guide pages (help-your-child-revise.html) */
+.guide-kicker { font-size: 0.82rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--coral-dark); margin-bottom: 6px; }
+.prose.guide ol { padding-left: 1.3em; margin-bottom: 12px; }
+.guide-sum { background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--coral); border-radius: var(--radius); padding: 18px 22px 8px; margin: 18px 0 20px; }
+.guide-sum h2 { margin: 0 0 10px; font-size: 1.2rem; }
+.guide-toc { background: var(--sea-2); border-radius: var(--radius); padding: 16px 22px 6px; margin: 0 0 8px; }
+.guide-toc p { margin-bottom: 6px; color: var(--deep); }
+.guide-toc ul { list-style: none; padding-left: 0; columns: 2; column-gap: 24px; }
+.guide-toc li { margin-bottom: 6px; break-inside: avoid; }
+.prose h2[id], .faq[id] { scroll-margin-top: 90px; }
+.guide-cta { background: var(--sea); border-radius: var(--radius); padding: 22px 24px 10px; margin: 32px 0 8px; }
+.guide-cta h2 { margin-top: 0; }
+.guide-cta p { color: var(--deep); }
+.prose.guide .faq { margin-top: 28px; padding: 0; }
+@media (max-width: 600px) { .guide-toc ul { columns: 1; } }
 .faq details { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 4px 18px; margin-bottom: 10px; }
 .faq summary { cursor: pointer; font-weight: 600; padding: 12px 0; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
 .faq summary::-webkit-details-marker { display: none; }

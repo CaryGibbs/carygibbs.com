@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261120e"></script>
+  <script src="dev-flag.js?v=20261123g"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <meta name="referrer" content="no-referrer">
   <title>Weekly emails — Lobe Limpet</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261120d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261120d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261120d">
-  <link rel="stylesheet" href="theme.css?v=20261120d">
-  <link rel="stylesheet" href="ui.css?v=20261120d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261123g">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261123g">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261123g">
+  <link rel="stylesheet" href="theme.css?v=20261123g">
+  <link rel="stylesheet" href="ui.css?v=20261123g">
   <style>
     body { min-height:100vh; background:var(--color-bg); }
     .wrap { max-width:440px; margin:0 auto; padding:var(--space-xl) var(--space-lg); min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
@@ -29,7 +29,7 @@
 </head>
 <body>
 <main class="wrap">
-  <a class="logo" href="./"><img src="assets/images/brand/favicon.svg?v=20261120d" alt=""><span>lobe <b>limpet</b></span></a>
+  <a class="logo" href="./"><img src="assets/images/brand/favicon.svg?v=20261123g" alt=""><span>lobe <b>limpet</b></span></a>
   <div class="card">
     <div id="v-ask">
       <h1>Turn off the weekly email?</h1>
@@ -54,9 +54,29 @@
   (function () {
     var WORKER = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev/email/unsubscribe';
     var q = new URLSearchParams(location.search);
-    var u = q.get('u') || '', k = q.get('k') || '', t = q.get('t') === 'start' ? 'start' : '';
+    var u = q.get('u') || '', k = q.get('k') || '', t = ['start', 'teacher', 'news'].indexOf(q.get('t')) >= 0 ? q.get('t') : '';
+    var offLabel = 'Turn off weekly emails';
+    // Teachers' Sunday class summary (t=teacher)
+    if (t === 'teacher') {
+      document.querySelector('#v-ask h1').textContent = 'Turn off the class summary?';
+      document.querySelector('#v-ask p').textContent = "You'll stop getting the Sunday summary of your classes' revision. Account emails, like password links, still come when you ask for them.";
+      document.getElementById('off').textContent = offLabel = 'Turn off class summaries';
+      document.querySelector('#v-done h1').textContent = 'Class summaries turned off';
+      document.querySelector('#v-done p').textContent = "You won't get the Sunday class summary any more. You can turn it back on any time in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.";
+      document.querySelector('#v-done a').href = 'teacher-dashboard.html';
+    }
+    // News and tips (t=news)
+    if (t === 'news') {
+      document.querySelector('#v-ask h1').textContent = 'Unsubscribe from news and tips?';
+      document.querySelector('#v-ask p').textContent = "You'll stop getting our occasional news and revision tips. Account emails, like password links, still come when you ask for them.";
+      document.getElementById('off').textContent = offLabel = 'Unsubscribe';
+      document.querySelector('#v-done h1').textContent = 'Unsubscribed';
+      document.querySelector('#v-done p').textContent = "You won't get any more news and tips emails. You can sign up again any time in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.";
+      document.querySelector('#v-done a').href = 'login.html';
+    }
     // Getting-started emails (t=start) rather than the weekly summary
-    if (t) {
+    if (t === 'start') {
+      offLabel = 'Stop these emails';
       document.querySelector('#v-ask h1').textContent = 'Stop the getting-started emails?';
       document.querySelector('#v-ask p').textContent = "We'll stop sending reminders about adding a student. Account emails, like password links, still come when you ask for them.";
       document.getElementById('off').textContent = 'Stop these emails';
@@ -76,7 +96,7 @@
         else if (!d.ok) show('v-bad');
         else throw new Error();
       }).catch(function () {
-        b.disabled = false; b.textContent = t ? 'Stop these emails' : 'Turn off weekly emails';
+        b.disabled = false; b.textContent = offLabel;
         err.textContent = "That didn't work. Please try again, or turn it off in Account settings.";
       });
     };

@@ -69,7 +69,7 @@
   if (foot) {
     foot.outerHTML = '<footer class="site-foot"><div class="wrap"><div class="foot-grid">' +
       '<div>' + BRAND + '<p class="foot-blurb">Snap a revision list and get everything needed to revise it.</p></div>' +
-      '<div><h4>Lobe Limpet</h4><ul><li><a href="./">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li></ul></div>' +
+      '<div><h4>Lobe Limpet</h4><ul><li><a href="./">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li><li><a href="help-your-child-revise.html">Helping your child revise</a></li></ul></div>' +
       '<div><h4>Get started</h4><ul><li><a href="login.html?signup=' + signupType + '" id="foot-signup">Sign up free</a></li><li><a href="login.html" id="foot-signin">Sign in</a></li><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li></ul></div>' +
       '<div><h4>Company</h4><ul><li><a href="about.html">About us</a></li><li><a href="press.html">Press and brand</a></li><li><a data-email></a></li></ul></div>' +
       '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy notice</a></li><li><a href="terms.html">Terms of use</a></li></ul></div>' +
@@ -117,7 +117,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261120d'),
+        import('./firebase-config.js?v=20261123g'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -148,20 +148,20 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261120d').then(function (m) {
+    import('./support.js?v=20261123g').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261120d';
+  hs.src = 'help-sheet.js?v=20261123g';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261120d';
+  pwa.src = 'pwa.js?v=20261123g';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

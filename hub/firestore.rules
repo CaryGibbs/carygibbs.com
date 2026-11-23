@@ -607,6 +607,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── News email draft (Admin → News email) ──
+    match /newsDrafts/{id} {
+      allow read, write: if isAdmin();
+    }
+    // ── News emails sent (written by the AI Worker only) ──
+    match /newsIssues/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // ── Activity log ──────────────────────────────────────
     match /logs/{id} {
       allow create: if signedIn() && request.resource.data.uid == me();
