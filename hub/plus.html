@@ -119,7 +119,7 @@ import { auth, db } from './firebase-config.js?v=20261120d';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { logEvent } from './log.js?v=20261120d';
-import { withFamilyPlus, isPlusTier } from './auth.js?v=20261120d';
+import { withFamilyPlus, isPlusTier, isStudent as isStudentRec } from './auth.js?v=20261120d';
 import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261120d';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -245,7 +245,9 @@ onAuthStateChanged(auth, async user => {
       $('plus-intro').hidden = true; $('plus-email').hidden = true;
       showBuy();
     } else {
-      $('plus-intro').textContent = `Ask a parent or guardian to get ${plan} from their account. One ${plan} covers the whole family.`;
+      $('plus-intro').innerHTML = `Ask a parent or guardian to get ${plan} from their account. One ${plan} covers the whole family.`
+        + (isStudentRec(me) ? `<br><button class="btn btn-coral" data-invite-parent data-why="plus" style="margin-top:12px;color:#fff;">Invite a parent</button>` : '');
+      if (isStudentRec(me)) import('./parent-invite.js?v=20261123e');
       $('plus-email').hidden = true;
     }
     return;

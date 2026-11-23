@@ -140,7 +140,11 @@ service cloud.firestore {
         return (!hasRole(newData(), 'student') || studentSelfSignupOn())
           && (!hasRole(newData(), 'admin') || adminInvite(newData().get('inviteCode', '')))
           && newData().get('plan', null) != 'plus' && newData().get('tier', null) != 'plus'
-          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'accountNo', 'tierSource', 'plusUntil', 'plusNote'])
+          && !newData().keys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'accountNo', 'tierSource', 'plusUntil', 'plusNote', 'parentConfirmedAt'])
+          // Students signing themselves up give an age band; 13 to 15s get at
+          // most 7 days before a parent must join
+          && (!hasRole(newData(), 'student') || newData().get('ageBand', '') in ['13-15', '16+'])
+          && (newData().get('ageBand', '') != '13-15' || newData().get('trialEnds', 0) <= request.time.toMillis() + 7 * 86400000 + 600000)
           && teacherIdsCreateOK();
       }
       // A parent or teacher creating a student account
@@ -165,7 +169,8 @@ service cloud.firestore {
       // Editing yourself: can't change plan or who your parents are; can only
       // add admin with a valid admin invite
       function selfUpdateOK() {
-        return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'tierSource', 'plusUntil', 'plusNote'])
+        return !changedKeys().hasAny(['parentUid', 'guardianIds', 'teacherUid', 'aiLimit', 'tierSource', 'plusUntil', 'plusNote',
+                                      'ageBand', 'trialEnds', 'parentConfirmedAt'])   // under-16s can't remove the parent requirement
           && accountNoOK()
           && !gainsPlus()
           && teacherIdsUpdateOK()

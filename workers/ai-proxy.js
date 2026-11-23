@@ -48,6 +48,12 @@
 //                       are emailed. 20 a day.
 //   action 'shareStudent' a student's parent shares them with another parent
 //                       account (by email)
+//   action 'parentInvite'  students: a link to send a parent (14 days, once);
+//                       10 a day
+//   action 'parentInviteInfo'  no sign-in: the student's first name for that
+//                       link (30 a day from one internet address)
+//   action 'acceptParentInvite'  a parent accepts: linked straight away (the
+//                       student asked), logged, the invite used up
 //   action 'startPreview'   admins: both getting-started emails, sent to you now
 //   action 'weeklyPreview'  admins: this week's parent summary for a parent
 //                       (yourself by default), sent to your own email now
@@ -189,6 +195,12 @@ export default {
       catch (e) { return reply(200, { ok: false, error: e.message }); }
     }
 
+    // ── Signed out: what a parent invite link says (the student's first name) ──
+    if (body.action === 'parentInviteInfo') {
+      try { return reply(200, await parentInviteInfo(env, request, body)); }
+      catch (e) { return reply(200, { ok: false, reason: 'error' }); }
+    }
+
     // ── Who is asking? ──
     const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
     let user = null;
@@ -221,9 +233,9 @@ export default {
     }
 
     // ── Accounts by email: checked here so nobody can look up names or roles ──
-    if (['checkEmail', 'requestLink', 'shareStudent'].includes(body.action)) {
+    if (['checkEmail', 'requestLink', 'shareStudent', 'parentInvite', 'acceptParentInvite'].includes(body.action)) {
       if (!user) return fail(401, 'Please sign in to use this');
-      try { return reply(200, await accountAction(env, user, body)); }
+      try { return reply(200, await accountAction(env, user, { ...body, origin })); }
       catch (e) { return fail(e.status || 500, e.message || 'Something went wrong'); }
     }
 
@@ -2003,7 +2015,7 @@ async function accountAction(env, user, body) {
   const isAdmin = user.uid === OWNER_UID || myRoles.has('admin');
   const day = londonDay();
   const email = normEmail(body.email);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw oops(400, 'Please enter a valid email address.');
+  if (['checkEmail', 'requestLink', 'shareStudent'].includes(body.action) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw oops(400, 'Please enter a valid email address.');
 
   if (body.action === 'checkEmail') {
     if (!(isAdmin || myRoles.has('parent') || myRoles.has('teacher'))) throw oops(403, 'Not allowed');
@@ -2077,5 +2089,75 @@ async function accountAction(env, user, body) {
     await workerLog(tok, user.uid, me, 'student.share', `Shared with ${email}`, { name: st.name || '', id: sid });
     return { ok: true };
   }
+  if (body.action === 'acceptParentInvite') return acceptParentInviteFor(env, user, me, body);
+
+  if (body.action === 'parentInvite') {
+    if (!myRoles.has('student')) throw oops(403, 'Only students can invite a parent');
+    if ((await bumpCounter(tok, `rateLimits/pinvite_${user.uid}_${day}`)) >= 10) throw oops(429, 'Too many invites today. Please try again tomorrow.');
+    const code = [...crypto.getRandomValues(new Uint8Array(12))].map(b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
+    const now = Date.now();
+    const why = body.why === 'plus' ? 'plus' : '';
+    await fsCommit(tok, [{ update: { name: `${DOCS}/parentInvites/${code}`, fields: {
+      studentUid: { stringValue: user.uid }, studentFirst: { stringValue: firstName(me?.name) || '' },
+      why: { stringValue: why }, at: { integerValue: String(now) },
+      expiresAt: { integerValue: String(now + 14 * 86400000) }, expireAt: tsv(new Date(now + 30 * 86400000)),
+    } }, currentDocument: { exists: false } }]);
+    await workerLog(tok, user.uid, me, 'student.parent_invite', 'Made an Invite a parent link');
+    return { ok: true, code, link: `${siteFor(body.origin || '')}/login.html?parent=${code}` };
+  }
+
   throw oops(400, 'Unknown action');
+}
+
+// A parent invite, checked: { inv } or { reason }
+async function readParentInvite(tok, code) {
+  if (!/^[a-z0-9]{8,20}$/.test(String(code || ''))) return { reason: 'notfound' };
+  const inv = await fsGet(tok, `parentInvites/${code}`);
+  if (!inv) return { reason: 'notfound' };
+  if (inv.usedBy) return { reason: 'used', inv };
+  if (Number(inv.expiresAt) < Date.now()) return { reason: 'expired', inv };
+  return { inv };
+}
+async function parentInviteInfo(env, request, body) {
+  const tok = await serviceToken(env);
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if ((await bumpCounter(tok, `rateLimits/pinfo_${await sha(ip + PROJECT_ID)}_${londonDay()}`)) >= 30) return { ok: false, reason: 'limited' };
+  const r = await readParentInvite(tok, body.code);
+  return r.inv && !r.reason ? { ok: true, first: r.inv.studentFirst || '', why: r.inv.why || '' } : { ok: false, reason: r.reason, first: r.inv?.studentFirst || '' };
+}
+async function acceptParentInviteFor(env, user, me, body) {
+  const tok = await serviceToken(env);
+  const roles = rolesOf(me);
+  if (!(roles.has('parent') || roles.has('admin'))) throw oops(403, 'Please use a parent account to accept this invite.');
+  const code = String(body.code || '');
+  const r = await readParentInvite(tok, code);
+  if (r.reason) throw oops(400, { used: 'This invite has already been used.', expired: 'This invite has expired. Ask for a new one.' }[r.reason] || "This invite isn't valid.");
+  const sid = r.inv.studentUid;
+  if (sid === user.uid) throw oops(400, "You can't accept your own invite.");
+  const st = await fsGet(tok, `users/${sid}`);
+  if (!st) throw oops(404, 'That student account no longer exists.');
+  const now = Date.now();
+  const sv = v => ({ stringValue: String(v ?? '') });
+  const writes = [
+    { update: { name: `${DOCS}/parentInvites/${code}`, fields: { usedBy: sv(user.uid), usedAt: { integerValue: String(now) } } },
+      updateMask: { fieldPaths: ['usedBy', 'usedAt'] }, currentDocument: { exists: true } },
+  ];
+  if (!parentsOfDoc(st).includes(user.uid)) {
+    writes.push(
+      { transform: { document: `${DOCS}/users/${sid}`, fieldTransforms: [{ fieldPath: 'guardianIds', appendMissingElements: { values: [sv(user.uid)] } }] } },
+      { update: { name: `${DOCS}/users/${sid}`, fields: { parentConfirmedAt: { integerValue: String(now) } } }, updateMask: { fieldPaths: ['parentConfirmedAt'] } },
+      { update: { name: `${DOCS}/users/${user.uid}/children/${sid}`, fields: {
+        name: sv(st.name), email: sv(st.email), theme: sv(st.theme || 'edge'),
+        groupIds: { arrayValue: { values: (st.groupIds || []).map(sv) } },
+        createdAt: { integerValue: String(now) }, linkedBy: sv('invite') } } },
+      // A link record, so the student can see and remove this parent later (Profile)
+      { update: { name: `${DOCS}/parentLinks/${user.uid}_${sid}`, fields: {
+        by: sv(user.uid), byName: sv(me?.name || ''), byEmail: sv(me?.email || user.email || ''),
+        studentUid: sv(sid), studentEmail: sv(st.email || ''), studentName: sv(st.name || ''),
+        status: sv('accepted'), at: { integerValue: String(now) }, decidedAt: { integerValue: String(now) }, via: sv('invite') } } },
+    );
+  }
+  await fsCommit(tok, writes);
+  await workerLog(tok, user.uid, me, 'student.parent_invite_accepted', 'Accepted an Invite a parent link', { name: st.name || '', id: sid });
+  return { ok: true, studentFirst: firstName(st.name) || '', why: r.inv.why || '' };
 }

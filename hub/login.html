@@ -156,8 +156,10 @@
       </div>
       <!-- Students signing up themselves must be 13 or over (see Privacy and Terms) -->
       <div class="form-group age-check" id="age-group" style="display:none;">
-        <label class="age-label"><input type="checkbox" id="signup-age13"> <span>I'm 13 or over</span></label>
-        <p class="form-hint">Under 13? Ask a parent or carer to sign up as a parent and create your account for you.</p>
+        <p class="form-hint" style="margin:0 0 6px;font-weight:600;color:var(--color-text);">How old are you?</p>
+        <label class="age-label"><input type="radio" name="age-band" value="16+"> <span>16 or over</span></label>
+        <label class="age-label" style="margin-top:6px;"><input type="radio" name="age-band" value="13-15"> <span>13 to 15</span></label>
+        <p class="form-hint">13 to 15: you can try Lobe Limpet for 7 days, then a parent or carer needs to join you (we'll help you invite them). Under 13? Ask a parent or carer to sign up as a parent and create your account for you.</p>
       </div>
       <!-- News and tips: adults only, unticked (consent) -->
       <div class="form-group age-check" id="news-group">
@@ -213,6 +215,7 @@ const TERMS_VERSION = '2026-11-13';
   import { readInvite, acceptInvite, emailMatches, ROLE_LABEL } from './invite.js?v=20261120d';
   import { findClass } from './join-class.js?v=20261120d';
   import { saveEmailIndex } from './email-index.js?v=20261123e';
+  import { PROXY_URL, workerAction } from './ai.js?v=20261120d';
   import { sendWelcome, sendPasswordEmail } from './mail.js?v=20261123a';
   import {
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -231,6 +234,9 @@ const TERMS_VERSION = '2026-11-13';
      page can be used (or they can sign out first). */
   const params = new URLSearchParams(location.search);
   const inviteCode = params.get('invite');
+  // login.html?parent=CODE: a student's Invite a parent link
+  const parentCode = /^[a-z0-9]{8,20}$/.test(params.get('parent') || '') ? params.get('parent') : null;
+  let parentInv = null;
   const signupParam = ['parent', 'student', 'teacher'].includes(params.get('signup')) ? params.get('signup') : null;
   let invite = null;          // a valid invite, once read
   let inviteReady = null;     // promise for the lookup
@@ -266,8 +272,30 @@ const TERMS_VERSION = '2026-11-13';
       }
       return invite;
     });
+  } else if (parentCode) {
+    inviteReady = fetch(PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'parentInviteInfo', code: parentCode }) })
+      .then(r => r.json()).then(r => {
+        if (r.ok) {
+          parentInv = r;
+          const who = escH(r.first || 'A student');
+          inviteBox(`<strong>${who}</strong> has invited you to be their parent or carer on Lobe Limpet${r.why === 'plus' ? ', and would like Family Plus' : ''}.<span>Create a parent account below, or sign in if you already have one. You'll be linked to ${who} straight away and see how their revision is going.</span>`);
+          window._switchTab('signup'); window._selectType('parent');
+          document.querySelector('#panel-signup .signup-type-row').style.display = 'none';
+          document.querySelector('#panel-signup > p').style.display = 'none';
+          document.getElementById('invite-alt').hidden = false;
+        } else {
+          const why = { used: 'has already been used', expired: 'has expired' }[r.reason] || "isn't valid";
+          inviteBox(`This invite link ${why}.<span>Ask ${escH(r.first || 'your student')} to send a new one from Lobe Limpet.</span>`, 'warn');
+        }
+      }).catch(() => {});
   } else if (signupParam) {
     setTimeout(() => { window._switchTab('signup'); window._selectType(signupParam); }, 0);
+  }
+  // A student's Invite a parent link: link this (parent) account. Returns where to go next, or null
+  async function useParentInvite() {
+    if (!parentInv) return null;
+    const r = await workerAction('acceptParentInvite', { code: parentCode });
+    return r.why === 'plus' ? 'plus.html' : 'parent.html';
   }
   // Invite checks shared by sign-in and sign-up
   async function useInvite(uid, email) {
@@ -333,6 +361,10 @@ const TERMS_VERSION = '2026-11-13';
       const limit = (p, ms, code) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error(code), { code })), ms))]);
       const cred = await limit(signInWithEmailAndPassword(auth, email, password), 20000, 'clasp/signin-timeout');
       if (!(await useInvite(cred.user.uid, email))) { await signOut(auth); flowBusy = false; setLoading('btn-login', false); return; }
+      if (parentInv) {
+        try { const next = await useParentInvite(); if (next) { location.href = next; return; } }
+        catch (e) { flowBusy = false; setLoading('btn-login', false); showError(e.message); return; }
+      }
       // Log under the profile name. The sign-in's own name can be out of date
       // (e.g. a login first made as a child account), so bring it into line too.
       const prof = await limit(getDoc(doc(db, 'users', cred.user.uid)), 6000, 'clasp/timeout').then(d => d.exists() ? d.data() : null).catch(() => null);
@@ -359,9 +391,9 @@ const TERMS_VERSION = '2026-11-13';
     if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
     const school = (document.getElementById('signup-school')?.value || '').trim();
     if (signupType === 'teacher' && !school) { showError('Please enter your school name.'); return; }
-    const age13 = document.getElementById('signup-age13').checked;
+    const ageBand = document.querySelector('input[name="age-band"]:checked')?.value || '';
     if (signupType === 'student' && !studentSelf) { showError('Students: please ask a parent or carer to create your account.'); return; }
-    if (signupType === 'student' && !age13) { showError("Please confirm you're 13 or over. If you're under 13, a parent or carer needs to create your account."); return; }
+    if (signupType === 'student' && !ageBand) { showError("Please say how old you are. If you're under 13, a parent or carer needs to create your account."); return; }
     if (!document.getElementById('signup-terms').checked) { showError('Please read and agree to the Terms of use.'); return; }
     const terms = { version: TERMS_VERSION, at: Date.now() };   // agreed at sign-up
     // News and tips: only if an adult ticked the box (with when, as a record of consent)
@@ -402,7 +434,9 @@ const TERMS_VERSION = '2026-11-13';
           classes: classInfo ? { [classInfo.classId]: true } : {},
           classPacks: classInfo ? { [classInfo.classId]: classInfo.packIds || [] } : {},
           packIds: classInfo ? (classInfo.packIds || []) : [],
-          ageConfirmed: { over13: true, at: Date.now() },   // ticked "I'm 13 or over" at sign-up
+          ageConfirmed: { over13: true, at: Date.now() },   // chose an age band of 13 or over at sign-up
+          ageBand,                                            // '13-15' or '16+'
+          ...(ageBand === '13-15' ? { trialEnds: Date.now() + 7 * 86400000 } : {}),   // then a parent needs to join
           terms,
           teacherIds: classInfo ? [classInfo.teacherUid] : [],
           ...(classInfo ? { lastJoin: { teacherUid: classInfo.teacherUid, classId: classInfo.classId, at: Date.now() } } : {})
@@ -415,8 +449,13 @@ const TERMS_VERSION = '2026-11-13';
         await saveEmailIndex(uid, email, name, ['student']);
       }
       if (invite) await useInvite(uid, email);
+      let next = null;
+      if (parentInv && signupType === 'parent') {
+        try { next = await useParentInvite(); } catch (e) { console.warn('Parent invite not accepted', e.message); }
+      }
       await sendWelcome();   // our welcome email (never blocks sign-up; gives up after 4 seconds)
       await Promise.race([logEvent('account.signup', { as: { uid, name, role: signupType === 'parent' ? 'parent' : signupType }, detail: signupType === 'teacher' ? `Teacher at ${school}` : classInfo ? `Joined ${classInfo.className || 'a class'}` : `${signupType[0].toUpperCase() + signupType.slice(1)} account` }), new Promise(r => setTimeout(r, 1500))]);
+      if (next) { location.href = next; return; }
       await redirectByRole(uid);
     } catch(e) {
       flowBusy = false;
@@ -448,7 +487,7 @@ const TERMS_VERSION = '2026-11-13';
   // Failures here are quiet; the sign-in form is still usable.
   onAuthStateChanged(auth, async (user) => {
     if (!user || flowBusy) return;
-    if (inviteCode || signupParam) { await inviteReady; return signedInChoice(user); }
+    if (inviteCode || signupParam || parentCode) { await inviteReady; return signedInChoice(user); }
     try { await redirectByRole(user.uid); }
     catch (e) {
       console.warn('Auto sign-in redirect failed:', e.message);
@@ -459,6 +498,18 @@ const TERMS_VERSION = '2026-11-13';
   // Opened an invite or sign-up link while already signed in
   function signedInChoice(user) {
     const email = user.email || '';
+    if (parentCode) {
+      if (!parentInv) return;   // the box already says the link isn't valid
+      inviteBox(`You're signed in as <strong>${escH(email)}</strong>.<span>Accept ${escH(parentInv.first || 'the student')}'s invite with this account (it must be a parent account), or sign out to use another.</span>
+        <div class="invite-btns"><button class="btn btn-primary" id="pv-accept">Accept invite</button><button class="btn btn-secondary" id="pv-signout">Sign out</button></div>`);
+      document.getElementById('pv-signout').onclick = async () => { await signOut(auth); location.reload(); };
+      document.getElementById('pv-accept').onclick = async (ev) => {
+        ev.target.disabled = true; ev.target.textContent = 'Accepting…';
+        try { flowBusy = true; location.href = await useParentInvite(); }
+        catch (e) { flowBusy = false; ev.target.disabled = false; ev.target.textContent = 'Accept invite'; showError(e.message); }
+      };
+      return;
+    }
     const canAccept = invite && emailMatches(invite, email);
     inviteBox(`You're signed in as <strong>${escH(email)}</strong>.<span>${canAccept ? 'Accept the invite with this account, or sign out to use another.' : invite ? `This invite is for ${escH(invite.email)}. Sign out, then sign in or sign up with that email.` : 'To create a new account, sign out first.'}</span>
       <div class="invite-btns">${canAccept ? '<button class="btn btn-primary" id="iv-accept">Accept invite</button>' : ''}<button class="btn btn-secondary" id="iv-signout">Sign out</button><button class="btn btn-ghost" id="iv-go">Go to Lobe Limpet</button></div>`, invite ? '' : 'plain');

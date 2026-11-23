@@ -401,6 +401,7 @@ import { dueEntries, nextDueDay, scheduledCount, whenText, REVIEW_SIZE } from '.
 import { goalStatus, planSummary, loadPlanSettings, targetText, isoDay, daysBetween, planSchedule, subjectNeed, planPacks, planPack } from './plan.js?v=20261120d';
 import { openPlanCalendar, loadPlanSubjects } from './plan-view.js?v=20261120d';
 import { logEvent } from './log.js?v=20261120d';
+import { inviteParentCardHtml, inviteParentGateHtml } from './parent-invite.js?v=20261123e';
 import { loadCardSets } from './card-sets.js?v=20261120d';
 import { lobeySays, lobeyImg, syncLobey, LINES, STREAK_MILESTONES } from './lobey.js?v=20261120d';
 import { openChoosePacks, mountStudentStart, packSource, SOURCE_TEXT, hasStarted, startHereHtml, wireStartHere, openBorrow, PARENT_NOTE } from './student-start.js?v=20261120d';
@@ -442,6 +443,18 @@ requireAuth(async (user, profile) => {
   if (!isPreview()) document.getElementById('plus-link').innerHTML = plusPillHtml(profile);
   // A parent asking to link with this account: Accept or Decline at the top
   if (!isPreview() && isStudent(profile)) showLinkRequests(document.querySelector('.welcome-banner'), user.uid, profile).catch(() => {});
+  // No parent or carer linked yet: Invite a parent. Under 16s who signed up
+  // themselves get 7 days (trialEnds), then need a parent to carry on.
+  if (!isPreview() && isStudent(profile) && !(profile.parentUid || (profile.guardianIds || []).length)) {
+    const young = profile.ageBand === '13-15';
+    const left = young ? Math.max(0, Math.ceil(((Number(profile.trialEnds) || 0) - Date.now()) / 86400000)) : null;
+    if (young && left <= 0) {
+      document.querySelector('.page').innerHTML = inviteParentGateHtml(firstName);
+      document.getElementById('jump-bar')?.remove?.();
+      return;
+    }
+    document.querySelector('.welcome-banner').insertAdjacentHTML('afterend', inviteParentCardHtml({ trialLeft: left }));
+  }
 
   // Admin/parent: show admin link and load first available group for preview
   if (!isStudent(profile)) {
