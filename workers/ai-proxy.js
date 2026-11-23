@@ -40,6 +40,7 @@
 //                       kind 'studentSetup': "choose your password" to a new
 //                       student, by the parent or teacher who made the account
 //                       (or an admin); 30 a day per sender
+//   action 'startPreview'   admins: both getting-started emails, sent to you now
 //   action 'weeklyPreview'  admins: this week's parent summary for a parent
 //                       (yourself by default), sent to your own email now
 //   GET/POST /email/unsubscribe  turns off a parent's weekly summary
@@ -66,6 +67,8 @@
 //   runs the picture clean-up automatically.
 // Cron Trigger "0 17,18 * * SUN" (exactly this): the weekly parent summary,
 //   Sundays at 6pm UK time (17:00 UTC in summer, 18:00 UTC in winter).
+// Cron Trigger "30 9 * * *": getting-started emails to parents with no
+//   students yet (day 2 and day 7 after sign-up), every morning.
 //   STRIPE_SECRET_KEY_TEST, STRIPE_WEBHOOK_SECRET_TEST, STRIPE_PRODUCT_ID_TEST
 //                       secrets for Stripe's test mode (used from carygibbs.com, the dev site)
 //   STRIPE_SECRET_KEY_LIVE, STRIPE_WEBHOOK_SECRET_LIVE, STRIPE_PRODUCT_ID_LIVE
@@ -127,6 +130,11 @@ export default {
   async scheduled(event, env, ctx) {
     // Weekly parent summary: Cron Trigger "0 17,18 * * SUN" fires at 17:00 and
     // 18:00 UTC on Sundays; only the one that is 6pm in London sends
+    // Getting-started emails: Cron Trigger "30 9 * * *" (every morning)
+    if (String(event.cron || '').startsWith('30 9 ')) {
+      ctx.waitUntil(startNudges(env).catch(e => console.warn('Getting-started emails failed', e.message)));
+      return;
+    }
     if (/17,18/.test(String(event.cron || ''))) {
       ctx.waitUntil(weeklySummaries(env).catch(e => console.warn('Weekly summary failed', e.message)));
       return;
@@ -202,6 +210,13 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await sendEmailAction(env, user, body, origin)); }
       catch (e) { return fail(e.status || 500, e.message || "The email couldn't be sent"); }
+    }
+
+    // ── Getting-started emails: send yourself both now (admins) ──
+    if (body.action === 'startPreview') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await startPreview(env, user)); }
+      catch (e) { return fail(e.status || 500, e.message || "The preview couldn't be sent"); }
     }
 
     // ── Weekly parent summary: send yourself a preview now (admins) ──
@@ -1685,10 +1700,10 @@ function studentText(st, w) {
   return out.join('\n');
 }
 
-async function unsubToken(env, uid) {
+async function unsubToken(env, uid, kind = 'weekly') {
   const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(`${sa.private_key_id || ''}:${sa.private_key}:weekly`), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${uid}:weekly`)));
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${uid}:${kind}`)));
   return [...sig].slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
@@ -1813,12 +1828,14 @@ async function weeklyPreview(env, user, body) {
 async function unsubscribePage(request, env) {
   const url = new URL(request.url);
   const uid = url.searchParams.get('u') || '', k = url.searchParams.get('k') || '';
+  const kind = url.searchParams.get('t') === 'start' ? 'start' : 'weekly';   // which emails: weekly summary or getting-started tips
+  const prefOff = { emailPrefs: { mapValue: { fields: { [kind]: { booleanValue: false } } } } };
   const page = (title, body) => new Response(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title></head>
 <body style="margin:0;background:#eef5f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1f3440;">
 <div style="max-width:460px;margin:60px auto;background:#fff;border-radius:16px;padding:28px;">
 <p style="margin:0 0 18px;font-size:22px;font-weight:800;color:#123a4a;">lobe <span style="color:#e8603e;">limpet</span></p>
 <h1 style="font-size:22px;color:#123a4a;margin:0 0 12px;">${title}</h1>${body}</div></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
-  const ok = uid && k && env.FIREBASE_SERVICE_ACCOUNT && k === await unsubToken(env, uid);
+  const ok = uid && k && env.FIREBASE_SERVICE_ACCOUNT && k === await unsubToken(env, uid, kind);
   // From the unsubscribe page on lobelimpet.com: answer in JSON
   const origin = request.headers.get('Origin') || '';
   if (ALLOWED_ORIGINS.includes(origin)) {
@@ -1827,17 +1844,116 @@ async function unsubscribePage(request, env) {
     if (!ok) return new Response(JSON.stringify({ ok: false }), { headers: h });
     if (request.method !== 'POST') return new Response(JSON.stringify({ ok: true }), { headers: h });
     const tok = await serviceToken(env);
-    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: { emailPrefs: { mapValue: { fields: { weekly: { booleanValue: false } } } } } },
-      updateMask: { fieldPaths: ['emailPrefs.weekly'] }, currentDocument: { exists: true } }]);
+    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: prefOff },
+      updateMask: { fieldPaths: [`emailPrefs.${kind}`] }, currentDocument: { exists: true } }]);
     return new Response(JSON.stringify({ ok: true, done: true }), { headers: h });
   }
   if (!ok) return page('This link doesn\'t work', '<p style="line-height:1.55;">You can turn the weekly email off in Lobe Limpet: tap your name at the bottom of the menu, then Account settings.</p>');
   if (request.method === 'POST') {
     const tok = await serviceToken(env);
-    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: { emailPrefs: { mapValue: { fields: { weekly: { booleanValue: false } } } } } },
-      updateMask: { fieldPaths: ['emailPrefs.weekly'] }, currentDocument: { exists: true } }]).catch(() => {});
+    await fsCommit(tok, [{ update: { name: `${DOCS}/users/${uid}`, fields: prefOff },
+      updateMask: { fieldPaths: [`emailPrefs.${kind}`] }, currentDocument: { exists: true } }]).catch(() => {});
+    if (kind === 'start') return page('Tips turned off', '<p style="line-height:1.55;">We won\'t send you any more getting-started emails.</p><p><a href="https://lobelimpet.com/parent.html" style="color:#123a4a;font-weight:700;">Go to Lobe Limpet</a></p>');
     return page('Weekly emails turned off', '<p style="line-height:1.55;">You won\'t get the Sunday summary any more. You can turn it back on any time in Lobe Limpet, under Account settings.</p><p><a href="https://lobelimpet.com/parent.html" style="color:#123a4a;font-weight:700;">Go to Lobe Limpet</a></p>');
   }
   return page('Turn off the weekly email?', `<p style="line-height:1.55;">You'll stop getting the Sunday summary of your students' revision. Account emails (like password links) still come when you ask for them.</p>
 <form method="post"><button style="background:#123a4a;color:#fff;border:0;border-radius:10px;padding:14px 24px;font-size:16px;font-weight:700;cursor:pointer;">Turn off weekly emails</button></form>`);
+}
+
+/* ============================================================
+   Getting started: parents who haven't added a student yet
+   Day 2 (sent between days 2 and 6) and day 7 (days 7 to 13) after
+   sign-up, then nothing more. Not sent once they have a student or a
+   link request waiting, or if they turned these off (emailPrefs.start).
+   Every morning, Cron Trigger "30 9 * * *".
+   ============================================================ */
+function startEmail(parent, n, unsub) {
+  const site = 'https://lobelimpet.com';
+  const hi = firstName(parent.name) ? `Hi ${escH(firstName(parent.name))},` : 'Hi,';
+  const add = { label: 'Add a student', url: `${site}/parent.html?add=student` };
+  const footer = `You're getting this because you signed up to Lobe Limpet and haven't added a student yet. <a href="${unsub}" style="color:#5d7c89;">No more of these emails</a>.`;
+  const content = n === 1 ? {
+    heading: 'Ready when you are',
+    paras: [hi, 'You\'re all set up. The next step is adding the student you\'re helping. It takes about two minutes:',
+      '1. <strong>Tap Add student</strong> and enter their name and email. Leave the password blank and we\'ll email them a link to choose their own.',
+      '2. <strong>Pick their revision packs,</strong> or turn class notes and worksheets into your own.',
+      '3. <strong>They start revising,</strong> and you see how they\'re getting on.'],
+    button: add,
+    after: ['Already have a Lobe Limpet account for them? Enter their email and we\'ll send them a request to link with you.',
+      'Any questions, just reply to this email.', 'The Lobe Limpet team'],
+    footer,
+  } : {
+    heading: 'One step to go',
+    paras: [hi, 'Once your student is added, you\'ll get a short summary from us every Sunday evening:',
+      '• <strong>How much they revised</strong>, and on how many days',
+      '• <strong>Quiz scores</strong>, and the topics that are going well',
+      '• <strong>Topics worth another look</strong>, with an idea for helping'],
+    button: add,
+    after: ['This is the last reminder we\'ll send. If now isn\'t the right time, Lobe Limpet will be here when you\'re ready.', 'The Lobe Limpet team'],
+    footer,
+  };
+  return { subject: n === 1 ? 'Add your student to Lobe Limpet' : 'One step to go on Lobe Limpet', html: emailHtml(content), text: emailText(content) };
+}
+
+async function startNudges(env, { dryRun = false } = {}) {
+  if (!env.RESEND_API_KEY || !env.FIREBASE_SERVICE_ACCOUNT) return { sent: 0, skipped: 'not set up' };
+  const tok = await serviceToken(env);
+  const today = londonDay();
+  const users = await usersForWeekly(tok);
+  const hasStudent = new Set();
+  users.filter(u => rolesOf(u).has('student')).forEach(st => [st.parentUid, ...(st.guardianIds || [])].filter(Boolean).forEach(p => hasStudent.add(p)));
+  const due = [];
+  users.forEach(u => {
+    const r = rolesOf(u);
+    if (!r.has('parent') || r.has('teacher') || r.has('admin') || !u.email || u.emailPrefs?.start === false || hasStudent.has(u.id)) return;
+    if (!(Number(u.createdAt) > 0)) return;
+    const age = dayGap(londonDay(new Date(Number(u.createdAt))), today);
+    const n = age >= 2 && age <= 6 ? 1 : age >= 7 && age <= 13 ? 2 : 0;
+    if (n) due.push({ u, n });
+  });
+  if (!due.length) return { sent: 0 };
+  const marker = d => `emailSent/start${d.n}_${d.u.id}`;
+  const done = await fsExisting(tok, due.map(marker));
+  let todo = due.filter(d => !done.has(marker(d)));
+  // A link request waiting for the student to accept counts as getting started
+  const waiting = await Promise.all(todo.map(d => fsQuery(tok, 'parentLinks', 'by', 'EQUAL', d.u.id)));
+  todo = todo.filter((d, i) => !waiting[i].some(l => l.status === 'pending' || l.status === 'accepted'));
+  if (dryRun) return { wouldSend: todo.map(d => ({ uid: d.u.id, n: d.n })) };
+  let sent = 0;
+  for (let i = 0; i < todo.length; i += 100) {
+    const chunk = todo.slice(i, i + 100);
+    const emails = await Promise.all(chunk.map(async d => {
+      const q = `u=${encodeURIComponent(d.u.id)}&k=${await unsubToken(env, d.u.id, 'start')}&t=start`;
+      const e = startEmail(d.u, d.n, `https://lobelimpet.com/unsubscribe.html?${q}`);
+      return { from: env.EMAIL_FROM || EMAIL_FROM_DEFAULT, to: [d.u.email], reply_to: EMAIL_REPLY_TO, ...e,
+        headers: { 'List-Unsubscribe': `<${WORKER_URL}/email/unsubscribe?${q}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+        tags: [{ name: 'kind', value: `start_${d.n}` }] };
+    }));
+    const r = await fetch('https://api.resend.com/emails/batch', {
+      method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(emails),
+    });
+    if (!r.ok) { console.warn('Getting-started batch failed', r.status, (await r.text()).slice(0, 300)); continue; }
+    sent += chunk.length;
+    await fsCommit(tok, chunk.map(d => ({ update: { name: `${DOCS}/${marker(d)}`, fields: {
+      at: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 90 * 86400000)) } } }))).catch(e => console.warn('Markers not saved', e.message));
+  }
+  if (sent) await workerLog(tok, 'system', { name: 'Lobe Limpet' }, 'email.start', `Getting-started email sent to ${sent} parent${sent === 1 ? '' : 's'}`);
+  return { sent };
+}
+
+async function startPreview(env, user) {
+  if (!env.RESEND_API_KEY) throw oops(503, 'Email is not set up yet');
+  const tok = await serviceToken(env);
+  const me = await fsGet(tok, `users/${user.uid}`);
+  if (!(user.uid === OWNER_UID || rolesOf(me).has('admin'))) throw oops(403, 'Admins only');
+  const q = `u=${encodeURIComponent(user.uid)}&k=${await unsubToken(env, user.uid, 'start')}&t=start`;
+  for (const n of [1, 2]) {
+    const e = startEmail(me || {}, n, `https://lobelimpet.com/unsubscribe.html?${q}`);
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: env.EMAIL_FROM || EMAIL_FROM_DEFAULT, to: [user.email], reply_to: EMAIL_REPLY_TO, ...e, subject: `[Preview ${n} of 2] ${e.subject}` }),
+    });
+    if (!r.ok) throw oops(502, `The preview couldn't be sent (${r.status})`);
+  }
+  return { ok: true, to: user.email };
 }

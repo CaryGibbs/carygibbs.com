@@ -77,7 +77,10 @@ export function openAccountSettings({ user, profile = {} } = {}) {
           <span class="as-msg" id="as-weekly-msg" role="status"></span>` : ''}
           ${isAdmin ? `<p class="as-hint" style="margin-top:10px;">Admin: send yourself this week's summary for your own students, as it would look on Sunday.</p>
           <button class="btn btn-secondary" id="as-weekly-preview">Email me a preview</button>
-          <span class="as-msg" id="as-preview-msg" role="status"></span>` : ''}
+          <span class="as-msg" id="as-preview-msg" role="status"></span>
+          <p class="as-hint" style="margin-top:10px;">The two getting-started emails new parents get if they haven't added a student (days 2 and 7).</p>
+          <button class="btn btn-secondary" id="as-start-preview">Email me the getting-started emails</button>
+          <span class="as-msg" id="as-start-msg" role="status"></span>` : ''}
         </section>` : ''}
 
         <section class="as-sec">
@@ -132,6 +135,13 @@ export function openAccountSettings({ user, profile = {} } = {}) {
     try { const r = await workerAction('weeklyPreview'); pmsg.textContent = `Sent to ${r.to}.`; }
     catch (e) { pmsg.textContent = e.message; }
     finally { prev.disabled = false; }
+  };
+  const sprev = document.getElementById('as-start-preview'), smsg2 = document.getElementById('as-start-msg');
+  if (sprev) sprev.onclick = async () => {
+    sprev.disabled = true; smsg2.textContent = 'Sending…';
+    try { const r = await workerAction('startPreview'); smsg2.textContent = `Sent both to ${r.to}.`; }
+    catch (e) { smsg2.textContent = e.message; }
+    finally { sprev.disabled = false; }
   };
   fillPlan(user, profile).catch(e => console.warn('Plan details not loaded', e.message));
   const del = document.getElementById('as-delete');

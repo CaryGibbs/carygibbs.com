@@ -520,7 +520,14 @@ requireAuth((user, profile) => {
     if (location.hash !== '#home') { location.hash = 'home'; }
   }
   // Groups first, so child cards show group names rather than ids
-  loadGroups().finally(() => { loadChildren(); loadPendingLinks(); loadOwnStats(); });
+  loadGroups().finally(() => {
+    loadChildren(); loadPendingLinks(); loadOwnStats();
+    // From the "add your student" emails: parent.html?add=student opens Add student
+    if (new URLSearchParams(location.search).get('add') === 'student') {
+      try { history.replaceState(null, '', 'parent.html#home'); } catch (e) {}
+      window._openAddModal();
+    }
+  });
 });
 
 window._doSignOut = () => handleSignOut();

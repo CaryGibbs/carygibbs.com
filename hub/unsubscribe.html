@@ -54,9 +54,17 @@
   (function () {
     var WORKER = 'https://curly-recipe-8b84.clasp-hub-app.workers.dev/email/unsubscribe';
     var q = new URLSearchParams(location.search);
-    var u = q.get('u') || '', k = q.get('k') || '';
+    var u = q.get('u') || '', k = q.get('k') || '', t = q.get('t') === 'start' ? 'start' : '';
+    // Getting-started emails (t=start) rather than the weekly summary
+    if (t) {
+      document.querySelector('#v-ask h1').textContent = 'Stop the getting-started emails?';
+      document.querySelector('#v-ask p').textContent = "We'll stop sending reminders about adding a student. Account emails, like password links, still come when you ask for them.";
+      document.getElementById('off').textContent = 'Stop these emails';
+      document.querySelector('#v-done h1').textContent = 'Done';
+      document.querySelector('#v-done p').textContent = "We won't send any more getting-started emails. When you're ready, add a student from your Lobe Limpet home page.";
+    }
     var show = function (id) { ['v-ask', 'v-done', 'v-bad'].forEach(function (v) { document.getElementById(v).hidden = v !== id; }); };
-    var url = WORKER + '?u=' + encodeURIComponent(u) + '&k=' + encodeURIComponent(k);
+    var url = WORKER + '?u=' + encodeURIComponent(u) + '&k=' + encodeURIComponent(k) + (t ? '&t=' + t : '');
     if (!u || !k) { show('v-bad'); return; }
     // Check the link first, so a broken one says so straight away
     fetch(url).then(function (r) { return r.json(); }).then(function (d) { if (!d.ok) show('v-bad'); }).catch(function () {});
@@ -68,7 +76,7 @@
         else if (!d.ok) show('v-bad');
         else throw new Error();
       }).catch(function () {
-        b.disabled = false; b.textContent = 'Turn off weekly emails';
+        b.disabled = false; b.textContent = t ? 'Stop these emails' : 'Turn off weekly emails';
         err.textContent = "That didn't work. Please try again, or turn it off in Account settings.";
       });
     };
