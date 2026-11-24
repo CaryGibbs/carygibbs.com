@@ -196,6 +196,8 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .res-card p { color: var(--muted); flex: 1; }
 .res-card .stage-tag { align-self: flex-start; }
 .res-more { margin-top: 12px; font-weight: 700; font-size: 0.9rem; color: var(--coral-dark); }
+.res-free { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+@media (max-width: 760px) { .res-free { grid-template-columns: 1fr; } }
 .res-links { padding-left: 1.2em; margin-top: 8px; }
 .res-links li { margin-bottom: 6px; }
 .res-links a { color: var(--coral-dark); }
