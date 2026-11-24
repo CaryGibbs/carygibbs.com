@@ -45,7 +45,8 @@
       '<a href="resources.html"' + cur('resources.html') + '>Resources</a>' +
       '<a href="about.html"' + cur('about.html') + '>About</a>' +
       '<a href="help.html"' + cur('help.html') + '>Help</a></nav>' +
-      '<a class="nav-signin" href="login.html" id="nav-btn"' + (likelyIn ? ' hidden' : '') + '>Sign in</a>' +
+      // Sign in / Sign out: always there and the same width, so the menu never shifts
+      '<a class="nav-signin" href="login.html" id="nav-btn"' + (likelyIn ? ' data-out="1"' : '') + '>' + (likelyIn ? 'Sign out' : 'Sign in') + '</a>' +
       (likelyIn ? '<a class="btn btn-coral nav-signup" href="' + myHome + '" id="nav-signup">Go to my home</a>'
                 : '<a class="btn btn-coral nav-signup" href="login.html?signup=' + signupType + '" id="nav-signup">Sign up free</a>') +
       '<button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>' +
@@ -125,7 +126,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261124p'),
+        import('./firebase-config.js?v=20261124q'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -137,7 +138,7 @@
             try { localStorage.removeItem('ll_home'); } catch (e) {}
             var su = document.getElementById('nav-signup');
             if (su) { su.textContent = 'Sign up free'; su.href = 'login.html?signup=' + signupType; }
-            var si = document.getElementById('nav-btn'); if (si) si.hidden = false;
+            var si = document.getElementById('nav-btn'); if (si) { si.textContent = 'Sign in'; si.removeAttribute('data-out'); }
             var ms = document.getElementById('menu-signin'); if (ms) { ms.textContent = 'Sign in'; ms.href = 'login.html'; }
             return;
           }
@@ -146,7 +147,7 @@
           var up = document.getElementById('nav-signup');
           if (up) { up.textContent = 'Go to my home'; up.href = myHome; }
           var inBtn = document.getElementById('nav-btn');
-          if (inBtn) inBtn.hidden = true;
+          if (inBtn) { inBtn.textContent = 'Sign out'; inBtn.setAttribute('data-out', '1'); }
           var fu = document.getElementById('foot-signup');
           if (fu) fu.parentNode.hidden = true;
           ['foot-signin', 'menu-signin'].forEach(function (id) {
@@ -160,6 +161,20 @@
     ('requestIdleCallback' in window) ? requestIdleCallback(check, { timeout: 1500 }) : setTimeout(check, 300);
   }
 
+  // ── "Sign out" in the website header ──
+  if (head) document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('#nav-btn[data-out]');
+    if (!a) return;
+    e.preventDefault();
+    try { localStorage.removeItem('ll_home'); } catch (x) {}
+    Promise.all([
+      import('./firebase-config.js?v=20261124q'),
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
+    ]).then(function (m) { return m[1].signOut(m[0].auth); })
+      .catch(function () {})
+      .then(function () { location.reload(); });
+  });
+
   // ── "Get help" buttons (data-get-help) open the support form ──
   // support.js is only loaded when one is pressed. data-get-help="plus"
   // picks that topic to start with.
@@ -167,20 +182,20 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261124p').then(function (m) {
+    import('./support.js?v=20261124q').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261124p';
+  hs.src = 'help-sheet.js?v=20261124q';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261124p';
+  pwa.src = 'pwa.js?v=20261124q';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

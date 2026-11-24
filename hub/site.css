@@ -114,7 +114,7 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .nav-links { display: flex; gap: 20px; }
 .nav-links a { text-decoration: none; font-weight: 600; font-size: 0.93rem; color: var(--deep); opacity: 0.8; }
 .nav-links a:hover, .nav-links a[aria-current] { opacity: 1; color: var(--coral-dark); }
-.nav-signin { text-decoration: none; font-weight: 700; font-size: 0.93rem; color: var(--deep); white-space: nowrap; }
+.nav-signin { text-decoration: none; font-weight: 700; font-size: 0.93rem; color: var(--deep); white-space: nowrap; display: inline-block; min-width: 4.6em; text-align: center; } /* same width for "Sign in" and "Sign out" */
 .nav-signin:hover { color: var(--coral-dark); }
 .nav-signin[hidden] { display: none; }
 .nav-signup { padding: 9px 18px; font-size: 0.9rem; white-space: nowrap; min-width: 9.9em; } /* same width for "Sign up free" and "Go to my home" */
@@ -319,8 +319,8 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 @media (min-width: 861px) { .nav-menu { display: none !important; } }
 /* Eight top items (with Resources and About): closer together on smaller laptops, and the menu button a little earlier so Sign up always fits */
 @media (max-width: 1320px) { .nav-links { gap: 16px; } }
-@media (max-width: 1060px) { .nav-links { display: none; } .nav-toggle { display: inline-flex; } .nav-right { gap: 10px; } }
-@media (min-width: 861px) and (max-width: 1060px) { .nav-menu { display: flex !important; } .nav-menu[hidden] { display: none !important; } }
+@media (max-width: 1090px) { .nav-links { display: none; } .nav-toggle { display: inline-flex; } .nav-right { gap: 10px; } }
+@media (min-width: 861px) and (max-width: 1090px) { .nav-menu { display: flex !important; } .nav-menu[hidden] { display: none !important; } }
 
 /* ── Proof on the home page: progress mock, short comparison, gap grid ── */
 .prog-mock { max-width: 560px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px; box-shadow: 0 18px 44px rgba(18,58,74,0.10); }
