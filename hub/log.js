@@ -13,8 +13,8 @@
 // Logging never blocks or breaks the action it records.
 // ============================================================
 
-import { db, auth } from './firebase-config.js?v=20261124t';
-import { PROXY_URL } from './ai.js?v=20261124t';
+import { db, auth } from './firebase-config.js?v=20261124u';
+import { PROXY_URL } from './ai.js?v=20261124u';
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const KEEP_DAYS = 365;
@@ -95,6 +95,9 @@ export const ACTIONS = {
   'email.weekly':        { label: 'Weekly parent summaries sent', cat: 'email' },
   'email.start':         { label: 'Getting-started emails sent', cat: 'email' },
   'email.teacher_weekly': { label: 'Weekly class summaries sent', cat: 'email' },
+  'email.weekly_sent':   { label: 'Weekly summary sent',     cat: 'email' },
+  'email.start_sent':    { label: 'Getting-started email sent', cat: 'email' },
+  'email.teacher_weekly_sent': { label: 'Weekly class summary sent', cat: 'email' },
   'email.news':          { label: 'News email sent',         cat: 'email' },
   'email.news_add':      { label: 'Added to news and tips',  cat: 'email' },
   'email.news_remove':   { label: 'Taken off news and tips', cat: 'email' },

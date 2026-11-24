@@ -1184,6 +1184,20 @@ async function workerLog(tok, uid, who, action, detail, about = null) {
   } }, currentDocument: { exists: false } }]).catch(e => console.warn('Log not saved:', e.message));
 }
 
+// Activity log entries by Lobe Limpet itself, one per person, as writes to add to a commit
+// (each names the person it was about, so Admin → Activity shows who got what)
+function systemLogWrites(action, items) {
+  const now = new Date();
+  return items.map(({ id, name, detail }) => ({ update: { name: `${DOCS}/logs/${crypto.randomUUID().replace(/-/g, '').slice(0, 20)}`, fields: {
+    ts: { integerValue: String(now.getTime()) }, at: tsv(now),
+    uid: { stringValue: 'system' }, name: { stringValue: 'Lobe Limpet' }, role: { stringValue: 'system' },
+    action: { stringValue: action }, cat: { stringValue: action.split('.')[0] },
+    target: { stringValue: String(name || '').slice(0, 120) }, targetId: { stringValue: id || '' },
+    detail: { stringValue: String(detail || '').slice(0, 160) },
+    expireAt: tsv(new Date(now.getTime() + 365 * 86400000)),
+  } }, currentDocument: { exists: false } }));
+}
+
 // Where Stripe sends people back to: a page on one of our own sites
 function safeReturn(raw, origin) {
   try {
@@ -1923,6 +1937,8 @@ async function weeklySummaries(env, { force = false, users = null } = {}) {
     sent += chunk.length;
     await fsCommit(tok, chunk.map(p => ({ update: { name: `${DOCS}/${marker(p.parent.id)}`, fields: {
       at: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 60 * 86400000)) } } }))).catch(e => console.warn('Markers not saved', e.message));
+    await fsCommit(tok, systemLogWrites('email.weekly_sent', chunk.map(p => ({ id: p.parent.id, name: p.parent.name || p.parent.email,
+      detail: `Weekly summary sent (${listAnd(p.students.map(x => firstName(x.st.name) || 'student'))})` })))).catch(e => console.warn('Log not saved', e.message));
   }
   await workerLog(tok, 'system', { name: 'Lobe Limpet' }, 'email.weekly', `Weekly summary sent to ${sent} parent${sent === 1 ? '' : 's'}`);
   return { sent };
@@ -2076,8 +2092,9 @@ async function startNudges(env, { dryRun = false } = {}) {
     sent += chunk.length;
     await fsCommit(tok, chunk.map(d => ({ update: { name: `${DOCS}/${marker(d)}`, fields: {
       at: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 90 * 86400000)) } } }))).catch(e => console.warn('Markers not saved', e.message));
+    await fsCommit(tok, systemLogWrites('email.start_sent', chunk.map(d => ({ id: d.u.id, name: d.u.name || d.u.email,
+      detail: d.n === 1 ? 'Getting-started email 1 of 2 (day 2: add your student)' : 'Getting-started email 2 of 2 (day 7: one step to go)' })))).catch(e => console.warn('Log not saved', e.message));
   }
-  if (sent) await workerLog(tok, 'system', { name: 'Lobe Limpet' }, 'email.start', `Getting-started email sent to ${sent} parent${sent === 1 ? '' : 's'}`);
   return { sent };
 }
 
@@ -2271,6 +2288,8 @@ async function teacherSummaries(env, { force = false, users = null } = {}) {
     sent += chunk.length;
     await fsCommit(tok, chunk.map(p => ({ update: { name: `${DOCS}/${marker(p.t.id)}`, fields: {
       at: tsv(new Date()), expireAt: tsv(new Date(Date.now() + 60 * 86400000)) } } }))).catch(e => console.warn('Markers not saved', e.message));
+    await fsCommit(tok, systemLogWrites('email.teacher_weekly_sent', chunk.map(p => ({ id: p.t.id, name: p.t.name || p.t.email,
+      detail: `Weekly class summary sent (${listAnd(p.classes.map(c => c.name))})` })))).catch(e => console.warn('Log not saved', e.message));
   }
   await workerLog(tok, 'system', { name: 'Lobe Limpet' }, 'email.teacher_weekly', `Weekly class summary sent to ${sent} teacher${sent === 1 ? '' : 's'}`);
   return { sent };
