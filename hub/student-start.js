@@ -17,12 +17,12 @@
 // Lobe Limpet (official) packs can be read by anyone signed in.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261124a';
-import { listPacks, flatPackIds } from './packs.js?v=20261124a';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261124a';
-import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261124a';
-import { studyEntries } from './gamification.js?v=20261124a';
-import { logEvent } from './log.js?v=20261124a';
+import { db } from './firebase-config.js?v=20261124b';
+import { listPacks, flatPackIds } from './packs.js?v=20261124b';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261124b';
+import { firstStepsState, saveFirstSteps, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261124b';
+import { studyEntries } from './gamification.js?v=20261124b';
+import { logEvent } from './log.js?v=20261124b';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
