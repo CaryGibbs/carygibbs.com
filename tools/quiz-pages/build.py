@@ -15,7 +15,10 @@ import html, json, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from pages import PAGES, INDEX_GROUPS, INDEX_EXTRA
 
-V = '20261124t'          # shared cache tag used across the public pages
+import re as _re
+# Shared cache tag: read from resources.html so these pages always match the
+# rest of the site (other work bumps it across every page).
+V = _re.search(r'dev-flag\.js\?v=([0-9a-z]+)', open(os.path.join(os.path.dirname(__file__), '..', '..', 'hub', 'resources.html')).read()).group(1)
 SITE = 'https://lobelimpet.com/'
 HUB = os.path.join(os.path.dirname(__file__), '..', '..', 'hub')
 TODAY = '2026-11-24'
