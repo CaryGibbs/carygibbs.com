@@ -42,7 +42,7 @@
         "@type": "BreadcrumbList",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Lobe Limpet", "item": "https://lobelimpet.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Resources", "item": "https://lobelimpet.com/resources.html" },
+          { "@type": "ListItem", "position": 2, "name": "Free revision quizzes", "item": "https://lobelimpet.com/free-revision-quizzes.html" },
           { "@type": "ListItem", "position": 3, "name": "GCSE Chemistry Paper 2 quiz", "item": "https://lobelimpet.com/gcse-chemistry-paper-2-quiz.html" }
         ]
       }
@@ -53,7 +53,7 @@
 </head>
 <body>
 <div id="site-header"></div>
-<div class="page-hero has-mascot"><div class="wrap"><p class="guide-kicker"><a href="resources.html">Resources</a> · Free revision quiz</p><h1>GCSE Chemistry Paper 2 revision quiz (AQA)</h1><p>Twelve quick questions across every Paper 2 topic, then the key points to go back over. Free, no sign-up, and it takes about five minutes.</p><img class="page-mascot" src="assets/images/brand/mascot/limpet-think.svg?v=20261124t" alt="" width="108" height="114"></div></div>
+<div class="page-hero has-mascot"><div class="wrap"><p class="guide-kicker"><a href="free-revision-quizzes.html">Free revision quizzes</a> · GCSE Chemistry</p><h1>GCSE Chemistry Paper 2 revision quiz (AQA)</h1><p>Twelve quick questions across every Paper 2 topic, then the key points to go back over. Free, no sign-up, and it takes about five minutes.</p><img class="page-mascot" src="assets/images/brand/mascot/limpet-think.svg?v=20261124t" alt="" width="108" height="114"></div></div>
 <main class="wrap"><div class="prose guide">
 
 <p class="updated">For AQA GCSE Chemistry (8462) and Combined Science: Trilogy (8464) · Updated November 2026</p>
@@ -295,7 +295,7 @@
   <li><strong>Practise the calculations</strong>, such as R<sub>f</sub> values and rates from graphs, until they're automatic.</li>
   <li><strong>Check your exam board and tier.</strong> This page follows AQA. Higher tier and separate Chemistry add extra content.</li>
 </ul>
-<p>For more on how to revise, see our guide to <a href="help-your-child-revise.html">helping your child revise for their GCSEs</a> and our free <a href="revision-planner.html">printable revision planner</a>.</p>
+<p>Paper 1 next? Try our <a href="gcse-chemistry-paper-1-quiz.html">GCSE Chemistry Paper 1 quiz</a>. For more on how to revise, see our guide to <a href="help-your-child-revise.html">helping your child revise for their GCSEs</a> and our free <a href="revision-planner.html">printable revision planner</a>.</p>
 
 <div class="guide-cta">
   <h2>Keep going with Lobe Limpet</h2>
@@ -313,62 +313,11 @@
   <details><summary>I'm with a different exam board. Is this still useful?</summary><p>Much of it, yes. Edexcel, OCR and WJEC cover similar chemistry, but the topics are grouped differently across papers. Check your board's specification, and use Lobe Limpet to turn your own revision list into quizzes.</p></details>
 </section>
 
-<p class="updated">More free resources: <a href="ks3-revision-tips.html">KS3 revision tips</a>, <a href="mock-exams-guide.html">getting ready for mocks</a>, or all <a href="resources.html">Resources</a>. Lobe Limpet isn't connected to AQA. Always check your school's revision list and your exam board's specification.</p>
+<p class="updated">More free resources: <a href="ks3-revision-tips.html">KS3 revision tips</a>, <a href="mock-exams-guide.html">getting ready for mocks</a>, <a href="gcse-chemistry-paper-1-quiz.html">GCSE Chemistry Paper 1 quiz</a>, all our <a href="free-revision-quizzes.html">free revision quizzes</a>, or all <a href="resources.html">Resources</a>. Lobe Limpet isn't connected to AQA. Always check your school's revision list and your exam board's specification.</p>
 
 </div></main>
 <div id="site-footer"></div>
 <script src="site.js?v=20261124t"></script>
-<script>
-// Taster quiz: one question at a time, instant feedback, score at the end.
-// The questions are plain HTML so search engines can read them.
-(function () {
-  var box = document.getElementById('tq'); if (!box) return;
-  var qs = [].slice.call(box.querySelectorAll('.tq-q'));
-  var end = document.getElementById('tq-end'), prog = document.getElementById('tq-progress');
-  var i = 0, right = 0;
-  box.classList.add('tq-live');
-  function show(n) {
-    qs.forEach(function (q, k) { q.hidden = k !== n; });
-    prog.textContent = 'Question ' + (n + 1) + ' of ' + qs.length;
-  }
-  qs.forEach(function (q) {
-    var why = q.querySelector('.tq-why'); why.hidden = true;
-    var next = document.createElement('button');
-    next.type = 'button'; next.className = 'btn btn-deep tq-next'; next.hidden = true;
-    next.textContent = 'Next question';
-    q.appendChild(next);
-    q.querySelectorAll('.tq-opts button').forEach(function (b) {
-      b.addEventListener('click', function () {
-        if (q.dataset.done) return; q.dataset.done = '1';
-        var ok = b.dataset.k === q.dataset.answer; if (ok) right++;
-        q.querySelectorAll('.tq-opts button').forEach(function (o) {
-          o.disabled = true;
-          if (o.dataset.k === q.dataset.answer) o.classList.add('ok');
-        });
-        if (!ok) b.classList.add('no');
-        why.hidden = false;
-        why.insertAdjacentHTML('afterbegin', '<strong>' + (ok ? 'Correct. ' : 'Not quite. ') + '</strong>');
-        next.hidden = false;
-        if (qs.indexOf(q) === qs.length - 1) next.textContent = 'See my score';
-        next.focus();
-      });
-    });
-    next.addEventListener('click', function () {
-      i++;
-      if (i < qs.length) { show(i); qs[i].querySelector('.tq-opts button').focus(); return; }
-      qs.forEach(function (q) { q.hidden = true; });
-      prog.textContent = '';
-      document.getElementById('tq-score').textContent = right + ' out of ' + qs.length;
-      document.getElementById('tq-msg').textContent =
-        right >= 10 ? 'Great work. Keep it fresh with a few minutes of review each day.' :
-        right >= 6 ? 'A good start. The key points below show what to go back over.' :
-        'Worth another look. Read the key points below, then try again tomorrow: that gap is what makes it stick.';
-      end.hidden = false;
-    });
-  });
-  document.getElementById('tq-again').addEventListener('click', function () { location.reload(); });
-  show(0);
-})();
-</script>
+<script src="taster-quiz.js?v=20261124t"></script>
 </body>
 </html>

@@ -78,7 +78,7 @@
   if (foot) {
     foot.outerHTML = '<footer class="site-foot"><div class="wrap"><div class="foot-grid">' +
       '<div>' + BRAND + '<p class="foot-blurb">Snap a revision list and get everything needed to revise it.</p></div>' +
-      '<div><h4>Lobe Limpet</h4><ul><li><a href="parents.html">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li><li><a href="resources.html">Resources and guides</a></li></ul></div>' +
+      '<div><h4>Lobe Limpet</h4><ul><li><a href="parents.html">For parents</a></li><li><a href="students.html">For students</a></li><li><a href="teachers.html">For teachers</a></li><li><a href="features.html">Features</a></li><li><a href="plus.html">Pricing</a></li><li><a href="resources.html">Resources and guides</a></li><li><a href="free-revision-quizzes.html">Free revision quizzes</a></li></ul></div>' +
       '<div><h4>Get started</h4><ul><li><a href="login.html?signup=' + signupType + '" id="foot-signup">Sign up free</a></li><li><a href="login.html" id="foot-signin">Sign in</a></li><li><a href="help.html">Help &amp; FAQs</a></li><li><a href="contact.html">Contact us</a></li></ul></div>' +
       '<div><h4>Company</h4><ul><li><a href="about.html">About us</a></li><li><a href="press.html">Press and brand</a></li><li><a data-email></a></li></ul></div>' +
       '<div><h4>Legal</h4><ul><li><a href="privacy.html">Privacy notice</a></li><li><a href="terms.html">Terms of use</a></li></ul></div>' +
