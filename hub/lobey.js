@@ -13,7 +13,7 @@ const V = '20261120d';
 const FILES = {
   party: 'limpet-party', cheer: 'limpet-stretch', hello: '../limpet-animated', think: 'limpet-think',
   read: 'limpet-read', wave: 'limpet-wave', sleep: 'limpet-sleep', streak: 'limpet-streak',
-  grad: 'limpet-grad', mail: 'limpet-mail', price: 'limpet-price', cards: 'limpet-cards',
+  grad: 'limpet-grad', mail: 'limpet-mail', price: 'limpet-price', cards: 'limpet-cards', family: 'limpet-family', map: 'limpet-map',
 };
 const KEY = 'll_lobey';   // 'all' (default) · 'big' · 'off'
 
@@ -41,7 +41,7 @@ export function lobeyShows(big = false) {
 }
 
 // Party Lobey (arms up) and price-tag Lobey are wider pictures (same height)
-const WIDE = { party: 140, price: 140 };
+const WIDE = { party: 140, price: 140, family: 146 };
 const imgSize = (mood, size) => `width="${Math.round(size * (WIDE[mood] || 108) / 108)}" height="${Math.round(size * 114 / 108)}"`;
 
 export function lobeySrc(mood) {
