@@ -467,3 +467,6 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .tq-end { text-align: center; padding: 14px 0 10px; }
 .tq-score { font-family: 'Fredoka', system-ui, sans-serif; font-size: 2rem; color: var(--deep) !important; margin-bottom: 4px !important; }
 .tq-end .btn { margin: 6px 4px 0; }
+.quiz-jump { margin-top: 10px; font-weight: 600; font-size: 0.95rem; }
+.quiz-jump a { color: var(--coral-dark); }
+section[id] { scroll-margin-top: 80px; }
