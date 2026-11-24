@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261124i"></script>
+  <script src="dev-flag.js?v=20261124j"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261124i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261124i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261124i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261124i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261124j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261124j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261124j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261124j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261124i">
-  <script src="icons.js?v=20261124i"></script>
+  <link rel="stylesheet" href="theme.css?v=20261124j">
+  <script src="icons.js?v=20261124j"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -290,7 +290,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261124i">
+  <link rel="stylesheet" href="ui.css?v=20261124j">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -491,27 +491,27 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261124i';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261124i';
-  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261124i';
-  import { showPlusUpsell } from './plus.js?v=20261124i';
-  import { lastActive, lastActiveText } from './gamification.js?v=20261124i';
-  import { mountShell } from './shell.js?v=20261124i';
-  import { byOrder } from './order.js?v=20261124i';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261124i';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261124i';
-  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261124i';
-  import { logEvent } from './log.js?v=20261124i';
-  import { openPasswordHelp } from './password-help.js?v=20261124i';
-  import { lobeyImg } from './lobey.js?v=20261124i';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261124i';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261124i';
-  import { app as firebaseApp } from './firebase-config.js?v=20261124i';
+  import { auth, db } from './firebase-config.js?v=20261124j';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261124j';
+  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261124j';
+  import { showPlusUpsell } from './plus.js?v=20261124j';
+  import { lastActive, lastActiveText } from './gamification.js?v=20261124j';
+  import { mountShell } from './shell.js?v=20261124j';
+  import { byOrder } from './order.js?v=20261124j';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261124j';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261124j';
+  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261124j';
+  import { logEvent } from './log.js?v=20261124j';
+  import { openPasswordHelp } from './password-help.js?v=20261124j';
+  import { lobeyImg } from './lobey.js?v=20261124j';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261124j';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261124j';
+  import { app as firebaseApp } from './firebase-config.js?v=20261124j';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { sendStudentSetup } from './mail.js?v=20261124i';
+  import { sendStudentSetup } from './mail.js?v=20261124j';
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, checkAccount } from './email-index.js?v=20261124i';
+  import { saveEmailIndex, checkAccount } from './email-index.js?v=20261124j';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -1347,6 +1347,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261124i"></script>
+<script src="site.js?v=20261124j"></script>
 </body>
 </html>

@@ -41,13 +41,8 @@
       '<a href="features.html"' + cur('features.html') + '>Features</a>' +
       '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
       '<a href="resources.html"' + cur('resources.html') + '>Resources</a>' +
-      '<a href="help.html"' + cur('help.html') + '>Help</a>' +
-      '<div class="nav-drop"><button type="button" class="nav-drop-btn" id="nav-co" aria-expanded="false" aria-controls="nav-co-menu"' +
-        (['about.html', 'press.html', 'contact.html'].indexOf(page) >= 0 ? ' data-current' : '') + '>Company <span aria-hidden="true">▾</span></button>' +
-        '<div class="nav-drop-menu" id="nav-co-menu" hidden>' +
-        '<a href="about.html"' + cur('about.html') + '>About us</a>' +
-        '<a href="press.html"' + cur('press.html') + '>Press and brand</a>' +
-        '<a href="contact.html"' + cur('contact.html') + '>Contact us</a></div></div></nav>' +
+      '<a href="about.html"' + cur('about.html') + '>About</a>' +
+      '<a href="help.html"' + cur('help.html') + '>Help</a></nav>' +
       '<a class="nav-signin" href="login.html" id="nav-btn">Sign in</a>' +
       '<a class="btn btn-coral nav-signup" href="login.html?signup=' + signupType + '" id="nav-signup">Sign up free</a>' +
       '<button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>' +
@@ -60,9 +55,8 @@
       '<a href="features.html"' + cur('features.html') + '>Features</a>' +
       '<a href="plus.html"' + cur('plus.html') + '>Pricing</a>' +
       '<a href="resources.html"' + cur('resources.html') + '>Resources</a>' +
-      '<a href="help.html"' + cur('help.html') + '>Help</a>' +
       '<a href="about.html"' + cur('about.html') + '>About us</a>' +
-      '<a href="press.html"' + cur('press.html') + '>Press and brand</a>' +
+      '<a href="help.html"' + cur('help.html') + '>Help</a>' +
       '<a href="contact.html"' + cur('contact.html') + '>Contact us</a>' +
       '<a href="login.html" id="menu-signin">Sign in</a>' +
       '</nav></header>';
@@ -72,12 +66,6 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
     document.addEventListener('click', function (e) { if (!menu.hidden && !e.target.closest('header')) setOpen(false); });
     menu.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
-    // Company drop-down (wider screens)
-    var co = document.getElementById('nav-co'), coMenu = document.getElementById('nav-co-menu');
-    var coOpen = function (open) { coMenu.hidden = !open; co.setAttribute('aria-expanded', open); };
-    co.addEventListener('click', function (e) { e.stopPropagation(); coOpen(coMenu.hidden); });
-    document.addEventListener('click', function (e) { if (!e.target.closest('.nav-drop')) coOpen(false); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') coOpen(false); });
   }
 
   // ── Full footer (public pages) ──────────────────────────
@@ -133,7 +121,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261124i'),
+        import('./firebase-config.js?v=20261124j'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -164,20 +152,20 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261124i').then(function (m) {
+    import('./support.js?v=20261124j').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261124i';
+  hs.src = 'help-sheet.js?v=20261124j';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261124i';
+  pwa.src = 'pwa.js?v=20261124j';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

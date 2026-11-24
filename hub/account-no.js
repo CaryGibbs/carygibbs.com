@@ -12,7 +12,7 @@
 // everyone still without one.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261124i';
+import { db } from './firebase-config.js?v=20261124j';
 import { doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
