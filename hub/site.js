@@ -26,8 +26,10 @@
 
   // The signed-in person's own home in the app (student hub, or their
   // parent/teacher/admin page). Remembered by auth.js; sign-in page if unknown.
-  var myHome = 'login.html';
-  try { myHome = localStorage.getItem('ll_home') || 'login.html'; } catch (e) {}
+  var myHome = 'login.html', likelyIn = false;
+  try { likelyIn = !!localStorage.getItem('ll_home'); myHome = localStorage.getItem('ll_home') || 'login.html'; } catch (e) {}
+  // Remembered as signed in (ll_home is cleared on sign-out): draw the header that
+  // way from the start, so it doesn't jump when sign-in is confirmed a moment later
   window.LL_MY_HOME = myHome;
 
   // ── Public header ───────────────────────────────────────
@@ -43,8 +45,9 @@
       '<a href="resources.html"' + cur('resources.html') + '>Resources</a>' +
       '<a href="about.html"' + cur('about.html') + '>About</a>' +
       '<a href="help.html"' + cur('help.html') + '>Help</a></nav>' +
-      '<a class="nav-signin" href="login.html" id="nav-btn">Sign in</a>' +
-      '<a class="btn btn-coral nav-signup" href="login.html?signup=' + signupType + '" id="nav-signup">Sign up free</a>' +
+      '<a class="nav-signin" href="login.html" id="nav-btn"' + (likelyIn ? ' hidden' : '') + '>Sign in</a>' +
+      (likelyIn ? '<a class="btn btn-coral nav-signup" href="' + myHome + '" id="nav-signup">Go to my home</a>'
+                : '<a class="btn btn-coral nav-signup" href="login.html?signup=' + signupType + '" id="nav-signup">Sign up free</a>') +
       '<button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>' +
       '</div></div>' +
       // Phone menu (the links above are hidden on narrow screens)
@@ -58,7 +61,7 @@
       '<a href="about.html"' + cur('about.html') + '>About us</a>' +
       '<a href="help.html"' + cur('help.html') + '>Help</a>' +
       '<a href="contact.html"' + cur('contact.html') + '>Contact us</a>' +
-      '<a href="login.html" id="menu-signin">Sign in</a>' +
+      '<a href="' + (likelyIn ? myHome : 'login.html') + '" id="menu-signin">' + (likelyIn ? 'My home' : 'Sign in') + '</a>' +
       '</nav></header>';
     var tog = document.getElementById('nav-toggle'), menu = document.getElementById('nav-menu');
     var setOpen = function (open) { menu.hidden = !open; tog.setAttribute('aria-expanded', open); tog.classList.toggle('open', open); };
@@ -121,11 +124,22 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261124j'),
+        import('./firebase-config.js?v=20261124k'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
-          if (!user) return;
+          if (!user) {
+            // Remembered as signed in, but the sign-in has gone (expired, or another
+            // browser tab signed out): put the signed-out header back
+            if (!likelyIn) return;
+            likelyIn = false;
+            try { localStorage.removeItem('ll_home'); } catch (e) {}
+            var su = document.getElementById('nav-signup');
+            if (su) { su.textContent = 'Sign up free'; su.href = 'login.html?signup=' + signupType; }
+            var si = document.getElementById('nav-btn'); if (si) si.hidden = false;
+            var ms = document.getElementById('menu-signin'); if (ms) { ms.textContent = 'Sign in'; ms.href = 'login.html'; }
+            return;
+          }
           // Signed in: "Sign up free" becomes a direct way back to their home,
           // and the sign-in links go there too
           var up = document.getElementById('nav-signup');
@@ -152,20 +166,20 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261124j').then(function (m) {
+    import('./support.js?v=20261124k').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261124j';
+  hs.src = 'help-sheet.js?v=20261124k';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261124j';
+  pwa.src = 'pwa.js?v=20261124k';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

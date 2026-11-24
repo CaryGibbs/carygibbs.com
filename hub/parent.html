@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261124j"></script>
+  <script src="dev-flag.js?v=20261124k"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261124j">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261124j">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261124j">
-  <link rel="manifest" href="manifest.webmanifest?v=20261124j">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261124k">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261124k">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261124k">
+  <link rel="manifest" href="manifest.webmanifest?v=20261124k">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261124j">
-  <script src="icons.js?v=20261124j"></script>
-  <link rel="stylesheet" href="stats.css?v=20261124j">
+  <link rel="stylesheet" href="theme.css?v=20261124k">
+  <script src="icons.js?v=20261124k"></script>
+  <link rel="stylesheet" href="stats.css?v=20261124k">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -185,7 +185,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261124j">
+  <link rel="stylesheet" href="ui.css?v=20261124k">
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -453,30 +453,30 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261124j';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261124j';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261124j';
-import { showPlusUpsell } from './plus.js?v=20261124j';
-import { marksFullThisWeek } from './marks.js?v=20261124j';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261124j';
-import { saveEmailIndex, checkAccount } from './email-index.js?v=20261124j';
-import { sendStudentSetup } from './mail.js?v=20261124j';
-import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261124j';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261124j';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261124j';
-import { logEvent } from './log.js?v=20261124j';
-import { lobeyImg, lobeySays } from './lobey.js?v=20261124j';
-import { openInviteDialog } from './invite.js?v=20261124j';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261124j';
-import { dueEntries, scheduledCount } from './srs.js?v=20261124j';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261124j';
-import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261124j';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261124j';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261124j';
-import { openDeleteAccount } from './account.js?v=20261124j';
-import { openPasswordHelp } from './password-help.js?v=20261124j';
-import { myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261124j';
-import { workerAction } from './ai.js?v=20261124j';
+import { auth, db } from './firebase-config.js?v=20261124k';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261124k';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261124k';
+import { showPlusUpsell } from './plus.js?v=20261124k';
+import { marksFullThisWeek } from './marks.js?v=20261124k';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261124k';
+import { saveEmailIndex, checkAccount } from './email-index.js?v=20261124k';
+import { sendStudentSetup } from './mail.js?v=20261124k';
+import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261124k';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261124k';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261124k';
+import { logEvent } from './log.js?v=20261124k';
+import { lobeyImg, lobeySays } from './lobey.js?v=20261124k';
+import { openInviteDialog } from './invite.js?v=20261124k';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261124k';
+import { dueEntries, scheduledCount } from './srs.js?v=20261124k';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261124k';
+import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261124k';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261124k';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261124k';
+import { openDeleteAccount } from './account.js?v=20261124k';
+import { openPasswordHelp } from './password-help.js?v=20261124k';
+import { myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261124k';
+import { workerAction } from './ai.js?v=20261124k';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -1573,6 +1573,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261124j"></script>
+<script src="site.js?v=20261124k"></script>
 </body>
 </html>
