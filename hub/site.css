@@ -173,6 +173,8 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .guide-cta p { color: var(--deep); }
 .prose.guide .faq { margin-top: 28px; padding: 0; }
 @media (max-width: 600px) { .guide-toc ul { columns: 1; } }
+.guide-note { background: var(--sea-2); border-radius: var(--radius); padding: 14px 20px 4px; margin: 14px 0 0; }
+.guide-note p { color: var(--deep) !important; font-size: 0.96rem; }
 .guide-study { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px 6px; margin: 4px 0 18px; }
 .guide-study-head { margin-bottom: 8px !important; color: var(--deep) !important; }
 .guide-study-head span { display: block; font-size: 0.88rem; color: var(--muted); }
