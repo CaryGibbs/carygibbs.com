@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="dev-flag.js?v=20261124n"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free printable revision planner · Lobe Limpet</title>
+  <meta name="description" content="A free printable weekly revision planner and topic checklist for KS3, GCSE and A level. Print it, fill it in together, and stick it on the fridge.">
+  <link rel="canonical" href="https://lobelimpet.com/revision-planner.html">
+  <meta property="og:title" content="Free printable revision planner">
+  <meta property="og:description" content="A weekly revision planner and topic checklist to print and fill in together.">
+  <meta property="og:url" content="https://lobelimpet.com/revision-planner.html">
+  <meta property="og:image" content="https://lobelimpet.com/assets/images/brand/email-logo.png">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261124n">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261124n">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261124n">
+  <meta name="theme-color" content="#123a4a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="site.css?v=20261124n">
+  <style>
+    .pl-intro { max-width: 720px; }
+    .pl-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 6px 0 26px; }
+    .pl-sheets { display: grid; gap: 28px; justify-items: center; margin-bottom: 40px; }
+    .pl-sheet { width: 100%; max-width: 794px; aspect-ratio: 210 / 297; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 10px 30px rgba(18,58,74,0.08); padding: 34px 36px; display: flex; flex-direction: column; color: #123a4a; font-family: 'Inter', sans-serif; }
+    .sh-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; border-bottom: 3px solid #ff7a59; padding-bottom: 10px; margin-bottom: 14px; }
+    .sh-head h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.5rem; margin: 0; color: #123a4a; }
+    .sh-head .brand-mini { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1rem; color: #123a4a; white-space: nowrap; }
+    .sh-head .brand-mini span { color: #e8603e; }
+    .sh-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-bottom: 12px; font-size: 0.82rem; }
+    .sh-fields div { border-bottom: 1px solid #9fb6bf; padding: 4px 0 6px; color: #4f6b76; }
+    .sh-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; flex: 1; }
+    .sh-table th { background: #e9f8f4; text-align: left; padding: 6px 8px; border: 1px solid #b8cfd6; font-weight: 700; }
+    .sh-table td { border: 1px solid #b8cfd6; padding: 6px 8px; vertical-align: top; }
+    .sh-table td.day { width: 15%; font-weight: 700; background: #f6fafb; }
+    .sh-table td.tick { width: 9%; text-align: center; color: #7d97a1; font-size: 1.15rem; line-height: 1; }
+    .sh-table.plan td { height: 9.2%; }
+    .sh-table.topics td { height: 3.6%; }
+    .sh-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; font-size: 0.8rem; }
+    .sh-boxes div { border: 1px solid #b8cfd6; border-radius: 8px; padding: 8px 10px; min-height: 70px; }
+    .sh-boxes b { display: block; margin-bottom: 2px; }
+    .sh-tip { margin-top: 10px; font-size: 0.74rem; color: #4f6b76; }
+    .sh-key { font-size: 0.76rem; color: #4f6b76; margin: -4px 0 10px; }
+    @media (max-width: 700px) { .pl-sheet { aspect-ratio: auto; padding: 22px 18px; } .sh-table.plan td, .sh-table.topics td { height: 40px; } }
+    @media print {
+      @page { size: A4 portrait; margin: 10mm; }
+      body { background: #fff !important; }
+      header, .site-foot, .page-hero, .pl-intro, .pl-actions, .ll-dev-badge, #site-header, #site-footer, .dev-badge, [class*="dev-flag"] { display: none !important; }
+      main.wrap { max-width: none; padding: 0; }
+      .pl-sheets { display: block; margin: 0; }
+      .pl-sheet { max-width: none; width: auto; height: 277mm; aspect-ratio: auto; border: 0; box-shadow: none; border-radius: 0; padding: 0; page-break-after: always; break-after: page; }
+      .pl-sheet:last-child { page-break-after: auto; break-after: auto; }
+      .sh-table th, .sh-table td.day { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .sh-head { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "03f4e033e3af48988266f6935bed3b9c"}'></script><!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+<div id="site-header"></div>
+<div class="page-hero has-mascot"><div class="wrap"><p class="guide-kicker"><a href="resources.html">Resources</a> · Printable</p><h1>Free printable revision planner</h1><p>Some families prefer paper. Print it, plan the week together, and stick it on the fridge.</p><img class="page-mascot" src="assets/images/brand/mascot/limpet-cards.svg?v=20261124n" alt="" width="108" height="114"></div></div>
+<main class="wrap">
+  <div class="pl-intro prose">
+    <p>Two A4 sheets. The <strong>weekly planner</strong> gives each day one or two short sessions and a few minutes of review. The <strong>topic checklist</strong> is for sorting the revision list into "confident", "a bit shaky" and "no idea", which is the best first step we've found. Let your child fill them in, with you as a sounding board: people stick to plans they made themselves.</p>
+  </div>
+  <div class="pl-actions">
+    <button class="btn btn-coral" type="button" onclick="window.print()">Print both sheets</button>
+    <a class="btn btn-ghost" href="help-your-child-revise.html#plan">Tips for making a plan</a>
+  </div>
+
+  <div class="pl-sheets">
+    <section class="pl-sheet" aria-label="Weekly revision planner">
+      <div class="sh-head"><h2>My revision week</h2><span class="brand-mini">lobe <span>limpet</span></span></div>
+      <div class="sh-fields"><div>Week starting:</div><div>Exams or tests coming up:</div></div>
+      <table class="sh-table plan">
+        <thead><tr><th>Day</th><th>Session 1: subject and topic</th><th>Session 2: subject and topic</th><th>Review done</th></tr></thead>
+        <tbody>
+          <tr><td class="day">Monday</td><td></td><td></td><td class="tick">☐</td></tr>
+          <tr><td class="day">Tuesday</td><td></td><td></td><td class="tick">☐</td></tr>
+          <tr><td class="day">Wednesday</td><td></td><td></td><td class="tick">☐</td></tr>
+          <tr><td class="day">Thursday</td><td></td><td></td><td class="tick">☐</td></tr>
+          <tr><td class="day">Friday</td><td></td><td></td><td class="tick">☐</td></tr>
+          <tr><td class="day">Saturday</td><td></td><td></td><td class="tick">☐</td></tr>
+          <tr><td class="day">Sunday</td><td></td><td></td><td class="tick">☐</td></tr>
+        </tbody>
+      </table>
+      <div class="sh-boxes">
+        <div><b>Topics to come back to next week</b></div>
+        <div><b>This week's reward</b></div>
+      </div>
+      <p class="sh-tip">Tip: 20 to 30 focused minutes beats two hours of half-reading. Test yourself (quiz, flashcards, blank page) rather than re-reading, and leave at least one rest day.</p>
+    </section>
+
+    <section class="pl-sheet" aria-label="Topic checklist">
+      <div class="sh-head"><h2>Topic checklist</h2><span class="brand-mini">lobe <span>limpet</span></span></div>
+      <div class="sh-fields"><div>Subject:</div><div>Test or exam date:</div></div>
+      <p class="sh-key">Copy the topics from the revision list, then tick how you feel about each one. Start with the "no idea" ones, and come back to "a bit shaky" often.</p>
+      <table class="sh-table topics">
+        <thead><tr><th>Topic</th><th style="width:13%;text-align:center">Confident</th><th style="width:13%;text-align:center">A bit shaky</th><th style="width:13%;text-align:center">No idea</th></tr></thead>
+        <tbody>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+          <tr><td></td><td class="tick">☐</td><td class="tick">☐</td><td class="tick">☐</td></tr>
+        </tbody>
+      </table>
+      <p class="sh-tip">Lobe Limpet can turn the same revision list into quizzes and notes: lobelimpet.com</p>
+    </section>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script src="site.js?v=20261124n"></script>
+</body>
+</html>
