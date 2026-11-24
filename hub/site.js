@@ -126,7 +126,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261124r'),
+        import('./firebase-config.js?v=20261124s'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -161,6 +161,23 @@
     ('requestIdleCallback' in window) ? requestIdleCallback(check, { timeout: 1500 }) : setTimeout(check, 300);
   }
 
+  // ── Links to other websites open in a new tab, so Lobe Limpet stays open,
+  //    with a small ↗ so people know before they tap ──
+  var extLinks = function () {
+    document.querySelectorAll('a[href^="http"]').forEach(function (a) {
+      var u; try { u = new URL(a.href); } catch (x) { return; }
+      if (u.host === location.host || /(^|\.)lobelimpet\.com$/.test(u.hostname)) return;
+      a.target = '_blank';
+      var rel = (a.rel || '').split(/\s+/); if (rel.indexOf('noopener') < 0) a.rel = (a.rel + ' noopener').trim();
+      if (a.closest('header, .ll-slimfoot') || a.querySelector('img') || a.classList.contains('btn') || a.dataset.noArrow !== undefined) return;
+      if (!a.querySelector('.ext-mark')) {
+        a.insertAdjacentHTML('beforeend', '<span class="ext-mark" aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span>');
+        if (!a.title) a.title = 'Opens in a new tab';
+      }
+    });
+  };
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', extLinks) : extLinks();
+
   // ── "Sign out" in the website header ──
   if (head) document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('#nav-btn[data-out]');
@@ -168,7 +185,7 @@
     e.preventDefault();
     try { localStorage.removeItem('ll_home'); } catch (x) {}
     Promise.all([
-      import('./firebase-config.js?v=20261124r'),
+      import('./firebase-config.js?v=20261124s'),
       import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
     ]).then(function (m) { return m[1].signOut(m[0].auth); })
       .catch(function () {})
@@ -182,20 +199,20 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261124r').then(function (m) {
+    import('./support.js?v=20261124s').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261124r';
+  hs.src = 'help-sheet.js?v=20261124s';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261124r';
+  pwa.src = 'pwa.js?v=20261124s';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();
