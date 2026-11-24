@@ -445,3 +445,25 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
   .asset-grid.logos, .asset-grid.screens-wide, .dos, .facts, .fonts { grid-template-columns: 1fr; }
   .swatches { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Taster quiz (free subject quiz pages) ─────────────────── */
+.tq { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 22px 8px; margin: 10px 0 6px; }
+.tq-q { padding: 8px 0 14px; border-bottom: 1px solid var(--line); }
+.tq-q:last-of-type { border-bottom: 0; }
+.tq-live .tq-q { border-bottom: 0; }
+.tq-topic { font-size: 0.74rem !important; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--coral-dark) !important; margin-bottom: 4px !important; }
+.tq-stem { font-weight: 600; color: var(--deep) !important; font-size: 1.05rem; }
+.tq-opts { display: grid; gap: 8px; margin: 6px 0 10px; }
+.tq-opts button { text-align: left; font: inherit; font-size: 0.96rem; color: var(--deep); background: var(--sea-2); border: 1.5px solid var(--line); border-radius: 12px; padding: 11px 14px; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.tq-opts button:hover:not(:disabled) { border-color: var(--coral); background: #fff; }
+.tq-opts button:disabled { cursor: default; }
+.tq-opts button:disabled { opacity: 1; }
+.tq-opts button.ok { background: #c9ecd8; border: 2px solid #1d7a4f; color: #145a39; font-weight: 600; }
+.tq-opts button.ok::after { content: ' ✓'; }
+.tq-opts button.no::after { content: ' ✗'; }
+.tq-opts button.no { background: #fbd3c6; border: 2px solid #b4502f; color: #8a3a20; }
+.tq-why { background: var(--sea); border-radius: 12px; padding: 10px 14px; color: var(--deep) !important; font-size: 0.95rem; }
+.tq-next { margin: 4px 0 6px; }
+.tq-end { text-align: center; padding: 14px 0 10px; }
+.tq-score { font-family: 'Fredoka', system-ui, sans-serif; font-size: 2rem; color: var(--deep) !important; margin-bottom: 4px !important; }
+.tq-end .btn { margin: 6px 4px 0; }
