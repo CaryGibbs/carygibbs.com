@@ -6,11 +6,11 @@
 // with the topic so it loads instantly for everyone afterwards.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261124k';
-import { isPreview, previewInfo, showToast, hasRole, isStudent } from './auth.js?v=20261124k';
-import { awardXp, BADGES } from './gamification.js?v=20261124k';
-import { askClaude, jsonOf } from './ai.js?v=20261124k';
-import { showBadgePops } from './badge-pop.js?v=20261124k';
+import { db } from './firebase-config.js?v=20261124l';
+import { isPreview, previewInfo, showToast, hasRole, isStudent } from './auth.js?v=20261124l';
+import { awardXp, BADGES } from './gamification.js?v=20261124l';
+import { askClaude, jsonOf } from './ai.js?v=20261124l';
+import { showBadgePops } from './badge-pop.js?v=20261124l';
 import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 
