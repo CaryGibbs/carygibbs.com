@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="dev-flag.js?v=20261125b"></script>
+  <script src="dev-flag.js?v=20261125c"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pricing · Lobe Limpet</title>
   <meta name="description" content="Lobe Limpet pricing: free to start, and Plus to keep turning revision lists and your own notes into revision with AI.">
   <link rel="canonical" href="https://lobelimpet.com/plus.html">
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261125b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261125b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261125b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261125c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261125c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261125c">
   <meta name="theme-color" content="#123a4a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="site.css?v=20261125b">
+  <link rel="stylesheet" href="site.css?v=20261125c">
   <style>
     .plan-card { display: flex; flex-direction: column; }
     .plan-plus { border: 2px solid var(--coral, #ff7a59); }
@@ -29,7 +29,7 @@
 </head>
 <body>
 <div id="site-header"></div>
-<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision, and unlimited, examiner-style marking.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261125b" alt="" width="140" height="114"></div></div>
+<div class="page-hero has-mascot"><div class="wrap"><h1>Pricing</h1><p>Everything students need to revise is free. Plus adds AI that turns revision lists and your own notes into revision, and unlimited, examiner-style marking.</p><img class="page-mascot wide" src="assets/images/brand/mascot/limpet-price.svg?v=20261125c" alt="" width="140" height="114"></div></div>
 <main class="wrap"><div class="prose" style="max-width:860px;">
 
 <div class="grid3 two price-cards">
@@ -85,7 +85,8 @@
     <tr class="group"><td colspan="3">For parents and teachers</td></tr>
     <tr><td>Add students, set up classes with a join code, see progress and send encouragement</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Make your own revision packs by hand (notes and questions), give them to your students</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
-    <tr><td>Copy packs from the checked community library, and share yours there</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Share your packs in the checked community library</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+    <tr><td>Copy packs from the community library into your own packs to use and change</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Copy a ready-made Lobe Limpet pack into your own packs to change it</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Create with AI: notes and a full set of questions from your notes, a document or a topic name</td><td class="c"><span class="meh">Free try</span><small>First 2 revision lists</small></td><td class="c"><span class="yes">✓</span></td></tr>
     <tr><td>Upload PDFs and Word documents to build from</td><td class="c"><span class="meh">Free try</span></td><td class="c"><span class="yes">✓</span></td></tr>
@@ -109,18 +110,18 @@
 
 </div></main>
 <div id="site-footer"></div>
-<script src="site.js?v=20261125b"></script>
+<script src="site.js?v=20261125c"></script>
 <script type="module">
 // Plus: the price comes from Admin → Settings → Payments and pricing.
 // When payments are open, adults buy through Stripe's checkout; students ask
 // a parent. While payments are off, people ask for Plus here instead and an
 // admin switches it on in Users.
-import { auth, db } from './firebase-config.js?v=20261125b';
+import { auth, db } from './firebase-config.js?v=20261125c';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261125b';
-import { withFamilyPlus, isPlusTier, isStudent as isStudentRec } from './auth.js?v=20261125b';
-import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261125b';
+import { logEvent } from './log.js?v=20261125c';
+import { withFamilyPlus, isPlusTier, isStudent as isStudentRec } from './auth.js?v=20261125c';
+import { getPricing, getPaymentsMode, getBilling, gbp, perWeekText, dateText, canBuy, paymentsOpenFor, paidPlus, giftOf, startCheckout, openBillingPortal } from './billing.js?v=20261125c';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const paidParam = new URLSearchParams(location.search).get('paid');
@@ -247,7 +248,7 @@ onAuthStateChanged(auth, async user => {
     } else {
       $('plus-intro').innerHTML = `Ask a parent or guardian to get ${plan} from their account. One ${plan} covers the whole family.`
         + (isStudentRec(me) ? `<br><button class="btn btn-coral" data-invite-parent data-why="plus" style="margin-top:12px;color:#fff;">Invite a parent</button>` : '');
-      if (isStudentRec(me)) import('./parent-invite.js?v=20261125b');
+      if (isStudentRec(me)) import('./parent-invite.js?v=20261125c');
       $('plus-email').hidden = true;
     }
     return;

@@ -14,7 +14,7 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261125b').then(function (m) {
+    import('./support.js?v=20261125c').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });

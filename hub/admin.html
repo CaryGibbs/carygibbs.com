@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261125b"></script>
+  <script src="dev-flag.js?v=20261125c"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261125b">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261125b">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261125b">
-  <link rel="manifest" href="manifest.webmanifest?v=20261125b">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261125c">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261125c">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261125c">
+  <link rel="manifest" href="manifest.webmanifest?v=20261125c">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261125b">
-  <script src="icons.js?v=20261125b"></script>
+  <link rel="stylesheet" href="theme.css?v=20261125c">
+  <script src="icons.js?v=20261125c"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -695,8 +695,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261125b">
-  <link rel="stylesheet" href="stats.css?v=20261125b">
+  <link rel="stylesheet" href="ui.css?v=20261125c">
+  <link rel="stylesheet" href="stats.css?v=20261125c">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -752,7 +752,7 @@
       <!-- My packs only: the shared library -->
       <div id="library-browse" class="official-copy" hidden>
         <div class="official-copy-head"><i data-icon="library"></i> Community library</div>
-        <p class="official-copy-sub">Packs shared by other parents and teachers, checked by Lobe Limpet before they appear. Make a copy to use one with your students; your copy is yours to change.</p>
+        <p class="official-copy-sub">Packs shared by other parents and teachers, checked by Lobe Limpet before they appear. With Plus, make a copy to use one with your students; your copy is yours to change. Sharing your own packs here is free.</p>
         <input type="search" id="library-search" class="lib-search" placeholder="Search by name, subject, exam board or level">
         <div id="library-list" class="official-copy-list"></div>
       </div>
@@ -1670,39 +1670,39 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261125b';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261125b';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261125b';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261125b';
-import { syncFamilyPlus } from './family-plus.js?v=20261125b';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261125b';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261125b';
-import { openDeleteAccount } from './account.js?v=20261125b';
-import { openPasswordHelp } from './password-help.js?v=20261125b';
-import { addDocumentButton } from './doc-text.js?v=20261125b';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261125b';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261125b';
-import { mountMarksTool } from './marks-tool.js?v=20261125b';
-import { showPlusUpsell } from './plus.js?v=20261125b';
-import { offerGivePack } from './first-steps.js?v=20261125b';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261125b';
+import { auth, db, storage } from './firebase-config.js?v=20261125c';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261125c';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261125c';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261125c';
+import { syncFamilyPlus } from './family-plus.js?v=20261125c';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261125c';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261125c';
+import { openDeleteAccount } from './account.js?v=20261125c';
+import { openPasswordHelp } from './password-help.js?v=20261125c';
+import { addDocumentButton } from './doc-text.js?v=20261125c';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261125c';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261125c';
+import { mountMarksTool } from './marks-tool.js?v=20261125c';
+import { showPlusUpsell } from './plus.js?v=20261125c';
+import { offerGivePack } from './first-steps.js?v=20261125c';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261125c';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261125b';
-import { mountShell } from './shell.js?v=20261125b';
-import { openInviteDialog, signupLink } from './invite.js?v=20261125b';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261125b';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261125b';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261125b';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261125b';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261125b';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261125b';
-import { dueEntries } from './srs.js?v=20261125b';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261125b';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261125b';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261125c';
+import { mountShell } from './shell.js?v=20261125c';
+import { openInviteDialog, signupLink } from './invite.js?v=20261125c';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261125c';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261125c';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261125c';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261125c';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261125c';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261125c';
+import { dueEntries } from './srs.js?v=20261125c';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261125c';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261125c';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1718,9 +1718,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261125b';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261125b';
-import { inOrder } from './order.js?v=20261125b';
+import { saveEmailIndex } from './email-index.js?v=20261125c';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261125c';
+import { inOrder } from './order.js?v=20261125c';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -4156,7 +4156,7 @@ function renderLibraryBrowse() {
         <small>${esc(libInfoText(p))}</small>
         <small>${p.description ? esc(p.description) + ' · ' : ''}Shared by ${esc(p.authorName || 'a Lobe Limpet user')}${p.ownerUid === currentAdminUid ? ' (you)' : ''}</small></span>
       <span class="lib-actions" style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="pack-link-btn" data-action="copy-pack" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy</button>
+        <button class="pack-link-btn" data-action="copy-pack" data-library="1" data-id="${esc(p.id)}" data-name="${esc(p.name)}"><i data-icon="copy"></i> Make a copy${plusNow ? '' : plusTagHtml()}</button>
         ${p.ownerUid !== currentAdminUid ? `<button class="pack-link-btn" data-action="lib-report" data-id="${esc(p.id)}" data-name="${esc(p.name)}" title="Tell Lobe Limpet about a mistake or a problem"><i data-icon="flag"></i> Report</button>` : ''}
       </span>
     </div>`).join('')
@@ -4996,8 +4996,9 @@ async function openFreeSample(packId, name) {
 }
 
 async function copyPackClicked(btn) {
-  // Copying a Lobe Limpet pack is part of Plus (library packs and your own stay free)
+  // Copying a Lobe Limpet pack or a community library pack is part of Plus (copying your own stays free)
   if (MINE && btn.dataset.official && !plusNow) { showPlusUpsell('Copying a Lobe Limpet pack'); return; }
+  if (MINE && btn.dataset.library && !plusNow) { showPlusUpsell('Copying a community library pack'); return; }
   const label = btn.innerHTML;
   btn.disabled = true; btn.textContent = 'Copying…';
   try {
@@ -5672,6 +5673,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261125b"></script>
+<script src="site.js?v=20261125c"></script>
 </body>
 </html>
