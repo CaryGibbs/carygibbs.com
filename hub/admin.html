@@ -407,6 +407,18 @@
     .ai-settings-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--color-border); }
     .ai-status { font-size: 0.84rem; color: var(--color-text-muted); }
     .ai-test { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .mt-packs { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; font-size: 0.88rem; }
+    .mt-pack { display: inline-flex; align-items: center; gap: 6px; }
+    .mt-pack input { width: auto; margin: 0; }
+    .mt-filter select { width: auto; display: inline-block; margin-left: 6px; }
+    .mt-opts { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; font-size: 0.88rem; }
+    .mt-counts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.86rem; margin: 12px 0 6px; }
+    .mt-filter { font-size: 0.85rem; margin-bottom: 6px; }
+    .mt-list { max-height: 420px; overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-button); }
+    .mt-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--color-border); font-size: 0.86rem; }
+    #marks-tool [hidden] { display: none !important; }
+    .mt-row small { display: block; color: var(--color-text-muted); font-size: 0.74rem; }
+    .mt-row select { flex: 0 0 auto; width: auto; }
     .ai-test-row { display: flex; gap: 8px; align-items: flex-start; font-size: 0.85rem; padding: 8px 10px; border-radius: 8px; background: var(--color-surface-2); }
     .ai-test-row .icon { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; }
     .ai-test-row.ok .icon { color: var(--color-success); }
@@ -1178,6 +1190,8 @@
         <div class="ai-test" id="ai-test" hidden></div>
       </div>
 
+      <div class="card ai-settings" style="max-width:640px;margin-top:16px;" id="marks-tool"></div>
+
       <div class="card ai-settings" style="max-width:640px;margin-top:16px;">
         <div class="ai-settings-head">
           <div>
@@ -1664,6 +1678,7 @@ import { openPasswordHelp } from './password-help.js?v=20261125a';
 import { addDocumentButton } from './doc-text.js?v=20261125a';
 import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261125a';
 import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261125a';
+import { mountMarksTool } from './marks-tool.js?v=20261125a';
 import { showPlusUpsell } from './plus.js?v=20261125a';
 import { offerGivePack } from './first-steps.js?v=20261125a';
 import { spellingMode, isLanguageSubject } from './spelling.js?v=20261125a';
@@ -2381,7 +2396,7 @@ function showPanel(name) {
   if (name === 'news') { document.getElementById('preview-actions').style.display = 'none'; loadNews(); }
   if (name === 'home') { document.getElementById('preview-actions').style.display = 'none'; renderAdminHome(); }
   if (name === 'logs') { document.getElementById('preview-actions').style.display = 'none'; initLogPanel(); loadLogs(true); }
-  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); renderPaySettings(); }
+  if (name === 'settings') { renderAiSettings(); renderStreakSettings(); renderPlanSettings(); renderAiLimits(); renderSignupSettings(); renderPaySettings(); const mt = document.getElementById('marks-tool'); if (!mt.dataset.on) { mt.dataset.on = '1'; mountMarksTool(mt, { showToast }); } }
   if (name === 'groups') { document.getElementById('preview-actions').style.display = 'none'; }
 }
 
@@ -3811,7 +3826,7 @@ function openQuestionModal(id) {
       } else if (q.type === 'short') {
         document.getElementById('short-question').value = q.question || '';
         document.getElementById('short-markscheme').value = q.markScheme || '';
-        setShortMarks(marksOf(q));
+        setShortMarks(marksOf(q), q.marks ? (q.marksBy || 'ai') : 'estimate');
       }
       if (q.imageUrl) {
         document.getElementById('img-preview').src = q.imageUrl;
@@ -3956,14 +3971,20 @@ function buildQuestionData() {
     const ms = document.getElementById('short-markscheme').value.trim();
     if (!q)  throw new Error('Question is required');
     if (!ms) throw new Error('Mark scheme is required');
-    return { type:'short', question:q, markScheme:ms, marks: Number(document.getElementById('short-marks').value) || estimateMarks(ms) };
+    const sel = document.getElementById('short-marks');
+    const marks = Number(sel.value) || estimateMarks(ms);
+    // Chosen here = by hand (the bulk marks tool leaves these alone); untouched keeps how it was set
+    const marksBy = String(marks) !== sel.dataset.orig ? 'hand' : (sel.dataset.by || 'estimate');
+    return { type:'short', question:q, markScheme:ms, marks, marksBy };
   }
   throw new Error('Unknown question type');
 }
 
 // Written answers: the marks dropdown (keeps an unusual saved value too)
-function setShortMarks(n) {
+function setShortMarks(n, by = '') {
   const sel = document.getElementById('short-marks');
+  sel.dataset.orig = by ? String(n) : '';   // a new question: whatever's chosen counts as by hand
+  sel.dataset.by = by;
   const opts = MARK_OPTIONS.includes(n) ? MARK_OPTIONS : [...MARK_OPTIONS, n].sort((a, b) => a - b);
   sel.innerHTML = opts.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>${marksLabel(v)}</option>`).join('');
 }
