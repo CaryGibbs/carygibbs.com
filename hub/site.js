@@ -126,7 +126,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261124u'),
+        import('./firebase-config.js?v=20261125a'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -185,7 +185,7 @@
     e.preventDefault();
     try { localStorage.removeItem('ll_home'); } catch (x) {}
     Promise.all([
-      import('./firebase-config.js?v=20261124u'),
+      import('./firebase-config.js?v=20261125a'),
       import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
     ]).then(function (m) { return m[1].signOut(m[0].auth); })
       .catch(function () {})
@@ -199,20 +199,20 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261124u').then(function (m) {
+    import('./support.js?v=20261125a').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261124u';
+  hs.src = 'help-sheet.js?v=20261125a';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261124u';
+  pwa.src = 'pwa.js?v=20261125a';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

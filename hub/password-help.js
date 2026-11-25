@@ -8,11 +8,11 @@
 //   teacher who made a student's account. Logged in the activity log.
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261124u';
-import { sendPasswordEmail } from './mail.js?v=20261124u';
-import { workerAction } from './ai.js?v=20261124u';
-import { generatePassword } from './auth.js?v=20261124u';
-import { logEvent } from './log.js?v=20261124u';
+import { auth } from './firebase-config.js?v=20261125a';
+import { sendPasswordEmail } from './mail.js?v=20261125a';
+import { workerAction } from './ai.js?v=20261125a';
+import { generatePassword } from './auth.js?v=20261125a';
+import { logEvent } from './log.js?v=20261125a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

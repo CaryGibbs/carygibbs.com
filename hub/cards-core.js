@@ -139,6 +139,7 @@ export function questionsFromCards(cards = [], rand = Math.random) {
     if (words(c.definition) >= 4) {
       qs.push({ id: `c_${c.id}_short`, ...base, type: 'short',
         question: `What does "${c.term}" mean?`,
+        marks: 2,
         markScheme: `${c.definition} (Accept the same meaning in the student's own words.)` });
     }
   });

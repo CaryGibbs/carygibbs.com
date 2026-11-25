@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261124u"></script>
+  <script src="dev-flag.js?v=20261125a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261124u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261124u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261124u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261124u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261125a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261125a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261125a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261125a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261124u">
-  <script src="icons.js?v=20261124u"></script>
-  <script src="help-sheet.js?v=20261124u" defer></script>
+  <link rel="stylesheet" href="theme.css?v=20261125a">
+  <script src="icons.js?v=20261125a"></script>
+  <script src="help-sheet.js?v=20261125a" defer></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -125,6 +125,7 @@
       font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700;
       line-height: 1.4; color: var(--color-text);
     }
+    .q-marks { text-align: right; font-weight: 700; font-size: 0.92rem; color: var(--color-text-muted); margin-top: 6px; }
     .q-image { max-width: 100%; border-radius: var(--radius-card); margin-top: var(--space-md); }
 
     /* ── MCQ options ─────────────────────────────────────── */
@@ -246,6 +247,7 @@
       padding: var(--space-md);
     }
     .short-hint { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 6px; }
+    .short-hint b { color: var(--color-text); }
     .ai-marking-wrap {
       margin-top: var(--space-md); background: var(--color-surface);
       border: 1px solid var(--color-border); border-radius: var(--radius-card);
@@ -377,7 +379,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261124u">
+  <link rel="stylesheet" href="ui.css?v=20261125a">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -437,6 +439,7 @@
         <button type="button" class="q-report" id="q-report" title="Report a problem with this question"><i data-icon="flag"></i> Report</button>
       </div>
       <div class="q-text" id="q-text"></div>
+      <div class="q-marks" id="q-marks" hidden></div>
       <img id="q-image" class="q-image" style="display:none;">
     </div>
 
@@ -599,18 +602,19 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261124u';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261124u';
-import { marksLeft, marksLeftText } from './marks.js?v=20261124u';
-import { showPlusUpsell } from './plus.js?v=20261124u';
-import { askClaude, jsonOf } from './ai.js?v=20261124u';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261124u';
-import { logEvent } from './log.js?v=20261124u';
-import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261124u';
-import { showBadgePops } from './badge-pop.js?v=20261124u';
-import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261124u';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261124u';
-import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261124u';
+import { auth, db } from './firebase-config.js?v=20261125a';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261125a';
+import { marksLeft, marksLeftText } from './marks.js?v=20261125a';
+import { marksOf, marksLabel, writingGuide, markingGuide } from './question-marks.js?v=20261125a';
+import { showPlusUpsell } from './plus.js?v=20261125a';
+import { askClaude, jsonOf } from './ai.js?v=20261125a';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261125a';
+import { logEvent } from './log.js?v=20261125a';
+import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261125a';
+import { showBadgePops } from './badge-pop.js?v=20261125a';
+import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261125a';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261125a';
+import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261125a';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -655,13 +659,16 @@ async function loadMarksLeft() {
   marksInfo = await marksLeft(auth.currentUser?.uid).catch(() => null);
   if (marksInfo && !marksInfo.cap) marksInfo = null;
 }
-function showShortHint() {
+// Under a written answer: what it's worth, how much to write, and who marks it
+function showShortHint(q = questions[currentIdx]) {
   const el = document.getElementById('short-hint');
   if (!el) return;
-  if (!marksInfo) { el.textContent = 'Write as much detail as you can. AI will mark your answer.'; return; }
-  el.textContent = marksInfo.left > 0
-    ? `Write as much detail as you can. AI will mark your answer (${marksLeftText(marksInfo.left)}).`
-    : `Write as much detail as you can. You've used this week's free AI marks, so you'll check this one against the model answer.`;
+  const n = q?.type === 'short' ? marksOf(q) : 0;
+  const guide = n ? `<b>${marksLabel(n)}.</b> ${writingGuide(n)} ` : 'Write as much detail as you can. ';
+  if (!marksInfo) { el.innerHTML = `${guide}AI will mark your answer.`; return; }
+  el.innerHTML = marksInfo.left > 0
+    ? `${guide}AI will mark your answer (${marksLeftText(marksInfo.left)}).`
+    : `${guide}You've used this week's free AI marks, so you'll check this one against the model answer.`;
 }
 
 // Subjects where exams give marks for spelling, punctuation and grammar on longer answers
@@ -1019,6 +1026,10 @@ function renderQuestion() {
   // Question text
   const questionText = q.question || q.sentence || q.instruction || '';
   document.getElementById('q-text').textContent = questionText;
+  // Written answers show their marks, as on an exam paper
+  const qm = document.getElementById('q-marks');
+  if (q.type === 'short') { qm.textContent = `[${marksLabel(marksOf(q))}]`; qm.hidden = false; }
+  else qm.hidden = true;
 
   // Image
   const imgEl = document.getElementById('q-image');
@@ -1035,7 +1046,7 @@ function renderQuestion() {
   document.getElementById('ai-marking-wrap').classList.remove('visible');
   document.getElementById('ai-extra').innerHTML = '';
   document.getElementById('model-answer').style.display = 'none';
-  showShortHint();
+  showShortHint(q);
   document.getElementById('ai-thinking').style.display = 'flex';
   document.getElementById('ai-result').style.display = 'none';
 
@@ -1138,6 +1149,8 @@ function renderShort(q) {
   const inp = document.getElementById('short-input');
   inp.value = '';
   inp.disabled = false;
+  const n = marksOf(q);   // more room for longer answers
+  inp.style.minHeight = n >= 9 ? '320px' : n >= 6 ? '220px' : '';
   inp.focus();
 }
 
@@ -1358,22 +1371,23 @@ async function markShortWritten(q, userAnswer) {
   const level = subj.level || 'GCSE';
   const about = [level, subj.examBoard, subj.name].filter(Boolean).join(' ');
   const plus = plusMarking();
+  const outOf = marksOf(q);
   const withSpag = plus && spagApplies(subj, userAnswer);
   // Plus: examiner-style feedback (points hit and missed, how to get full marks) and, on
   // longer answers in subjects where exams award them, separate SPaG feedback
   const format = plus
-    ? `{"score":3,"outOf":5,"feedback":"Specific feedback in 2-3 sentences.","covered":["each mark scheme point the answer gets credit for, in a few words"],"missed":["each mark scheme point it misses or only half makes"],"toFull":"One or two sentences: exactly what to add or change to get 5/5."${withSpag ? `,"spag":{"band":"High, Intermediate, Threshold or Not yet","feedback":"One or two sentences on spelling, punctuation and grammar, with one specific example to fix."}` : ''}}`
-    : `{"score":3,"outOf":5,"feedback":"Specific feedback in 2-3 sentences. What they got right. What was missing or could be improved."}`;
+    ? `{"score":${Math.ceil(outOf / 2)},"outOf":${outOf},"feedback":"Specific feedback in 2-3 sentences.","covered":["each mark scheme point the answer gets credit for, in a few words"],"missed":["each mark scheme point it misses or only half makes"],"toFull":"One or two sentences: exactly what to add or change to get ${outOf}/${outOf}."${withSpag ? `,"spag":{"band":"High, Intermediate, Threshold or Not yet","feedback":"One or two sentences on spelling, punctuation and grammar, with one specific example to fix."}` : ''}}`
+    : `{"score":${Math.ceil(outOf / 2)},"outOf":${outOf},"feedback":"Specific feedback in 2-3 sentences. What they got right. What was missing or could be improved."}`;
   const prompt = `You are marking a ${level} student's short answer question${subj.name ? ` (${about})` : ''}.
 
 Question: ${q.question}
 Mark scheme / model answer: ${q.markScheme}
 Student's answer: ${userAnswer}
 
-Score the student's answer out of 5 marks. Be fair but rigorous about the content, as a teacher marking a test would be.
+This question is worth ${outOf} mark${outOf === 1 ? '' : 's'}, and the student was told so. Score the answer out of ${outOf}. Be fair but rigorous about the content, as a teacher marking a test would be. ${markingGuide(outOf)}
 ${markingSpellingRules(spellingMode(subj))}${plus ? `
 Mark like an examiner: compare the answer point by point with the mark scheme. List the points it gets credit for and the points it misses, then say exactly what would get it to full marks.` : ''}${withSpag ? `
-Also assess spelling, punctuation and grammar (SPaG) separately, the way GCSE exam boards do on extended answers: High (accurate spelling and punctuation, grammar controls meaning, wide range of specialist terms), Intermediate (considerable accuracy, a good range of specialist terms), Threshold (reasonable accuracy, some specialist terms), or Not yet. SPaG does not change the 5-mark score.` : ''}
+Also assess spelling, punctuation and grammar (SPaG) separately, the way GCSE exam boards do on extended answers: High (accurate spelling and punctuation, grammar controls meaning, wide range of specialist terms), Intermediate (considerable accuracy, a good range of specialist terms), Threshold (reasonable accuracy, some specialist terms), or Not yet. SPaG does not change the ${outOf}-mark score.` : ''}
 
 Respond ONLY with a JSON object in this exact format (no markdown, no backticks):
 ${format}`;
@@ -1381,6 +1395,9 @@ ${format}`;
   try {
     // Model chosen in Admin → Settings (falls back automatically if it fails)
     const result = jsonOf(await askClaude('marking', prompt, 1000));   // room for newer models' thinking before the reply
+    // Always out of the question's marks, whatever comes back
+    result.outOf = outOf;
+    result.score = Math.max(0, Math.min(outOf, Math.round(Number(result.score) || 0)));
 
     document.getElementById('ai-thinking').style.display = 'none';
     document.getElementById('ai-result').style.display = 'block';
@@ -1414,7 +1431,7 @@ ${format}`;
       : 'The marker didn\'t reply' + (e.message ? ` (${e.message})` : '') + '.';
     document.getElementById('ai-thinking').style.display = 'none';
     document.getElementById('ai-result').style.display = 'block';
-    document.getElementById('ai-score-badge').textContent = '?/5';
+    document.getElementById('ai-score-badge').textContent = `?/${marksOf(q)}`;
     document.getElementById('ai-score-label').textContent = 'not marked';
     const fb = document.getElementById('ai-feedback');
     fb.textContent = `We couldn't mark this one. ${why} It won't count as right or wrong. `;
@@ -1677,7 +1694,7 @@ document.getElementById('q-report').onclick = async () => {
   if (!q) return;
   const a = answerLog[currentIdx] || {};
   try {
-    const { openSupport } = await import('./support.js?v=20261124u');
+    const { openSupport } = await import('./support.js?v=20261125a');
     openSupport({ kind: 'question', question: {
       packId: q.loc?.p || groupId, subjectId: q.loc?.s || subjectId, topicId: q.loc?.t || q.topicId || topicId, questionId: q.id,
       subjectName: q.subjectName || (reviewMode ? '' : subjectName), topicName: reviewMode ? '' : topicName,

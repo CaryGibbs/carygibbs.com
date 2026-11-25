@@ -9,11 +9,12 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261124u';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261124u';
-import { mergeReads, siteOf } from './videos.js?v=20261124u';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261124u';
-import { logEvent } from './log.js?v=20261124u';
+import { db } from './firebase-config.js?v=20261125a';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261125a';
+import { mergeReads, siteOf } from './videos.js?v=20261125a';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261125a';
+import { logEvent } from './log.js?v=20261125a';
+import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261125a';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -81,7 +82,7 @@ export const QUESTION_TYPES = [
   { id: 'tf',    label: 'True or false',   schema: '{"type":"tf","question":"...","answer":true,"explanation":"..."} or {"type":"tf","question":"...","answer":false,"explanation":"Explain what is actually correct"}' },
   { id: 'fill',  label: 'Fill the gap',    schema: '{"type":"fill","sentence":"The _____ is ...","answer":"...","alternatives":[]}' },
   { id: 'match', label: 'Match the pairs', schema: '{"type":"match","instruction":"Match each term to its definition","pairs":[{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."}]}' },
-  { id: 'short', label: 'Written answer',  schema: '{"type":"short","question":"...","markScheme":"Key points: 1) ... 2) ..."}' },
+  { id: 'short', label: 'Written answer',  schema: '{"type":"short","question":"...","marks":4,"markScheme":"Key points: 1) ... 2) ... 3) ... 4) ..."}' },
 ];
 
 // context: e.g. "A level AQA Economics: Micro 1" sets the level and subject
@@ -98,7 +99,8 @@ For MCQ questions: make all options similar in length (avoid answer-length givea
 For True/False: make roughly HALF the answers true and HALF false (e.g. 5 of 10), in a random order, not alternating. Build each false statement from a real fact with one key detail changed (a number, term, place, cause or direction) so it is a plausible misconception, not obviously silly. Don't give away the answer through wording: avoid putting words like "always", "never" or "only" mostly in the false ones, and keep true and false statements similar in length.
 For Fill-in-the-blank: use _____ (five underscores) for the gap.
 For Match pairs: include exactly 4 pairs, and make all 4 right-hand items different from each other (never two the same, e.g. two "Chemical change"), so each left item has only one possible match.
-
+${types.includes('short') ? `${MARKS_PROMPT} (The "marks" field is fine: the rule above is about what questions test.)
+` : ''}
 Return ONLY a JSON array with no markdown, no preamble, no backticks: your reply must start with [ and end with ]. Each element must follow one of these schemas:
 ${schemas}
 
@@ -517,7 +519,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       else if (q.type === 'tf') ans = q.answer ? 'True' : 'False';
       else if (q.type === 'fill') ans = q.answer;
       else if (q.type === 'match') ans = (q.pairs || []).map(p => `${p.left} → ${p.right}`).join(' · ');
-      else if (q.type === 'short') ans = q.markScheme;
+      else if (q.type === 'short') ans = `(${marksLabel(marksOf(q))}) ${q.markScheme || ''}`;
       return `<div class="tw-q"><span class="tw-qtype">${esc(label[q.type] || q.type)}</span>
         <div class="tw-qbody"><div>${esc(q.question || q.sentence || q.instruction || '')}</div><small>${esc(ans || '')}</small></div>
         <button class="tw-del" data-delq="${i}" aria-label="Remove question">✕</button></div>`;

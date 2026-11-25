@@ -9,7 +9,7 @@
 //   inviteParentCardHtml(...)    a small card for the hub
 // ============================================================
 
-import { workerAction } from './ai.js?v=20261124u';
+import { workerAction } from './ai.js?v=20261125a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

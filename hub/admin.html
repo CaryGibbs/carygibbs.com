@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261124u"></script>
+  <script src="dev-flag.js?v=20261125a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261124u">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261124u">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261124u">
-  <link rel="manifest" href="manifest.webmanifest?v=20261124u">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261125a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261125a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261125a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261125a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261124u">
-  <script src="icons.js?v=20261124u"></script>
+  <link rel="stylesheet" href="theme.css?v=20261125a">
+  <script src="icons.js?v=20261125a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -679,8 +679,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261124u">
-  <link rel="stylesheet" href="stats.css?v=20261124u">
+  <link rel="stylesheet" href="ui.css?v=20261125a">
+  <link rel="stylesheet" href="stats.css?v=20261125a">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1557,6 +1557,10 @@
         <label>Mark scheme / model answer</label>
         <textarea id="short-markscheme" placeholder="Key points the student should include..." rows="3"></textarea>
       </div>
+      <div class="form-group">
+        <label for="short-marks">Marks <span style="font-weight:400;text-transform:none;">(shown to the student, and the AI marks out of this)</span></label>
+        <select id="short-marks" style="max-width:160px;"></select>
+      </div>
     </div>
 
     <!-- Image upload (all types) -->
@@ -1648,37 +1652,38 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261124u';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261124u';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261124u';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261124u';
-import { syncFamilyPlus } from './family-plus.js?v=20261124u';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261124u';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261124u';
-import { openDeleteAccount } from './account.js?v=20261124u';
-import { openPasswordHelp } from './password-help.js?v=20261124u';
-import { addDocumentButton } from './doc-text.js?v=20261124u';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261124u';
-import { showPlusUpsell } from './plus.js?v=20261124u';
-import { offerGivePack } from './first-steps.js?v=20261124u';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261124u';
+import { auth, db, storage } from './firebase-config.js?v=20261125a';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261125a';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261125a';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261125a';
+import { syncFamilyPlus } from './family-plus.js?v=20261125a';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261125a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261125a';
+import { openDeleteAccount } from './account.js?v=20261125a';
+import { openPasswordHelp } from './password-help.js?v=20261125a';
+import { addDocumentButton } from './doc-text.js?v=20261125a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261125a';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261125a';
+import { showPlusUpsell } from './plus.js?v=20261125a';
+import { offerGivePack } from './first-steps.js?v=20261125a';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261125a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261124u';
-import { mountShell } from './shell.js?v=20261124u';
-import { openInviteDialog, signupLink } from './invite.js?v=20261124u';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261124u';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261124u';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261124u';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261124u';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261124u';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261124u';
-import { dueEntries } from './srs.js?v=20261124u';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261124u';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261124u';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261125a';
+import { mountShell } from './shell.js?v=20261125a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261125a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261125a';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261125a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261125a';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261125a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261125a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261125a';
+import { dueEntries } from './srs.js?v=20261125a';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261125a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261125a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1694,9 +1699,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261124u';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261124u';
-import { inOrder } from './order.js?v=20261124u';
+import { saveEmailIndex } from './email-index.js?v=20261125a';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261125a';
+import { inOrder } from './order.js?v=20261125a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -3687,7 +3692,7 @@ function buildQCard(q, isPending, idx) {
   } else if (q.type === 'match') {
     detail = (q.pairs||[]).map(p => `<span>${esc(p.left)} → ${esc(p.right)}</span>`).join('');
   } else if (q.type === 'short') {
-    detail = `<span>${esc((q.markScheme||'').substring(0,80))}…</span>`;
+    detail = `<span>${marksLabel(marksOf(q))}${q.marks ? '' : ' (estimated)'} · ${esc((q.markScheme||'').substring(0,80))}…</span>`;
   }
 
   const questionText = q.question || q.sentence || q.instruction || '';
@@ -3774,6 +3779,7 @@ function openQuestionModal(id) {
   document.getElementById('fill-alternatives').value = '';
   document.getElementById('short-question').value = '';
   document.getElementById('short-markscheme').value = '';
+  setShortMarks(4);
   document.getElementById('img-preview').style.display = 'none';
   document.getElementById('img-upload-prompt').style.display = 'block';
   document.getElementById('q-image-input').value = '';
@@ -3805,6 +3811,7 @@ function openQuestionModal(id) {
       } else if (q.type === 'short') {
         document.getElementById('short-question').value = q.question || '';
         document.getElementById('short-markscheme').value = q.markScheme || '';
+        setShortMarks(marksOf(q));
       }
       if (q.imageUrl) {
         document.getElementById('img-preview').src = q.imageUrl;
@@ -3949,9 +3956,16 @@ function buildQuestionData() {
     const ms = document.getElementById('short-markscheme').value.trim();
     if (!q)  throw new Error('Question is required');
     if (!ms) throw new Error('Mark scheme is required');
-    return { type:'short', question:q, markScheme:ms };
+    return { type:'short', question:q, markScheme:ms, marks: Number(document.getElementById('short-marks').value) || estimateMarks(ms) };
   }
   throw new Error('Unknown question type');
+}
+
+// Written answers: the marks dropdown (keeps an unusual saved value too)
+function setShortMarks(n) {
+  const sel = document.getElementById('short-marks');
+  const opts = MARK_OPTIONS.includes(n) ? MARK_OPTIONS : [...MARK_OPTIONS, n].sort((a, b) => a - b);
+  sel.innerHTML = opts.map(v => `<option value="${v}"${v === n ? ' selected' : ''}>${marksLabel(v)}</option>`).join('');
 }
 
 /* ── IMAGE PREVIEW ───────────────────────────────────────── */
@@ -5633,6 +5647,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261124u"></script>
+<script src="site.js?v=20261125a"></script>
 </body>
 </html>
