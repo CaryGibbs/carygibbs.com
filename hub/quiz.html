@@ -788,22 +788,30 @@ async function loadQuestions() {
    first), fetching only the topics they live in, and starts straight
    away: no question-type picker. */
 let reviewList = [];
+const allPacks = groupId === 'all';
+// Due entries for this review: one pack, or (all) every pack the student has
+function reviewDue(today) {
+  if (!allPacks) return dueEntries(currentProfile, groupId, today);
+  const mine = new Set(currentProfile.packIds || []);
+  return dueEntries(currentProfile, null, today).filter(e => !mine.size || mine.has(e.p));
+}
 async function loadReview() {
   try {
-    const due = dueEntries(currentProfile, groupId).slice(0, REVIEW_SIZE);
+    const due = reviewDue().slice(0, REVIEW_SIZE);
     if (!due.length) return showCaughtUp();
     const topics = {};
-    due.forEach(e => { (topics[e.s + '/' + e.t] = topics[e.s + '/' + e.t] || { s: e.s, t: e.t, ids: new Set() }).ids.add(e.id); });
+    // groupId=all: due questions from all the student's packs (each entry knows its pack)
+    due.forEach(e => { const p = allPacks ? e.p : groupId, k = p + '/' + e.s + '/' + e.t; (topics[k] = topics[k] || { p, s: e.s, t: e.t, ids: new Set() }).ids.add(e.id); });
     const found = {};
     const subjectNames = {};
     await Promise.all(Object.values(topics).map(async tp => {
       const [qSnap, sSnap] = await Promise.all([
         // (a topic that has since become Plus only is skipped, not an error)
-        getDocs(collection(db, `content/${groupId}/subjects/${tp.s}/topics/${tp.t}/questions`)).catch(() => null),
-        subjectNames[tp.s] ? null : getDoc(doc(db, `content/${groupId}/subjects/${tp.s}`)).catch(() => null),
+        getDocs(collection(db, `content/${tp.p}/subjects/${tp.s}/topics/${tp.t}/questions`)).catch(() => null),
+        subjectNames[tp.s] ? null : getDoc(doc(db, `content/${tp.p}/subjects/${tp.s}`)).catch(() => null),
       ]);
       if (sSnap?.exists?.()) subjectNames[tp.s] = sSnap.data().name;
-      qSnap?.forEach(d => { if (tp.ids.has(d.id)) found[d.id] = { id: d.id, ...d.data(), loc: { p: groupId, s: tp.s, t: tp.t } }; });
+      qSnap?.forEach(d => { if (tp.ids.has(d.id)) found[d.id] = { id: d.id, ...d.data(), loc: { p: tp.p, s: tp.s, t: tp.t } }; });
     }));
     reviewList = due.map(e => found[e.id]).filter(q => q && TYPE_INFO[q.type]);
     if (!reviewList.length) return showCaughtUp();
@@ -831,7 +839,7 @@ function showLockedTopic(name) {
 
 function showCaughtUp() {
   setNoqLobey('party', LINES.caughtUp);
-  const next = nextDueDay(currentProfile, groupId);
+  const next = allPacks ? (reviewDue('9999-12-31')[0]?.d || null) : nextDueDay(currentProfile, groupId);
   document.getElementById('noq-title').textContent = 'All caught up!';
   document.getElementById('noq-text').textContent = next
     ? `Nothing to review right now. Your next review is ${whenText(next)}.`
@@ -1603,7 +1611,7 @@ async function showResults() {
       secondsSpent,
       types: [...new Set(questions.map(q => q.type))],
       qs: questions.map((q, i) => ({ id: q.id, ok: !!results[i] })).filter((x, i) => !unmarked.has(i)),
-      groupId: groupId || null,
+      groupId: (allPacks ? questions[0]?.loc?.p : groupId) || null,
       subjectId: subjectId || null,
       topicId: topicId || null,
     };

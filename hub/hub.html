@@ -62,6 +62,7 @@
     .pack-tab:hover { border-color: var(--color-primary); color: var(--color-text); }
     .pack-tab[aria-selected="true"] { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary, #fff); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
     .pack-tab[aria-selected="true"]::before { content: "✓ "; }
+    .subject-pack { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; font-weight: 700; color: var(--color-primary); }
     .pack-tab:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
     /* ── Section header ──────────────────────────────────── */
@@ -471,9 +472,11 @@ requireAuth(async (user, profile) => {
   }
 
   // Student: which revision packs do they have? (chosen by a parent, or via
-  // a class). If several, they pick one; the choice is remembered.
+  // a class). With several, the hub opens on All every visit; the pack pills
+  // filter the subjects for this visit only.
   const groupIds = packIdsFor(profile);
-  const groupId = chosenPack(user, profile, groupIds);
+  hubPackIds = groupIds;
+  const groupId = groupIds.length > 1 ? ALL : (groupIds[0] || null);
 
   // Keep the flat list of my packs up to date: the security rules use it
   // to let me read packs a parent or teacher made themselves
@@ -512,7 +515,7 @@ requireAuth(async (user, profile) => {
   const cardSets = profile.myPackId ? (await loadCardSets(profile).catch(() => null))?.length ?? null : 0;
   mountStudentStart(document.getElementById('first-steps'), {
     uid: user.uid, profile, preview: isPreview(), toast: showToast, cardSets,
-    source: SOURCE_TEXT[packSource(profile, groupId)] || '',
+    source: SOURCE_TEXT[packSource(profile, groupId === ALL ? groupIds[0] : groupId)] || '',
     actions: {
       quiz: () => { const b = firstBtn('goQuiz'); b ? b.click() : document.getElementById('hub-content').scrollIntoView({ behavior: 'smooth' }); },
       learn: () => { const b = firstBtn('goMindmap'); b ? b.click() : document.getElementById('hub-content').scrollIntoView({ behavior: 'smooth' }); },
@@ -559,20 +562,20 @@ function renderTopCard(groupId, subjects, planFocus = []) {
   const go = s => ({ groupId: s.packId || groupId, subjectId: s.id, subjectName: s.name });
   if (!hasStarted(profile)) {
     const s = subjects[0];
-    const src = SOURCE_TEXT[packSource(profile, groupId)] || 'Ready for you';
+    const src = SOURCE_TEXT[packSource(profile, s?.packId || hubPackIds[0])] || 'Ready for you';
     wrap.innerHTML = startHereHtml({ jump: s ? { label: `${src}: ${s.name}`, sub: 'Or jump straight in with a five-minute quiz.' } : null });
     wireStartHere(wrap, { onBorrow: () => borrow(hubUser, profile), onJump: () => s && goQuiz(go(s)) });
     return;
   }
-  const due = dueEntries(profile, groupId).length;
+  const due = dueAll(profile).length;
   let next = null;
   if (due) {
     const n = Math.min(due, REVIEW_SIZE);
     next = { e: '🔁', h: `Review ${n} question${n === 1 ? '' : 's'}`, s: 'Your weaker areas, back so they stick.',
-      btn: `<a class="btn btn-primary" href="quiz.html?review=1&groupId=${encodeURIComponent(groupId)}"><i data-icon="repeat"></i> Start review</a>` };
+      btn: `<a class="btn btn-primary" href="${reviewHref()}"><i data-icon="repeat"></i> Start review</a>` };
     document.getElementById('review-wrap').innerHTML = '';   // the Next card is the review
   } else {
-    const f = planFocus[0] || focusSubject(profile, subjects, groupId);
+    const f = planFocus[0] || focusSubject(profile, subjects);
     if (f) {
       window._nextQuiz = () => goQuiz(go(f.s));
       next = { e: '🎯', h: `Quiz on ${f.s.name}`, s: f.why?.length ? f.why.join(', ').replace(/^./, c => c.toUpperCase()) + '.' : '',
@@ -607,8 +610,6 @@ function wireJoinForm(user, profile) {
       if (profile.classes?.[info.classId]) { msg(`You're already in ${info.className || 'this class'}.`, 'ok'); return; }
       await joinClass(user.uid, profile, info);
       logEvent('class.join', { target: info.className || '', targetId: info.classId, detail: 'With a class code' });
-      const firstNew = (info.packIds || []).find(id => !packIdsFor(profile).includes(id));
-      if (firstNew) { try { localStorage.setItem('clasp_pack_' + user.uid, firstNew); } catch (err) {} }
       msg(`You've joined ${info.className || 'the class'}!${info.packIds?.length ? ' Loading your revision…' : ' Your teacher hasn\'t chosen a revision pack yet.'}`, 'ok');
       showToast(`Joined ${info.className || 'class'}`, 'success');
       if (info.packIds?.length) setTimeout(() => location.reload(), 1200);
@@ -626,31 +627,35 @@ function packIdsFor(profile) {
   if (profile.myPackId) ids.push(profile.myPackId);   // their own flashcard sets
   return [...new Set(ids.filter(Boolean))];
 }
-function chosenPack(user, profile, ids) {
-  let saved = null;
-  try { saved = localStorage.getItem('clasp_pack_' + user.uid); } catch (e) {}
-  if (ids.includes(saved)) return saved;
-  if (ids.includes(profile.currentPackId)) return profile.currentPackId;
-  return ids[0] || null;
+// "All" shows every pack's subjects together. It is the default every visit
+// (nothing remembered), so nobody gets stuck looking at one narrow pack.
+const ALL = 'all';
+let hubPackIds = [];          // the student's packs
+const packNames = {};         // pack id -> name, for the tags on subjects
+async function packName(id) {
+  if (!(id in packNames)) packNames[id] = await getDoc(doc(db, 'content', id)).then(s => s.exists() ? (s.data().name || '') : null).catch(() => null);
+  return packNames[id];
 }
+// Reviews always cover all the student's packs, whichever pill is picked
+function dueAll(profile) {
+  const ids = new Set(hubPackIds);
+  return dueEntries(profile).filter(e => !ids.size || ids.has(e.p));
+}
+function reviewHref() { return `quiz.html?review=1&groupId=${ALL}`; }
 async function renderPackPicker(user, ids, current) {
-  const names = await Promise.all(ids.map(id => getDoc(doc(db, 'content', id)).then(s => s.exists() ? s.data().name : null).catch(() => null)));
+  const names = await Promise.all(ids.map(packName));
   const options = ids.map((id, i) => ({ id, name: names[i] })).filter(o => o.name);
   packCount = options.length;
   if (!options.length) return;
-  // Every pack shown as a tab, the current one filled in, so it's obvious which pack you're in
+  if (options.length > 1) options.unshift({ id: ALL, name: 'All' });
+  // An "All" pill first, then one per pack, the current one filled in
   const sub = document.getElementById('welcome-sub');
-  sub.innerHTML = `<div class="pack-tabs"><div class="pack-tabs-label">${options.length > 1 ? 'Your revision packs' : 'Your revision pack'}</div>
-    <div class="pack-tabs-row" role="tablist" aria-label="Choose a revision pack">${options.map(o => `<button type="button" class="pack-tab" role="tab" data-pack="${o.id}" aria-selected="${o.id === current}" title="${esc(o.name)}">${esc(o.name)}</button>`).join('')}</div></div>`;
+  sub.innerHTML = `<div class="pack-tabs"><div class="pack-tabs-label">${packCount > 1 ? 'Your revision packs' : 'Your revision pack'}</div>
+    <div class="pack-tabs-row" role="tablist" aria-label="Show subjects from">${options.map(o => `<button type="button" class="pack-tab" role="tab" data-pack="${o.id}" aria-selected="${o.id === current}" title="${o.id === ALL ? 'All your packs' : esc(o.name)}">${esc(o.name)}</button>`).join('')}</div></div>`;
   sub.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
   sub.querySelectorAll('.pack-tab').forEach(btn => btn.onclick = async () => {
     const id = btn.dataset.pack;
     if (id === current) return;
-    try { localStorage.setItem('clasp_pack_' + user.uid, id); } catch (err) {}
-    if (!isPreview() && user.uid !== 'preview-readonly') {
-      const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-      updateDoc(doc(db, 'users', user.uid), { currentPackId: id }).catch(() => {});
-    }
     document.getElementById('hub-content').innerHTML = '<div class="subjects-grid"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></div>';
     await loadSubjects(user, id);
     renderPackPicker(user, ids, id);
@@ -661,15 +666,15 @@ let hubProfile = null;   // the student whose hub this is (for Review today)
 let hubUser = null;
 
 /* ── Study plan: countdown, today's goal, what to focus on ───── */
-function focusSubject(profile, subjects, groupId) {
+function focusSubject(profile, subjects) {
   if (!subjects?.length) return null;
   const today = isoDay();
-  const due = dueEntries(profile, groupId);
+  const due = dueAll(profile);
   const scored = subjects.map(s => {
     const ses = (profile.sessions || []).filter(x => !x.review && (x.subjectId === s.id || x.subject === s.name));
     const recent = ses.slice(-6);
     const avg = recent.length ? recent.reduce((a, x) => a + (x.pct || 0), 0) / recent.length : null;
-    const dueN = due.filter(e => e.s === s.id).length;
+    const dueN = due.filter(e => e.s === s.id && (!s.packId || e.p === s.packId)).length;
     // days since this subject was last revised (quiz or study time)
     const lastQuiz = Math.max(0, ...ses.map(x => x.date || 0));
     const studyDays = Object.keys(profile.study || {}).filter(d => (profile.study[d] || {})[s.id] > 0).sort();
@@ -711,15 +716,15 @@ function renderPlanCard(groupId, subjects) {
       planSubsKey = key; planSubs = null;
       loadPlanSubjects(profile).then(r => { if (planSubsKey === key) { planSubs = r; renderPlanCard(groupId, subjects); } }).catch(() => {});
     }
-    const ps = planSubs && planSubs.subjects.length ? planSubs : { packId: groupId, subjects, all: [] };
+    const ps = planSubs && planSubs.subjects.length ? planSubs : { packId: subjects[0]?.packId || groupId, subjects, all: [] };
     const today = planSchedule(profile, ps.subjects, ps.packId, { back: 0, extra: ps.all }).days[0];
     if (today?.subjects?.length) focus = today.subjects.map((s, i) => ({ s, why: [today.reasons[i], ...subjectNeed(profile, s, s.packId || ps.packId).why].filter(Boolean),
       chosen: !!(i ? today.override?.subjectId2 : today.override?.subjectId) }));
-    else { const f = focusSubject(profile, subjects, groupId); if (f) focus = [f]; }
+    else { const f = focusSubject(profile, subjects); if (f) focus = [f]; }
   }
   window._openMyPlan = () => openPlanCalendar(profile, { editable: false });
   // Once started, today's first focus is the Next card at the top (unless reviews come first)
-  const focusIsNext = hasStarted(profile) && !dueEntries(profile, groupId).length;
+  const focusIsNext = hasStarted(profile) && !dueAll(profile).length;
   const go = s => `{groupId:'${esc(s.packId || groupId)}',subjectId:'${s.id}',subjectName:'${esc(s.name)}'}`;
   wrap.innerHTML = `<div class="plan-card ${g.level}">
     <div class="plan-top">
@@ -797,13 +802,15 @@ function lobeyIcon(mood, icon) {
   const img = lobeyImg(mood, 52);
   return img ? `<div class="review-icon has-lobey">${img}</div>` : `<div class="review-icon"><i data-icon="${icon}"></i></div>`;
 }
-function renderReviewCard(groupId) {
+function renderReviewCard() {
   const wrap = document.getElementById('review-wrap');
   if (!wrap) return;
   if (!hubProfile || !isStudent(hubProfile)) { wrap.innerHTML = ''; return; }
-  const due = dueEntries(hubProfile, groupId).length;
-  const scheduled = scheduledCount(hubProfile, groupId);
-  const go = `quiz.html?review=1&groupId=${encodeURIComponent(groupId)}`;
+  // Always across all the student's packs, whichever pill is picked
+  const due = dueAll(hubProfile).length;
+  const ids = new Set(hubPackIds);
+  const scheduled = Object.values(hubProfile.srs || {}).filter(e => e && (!ids.size || ids.has(e.p))).length;
+  const go = reviewHref();
   if (due) {
     const n = Math.min(due, REVIEW_SIZE);
     wrap.innerHTML = `<div class="review-card due">
@@ -815,7 +822,7 @@ function renderReviewCard(groupId) {
     wrap.innerHTML = `<div class="review-card">
       ${lobeyIcon('party', 'circle-check')}
       <div class="review-text"><div class="review-title">All caught up</div>
-        <div class="review-sub">Nothing to review right now. Next review ${whenText(nextDueDay(hubProfile, groupId))}.</div></div></div>`;
+        <div class="review-sub">Nothing to review right now. Next review ${whenText(Object.values(hubProfile.srs || {}).filter(e => e && (!ids.size || ids.has(e.p))).map(e => e.d).sort()[0] || null)}.</div></div></div>`;
   } else if (hasStarted(hubProfile)) {
     wrap.innerHTML = '';   // nothing scheduled yet: no empty card
   } else {
@@ -828,22 +835,28 @@ function renderReviewCard(groupId) {
 
 async function loadSubjects(user, groupId) {
   const grid = document.getElementById('hub-content');
-  renderReviewCard(groupId);
+  renderReviewCard();
+  const all = groupId === ALL;
+  const packs = all ? hubPackIds : [groupId];
 
-  // Get group info
-  const groupSnap = await getDoc(doc(db, 'content', groupId));
-  if (!groupSnap.exists()) {
+  // Pack names (a pack that no longer exists is skipped)
+  const names = await Promise.all(packs.map(packName));
+  const live = packs.filter((id, i) => names[i] !== null);
+  if (!live.length) {
     grid.innerHTML = `<div class="no-group-banner"><h3>Revision pack not found</h3><p>Ask your parent or teacher to choose another pack for you.</p></div>`;
     return;
   }
 
-  currentPackName = groupSnap.data().name || '';
-  document.getElementById('welcome-sub').textContent = `Revising: ${currentPackName}`;
+  currentPackName = all ? '' : (packNames[groupId] || '');
+  document.getElementById('welcome-sub').textContent = all ? 'Revising: all your packs' : `Revising: ${currentPackName}`;
 
-  // Get subjects
+  // Subjects from each pack, in pack order, each tagged with its pack
   // All subjects (orderBy('order') would leave out any without an order number), then sorted
-  const subjectsSnap = await getDocs(collection(db, `content/${groupId}/subjects`));
-  const subjects = inOrder(subjectsSnap);
+  const lists = await Promise.all(live.map(id => getDocs(collection(db, `content/${id}/subjects`))
+    .then(snap => inOrder(snap).map(s => ({ ...s, packId: id, packName: packNames[id] || '' }))).catch(() => [])));
+  const subjects = lists.flat();
+  // Show the pack on each subject when more than one pack is in view
+  const showPack = all && live.length > 1;
 
   if (subjects.length === 0) {
     grid.innerHTML = `<div class="subjects-grid"><div class="empty-state">${lobeyImg('wave', 96) ? `<div class="empty-state-icon has-lobey">${lobeyImg('wave', 96)}</div>` : '<div class="empty-state-icon"><i data-icon="inbox"></i></div>'}<h3>No subjects yet</h3><p>Your admin is still adding content.</p></div></div>`;
@@ -853,9 +866,9 @@ async function loadSubjects(user, groupId) {
   // For each subject, load topics
   const subjectTopics = {};
   await Promise.all(subjects.map(async s => {
-    const tSnap = await getDocs(collection(db, `content/${groupId}/subjects/${s.id}/topics`)).catch(() => null);
-    subjectTopics[s.id] = [];
-    if (tSnap) subjectTopics[s.id] = inOrder(tSnap);
+    const tSnap = await getDocs(collection(db, `content/${s.packId}/subjects/${s.id}/topics`)).catch(() => null);
+    subjectTopics[s.packId + '/' + s.id] = [];
+    if (tSnap) subjectTopics[s.packId + '/' + s.id] = inOrder(tSnap);
   }));
   renderPlanCard(groupId, subjects);
 
@@ -877,7 +890,8 @@ async function loadSubjects(user, groupId) {
       <div class="topics-list">${ok.map(r => `<div class="topic-row"><a class="topic-row-name" href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--color-primary);text-decoration:none;">${esc(r.label)} <span style="opacity:.6">↗</span></a></div>`).join('')}</div></div>`;
   };
   subjects.forEach((s, i) => {
-    const topics = subjectTopics[s.id] || [];
+    const topics = subjectTopics[s.packId + '/' + s.id] || [];
+    const groupId = s.packId;
     const topicCount = topics.length;
 
     // Explainer videos set on the topic: one opens directly, several open a list
@@ -937,7 +951,7 @@ async function loadSubjects(user, groupId) {
         <div class="subject-emoji">${s.emoji || '📚'}</div>
         <div>
           <div class="subject-name">${esc(s.name)}</div>
-          <div class="subject-meta">${topicCount} topic${topicCount !== 1 ? 's' : ''}${lockedCount ? ` · ${topicCount - lockedCount} free, ${lockedCount} with <a href="plus.html" style="color:inherit;">Plus</a>` : ''}</div>
+          <div class="subject-meta">${showPack && s.packName ? `<span class="subject-pack">${esc(s.packName)}</span> · ` : ''}${topicCount} topic${topicCount !== 1 ? 's' : ''}${lockedCount ? ` · ${topicCount - lockedCount} free, ${lockedCount} with <a href="plus.html" style="color:inherit;">Plus</a>` : ''}</div>
         </div>
       </div>
       <div class="subject-actions">
