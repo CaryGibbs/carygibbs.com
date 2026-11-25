@@ -13,7 +13,12 @@ STUB = {'firebase-firestore.js': open(f'{HERE}/stubs/firestore.js').read(),
         'firebase-storage.js': open(f'{HERE}/stubs/other.js').read()}
 FONTS_CSS = open(f'{HERE}/fonts.css').read()
 OUT = f'{HERE}/out'; os.makedirs(OUT, exist_ok=True)
-MARK = {"score": 4, "outOf": 5, "feedback": "Good answer! You explain that Haiti faces earthquakes and hurricanes, and that repeated disasters stop it recovering. To get full marks, add that its limited money and resources are stretched across every hazard."}
+# Plus marking (the quiz_marked shot gives Sam Plus): marks out of the question's 4, points got and missed, how to get full marks
+MARK = {"score": 3, "outOf": 4,
+        "feedback": "Good answer! You name two hazards Haiti faces and explain clearly how repeated disasters stop it recovering.",
+        "covered": ["Haiti faces more than one hazard (earthquakes and hurricanes)", "Repeated disasters cause cumulative damage", "Recovery from one disaster is interrupted by the next"],
+        "missed": ["Limited money and resources are spread across every hazard"],
+        "toFull": "Add that Haiti's limited money and resources are stretched across every hazard, so it can't prepare well for any of them. That gets you 4/4."}
 
 async def route(r):
     url = r.request.url
@@ -89,19 +94,20 @@ async def quiz_written(b):
 @scenario
 async def quiz_marked(b):
     ctx, pg = await page_for(b, 'demo-sam', 430, 932, mobile=True)
+    await ctx.add_init_script("window.__DEMO['users/demo-sam'].tier = 'plus';")   # examiner-style marking is Plus
     geo = 'demo-y10'
     await pg.goto(f'{HUB}/quiz.html?groupId={geo}&subjectId=demo-geo-s&topicId=demo-geo-t0'); await settle(pg, 2500)
     await pg.evaluate("['mcq','tf'].forEach(t => toggleType(t)); toggleType('short')"); await pg.wait_for_timeout(300)
     await pg.evaluate("startQuiz()"); await settle(pg, 1500)
-    for _ in range(12):   # questions are shuffled: go again until the Haiti question comes first
-        if 'Haiti' in (await pg.inner_text('#screen-question')): break
+    for _ in range(30):   # questions are shuffled: go again until the Haiti question comes first
+        if 'Haiti' in (await pg.inner_text('#q-text')): break
         await pg.evaluate("toggleType && 0"); await pg.goto(pg.url); await settle(pg, 2000)
         await pg.evaluate("['mcq','tf'].forEach(t => toggleType(t)); toggleType('short')"); await pg.wait_for_timeout(300)
         await pg.evaluate("startQuiz()"); await settle(pg, 1200)
     await pg.fill('#short-input', "Haiti gets earthquakes and hurricanes, and each disaster damages buildings and roads before it has recovered from the last one, so it never fully rebuilds.")
     await pg.screenshot(path=f'{OUT}/quiz-written-typed.png')
     await pg.evaluate("submitAnswer()"); await settle(pg, 2500)
-    await pg.screenshot(path=f'{OUT}/quiz-written-marked.png'); await ctx.close()
+    await pg.screenshot(path=f'{OUT}/quiz-written-marked.png', full_page=True); await ctx.close()
 
 @scenario
 async def hub_more(b):

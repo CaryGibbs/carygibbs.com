@@ -62,7 +62,7 @@ D[f"content/{PACK}/subjects/{SUBJ['demo-chem']}/topics/{chem_t}"]['keyPoints'] =
 ]
 def q(pid, tid, qid, data):
     D[f"content/{PACK}/subjects/{SUBJ[pid]}/topics/{tid}/questions/{qid}"] = {'source': 'ai', 'createdAt': TS(NOW - dt.timedelta(days=50)), **data}
-q('demo-geo', geo_t, 'gq1', {'type': 'short', 'question': "Explain how Haiti's exposure to multiple natural hazards increases its vulnerability.",
+q('demo-geo', geo_t, 'gq1', {'type': 'short', 'marks': 4, 'question': "Explain how Haiti's exposure to multiple natural hazards increases its vulnerability.",
    'markScheme': 'Key points: 1) Haiti faces earthquakes, tropical storms, hurricanes and flooding 2) Repeated disasters cause cumulative damage 3) Recovery from one disaster is interrupted by another 4) Limited resources are spread across multiple hazards'})
 q('demo-geo', geo_t, 'gq2', {'type': 'mcq', 'question': 'What happens at a conservative plate margin?', 'explanation': 'Plates slide past each other, stick, then slip suddenly.',
    'options': [{'text': 'Plates move apart and magma rises', 'correct': False}, {'text': 'Plates slide past each other and cause earthquakes', 'correct': True},
