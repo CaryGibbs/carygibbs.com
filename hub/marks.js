@@ -6,7 +6,7 @@
 // only reads them, to show what's left. Plus: unlimited.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261125a';
+import { db } from './firebase-config.js?v=20261125b';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 export const FREE_MARKS_DEFAULT = 15;

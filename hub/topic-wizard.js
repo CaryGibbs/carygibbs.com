@@ -9,12 +9,12 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261125a';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261125a';
-import { mergeReads, siteOf } from './videos.js?v=20261125a';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261125a';
-import { logEvent } from './log.js?v=20261125a';
-import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261125a';
+import { db } from './firebase-config.js?v=20261125b';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261125b';
+import { mergeReads, siteOf } from './videos.js?v=20261125b';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261125b';
+import { logEvent } from './log.js?v=20261125b';
+import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261125b';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";

@@ -1,12 +1,12 @@
-// Admin → Settings: set marks on the written questions in the official packs in one go.
+// Admin → Settings: set marks on the written questions in official packs (or people's own) in one go.
 // Scan finds the written questions, AI (or the estimate) suggests a mark value for each,
 // the admin checks and changes any, then Save writes them.
-import { db } from './firebase-config.js?v=20261125a';
+import { db } from './firebase-config.js?v=20261125b';
 import { collection, getDocs, doc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261125a';
-import { isOfficialPack } from './packs.js?v=20261125a';
-import { logEvent } from './log.js?v=20261125a';
-import { MARK_OPTIONS, estimateMarks, marksLabel } from './question-marks.js?v=20261125a';
+import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261125b';
+import { isOfficialPack } from './packs.js?v=20261125b';
+import { logEvent } from './log.js?v=20261125b';
+import { MARK_OPTIONS, estimateMarks, marksLabel } from './question-marks.js?v=20261125b';
 
 const BATCH = 40;   // questions per AI request
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -18,7 +18,7 @@ export function mountMarksTool(root, { showToast = () => {} } = {}) {
   root.innerHTML = `
     <div class="ai-settings-head"><div>
       <h3>Marks on written questions</h3>
-      <p>Each written question shows its marks, and the AI marks out of them. This sets marks on the official packs' written questions in one go: AI suggests a value from the question and mark scheme, you check them, then save. Marks someone set by hand in the question editor are never changed.</p>
+      <p>Each written question shows its marks, and the AI marks out of them. This sets marks on a pack's written questions in one go (official packs, or people's own packs if you tick them): AI suggests a value from the question and mark scheme, you check them, then save. Marks someone set by hand in the question editor are never changed.</p>
     </div></div>
     <div id="mt-packs" class="mt-packs"><span class="ai-status">Loading packs…</span></div>
     <div class="mt-opts">
@@ -42,13 +42,19 @@ export function mountMarksTool(root, { showToast = () => {} } = {}) {
   const how = () => root.querySelector('input[name="mt-how"]:checked').value;
   window.claspHydrateIcons?.(root);
 
-  // The official packs, all ticked
-  getDocs(collection(db, 'content')).then(s => {
-    s.forEach(d => { const p = { id: d.id, ...d.data() }; if (isOfficialPack(p)) packs.push(p); });
-    packs.sort((a, b) => String(a.name).localeCompare(String(b.name)));
-    $('mt-packs').innerHTML = packs.length
-      ? packs.map(p => `<label class="mt-pack"><input type="checkbox" value="${esc(p.id)}" checked> ${esc(p.name || 'Untitled pack')}</label>`).join('')
-      : '<span class="ai-status">No official packs.</span>';
+  // Official packs (ticked) and people's own packs (not ticked), by owner.
+  // Community library copies are frozen, so they aren't listed.
+  Promise.all([getDocs(collection(db, 'content')), getDocs(collection(db, 'users')).catch(() => null)]).then(([s, us]) => {
+    const names = {}; us?.forEach(d => { names[d.id] = d.data().name || d.data().email || 'Someone'; });
+    s.forEach(d => { const p = { id: d.id, ...d.data() }; if (p.visibility === 'library') return; p.official = isOfficialPack(p); p.owner = p.official ? '' : (names[p.ownerUid] || 'Someone'); packs.push(p); });
+    packs.sort((a, b) => (b.official - a.official) || a.owner.localeCompare(b.owner) || String(a.name).localeCompare(String(b.name)));
+    const box = p => `<label class="mt-pack"><input type="checkbox" value="${esc(p.id)}"${p.official ? ' checked' : ''}> ${esc(p.name || 'Untitled pack')}</label>`;
+    const official = packs.filter(p => p.official), own = packs.filter(p => !p.official);
+    const owners = [...new Set(own.map(p => p.owner))];
+    $('mt-packs').innerHTML = !packs.length ? '<span class="ai-status">No packs.</span>' : `
+      ${official.length ? `<div class="mt-group"><strong>Official packs</strong><div>${official.map(box).join('')}</div></div>` : ''}
+      ${own.length ? `<details class="mt-group"${official.length ? '' : ' open'}><summary><strong>People's own packs</strong> (${own.length}; tick any to include)</summary>
+        ${owners.map(o => `<div class="mt-owner"><small>${esc(o)}</small><div>${own.filter(p => p.owner === o).map(box).join('')}</div></div>`).join('')}</details>` : ''}`;
   }).catch(e => { $('mt-packs').innerHTML = `<span class="ai-status">Couldn't load packs (${esc(e.message)}).</span>`; });
   root.addEventListener('change', e => { if (e.target.name === 'mt-scope' || e.target.closest?.('#mt-packs')) { $('mt-suggest').hidden = true; $('mt-review').hidden = true; status(''); } });
 
@@ -76,7 +82,7 @@ export function mountMarksTool(root, { showToast = () => {} } = {}) {
               if (set && q.marksBy === 'hand') { hand++; return; }
               if (set) have++;
               if (set && scope() === 'missing') return;
-              found.push({ path: `${path}/${qd.id}`, pack: p.name, subject: s, topic: td.data().name || '', question: q.question || '', markScheme: q.markScheme || '', was: set ? Number(q.marks) : 0 });
+              found.push({ path: `${path}/${qd.id}`, pack: p.official ? p.name : `${p.name} (${p.owner})`, subject: s, topic: td.data().name || '', question: q.question || '', markScheme: q.markScheme || '', was: set ? Number(q.marks) : 0 });
             });
           }));
         }
