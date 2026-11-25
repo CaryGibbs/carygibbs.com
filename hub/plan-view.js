@@ -7,12 +7,12 @@
 // Parent changes are saved as plan.overrides.<day> on the student.
 // ============================================================
 
-import { byOrder } from './order.js?v=20261125c';
-import { db } from './firebase-config.js?v=20261125c';
+import { byOrder } from './order.js?v=20261125d';
+import { db } from './firebase-config.js?v=20261125d';
 import { doc, updateDoc, deleteField, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { logEvent } from './log.js?v=20261125c';
-import { packNames } from './packs.js?v=20261125c';
-import { planSchedule, planSummary, planPack, planPacks, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261125c';
+import { logEvent } from './log.js?v=20261125d';
+import { packNames } from './packs.js?v=20261125d';
+import { planSchedule, planSummary, planPack, planPacks, LEVELS, targetText, loadPlanSettings } from './plan.js?v=20261125d';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
