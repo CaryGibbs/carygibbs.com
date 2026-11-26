@@ -50,8 +50,9 @@ export const PICKER_CSS = `
   .pp-levels { display: inline-flex; border: 1px solid var(--color-border); border-radius: 999px; overflow: hidden; }
   .pp-levels button { border: 0; background: none; padding: 6px 12px; font-family: var(--font-ui); font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted); cursor: pointer; }
   .pp-levels button.on { background: var(--color-primary); color: var(--color-on-primary, #fff); }
-  .pp-bar select, .pp-bar input { font: inherit; font-size: 0.85rem; padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-text); }
-  .pp-bar input { flex: 1; min-width: 140px; }
+  .pp-bar select, .pp-bar input { font: inherit; font-size: 0.85rem; padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-text); margin: 0 !important; }
+  .pp-bar select { width: auto !important; flex: 0 0 auto; }
+  .pp-bar input { flex: 1 1 180px; width: auto !important; min-width: 140px; }
   .pp-level { font-family: var(--font-ui); font-size: 0.8rem; font-weight: 800; color: var(--color-text); margin: 12px 0 2px; }
   .pp-subject { font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); margin: 8px 0 4px; }
   .pp-board { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--color-border); font-family: var(--font-ui); font-size: 0.68rem; font-weight: 700; color: var(--color-text-muted); vertical-align: middle; white-space: nowrap; }

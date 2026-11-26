@@ -10,10 +10,10 @@
 // Everything stays still for people who prefer reduced motion.
 // ═══════════════════════════════════════════════════════════
 
-import { BADGES, BADGE_FAMILIES, TIERS } from './gamification.js?v=20261126k';
-import { lobeyShows } from './lobey.js?v=20261126k';
+import { BADGES, BADGE_FAMILIES, TIERS } from './gamification.js?v=20261126l';
+import { lobeyShows } from './lobey.js?v=20261126l';
 
-const SVG_URL = 'assets/images/brand/mascot/limpet-reveal.svg?v=20261126k';
+const SVG_URL = 'assets/images/brand/mascot/limpet-reveal.svg?v=20261126l';
 let svgText = null;
 const loadSvg = () => svgText ? Promise.resolve(svgText)
   : fetch(SVG_URL).then(r => r.ok ? r.text() : '').then(t => (svgText = t)).catch(() => '');

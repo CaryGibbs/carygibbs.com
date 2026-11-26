@@ -13,11 +13,11 @@
 // without sending the whole document again and again (cost).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126k';
-import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126k';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126k';
-import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126k';
-import { logEvent } from './log.js?v=20261126k';
+import { db } from './firebase-config.js?v=20261126l';
+import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126l';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126l';
+import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126l';
+import { logEvent } from './log.js?v=20261126l';
 import {
   doc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
