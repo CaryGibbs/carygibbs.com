@@ -1,12 +1,12 @@
 // Admin → Settings: set marks on the written questions in official packs (or people's own) in one go.
 // Scan finds the written questions, AI (or the estimate) suggests a mark value for each,
 // the admin checks and changes any, then Save writes them.
-import { db } from './firebase-config.js?v=20261126a';
+import { db } from './firebase-config.js?v=20261126b';
 import { collection, getDocs, doc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126a';
-import { isOfficialPack } from './packs.js?v=20261126a';
-import { logEvent } from './log.js?v=20261126a';
-import { MARK_OPTIONS, estimateMarks, marksLabel } from './question-marks.js?v=20261126a';
+import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126b';
+import { isOfficialPack } from './packs.js?v=20261126b';
+import { logEvent } from './log.js?v=20261126b';
+import { MARK_OPTIONS, estimateMarks, marksLabel } from './question-marks.js?v=20261126b';
 
 const BATCH = 40;   // questions per AI request
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
