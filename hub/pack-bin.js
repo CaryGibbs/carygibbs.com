@@ -12,12 +12,12 @@
 // No security-rules change: owners already update their own pack.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126f';
-import { updateStudentPacks } from './packs.js?v=20261126f';
-import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126f';
-import { logEvent } from './log.js?v=20261126f';
+import { db } from './firebase-config.js?v=20261126g';
+import { updateStudentPacks } from './packs.js?v=20261126g';
+import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126g';
+import { logEvent } from './log.js?v=20261126g';
 import {
-  doc, getDoc, getDocs, updateDoc, collection, query, where, deleteField, getCountFromServer,
+  doc, getDoc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, collection, query, where, deleteField, getCountFromServer, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -37,11 +37,10 @@ export async function packContents(packId) {
   await Promise.all(sids.map(async sid => {
     const ts = await getDocs(collection(db, `content/${packId}/subjects/${sid}/topics`)).catch(() => null);
     const tids = []; ts?.forEach(d => tids.push(d.id));
-    out.topics += tids.length;
     const counts = await Promise.all(tids.map(tid => getCountFromServer(collection(db, `content/${packId}/subjects/${sid}/topics/${tid}/questions`))
       .then(c => c.data().count).catch(() => 0)));
-    out.questions += counts.reduce((a, n) => a + n, 0);
-  }));
+    return [tids.length, counts.reduce((a, n) => a + n, 0)];
+  })).then(per => per.forEach(([t, q]) => { out.topics += t; out.questions += q; }));
   return out;
 }
 
@@ -142,8 +141,13 @@ export async function openDeletePack({ pack, role, uid, onDone = () => {}, toast
     try {
       await binPack({ pack, role, uid, holders: h });
       box.remove();
-      toast(`“${pack.name}” moved to Recently deleted. You can restore it for ${BIN_DAYS} days.`, 'success');
       onDone();
+      showUndo(`“${pack.name}” moved to Recently deleted.`, async () => {
+        const b = await getDoc(doc(db, 'content', pack.id));
+        const back = await restorePack({ pack: { id: pack.id, name: pack.name, binned: b.data()?.binned }, role, uid });
+        toast(`“${pack.name}” restored${back.length ? ` and given back to ${back.join(', ')}` : ''}.`, 'success');
+        onDone();
+      });
     } catch (e) {
       go.disabled = false; go.classList.remove('loading');
       const err = box.querySelector('#dp-err'); err.textContent = 'Could not delete it: ' + e.message; err.classList.add('visible');
@@ -162,6 +166,168 @@ export function addBinCss() {
     .bin-row > div { flex: 1; min-width: 200px; }
     .bin-row strong { font-family: var(--font-ui); font-size: 0.92rem; }
     .bin-row small { display: block; color: var(--color-text-muted); font-size: 0.8rem; }
+    .undo-bar { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 4000; display: flex; align-items: center; gap: 14px; background: #1f2a30; color: #fff; padding: 12px 14px 12px 18px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); font-size: 0.92rem; max-width: calc(100vw - 24px); }
+    .undo-btn { background: none; border: 0; color: #7fe0d0; font: inherit; font-family: var(--font-ui); font-weight: 800; cursor: pointer; padding: 4px 6px; }
     .bin-forever { background: none; border: 0; font: inherit; font-size: 0.82rem; color: var(--color-danger); text-decoration: underline; cursor: pointer; }
   </style>`);
+}
+
+/* ── Subjects and topics in Recently deleted ─────────────────
+   A deleted subject or topic is copied, with everything in it, into a
+   private holding pack of its own (only the person who deleted it can
+   see it: so Plus-only questions stay locked), keeping the same ids,
+   then removed from its pack. Restore copies it back with the same ids,
+   so students' progress and reviews reconnect. The holding pack carries
+   `binned` (hidden everywhere, cleared after BIN_DAYS like a pack) and
+   `binFor` (what it is and where it came from). */
+export const isBinnedItem = p => isBinned(p) && !!p.binFor;
+const idsIn = async path => { const s = await getDocs(collection(db, path)).catch(() => null); const ids = []; s?.forEach(d => ids.push(d.id)); return ids; };
+async function copyDoc(src, dst) {
+  const s = await getDoc(doc(db, src));
+  if (!s.exists()) return null;
+  await setDoc(doc(db, dst), s.data());
+  return s.data();
+}
+async function copyTopic(src, dst) {
+  const data = await copyDoc(src, dst);
+  for (const sub of ['questions', 'notes']) {
+    const ids = await idsIn(`${src}/${sub}`);
+    await Promise.all(ids.map(id => copyDoc(`${src}/${sub}/${id}`, `${dst}/${sub}/${id}`)));
+  }
+  return data;
+}
+async function copySubject(src, dst) {
+  const data = await copyDoc(src, dst);
+  for (const tid of await idsIn(`${src}/topics`)) await copyTopic(`${src}/topics/${tid}`, `${dst}/topics/${tid}`);
+  return data;
+}
+async function deleteTopicTree(path) {
+  for (const sub of ['questions', 'notes']) await Promise.all((await idsIn(`${path}/${sub}`)).map(id => deleteDoc(doc(db, `${path}/${sub}/${id}`))));
+  await deleteDoc(doc(db, path));
+}
+async function deleteSubjectTree(path) {
+  for (const tid of await idsIn(`${path}/topics`)) await deleteTopicTree(`${path}/topics/${tid}`);
+  await deleteDoc(doc(db, path));
+}
+export async function deletePackFully(packId) {
+  for (const sid of await idsIn(`content/${packId}/subjects`)) await deleteSubjectTree(`content/${packId}/subjects/${sid}`);
+  await deleteDoc(doc(db, 'content', packId));
+}
+
+// What's in a subject or topic
+export async function itemContents(kind, path) {
+  const out = { topics: 0, notes: 0, questions: 0 };
+  const count = p => getCountFromServer(collection(db, p)).then(c => c.data().count).catch(() => 0);
+  const notesOf = d => (d?.keyPoints || []).reduce((a, g) => a + (g && g.points ? g.points.length : 1), 0);
+  const topicPaths = kind === 'subject' ? (await idsIn(`${path}/topics`)).map(t => `${path}/topics/${t}`) : [path];
+  out.topics = kind === 'subject' ? topicPaths.length : 1;
+  // (each topic's numbers are fetched first, then added: "+= await" in parallel loses some)
+  const per = await Promise.all(topicPaths.map(async tp => [notesOf((await getDoc(doc(db, tp)).catch(() => null))?.data()), await count(`${tp}/questions`)]));
+  per.forEach(([n, q]) => { out.notes += n; out.questions += q; });
+  return out;
+}
+
+// kind: 'subject' | 'topic'; pack {id, name}; subject {id, name}; topic {id, name} (topics)
+export async function binItem({ kind, pack, subject, topic = null, uid }) {
+  const sPath = `content/${pack.id}/subjects/${subject.id}`;
+  const src = kind === 'subject' ? sPath : `${sPath}/topics/${topic.id}`;
+  const subjectData = (await getDoc(doc(db, sPath)).catch(() => null))?.data() || { name: subject.name };
+  const name = kind === 'subject' ? subject.name : topic.name;
+  const ref = await addDoc(collection(db, 'content'), {
+    name: `Deleted ${kind}: ${name}`, description: '', ownerUid: uid, visibility: 'private', createdAt: serverTimestamp(),
+    binned: { at: Date.now(), by: uid },
+    binFor: { kind, name, packId: pack.id, packName: pack.name || '', subjectId: subject.id, subjectName: subject.name, topicId: topic?.id || '', subjectData },
+  });
+  const bSub = `content/${ref.id}/subjects/${subject.id}`;
+  try {
+    if (kind === 'subject') await copySubject(sPath, bSub);
+    else { await setDoc(doc(db, bSub), subjectData); await copyTopic(src, `${bSub}/topics/${topic.id}`); }
+  } catch (e) {
+    await deletePackFully(ref.id).catch(() => {});   // nothing changed in the pack itself
+    throw e;
+  }
+  if (kind === 'subject') await deleteSubjectTree(sPath); else await deleteTopicTree(src);
+  logEvent('content.delete', { target: [pack.name, kind === 'topic' ? subject.name : '', name].filter(Boolean).join(' › '), targetId: kind === 'subject' ? subject.id : topic.id, detail: `Moved ${kind} to Recently deleted` });
+  return ref.id;
+}
+
+// binPack: { id, binFor } (the holding pack)
+export async function restoreItem(binPack) {
+  const f = binPack.binFor;
+  const home = await getDoc(doc(db, 'content', f.packId)).catch(() => null);
+  if (!home?.exists()) throw new Error(`the pack it was in (“${f.packName}”) has been deleted for good`);
+  const sPath = `content/${f.packId}/subjects/${f.subjectId}`, bSub = `content/${binPack.id}/subjects/${f.subjectId}`;
+  if (f.kind === 'subject') await copySubject(bSub, sPath);
+  else {
+    // Its subject was deleted too: put the subject back (empty) so the topic has a home
+    const s = await getDoc(doc(db, sPath)).catch(() => null);
+    if (!s?.exists()) await setDoc(doc(db, sPath), f.subjectData || { name: f.subjectName });
+    await copyTopic(`${bSub}/topics/${f.topicId}`, `${sPath}/topics/${f.topicId}`);
+  }
+  await deletePackFully(binPack.id);
+  logEvent('content.restore', { target: [f.packName, f.kind === 'topic' ? f.subjectName : '', f.name].filter(Boolean).join(' › '), targetId: f.kind === 'subject' ? f.subjectId : f.topicId, detail: `Restored ${f.kind}` });
+  return { packBinned: isBinned(home.data()) };
+}
+
+// "Moved to Recently deleted. Undo" for a few seconds after a delete
+export function showUndo(text, onUndo, ms = 9000) {
+  addBinCss();
+  document.getElementById('undo-bar')?.remove();
+  document.body.insertAdjacentHTML('beforeend', `<div class="undo-bar" id="undo-bar" role="status"><span>${esc(text)}</span><button class="undo-btn">Undo</button></div>`);
+  const bar = document.getElementById('undo-bar');
+  const t = setTimeout(() => bar.remove(), ms);
+  bar.querySelector('.undo-btn').onclick = async e => {
+    clearTimeout(t); e.target.disabled = true; e.target.textContent = 'Undoing…';
+    try { await onUndo(); bar.remove(); } catch (err) { bar.querySelector('span').textContent = 'Could not undo: ' + err.message; e.target.remove(); setTimeout(() => bar.remove(), 5000); }
+  };
+}
+
+// The Delete dialog for a subject or topic. Subjects need their name typed.
+// opts: { kind, pack, subject, topic, uid, onDone(), onRestored() }
+export async function openDeleteItem({ kind, pack, subject, topic = null, uid, onDone = () => {}, onRestored = () => {} }) {
+  addBinCss();
+  document.getElementById('del-pack')?.remove();
+  const name = kind === 'subject' ? subject.name : topic.name;
+  const path = `content/${pack.id}/subjects/${subject.id}${kind === 'topic' ? `/topics/${topic.id}` : ''}`;
+  document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay open" id="del-pack" role="dialog" aria-modal="true" aria-labelledby="del-pack-title"><div class="modal" style="max-width:480px">
+    <div class="modal-header"><h2 id="del-pack-title">Delete ${kind} “${esc(name)}”?</h2><button class="modal-close" data-dp="close" aria-label="Close">✕</button></div>
+    <div id="dp-body"><div class="spinner" style="margin:10px auto"></div></div>
+    <div class="error-msg" id="dp-err"></div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn btn-secondary" data-dp="close">Keep it</button>
+      <button class="btn btn-danger" id="dp-go" ${kind === 'subject' ? 'disabled' : ''}>Delete ${kind}</button></div>
+  </div></div>`);
+  const box = document.getElementById('del-pack');
+  box.querySelectorAll('[data-dp="close"]').forEach(b => b.onclick = () => box.remove());
+  const c = await itemContents(kind, path);
+  if (!box.isConnected) return;
+  const what = kind === 'subject' ? [plural(c.topics, 'topic'), plural(c.notes, 'note'), plural(c.questions, 'question')] : [plural(c.notes, 'note'), plural(c.questions, 'question')];
+  box.querySelector('#dp-body').innerHTML = `
+    <p class="dp-line">It has <strong>${esc(what.join(', '))}</strong>${kind === 'topic' ? `, in ${esc(subject.name)}` : ''}.</p>
+    <p class="dp-line">Students using “${esc(pack.name)}” won't see it any more. It goes to <strong>Recently deleted</strong> at the bottom of My packs for ${BIN_DAYS} days, where you can restore it with their progress. After that it's deleted for good.</p>
+    ${kind === 'subject' ? `<label class="dp-type">To delete it, type the subject's name: <b>${esc(name)}</b>
+      <input id="dp-name" class="form-input" autocomplete="off" spellcheck="false" placeholder="${esc(name)}"></label>` : ''}`;
+  const go = box.querySelector('#dp-go'), input = box.querySelector('#dp-name');
+  const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (input) {
+    input.oninput = () => { go.disabled = norm(input.value) !== norm(name); };
+    input.onkeydown = e => { if (e.key === 'Enter' && !go.disabled) go.click(); };
+    setTimeout(() => input.focus(), 30);
+  }
+  go.onclick = async () => {
+    go.disabled = true; go.classList.add('loading');
+    try {
+      const binId = await binItem({ kind, pack, subject, topic, uid });
+      box.remove();
+      onDone();
+      showUndo(`${kind === 'subject' ? 'Subject' : 'Topic'} “${name}” moved to Recently deleted.`, async () => {
+        const b = await getDoc(doc(db, 'content', binId));
+        await restoreItem({ id: binId, ...b.data() });
+        onRestored();
+      });
+    } catch (e) {
+      go.disabled = false; go.classList.remove('loading');
+      const err = box.querySelector('#dp-err'); err.textContent = 'Could not delete it: ' + e.message; err.classList.add('visible');
+    }
+  };
 }
