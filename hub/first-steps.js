@@ -10,9 +10,9 @@
 //   offerGivePack(...)   after making content: "Give this pack to Jacob?"
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126c';
-import { updateStudentPacks } from './packs.js?v=20261126c';
-import { logEvent } from './log.js?v=20261126c';
+import { db } from './firebase-config.js?v=20261126d';
+import { updateStudentPacks } from './packs.js?v=20261126d';
+import { logEvent } from './log.js?v=20261126d';
 import {
   doc, getDoc, getDocs, updateDoc, collection, getCountFromServer,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -221,13 +221,13 @@ export async function offerGivePack({ role, uid, pack, toast = () => {} }) {
     }
   });
 }
-async function givePackToChild(parentUid, kid, pack) {
+export async function givePackToChild(parentUid, kid, pack) {
   const groupIds = [...new Set([...(kid.groupIds || []), pack.id])];
   await updateStudentPacks(kid.id, { groupIds, groupId: groupIds[0] });
   await updateDoc(doc(db, 'users', parentUid, 'children', kid.id), { groupIds }).catch(() => {});
   logEvent('student.pack_given', { target: kid.full, targetId: kid.id, detail: pack.name });
 }
-async function givePackToClass(teacherUid, cls, pack) {
+export async function givePackToClass(teacherUid, cls, pack) {
   const packIds = [...new Set([...(cls.packIds || []), pack.id])];
   await updateDoc(doc(db, 'users', teacherUid, 'classes', cls.id), { packIds });
   if (cls.joinCode) await updateDoc(doc(db, 'classCodes', cls.joinCode), { packIds }).catch(() => {});

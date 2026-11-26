@@ -13,11 +13,11 @@
 // without sending the whole document again and again (cost).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126c';
-import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126c';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126c';
-import { notesPromptFromText, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126c';
-import { logEvent } from './log.js?v=20261126c';
+import { db } from './firebase-config.js?v=20261126d';
+import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126d';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126d';
+import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126d';
+import { logEvent } from './log.js?v=20261126d';
 import {
   doc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -84,6 +84,23 @@ Document:
 ${lines.map((l, i) => `[${i + 1}] ${l}`).join('\n')}`;
 }
 
+// No sheet: the topics for a subject from what the parent typed, or from the course itself
+export function topicsFromSubjectPrompt(context, typed, existingNames) {
+  const list = String(typed || '').trim();
+  return `You are an experienced UK teacher helping a parent set up revision for ${context || 'a school subject'}.
+${existingNames.length ? `The subject already has these topics: ${existingNames.map(n => `"${n}"`).join(', ')}. If a topic is the same thing as one of these, set "existing" to that exact name and use that name.\n` : ''}
+${list ? `The parent typed what the student is revising (between the lines of dashes):
+-----
+${list.slice(0, 4000)}
+-----
+Turn this into a list of revision topics. Keep to what they typed: tidy the names (spelling, capitals), split a line that clearly holds two separate topics, and merge exact repeats. Don't add topics they didn't mention. Use any detail they gave (e.g. sub-points) in "about".`
+  : `List the topics of this course the way the exam board's specification divides it (usually 4 to 12 topics; never more than ${MAX_TOPICS}). Use the board's own topic names where you know them. If no exam board or level is given, use the usual topics for that subject at that stage in UK schools.`}
+Name each topic about the SUBJECT. In "about", list its main sub-topics in a few words, so notes can be written for it.
+
+Return ONLY a JSON array, no markdown, no preamble:
+[{"name":"Cell biology","existing":"","about":"Cell structure, microscopy, cell division, transport in cells"}]`;
+}
+
 async function askList(prompt, maxTokens, isItem) {
   for (let attempt = 1; ; attempt++) {
     const data = await askClaude('generation', prompt, maxTokens);
@@ -98,9 +115,10 @@ async function askList(prompt, maxTokens, isItem) {
 const isStopError = e => [401, 403, 429].includes(e?.status) || e?.code === 'ai_paused';
 
 /* ── The dialog ──────────────────────────────────────────── */
-// opts: { pack: {id, name}, subject: {id, name, examBoard, level}, trialTopics (number, free try only), onDone, onOpenTopic }
+// opts: { pack: {id, name}, subject: {id, name, examBoard, level}, mode, trialTopics (number, free try only), onDone, onOpenTopic }
+// mode: 'sheet' (from a photo, file or pasted words) or 'ai' (no sheet: from the subject, or topics the parent types)
 // onDone({ topics, notes, questions }) after building; onOpenTopic(topicId) from the results
-export async function openSubjectBuilder({ pack, subject, trialTopics = null, onDone = null, onOpenTopic = null }) {
+export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialTopics = null, onDone = null, onOpenTopic = null }) {
   injectWizardStyle(); injectStyle();
   document.getElementById('sb')?.remove();
   const subjPath = `content/${pack.id}/subjects/${subject.id}/topics`;
@@ -120,10 +138,10 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
     <div class="tw-overlay sb-overlay" id="sb" role="dialog" aria-modal="true" aria-labelledby="sb-title">
       <div class="tw-box">
         <div class="tw-head">
-          <div><div class="tw-kicker">✨ Topics from one sheet</div><h2 id="sb-title">${esc(subject.name)}</h2></div>
+          <div><div class="tw-kicker">✨ ${mode === 'ai' ? 'Build with AI' : 'Topics from one sheet'}</div><h2 id="sb-title">${esc(subject.name)}</h2></div>
           <button class="tw-x" aria-label="Close">✕</button>
         </div>
-        <ol class="tw-steps"><li data-s="1">Your sheet</li><li data-s="2">The topics</li><li data-s="3">Notes and questions</li></ol>
+        <ol class="tw-steps"><li data-s="1">${mode === 'ai' ? 'What to cover' : 'Your sheet'}</li><li data-s="2">The topics</li><li data-s="3">Notes and questions</li></ol>
         <div class="tw-body" id="sb-body"></div>
         <div class="tw-foot" id="sb-foot"></div>
       </div>
@@ -156,8 +174,9 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
     ({ 1: step1, 2: step2, 3: step3 })[st.step]();
   }
 
-  /* Step 1: the sheet */
+  /* Step 1: the sheet (or, with no sheet, what to cover) */
   function step1() {
+    if (mode === 'ai') return step1ai();
     body().innerHTML = `
       <h3 class="tw-h">Add the whole sheet</h3>
       <p class="tw-hint">A revision list, worksheet, knowledge organiser or specification that covers several topics. We'll split it into topics, and each topic gets notes and quiz questions from its own part of the sheet.</p>
@@ -182,6 +201,22 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
     if (st.note) msg(st.note);
     foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
       <button class="btn btn-primary" data-go="next" ${st.text.trim().length >= 40 ? '' : 'disabled'}>Next: find the topics →</button>`;
+    foot().querySelector('[data-go="close"]').onclick = finish;
+    foot().querySelector('[data-go="next"]').onclick = findTopics;
+  }
+  function step1ai() {
+    const course = context || subject.name;
+    body().innerHTML = `
+      <h3 class="tw-h">What should ${esc(subject.name)} cover?</h3>
+      <p class="tw-hint">No sheet needed. Type the topics they're revising (from a test list or the school website, say), or leave it blank to cover the whole ${esc(course)} course.</p>
+      <label class="tw-label">Topics (optional, one per line)
+        <textarea id="sb-typed" class="tw-text" style="min-height:140px" placeholder="One topic per line, e.g. copied from their test list">${esc(st.typed || '')}</textarea></label>
+      ${!subject.level && !subject.examBoard ? `<p class="tw-hint" style="margin-top:8px">Tip: the level and exam board help the notes match their course. You can set them on the subject (the pencil on its card).</p>` : ''}
+      <p class="tw-gen-note">The notes are written by AI from what it knows of ${esc(course)}, not from the school's own materials. Have a quick look at a topic or two. If you have the school's sheet, it's even better to use that.</p>
+      <div class="tw-msg" id="sb-msg"></div>`;
+    box.querySelector('#sb-typed').oninput = e => { st.typed = e.target.value; };
+    foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
+      <button class="btn btn-primary" data-go="next">Next: suggest the topics →</button>`;
     foot().querySelector('[data-go="close"]').onclick = finish;
     foot().querySelector('[data-go="next"]').onclick = findTopics;
   }
@@ -215,22 +250,29 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
   }
 
   async function findTopics() {
-    st.text = (box.querySelector('#sb-text')?.value || st.text).trim();
-    if (st.text.length < 40) { msg('Take a photo, choose a file or paste the words first.', true); return; }
-    st.lines = numberedLines(st.text);
-    busy(true, 'Finding the topics on the sheet…');
+    let prompt;
+    if (mode === 'ai') {
+      st.typed = (box.querySelector('#sb-typed')?.value ?? st.typed ?? '').trim();
+      prompt = topicsFromSubjectPrompt(context || subject.name, st.typed, st.existing.map(t => t.name));
+    } else {
+      st.text = (box.querySelector('#sb-text')?.value || st.text).trim();
+      if (st.text.length < 40) { msg('Take a photo, choose a file or paste the words first.', true); return; }
+      st.lines = numberedLines(st.text);
+      prompt = topicsPrompt(st.lines, st.existing.map(t => t.name), context);
+    }
+    busy(true, mode === 'ai' ? 'Working out the topics…' : 'Finding the topics on the sheet…');
     let list;
-    try { list = await askList(topicsPrompt(st.lines, st.existing.map(t => t.name), context), 4000, x => x && typeof x.name === 'string'); }
+    try { list = await askList(prompt, 4000, x => x && typeof x.name === 'string'); }
     catch (e) { busy(false); msg(e.message, true); return; }
     busy(false);
     const seen = new Set();
     st.plan = list.slice(0, MAX_TOPICS).map(x => {
       const ex = matchExisting(x.existing, st.existing) || matchExisting(x.name, st.existing);
       const name = String(ex ? ex.name : x.name).trim().slice(0, 80);
-      return { name, on: true, target: ex ? ex.id : 'new', about: String(x.about || '').slice(0, 140), idx: parseLineList(x.lines, st.lines.length) };
+      return { name, on: true, target: ex ? ex.id : 'new', about: String(x.about || '').slice(0, 200), idx: mode === 'ai' ? [] : parseLineList(x.lines, st.lines.length) };
     }).filter(t => t.name && !seen.has(norm(t.name)) && seen.add(norm(t.name)));
-    if (!st.plan.length) { msg('No topics were found on that sheet. Try a clearer photo, or paste the words.', true); return; }
-    logEvent('content.topics_from_sheet', { target: `${subject.name} (${pack.name})`, detail: `${st.plan.length} topics suggested` });
+    if (!st.plan.length) { msg(mode === 'ai' ? 'No topics came back. Try typing the topics.' : 'No topics were found on that sheet. Try a clearer photo, or paste the words.', true); return; }
+    logEvent('content.topics_from_sheet', { target: `${subject.name} (${pack.name})`, detail: `${st.plan.length} topics suggested${mode === 'ai' ? ' (no sheet)' : ''}` });
     st.step = 2; render();
   }
 
@@ -240,7 +282,7 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
       st.existing.map(x => `<option value="${esc(x.id)}" ${t.target === x.id ? 'selected' : ''}>Add to “${esc(x.name)}”</option>`).join('');
     const matched = st.plan.filter(t => t.target !== 'new').length;
     body().innerHTML = `
-      <h3 class="tw-h">${st.plan.length === 1 ? 'We found one topic' : `We found ${st.plan.length} topics`}</h3>
+      <h3 class="tw-h">${mode === 'ai' ? (st.plan.length === 1 ? 'One topic' : `${st.plan.length} topics`) : st.plan.length === 1 ? 'We found one topic' : `We found ${st.plan.length} topics`}</h3>
       <p class="tw-hint">Untick any you don't want, and change a name if it isn't quite right.${matched ? ` ${matched === 1 ? 'One matches a topic' : `${matched} match topics`} you already have, so the new notes and questions are added there.` : ''}</p>
       <div class="sb-list" id="sb-list">${st.plan.map((t, i) => `
         <div class="sb-row${t.on ? '' : ' off'}" data-i="${i}">
@@ -277,7 +319,7 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
       box.querySelector('#sb-est').textContent = s;
       const go = foot().querySelector('[data-go="build"]'); if (go) { go.disabled = !n; go.textContent = `✨ Make ${n} topic${n === 1 ? '' : 's'}`; }
     };
-    foot().innerHTML = `<button class="btn btn-secondary" data-go="back">← Sheet</button>
+    foot().innerHTML = `<button class="btn btn-secondary" data-go="back">← ${mode === 'ai' ? 'Back' : 'Sheet'}</button>
       <button class="btn btn-primary" data-go="build">✨ Make topics</button>`;
     foot().querySelector('[data-go="back"]').onclick = () => { readRows(); st.step = 1; render(); };
     foot().querySelector('[data-go="build"]').onclick = build;
@@ -333,7 +375,9 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
       const source = own.replace(/\s/g, '').length >= 40 ? own : st.text;
       const focus = `Only write notes about the topic "${r.name}"${r.about ? ` (${r.about})` : ''}. ${source === st.text ? 'The document covers other topics too: ignore everything that isn\'t about this one.' : 'If a line is clearly about a different topic, leave it out.'}\n\n`;
       r.state = 'notes'; step3();
-      const notes = asGroups(await askList(focus + notesPromptFromText(source, st.kind, topicCtx), st.kind === 'extract' ? 8000 : 16000));
+      const notes = asGroups(mode === 'ai'
+        ? await askList(notesPromptResearch(`${topicCtx}${r.about ? `. Cover: ${r.about}` : ''}`), 16000)
+        : await askList(focus + notesPromptFromText(source, st.kind, topicCtx), st.kind === 'extract' ? 8000 : 16000));
       if (!pointCount(notes)) throw new Error('No notes came back');
       // Save the notes (a new topic is made now, so unticked ones never exist)
       let existing = st.existing.find(x => x.id === r.topicId);
@@ -349,7 +393,7 @@ export async function openSubjectBuilder({ pack, subject, trialTopics = null, on
         if (existing) existing.keyPoints = keyPoints;
       }
       r.notes = pointCount(notes);
-      logEvent('content.keypoints', { target: label, detail: `Topics from a sheet: ${r.notes} notes added` });
+      logEvent('content.keypoints', { target: label, detail: `${mode === 'ai' ? 'Build with AI' : 'Topics from a sheet'}: ${r.notes} notes added` });
       if (st.stopped) { r.state = 'done'; return; }
 
       // Questions from the notes, not repeating any already on the topic

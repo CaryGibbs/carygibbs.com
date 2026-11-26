@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126c"></script>
+  <script src="dev-flag.js?v=20261126d"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126c">
-  <script src="icons.js?v=20261126c"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126d">
+  <script src="icons.js?v=20261126d"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -703,8 +703,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261126c">
-  <link rel="stylesheet" href="stats.css?v=20261126c">
+  <link rel="stylesheet" href="ui.css?v=20261126d">
+  <link rel="stylesheet" href="stats.css?v=20261126d">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1681,40 +1681,41 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261126c';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126c';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126c';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126c';
-import { syncFamilyPlus } from './family-plus.js?v=20261126c';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126c';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126c';
-import { openDeleteAccount } from './account.js?v=20261126c';
-import { openPasswordHelp } from './password-help.js?v=20261126c';
-import { addDocumentButton } from './doc-text.js?v=20261126c';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126c';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126c';
-import { mountMarksTool } from './marks-tool.js?v=20261126c';
-import { showPlusUpsell } from './plus.js?v=20261126c';
-import { offerGivePack } from './first-steps.js?v=20261126c';
-import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126c';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126c';
+import { auth, db, storage } from './firebase-config.js?v=20261126d';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126d';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126d';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126d';
+import { syncFamilyPlus } from './family-plus.js?v=20261126d';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126d';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126d';
+import { openDeleteAccount } from './account.js?v=20261126d';
+import { openPasswordHelp } from './password-help.js?v=20261126d';
+import { addDocumentButton } from './doc-text.js?v=20261126d';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126d';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126d';
+import { mountMarksTool } from './marks-tool.js?v=20261126d';
+import { showPlusUpsell } from './plus.js?v=20261126d';
+import { offerGivePack } from './first-steps.js?v=20261126d';
+import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126d';
+import { openMakeRevision } from './make-revision.js?v=20261126d';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126d';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126c';
-import { mountShell } from './shell.js?v=20261126c';
-import { openInviteDialog, signupLink } from './invite.js?v=20261126c';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126c';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126c';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126c';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126c';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126c';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126c';
-import { dueEntries } from './srs.js?v=20261126c';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126c';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126c';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126d';
+import { mountShell } from './shell.js?v=20261126d';
+import { openInviteDialog, signupLink } from './invite.js?v=20261126d';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126d';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126d';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126d';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126d';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126d';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126d';
+import { dueEntries } from './srs.js?v=20261126d';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126d';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126d';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1730,9 +1731,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261126c';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126c';
-import { inOrder } from './order.js?v=20261126c';
+import { saveEmailIndex } from './email-index.js?v=20261126d';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126d';
+import { inOrder } from './order.js?v=20261126d';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1786,6 +1787,8 @@ function startMine(user, profile) {
   const back = MINE === 'teacher' ? 'teacher-dashboard.html#classes' : 'parent.html#students';
   const backLabel = MINE === 'teacher' ? 'My classes' : 'My students';
   document.querySelector('#panel-groups .panel-title').textContent = 'My packs';
+  document.querySelector('#panel-groups .panel-header [data-action="new-group"]').textContent = '＋ Make revision';
+  document.querySelector('#panel-subjects .panel-header [data-action="new-subject"]').textContent = '＋ Add a subject';
   document.querySelector('#panel-groups .panel-subtitle').innerHTML =
     `Build revision for your own ${MINE === 'teacher' ? 'classes' : 'students'}. Packs are private: only you and the students you give them to can see them. Assign them in <a href="${back}">${backLabel}</a>.` +
     (onAiTrial(profile) ? `<span class="trial-note">✨ <strong>Free try:</strong> create with AI from about ${trialSheetsText(profile)} or sets of class notes, then it's part of <a href="plus.html">Plus</a>.</span>` : '');
@@ -2486,7 +2489,7 @@ document.addEventListener('click', async e => {
   if (qtype)  { selectQType(qtype); return; }
   if (qtab)   { switchQTab(qtab); return; }
 
-  if (action === 'new-group')               openGroupModal();
+  if (action === 'new-group')               MINE ? makeRevision() : openGroupModal();
   else if (action === 'save-group')         saveGroup();
   else if (action === 'edit-group')         openGroupModal(t.dataset.id);
   else if (action === 'del-group')          confirmDelete('group', t.dataset.id, t.dataset.name);
@@ -2508,7 +2511,7 @@ document.addEventListener('click', async e => {
   else if (action === 'sc-off')             setSharedCardsOff(t.dataset.id, true);
   else if (action === 'sc-on')              setSharedCardsOff(t.dataset.id, false);
 
-  else if (action === 'new-subject')        openSubjectModal();
+  else if (action === 'new-subject')        MINE ? makeRevision(selectedGroup) : openSubjectModal();
   else if (action === 'suggest-links')      suggestLinks();
   else if (action === 'add-suggested')      addSuggestedLinks();
   else if (action === 'save-subject')       saveSubject();
@@ -2620,8 +2623,9 @@ async function loadGroups() {
   grid.innerHTML = '';
   if (MINE && !list.length) grid.insertAdjacentHTML('beforeend', `<div class="empty-state" style="grid-column:1/-1;">
       <div class="empty-state-icon"><i data-icon="folder"></i></div>
-      <h3>No packs yet</h3>
-      <p>Make a pack, add subjects and topics, then write questions. Your students see it once you assign it.</p></div>`);
+      <h3>No revision yet</h3>
+      <p>Pick a subject, then fill it from a photo of a school sheet, let AI build it, or use one of our ready-made packs.</p>
+      <button class="btn btn-primary" data-action="new-group" style="margin-top:10px">＋ Make revision</button></div>`);
   if (!MINE && list.length) {
     // Admin: Lobe Limpet packs grouped by level and subject, with a filter bar (pack-picker.js)
     grid.insertAdjacentHTML('beforeend', `<div class="admin-picker" style="grid-column:1/-1;">${pickerHtml({ official: list.map(p => ({ id: p.id, ...p.data })), officialTitle: '',
@@ -2632,7 +2636,7 @@ async function loadGroups() {
     list.forEach(p => grid.querySelector(`[data-pack-slot="${CSS.escape(p.id)}"]`)?.replaceWith(groupCard(p.id, p.data)));
     wirePicker(grid.querySelector('.admin-picker'));
   } else list.forEach(p => grid.appendChild(groupCard(p.id, p.data)));
-  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">＋ New pack</div>`);
+  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">${MINE ? '＋ Make revision' : '＋ New pack'}</div>`);
   if (MINE) { renderOfficialToCopy(); loadLibraryBrowse(); }
 }
 
@@ -2766,7 +2770,12 @@ async function loadSubjects() {
   orderedItems.subjects = list;
   grid.innerHTML = '';
   list.forEach((x, i) => grid.appendChild(subjectCard(x.id, x, i, list.length)));
-  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-subject">＋ New subject</div>`);
+  grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-subject">＋ ${MINE ? 'Add a subject' : 'New subject'}</div>`);
+  if (MINE && !list.length) grid.insertAdjacentHTML('afterbegin', `<div class="sheet-start" style="grid-column:1/-1;">
+      <div class="sheet-start-ic">📚</div>
+      <div><strong>Add the first subject to ${esc(selectedGroup?.name || 'this pack')}</strong>
+      <p>Fill it from a photo of a school sheet, let AI build it from the subject, or type the topics yourself.</p></div>
+      <button class="btn btn-primary" data-action="new-subject">＋ Add a subject</button></div>`);
   orderBar('subjects-grid', 'subjects', list.length);
 }
 
@@ -3515,7 +3524,7 @@ async function startFromLink() {
   const start = q.get('start'), packId = q.get('pack');
   if (!start && !packId) return;
   try { history.replaceState(null, '', `admin.html?mine=${MINE}`); } catch (e) {}
-  if (start === 'newpack') { openGroupModal(); return; }
+  if (start === 'newpack') { makeRevision(); return; }
   if (start === 'classnotes') { openClassNotesStart(packId); return; }
   if (!packId) return;
   const pSnap = await getDoc(doc(db, 'content', packId)).catch(() => null);
@@ -3540,14 +3549,14 @@ async function startFromLink() {
 }
 
 // "Topics from a sheet" for the open subject (subject-builder.js)
-async function openTopicsFromSheet() {
-  if (!selectedGroup || !selectedSubject || !aiAllowed('Making topics from a sheet')) return;
+async function openTopicsFromSheet(mode = 'sheet') {
+  if (!selectedGroup || !selectedSubject || !aiAllowed(mode === 'ai' ? 'Building a subject with AI' : 'Making topics from a sheet')) return;
   const sSnap = await getDoc(doc(db, subjectsPath(), selectedSubject.id)).catch(() => null);
   const sd = sSnap?.data() || {};
   const pack = { id: selectedGroup.id, name: selectedGroup.name };
   const left = MINE && mineProfile && !hasPlus(mineProfile) ? aiTrialLeft(mineProfile) : 0;
   openSubjectBuilder({
-    pack, subject: { id: selectedSubject.id, name: selectedSubject.name, examBoard: sd.examBoard || '', level: sd.level || '' },
+    pack, subject: { id: selectedSubject.id, name: selectedSubject.name, examBoard: sd.examBoard || '', level: sd.level || '' }, mode,
     trialTopics: left ? Math.floor(left / TOKENS_PER_TOPIC) : null,
     onDone: ({ topics, questions }) => {
       loadTopics();
@@ -3555,6 +3564,17 @@ async function openTopicsFromSheet() {
       if (MINE && questions) offerGivePack({ role: MINE, uid: currentAdminUid, pack, toast: showToast });
     },
     onOpenTopic: id => { loadTopics(); openTopic(id); },
+  });
+}
+
+// "Make revision" (make-revision.js): parents' and teachers' way to start a pack or add a subject
+function makeRevision(presetPack = null) {
+  openMakeRevision({
+    role: MINE, uid: currentAdminUid, canAI, onLocked: f => showPlusUpsell(f), toast: showToast,
+    presetPack: presetPack ? { id: presetPack.id, name: presetPack.name } : null,
+    onChanged: () => { loadGroups(); if (selectedGroup && document.getElementById('panel-subjects')?.classList.contains('active')) loadSubjects(); },
+    openSubject: (pack, subject) => { openGroup(pack.id, pack.data); openSubject(subject.id, subject.data); },
+    openBuilder: (pack, subject, mode) => { openGroup(pack.id, pack.data); openSubject(subject.id, subject.data); openTopicsFromSheet(mode); },
   });
 }
 
@@ -5732,6 +5752,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126c"></script>
+<script src="site.js?v=20261126d"></script>
 </body>
 </html>

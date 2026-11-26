@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261126c"></script>
+  <script src="dev-flag.js?v=20261126d"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — My flashcards</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126c">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126c">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126c">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126c">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126d">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126d">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126d">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126c">
-  <script src="icons.js?v=20261126c"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126d">
+  <script src="icons.js?v=20261126d"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px;
@@ -225,21 +225,21 @@
 </div>
 
 <script type="module">
-import { db, storage } from './firebase-config.js?v=20261126c';
-import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261126c';
-import { askClaude, jsonOf } from './ai.js?v=20261126c';
-import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261126c';
-import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261126c';
-import { flatPackIds } from './packs.js?v=20261126c';
-import { logEvent } from './log.js?v=20261126c';
-import { byOrder } from './order.js?v=20261126c';
-import { startStudyTimer } from './study-timer.js?v=20261126c';
-import { showBadgePops } from './badge-pop.js?v=20261126c';
-import { lobeySays, LINES } from './lobey.js?v=20261126c';
-import { forgetProgress } from './progress-tidy.js?v=20261126c';
+import { db, storage } from './firebase-config.js?v=20261126d';
+import { requireAuth, isPreview, isStudent, hasPlus, showToast } from './auth.js?v=20261126d';
+import { askClaude, jsonOf } from './ai.js?v=20261126d';
+import { showPlusUpsell, plusPillHtml } from './plus.js?v=20261126d';
+import { addDocumentButton, MAX_CHARS } from './doc-text.js?v=20261126d';
+import { flatPackIds } from './packs.js?v=20261126d';
+import { logEvent } from './log.js?v=20261126d';
+import { byOrder } from './order.js?v=20261126d';
+import { startStudyTimer } from './study-timer.js?v=20261126d';
+import { showBadgePops } from './badge-pop.js?v=20261126d';
+import { lobeySays, LINES } from './lobey.js?v=20261126d';
+import { forgetProgress } from './progress-tidy.js?v=20261126d';
 import { MAX_CARDS, MAX_TERM, MAX_DEF, newCardId, detectSeparators, parseImport, duplicateIndexes,
   questionsFromCards, keyPointsFromCards, cardsPrompt, definitionsPrompt, cardsFromAi,
-  cardComplete, shortName, copyCards } from './cards-core.js?v=20261126c';
+  cardComplete, shortName, copyCards } from './cards-core.js?v=20261126d';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, getCountFromServer }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1155,6 +1155,6 @@ $('nav-back').addEventListener('click', e => {
 });
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 </script>
-<script src="site.js?v=20261126c"></script>
+<script src="site.js?v=20261126d"></script>
 </body>
 </html>

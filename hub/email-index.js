@@ -9,9 +9,9 @@
 // used and by what kind of account, never a name or account id.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126c';
+import { db } from './firebase-config.js?v=20261126d';
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { workerAction } from './ai.js?v=20261126c';
+import { workerAction } from './ai.js?v=20261126d';
 
 const key = email => String(email || '').trim().toLowerCase();
 

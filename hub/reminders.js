@@ -9,9 +9,9 @@
 // Subscriptions: users/{uid}/push/{id}.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126c';
+import { db } from './firebase-config.js?v=20261126d';
 import { doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { workerAction } from './ai.js?v=20261126c';
+import { workerAction } from './ai.js?v=20261126d';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
