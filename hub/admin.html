@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126d"></script>
+  <script src="dev-flag.js?v=20261126e"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126d">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126d">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126d">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126d">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126e">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126e">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126e">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126e">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126d">
-  <script src="icons.js?v=20261126d"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126e">
+  <script src="icons.js?v=20261126e"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -703,8 +703,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261126d">
-  <link rel="stylesheet" href="stats.css?v=20261126d">
+  <link rel="stylesheet" href="ui.css?v=20261126e">
+  <link rel="stylesheet" href="stats.css?v=20261126e">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1681,41 +1681,41 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261126d';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126d';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126d';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126d';
-import { syncFamilyPlus } from './family-plus.js?v=20261126d';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126d';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126d';
-import { openDeleteAccount } from './account.js?v=20261126d';
-import { openPasswordHelp } from './password-help.js?v=20261126d';
-import { addDocumentButton } from './doc-text.js?v=20261126d';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126d';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126d';
-import { mountMarksTool } from './marks-tool.js?v=20261126d';
-import { showPlusUpsell } from './plus.js?v=20261126d';
-import { offerGivePack } from './first-steps.js?v=20261126d';
-import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126d';
-import { openMakeRevision } from './make-revision.js?v=20261126d';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126d';
+import { auth, db, storage } from './firebase-config.js?v=20261126e';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126e';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126e';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126e';
+import { syncFamilyPlus } from './family-plus.js?v=20261126e';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126e';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126e';
+import { openDeleteAccount } from './account.js?v=20261126e';
+import { openPasswordHelp } from './password-help.js?v=20261126e';
+import { addDocumentButton } from './doc-text.js?v=20261126e';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126e';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126e';
+import { mountMarksTool } from './marks-tool.js?v=20261126e';
+import { showPlusUpsell } from './plus.js?v=20261126e';
+import { offerGivePack } from './first-steps.js?v=20261126e';
+import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126e';
+import { openMakeRevision } from './make-revision.js?v=20261126e';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126e';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126d';
-import { mountShell } from './shell.js?v=20261126d';
-import { openInviteDialog, signupLink } from './invite.js?v=20261126d';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126d';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126d';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126d';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126d';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126d';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126d';
-import { dueEntries } from './srs.js?v=20261126d';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126d';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126d';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126e';
+import { mountShell } from './shell.js?v=20261126e';
+import { openInviteDialog, signupLink } from './invite.js?v=20261126e';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126e';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126e';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126e';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126e';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126e';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126e';
+import { dueEntries } from './srs.js?v=20261126e';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126e';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126e';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1731,9 +1731,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261126d';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126d';
-import { inOrder } from './order.js?v=20261126d';
+import { saveEmailIndex } from './email-index.js?v=20261126e';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126e';
+import { inOrder } from './order.js?v=20261126e';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -3490,13 +3490,13 @@ async function renderTopicStatus() {
     : !notes ? 'Add notes too, so students can learn the topic before they quiz.'
     : 'Students can learn from the notes and quiz on the questions.';
 }
-async function openCreateWithAI({ start = '' } = {}) {
+async function openCreateWithAI({ start = '', onBack = null } = {}) {
   if (!selectedTopic || !aiAllowed('Create with AI')) return;
   const sSnap = await getDoc(doc(db, subjectsPath(), selectedSubject.id)).catch(() => null);
   const sd = sSnap?.data() || {};
   const pack = selectedGroup ? { id: selectedGroup.id, name: selectedGroup.name } : null;
   openTopicWizard({
-    topic: selectedTopic, topicPath: `${topicsPath()}/${selectedTopic.id}`, start,
+    topic: selectedTopic, topicPath: `${topicsPath()}/${selectedTopic.id}`, start, onBack,
     subject: { name: selectedSubject.name, examBoard: sd.examBoard || '', level: sd.level || '' },
     onDone: (saved = {}) => {
       loadExistingQuestions(); getDoc(doc(db, topicsPath(), selectedTopic.id)).then(s => updateGenKpPreview(s.data()?.keyPoints || [])).catch(() => {});
@@ -3553,17 +3553,25 @@ async function openTopicsFromSheet(mode = 'sheet') {
   if (!selectedGroup || !selectedSubject || !aiAllowed(mode === 'ai' ? 'Building a subject with AI' : 'Making topics from a sheet')) return;
   const sSnap = await getDoc(doc(db, subjectsPath(), selectedSubject.id)).catch(() => null);
   const sd = sSnap?.data() || {};
-  const pack = { id: selectedGroup.id, name: selectedGroup.name };
+  openBuilder({ pack: { id: selectedGroup.id, name: selectedGroup.name }, subject: { ...sd, id: selectedSubject.id, name: selectedSubject.name, examBoard: sd.examBoard || '', level: sd.level || '' }, mode });
+}
+// The sheet / AI builder. pack and subject may not exist yet (no ids): prepare() makes them
+// when building starts. Afterwards the subject's topics are shown.
+function openBuilder({ pack, subject, mode = 'sheet', prepare = null, onBack = null, onClose = null }) {
   const left = MINE && mineProfile && !hasPlus(mineProfile) ? aiTrialLeft(mineProfile) : 0;
+  const show = (p, s) => {
+    if (selectedGroup?.id !== p.id) openGroup(p.id, { name: p.name });
+    if (selectedSubject?.id !== s.id || currentPanel !== 'topics') openSubject(s.id, s); else loadTopics();
+  };
   openSubjectBuilder({
-    pack, subject: { id: selectedSubject.id, name: selectedSubject.name, examBoard: sd.examBoard || '', level: sd.level || '' }, mode,
+    pack, subject, mode, prepare, onBack, onClose,
     trialTopics: left ? Math.floor(left / TOKENS_PER_TOPIC) : null,
-    onDone: ({ topics, questions }) => {
-      loadTopics();
+    onDone: ({ topics, questions, pack: p, subject: s }) => {
+      show(p, s);
       showToast(`${topics} topic${topics === 1 ? '' : 's'} made, with ${questions} questions`, 'success');
-      if (MINE && questions) offerGivePack({ role: MINE, uid: currentAdminUid, pack, toast: showToast });
+      if (MINE && questions) offerGivePack({ role: MINE, uid: currentAdminUid, pack: { id: p.id, name: p.name }, toast: showToast });
     },
-    onOpenTopic: id => { loadTopics(); openTopic(id); },
+    onOpenTopic: (id, p, s) => { show(p, s); openTopic(id); },
   });
 }
 
@@ -3574,12 +3582,12 @@ function makeRevision(presetPack = null) {
     presetPack: presetPack ? { id: presetPack.id, name: presetPack.name } : null,
     onChanged: () => { loadGroups(); if (selectedGroup && document.getElementById('panel-subjects')?.classList.contains('active')) loadSubjects(); },
     openSubject: (pack, subject) => { openGroup(pack.id, pack.data); openSubject(subject.id, subject.data); },
-    openBuilder: (pack, subject, mode) => { openGroup(pack.id, pack.data); openSubject(subject.id, subject.data); openTopicsFromSheet(mode); },
+    openBuilder,
   });
 }
 
 // "Turn class notes into revision": pick (or make) where it goes, then Create with AI
-async function openClassNotesStart(packId = '') {
+async function openClassNotesStart(packId = '', subjectId = '') {
   if (!aiAllowed('Turning class notes into revision')) return;
   document.getElementById('cn-start')?.remove();
   const packs = [];
@@ -3637,7 +3645,8 @@ async function openClassNotesStart(packId = '') {
     showNew($('cn-pack'), $('cn-pack-new'));
     subs = [];
     if ($('cn-pack').value !== NEW) subs = inOrder(await getDocs(collection(db, `content/${$('cn-pack').value}/subjects`)).catch(() => null));
-    $('cn-subj').innerHTML = subs.map((x, i) => opt(x.id, `${x.emoji || '📚'} ${x.name}`, i === 0)).join('') + opt(NEW, '＋ A new subject', !subs.length);
+    const pick = subs.some(x => x.id === subjectId) ? subjectId : subs[0]?.id;
+    $('cn-subj').innerHTML = subs.map(x => opt(x.id, `${x.emoji || '📚'} ${x.name}`, x.id === pick)).join('') + opt(NEW, '＋ A new subject', !subs.length);
     await fillTopics();
   }
   $('cn-pack').onchange = fillSubjects;
@@ -3654,30 +3663,28 @@ async function openClassNotesStart(packId = '') {
     const need = (sel, input, what) => sel.value === NEW && !input.value.trim() ? what : '';
     const missing = need($('cn-pack'), $('cn-pack-new'), 'a name for the pack') || need($('cn-subj'), $('cn-subj-new'), 'the subject') || (many() ? '' : need($('cn-topic'), $('cn-topic-new'), 'the topic'));
     if (missing) { err.textContent = `Add ${missing}.`; err.classList.add('visible'); return; }
-    const go = $('cn-go'); go.disabled = true; go.classList.add('loading');
+    const go = $('cn-go');
+    // Several topics: nothing is made until topics start being made in the builder,
+    // so Back from it comes straight back to this dialog as it was
+    if (many()) {
+      const packNew = $('cn-pack').value === NEW, subjNew = $('cn-subj').value === NEW;
+      const draftPack = packNew ? { id: null, name: $('cn-pack-new').value.trim() } : { id: $('cn-pack').value, name: packs.find(p => p.id === $('cn-pack').value)?.name || '' };
+      const sd = subjNew ? { name: $('cn-subj-new').value.trim() } : (subs.find(x => x.id === $('cn-subj').value) || {});
+      box.style.display = 'none';
+      openBuilder({ pack: draftPack, subject: { ...sd, id: subjNew ? null : $('cn-subj').value }, mode: 'sheet',
+        prepare: async () => {
+          const t = await makePackAndSubject();
+          loadGroups();
+          return { pack: { id: t.pack.id, name: t.pack.data.name }, subject: { ...t.subject.data, id: t.subject.id } };
+        },
+        onBack: () => { box.style.display = ''; },
+        onClose: () => box.remove(),
+      });
+      return;
+    }
+    go.disabled = true; go.classList.add('loading');
     try {
-      let pack;
-      if ($('cn-pack').value === NEW) {
-        const data = { name: $('cn-pack-new').value.trim(), description: '', ownerUid: currentAdminUid, visibility: 'private', createdAt: serverTimestamp() };
-        const ref = await addDoc(collection(db, 'content'), data);
-        logEvent('content.pack', { target: data.name, targetId: ref.id, detail: 'Created (class notes)' });
-        pack = { id: ref.id, data };
-      } else pack = { id: $('cn-pack').value, data: packs.find(p => p.id === $('cn-pack').value) };
-      let subject;
-      if ($('cn-subj').value === NEW) {
-        const data = { name: $('cn-subj-new').value.trim(), emoji: '📚', resources: [], examBoard: '', level: '', order: subs.length, createdAt: serverTimestamp() };
-        const ref = await addDoc(collection(db, `content/${pack.id}/subjects`), data);
-        logEvent('content.subject', { target: `${pack.data.name} › ${data.name}`, detail: 'Created (class notes)' });
-        subject = { id: ref.id, data };
-      } else subject = { id: $('cn-subj').value, data: subs.find(x => x.id === $('cn-subj').value) };
-      if (many()) {
-        box.remove();
-        loadGroups();
-        openGroup(pack.id, pack.data);
-        openSubject(subject.id, subject.data);
-        openTopicsFromSheet();
-        return;
-      }
+      const { pack, subject } = await makePackAndSubject();
       let topic;
       if ($('cn-topic').value === NEW) {
         const data = { name: $('cn-topic-new').value.trim(), keyPoints: [], videos: [], order: topics.length, createdAt: serverTimestamp() };
@@ -3688,12 +3695,31 @@ async function openClassNotesStart(packId = '') {
       box.remove();
       loadGroups();
       goToTopic(pack, subject, topic);
-      openCreateWithAI();
+      // Back: this dialog again, with what was just made now listed (so Next can't make it twice)
+      openCreateWithAI({ onBack: () => openClassNotesStart(pack.id, subject.id) });
     } catch (e) {
       go.disabled = false; go.classList.remove('loading');
       err.textContent = 'Could not set that up: ' + e.message; err.classList.add('visible');
     }
   };
+  // Make (or find) the chosen pack and subject
+  async function makePackAndSubject() {
+    let pack;
+    if ($('cn-pack').value === NEW) {
+      const data = { name: $('cn-pack-new').value.trim(), description: '', ownerUid: currentAdminUid, visibility: 'private', createdAt: serverTimestamp() };
+      const ref = await addDoc(collection(db, 'content'), data);
+      logEvent('content.pack', { target: data.name, targetId: ref.id, detail: 'Created (class notes)' });
+      pack = { id: ref.id, data };
+    } else pack = { id: $('cn-pack').value, data: packs.find(p => p.id === $('cn-pack').value) };
+    let subject;
+    if ($('cn-subj').value === NEW) {
+      const data = { name: $('cn-subj-new').value.trim(), emoji: '📚', resources: [], examBoard: '', level: '', order: subs.length, createdAt: serverTimestamp() };
+      const ref = await addDoc(collection(db, `content/${pack.id}/subjects`), data);
+      logEvent('content.subject', { target: `${pack.data.name} › ${data.name}`, detail: 'Created (class notes)' });
+      subject = { id: ref.id, data };
+    } else subject = { id: $('cn-subj').value, data: subs.find(x => x.id === $('cn-subj').value) };
+    return { pack, subject };
+  }
 }
 
 /* ── AI GENERATION ───────────────────────────────────────── */
@@ -5752,6 +5778,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126d"></script>
+<script src="site.js?v=20261126e"></script>
 </body>
 </html>

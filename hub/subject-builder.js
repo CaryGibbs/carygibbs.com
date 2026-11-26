@@ -13,11 +13,11 @@
 // without sending the whole document again and again (cost).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126d';
-import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126d';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126d';
-import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126d';
-import { logEvent } from './log.js?v=20261126d';
+import { db } from './firebase-config.js?v=20261126e';
+import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126e';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126e';
+import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126e';
+import { logEvent } from './log.js?v=20261126e';
 import {
   doc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -117,18 +117,23 @@ const isStopError = e => [401, 403, 429].includes(e?.status) || e?.code === 'ai_
 /* ── The dialog ──────────────────────────────────────────── */
 // opts: { pack: {id, name}, subject: {id, name, examBoard, level}, mode, trialTopics (number, free try only), onDone, onOpenTopic }
 // mode: 'sheet' (from a photo, file or pasted words) or 'ai' (no sheet: from the subject, or topics the parent types)
-// onDone({ topics, notes, questions }) after building; onOpenTopic(topicId) from the results
-export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialTopics = null, onDone = null, onOpenTopic = null }) {
+// onDone({ topics, notes, questions, pack, subject }) after building; onOpenTopic(topicId, pack, subject) from the results
+// prepare(): optional, makes the pack and subject (and gives the pack) only when building starts,
+//   so going back or closing first leaves nothing behind. Returns { pack: {id, name}, subject: {id, …} }.
+//   Without an id, the subject has no topics yet to match.
+// onBack(): optional, shows a Back button on the first screen (to the screen that opened this)
+// onClose(): optional, after the dialog closes any way other than Back
+export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialTopics = null, onDone = null, onOpenTopic = null, prepare = null, onBack = null, onClose = null }) {
   injectWizardStyle(); injectStyle();
   document.getElementById('sb')?.remove();
-  const subjPath = `content/${pack.id}/subjects/${subject.id}/topics`;
+  let subjPath = pack.id && subject.id ? `content/${pack.id}/subjects/${subject.id}/topics` : null;
   const context = [subject.level, subject.examBoard, subject.name].filter(Boolean).join(' ');
   const st = { step: 1, text: '', note: '', kind: 'auto', files: 0, pics: false, busy: false, stopped: false,
     lines: [], plan: [], qty: 20, existing: [], results: [], done: false };
   // The subject's topics now (to match, and to add notes and questions to)
   const loadExisting = async () => {
     const list = [];
-    (await getDocs(collection(db, subjPath)).catch(() => null))?.forEach(d => list.push({ id: d.id, ...d.data() }));
+    if (subjPath) (await getDocs(collection(db, subjPath)).catch(() => null))?.forEach(d => list.push({ id: d.id, ...d.data() }));
     list.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
     st.existing = list;
   };
@@ -153,8 +158,13 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
   const finish = () => {
     box.remove();
     const made = st.results.filter(r => r.notes || r.questions);
-    if (made.length) onDone && onDone({ topics: made.length, notes: made.reduce((a, r) => a + r.notes, 0), questions: made.reduce((a, r) => a + r.questions, 0) });
+    if (made.length) onDone && onDone({ topics: made.length, notes: made.reduce((a, r) => a + r.notes, 0), questions: made.reduce((a, r) => a + r.questions, 0), pack, subject });
+    onClose && onClose();
   };
+  const back = () => { box.remove(); onBack(); };
+  // First screen's left button: Back (to whatever opened this) or Cancel
+  const firstLeft = () => onBack ? `<button class="btn btn-secondary" data-go="back">← Back</button>` : `<button class="btn btn-secondary" data-go="close">Cancel</button>`;
+  const wireFirstLeft = () => { foot().querySelector('[data-go="back"]')?.addEventListener('click', back); foot().querySelector('[data-go="close"]')?.addEventListener('click', finish); };
   box.querySelector('.tw-x').onclick = () => {
     if (st.step === 3 && !st.done) {
       if (!confirm('Stop making the rest? Topics already finished are kept.')) return;
@@ -199,9 +209,9 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
     box.querySelectorAll('[name="sb-kind"]').forEach(r => r.onchange = () => { st.kind = r.value; });
     box.querySelector('#sb-text').oninput = e => { st.text = e.target.value; const nx = foot().querySelector('[data-go="next"]'); if (nx) nx.disabled = e.target.value.trim().length < 40; };
     if (st.note) msg(st.note);
-    foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
+    foot().innerHTML = `${firstLeft()}
       <button class="btn btn-primary" data-go="next" ${st.text.trim().length >= 40 ? '' : 'disabled'}>Next: find the topics →</button>`;
-    foot().querySelector('[data-go="close"]').onclick = finish;
+    wireFirstLeft();
     foot().querySelector('[data-go="next"]').onclick = findTopics;
   }
   function step1ai() {
@@ -215,9 +225,9 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
       <p class="tw-gen-note">The notes are written by AI from what it knows of ${esc(course)}, not from the school's own materials. Have a quick look at a topic or two. If you have the school's sheet, it's even better to use that.</p>
       <div class="tw-msg" id="sb-msg"></div>`;
     box.querySelector('#sb-typed').oninput = e => { st.typed = e.target.value; };
-    foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
+    foot().innerHTML = `${firstLeft()}
       <button class="btn btn-primary" data-go="next">Next: suggest the topics →</button>`;
-    foot().querySelector('[data-go="close"]').onclick = finish;
+    wireFirstLeft();
     foot().querySelector('[data-go="next"]').onclick = findTopics;
   }
   async function readFiles(files) {
@@ -340,6 +350,18 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
     const chosen = st.plan.filter(t => t.on);
     const unnamed = chosen.find(t => !t.name);
     if (unnamed) { msg('Give every ticked topic a name.', true); return; }
+    // Make the pack and subject now (not before), if they don't exist yet
+    if (prepare && !st.prepared) {
+      busy(true, 'Setting it up…');
+      try {
+        const t = await prepare();
+        Object.assign(pack, t.pack); Object.assign(subject, t.subject);
+        subjPath = `content/${pack.id}/subjects/${subject.id}/topics`;
+        st.prepared = true;
+        await loadExisting();
+      } catch (e) { busy(false); msg(e.message, true); return; }
+      busy(false);
+    }
     // A "new" topic with the name of one already there goes into that one
     chosen.forEach(t => { if (t.target === 'new') { const ex = matchExisting(t.name, st.existing); if (ex) t.target = ex.id; } });
     // Rows going into the same topic (same existing topic, or the same new name) become one
@@ -439,7 +461,7 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
           <div class="sb-main"><strong>${esc(r.name)}</strong><small>${esc(what(r))}</small></div>
           ${!working && r.topicId && (r.notes || r.questions) && onOpenTopic ? `<button class="tw-link" data-open="${esc(r.topicId)}">Open</button>` : ''}
         </div>`).join('')}</div>`;
-    body().querySelectorAll('[data-open]').forEach(b => b.onclick = () => { const id = b.dataset.open; finish(); onOpenTopic(id); });
+    body().querySelectorAll('[data-open]').forEach(b => b.onclick = () => { const id = b.dataset.open; finish(); onOpenTopic(id, pack, subject); });
     foot().innerHTML = working
       ? `<button class="btn btn-secondary" data-go="stop">Stop after these</button>`
       : `<button class="btn btn-primary" data-go="done" style="margin:0 0 0 auto">Done</button>`;

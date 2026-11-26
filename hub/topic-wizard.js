@@ -9,12 +9,12 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126d';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126d';
-import { mergeReads, siteOf } from './videos.js?v=20261126d';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126d';
-import { logEvent } from './log.js?v=20261126d';
-import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126d';
+import { db } from './firebase-config.js?v=20261126e';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126e';
+import { mergeReads, siteOf } from './videos.js?v=20261126e';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126e';
+import { logEvent } from './log.js?v=20261126e';
+import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126e';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -139,7 +139,8 @@ const isQuestion = q => q && QUESTION_TYPES.some(t => t.id === q.type);
 // opts: { topic: {id, name}, topicPath, subject: {name, examBoard, level}, onDone, start }
 // start: 'questions' opens straight at step 3, using the notes already saved
 // onDone({ notes, questions }) runs after each save, with what was saved
-export async function openTopicWizard({ topic, topicPath, subject = {}, onDone = null, start = '' }) {
+// onBack: optional; the first screen then has Back (to the screen that opened it) instead of Cancel
+export async function openTopicWizard({ topic, topicPath, subject = {}, onDone = null, start = '', onBack = null }) {
   injectStyle();
   document.getElementById('tw')?.remove();
   const snap = await getDoc(doc(db, topicPath)).catch(() => null);
@@ -279,9 +280,10 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     }
     if (st.note) msg(st.note);
     const ready = st.source && (!['upload', 'web'].includes(st.source) || st.text);
-    foot().innerHTML = `<button class="btn btn-secondary" data-go="close">Cancel</button>
+    foot().innerHTML = `${onBack && !st.notesSaved ? `<button class="btn btn-secondary" data-go="back">← Back</button>` : `<button class="btn btn-secondary" data-go="close">Cancel</button>`}
       <button class="btn btn-primary" data-go="next" ${ready ? '' : 'disabled'}>${st.source === 'existing' ? 'Next: make quiz questions' : 'Next: make notes'} →</button>`;
-    foot().querySelector('[data-go="close"]').onclick = close;
+    foot().querySelector('[data-go="close"]')?.addEventListener('click', close);
+    foot().querySelector('[data-go="back"]')?.addEventListener('click', () => { close(); onBack(); });
     foot().querySelector('[data-go="next"]').onclick = makeNotes;
   }
 

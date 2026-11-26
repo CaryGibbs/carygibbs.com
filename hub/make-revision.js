@@ -14,13 +14,13 @@
 // given to the student straight away, so nothing is left unassigned.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126d';
-import { listPacks } from './packs.js?v=20261126d';
-import { packMeta } from './pack-picker.js?v=20261126d';
-import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126d';
-import { isLanguageSubject } from './spelling.js?v=20261126d';
-import { logEvent } from './log.js?v=20261126d';
-import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126d';
+import { db } from './firebase-config.js?v=20261126e';
+import { listPacks } from './packs.js?v=20261126e';
+import { packMeta } from './pack-picker.js?v=20261126e';
+import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126e';
+import { isLanguageSubject } from './spelling.js?v=20261126e';
+import { logEvent } from './log.js?v=20261126e';
+import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126e';
 import {
   doc, getDoc, getDocs, addDoc, collection, query, where, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -52,7 +52,9 @@ export function matchingPacks(packs, { name, level, board }) {
 }
 
 // opts: { role: 'parent'|'teacher', uid, canAI, onLocked(feature), presetPack: {id, name} | null,
-//         toast(msg, kind), openBuilder(pack, subject, mode), openSubject(pack, subject), onChanged() }
+//         toast(msg, kind), openBuilder({ pack, subject, mode, prepare, onBack, onClose }), openSubject(pack, subject), onChanged() }
+// From a sheet / Let AI build it: this dialog is hidden while the builder is open, its Back comes
+// back here, and the pack and subject are only made (prepare) when topics start being made.
 export async function openMakeRevision({ role, uid, canAI = false, onLocked = () => {}, presetPack = null, toast = () => {}, openBuilder, openSubject, onChanged = () => {} }) {
   injectWizardStyle(); injectStyle();
   document.getElementById('mr')?.remove();
@@ -200,7 +202,11 @@ export async function openMakeRevision({ role, uid, canAI = false, onLocked = ()
     box.querySelectorAll('[data-way]').forEach(b => b.onclick = () => choose(b.dataset.way));
     $('#mr-foot').innerHTML = `<button class="btn btn-secondary" data-go="back">← Back</button>
       ${st.way === 'type' ? `<button class="btn btn-primary" data-go="make">Make these topics</button>` : ''}`;
-    $('[data-go="back"]').onclick = () => { st.step = 1; st.way = ''; $('#mr-title').textContent = presetPack ? 'Add a subject' : 'What would you like to revise?'; render(); };
+    // Back: close the typed-topics box first, then to the first screen
+    $('[data-go="back"]').onclick = () => {
+      if (st.way === 'type') { st.typed = $('#mr-typed').value; st.way = ''; step2(); return; }
+      st.step = 1; st.way = ''; $('#mr-title').textContent = presetPack ? 'Add a subject' : 'What would you like to revise?'; render();
+    };
     $('[data-go="make"]')?.addEventListener('click', makeTyped);
     if (st.way === 'type') box.querySelector('[data-way="type"]').classList.add('on');
   }
@@ -221,11 +227,40 @@ export async function openMakeRevision({ role, uid, canAI = false, onLocked = ()
   function choose(way) {
     if ((way === 'sheet' || way === 'ai') && !canAI) { onLocked(way === 'sheet' ? 'Making topics from a sheet' : 'Building a subject with AI'); return; }
     if (way === 'type') { st.way = 'type'; step2(); setTimeout(() => $('#mr-typed')?.focus(), 30); return; }
-    makeTarget().then(t => { if (!t) return; close(); onChanged(); openBuilder(t.pack, t.subject, way); });
+    openBuilderLater(way);
+  }
+
+  // The pack and subject as they will be (ids only where they exist already)
+  async function draftTarget() {
+    const pack = presetPack ? { id: presetPack.id, name: presetPack.name }
+      : st.pack !== NEW ? { id: st.pack, name: (mine.find(x => x.id === st.pack) || {}).name || '' }
+      : { id: null, name: st.packName };
+    let subject = { id: null, name: st.subject, level: st.level === 'Other' ? '' : st.level, examBoard: st.board === 'Other' ? '' : st.board, emoji: emojiFor(st.subject) };
+    if (pack.id) {
+      const subs = [];
+      (await getDocs(collection(db, `content/${pack.id}/subjects`)).catch(() => null))?.forEach(d => subs.push({ id: d.id, ...d.data() }));
+      const have = subs.find(x => norm(x.name) === norm(st.subject));
+      if (have) subject = { ...have, id: have.id };
+    }
+    return { pack, subject };
+  }
+  async function openBuilderLater(mode) {
+    const draft = await draftTarget();
+    box.style.display = 'none';
+    openBuilder({ ...draft, mode,
+      prepare: async () => {
+        const t = await makeTarget(true);
+        onChanged();
+        return { pack: { id: t.pack.id, name: t.pack.name }, subject: { ...(t.subject.data || {}), id: t.subject.id } };
+      },
+      onBack: () => { box.style.display = ''; },
+      onClose: () => close(),
+    });
   }
 
   // Make (or find) the pack and subject, and give the pack to the student
-  async function makeTarget() {
+  // (rethrow: for the builder, which shows the error itself)
+  async function makeTarget(rethrow = false) {
     busy(true, 'Setting it up…');
     try {
       let pack;
@@ -257,7 +292,11 @@ export async function openMakeRevision({ role, uid, canAI = false, onLocked = ()
       }
       busy(false);
       return { pack, subject };
-    } catch (e) { busy(false); msg('Could not set that up: ' + e.message, true); return null; }
+    } catch (e) {
+      busy(false);
+      if (rethrow) throw new Error('Could not set that up: ' + e.message);
+      msg('Could not set that up: ' + e.message, true); return null;
+    }
   }
 
   async function makeTyped() {
