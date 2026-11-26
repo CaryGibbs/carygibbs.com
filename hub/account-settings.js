@@ -5,14 +5,14 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261126n';
+import { auth, db } from './firebase-config.js?v=20261126o';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { workerAction } from './ai.js?v=20261126n';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261126n';
-import { openDeleteAccount } from './account.js?v=20261126n';
-import { formatAccountNo } from './account-no.js?v=20261126n';
-import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261126n';
-import { sendPasswordEmail } from './mail.js?v=20261126n';
+import { workerAction } from './ai.js?v=20261126o';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261126o';
+import { openDeleteAccount } from './account.js?v=20261126o';
+import { formatAccountNo } from './account-no.js?v=20261126o';
+import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261126o';
+import { sendPasswordEmail } from './mail.js?v=20261126o';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ROLE = { admin: 'Admin', teacher: 'Teacher', parent: 'Parent', student: 'Student' };

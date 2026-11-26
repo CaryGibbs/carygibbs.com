@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126n"></script>
+  <script src="dev-flag.js?v=20261126o"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Parent Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126o">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126o">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126o">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126o">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126n">
-  <script src="icons.js?v=20261126n"></script>
-  <link rel="stylesheet" href="stats.css?v=20261126n">
+  <link rel="stylesheet" href="theme.css?v=20261126o">
+  <script src="icons.js?v=20261126o"></script>
+  <link rel="stylesheet" href="stats.css?v=20261126o">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: 0 var(--space-xl); height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-card); }
@@ -185,7 +185,7 @@
     .pending-link div { flex: 1; }
     .pending-link small { display: block; color: var(--color-text-muted); font-size: 0.82rem; margin-top: 2px; }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261126n">
+  <link rel="stylesheet" href="ui.css?v=20261126o">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -453,30 +453,31 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261126n';
-import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261126n';
-import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261126n';
-import { showPlusUpsell } from './plus.js?v=20261126n';
-import { marksFullThisWeek } from './marks.js?v=20261126n';
-import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261126n';
-import { saveEmailIndex, checkAccount } from './email-index.js?v=20261126n';
-import { sendStudentSetup } from './mail.js?v=20261126n';
-import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261126n';
-import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261126n';
-import { mountShell, refreshShellChildren } from './shell.js?v=20261126n';
-import { logEvent } from './log.js?v=20261126n';
-import { lobeyImg, lobeySays } from './lobey.js?v=20261126n';
-import { openInviteDialog } from './invite.js?v=20261126n';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126n';
-import { dueEntries, scheduledCount } from './srs.js?v=20261126n';
-import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261126n';
-import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261126n';
-import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261126n';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126n';
-import { openDeleteAccount } from './account.js?v=20261126n';
-import { openPasswordHelp } from './password-help.js?v=20261126n';
-import { myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261126n';
-import { workerAction } from './ai.js?v=20261126n';
+import { auth, db } from './firebase-config.js?v=20261126o';
+import { requireAuth, handleSignOut, generatePassword, showToast, openViewAs, hasRole, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261126o';
+import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261126o';
+import { showPlusUpsell } from './plus.js?v=20261126o';
+import { marksFullThisWeek } from './marks.js?v=20261126o';
+import { syncMyChildPlus, syncMyCoParentPlus } from './family-plus.js?v=20261126o';
+import { saveEmailIndex, checkAccount } from './email-index.js?v=20261126o';
+import { sendStudentSetup } from './mail.js?v=20261126o';
+import { getLevelInfo, lastActive, lastActiveText, studyEntries, currentStreak, streakStatus, repairOffer, REPAIR, loadStreakSettings } from './gamification.js?v=20261126o';
+import { THEMES, themeColour, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261126o';
+import { mountShell, refreshShellChildren } from './shell.js?v=20261126o';
+import { logEvent } from './log.js?v=20261126o';
+import { lobeyImg, lobeySays } from './lobey.js?v=20261126o';
+import { openInviteDialog } from './invite.js?v=20261126o';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126o';
+import { freshenNames } from './fresh-names.js?v=20261126o';
+import { dueEntries, scheduledCount } from './srs.js?v=20261126o';
+import { MODES, LEVELS, levelFor, goalStatus, planSummary, planHistory, behindPlan, loadPlanSettings, targetText, isoDay } from './plan.js?v=20261126o';
+import { openPlanCalendar, loadPlanSubjects, subjectOptionsHtml } from './plan-view.js?v=20261126o';
+import { listPacks, packNames, packSections, flatPackIds } from './packs.js?v=20261126o';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126o';
+import { openDeleteAccount } from './account.js?v=20261126o';
+import { openPasswordHelp } from './password-help.js?v=20261126o';
+import { myLinkRequests, cancelLinkRequest } from './parent-link.js?v=20261126o';
+import { workerAction } from './ai.js?v=20261126o';
 import {
   doc, setDoc, getDoc, updateDoc, deleteDoc, deleteField,
   collection, getDocs, onSnapshot, serverTimestamp, query, where, arrayUnion, arrayRemove
@@ -686,6 +687,7 @@ async function refreshFromChildRecords() {
   await Promise.all(ids.map(async id => {
     const snap = await getDoc(doc(db, 'users', id)).catch(() => null);
     const p = snap?.data(); if (!p) return;
+    await freshenNames(p);   // subjects renamed since show their current name
     records[id] = p;
     syncMyChildPlus(parentUid, shellProfile, id, p);   // my Plus covers my students
     const keep = ['name', 'email', 'theme', 'groupIds', 'groupId', 'packIds', 'currentPackId', 'myPackId', 'sessions', 'streak', 'bestStreak', 'plan', 'planGoals', 'shields', 'streakRepair', 'lastRepairDay', 'lastShieldUsed', 'lastRevisionDate', 'lastActiveAt', 'xp', 'level',
@@ -1440,6 +1442,7 @@ window._openProgressModal = async function(uid) {
   const snap = await getDoc(doc(db, 'users', uid)).catch(() => null);
   const profile = snap?.data() || {};
   if (!profile.sessions && child.sessions) profile.sessions = child.sessions;
+  await freshenNames(profile);
   const sessions = (profile.sessions || []).slice().reverse();
 
   const quizCount = sessions.length;
@@ -1573,6 +1576,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126n"></script>
+<script src="site.js?v=20261126o"></script>
 </body>
 </html>

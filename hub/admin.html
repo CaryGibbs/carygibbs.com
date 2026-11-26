@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126n"></script>
+  <script src="dev-flag.js?v=20261126o"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126o">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126o">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126o">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126o">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126n">
-  <script src="icons.js?v=20261126n"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126o">
+  <script src="icons.js?v=20261126o"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -719,8 +719,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261126n">
-  <link rel="stylesheet" href="stats.css?v=20261126n">
+  <link rel="stylesheet" href="ui.css?v=20261126o">
+  <link rel="stylesheet" href="stats.css?v=20261126o">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1711,43 +1711,44 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261126n';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126n';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126n';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126n';
-import { syncFamilyPlus } from './family-plus.js?v=20261126n';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126n';
-import { pickerHtml, wirePicker, boardTagHtml, packMeta } from './pack-picker.js?v=20261126n';
-import { openDeleteAccount } from './account.js?v=20261126n';
-import { openPasswordHelp } from './password-help.js?v=20261126n';
-import { addDocumentButton } from './doc-text.js?v=20261126n';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126n';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126n';
-import { mountMarksTool } from './marks-tool.js?v=20261126n';
-import { showPlusUpsell } from './plus.js?v=20261126n';
-import { offerGivePack } from './first-steps.js?v=20261126n';
-import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126n';
-import { openMakeRevision, emojiFor } from './make-revision.js?v=20261126n';
-import { SCHOOL_LEVELS, OTHER_LEVELS, STD_BOARDS, OTHER_BODIES, SUBJECT_BOARD, isSchoolLevel, needsBoard, tidyBoard, officialName, officialDescription, refreshOfficialDescription } from './official-pack.js?v=20261126n';
-import { openDeletePack, restorePack, isBinned, binDaysLeft, binExpired, addBinCss, BIN_DAYS, openDeleteItem, restoreItem } from './pack-bin.js?v=20261126n';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126n';
+import { auth, db, storage } from './firebase-config.js?v=20261126o';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126o';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126o';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126o';
+import { syncFamilyPlus } from './family-plus.js?v=20261126o';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126o';
+import { pickerHtml, wirePicker, boardTagHtml, packMeta } from './pack-picker.js?v=20261126o';
+import { openDeleteAccount } from './account.js?v=20261126o';
+import { openPasswordHelp } from './password-help.js?v=20261126o';
+import { addDocumentButton } from './doc-text.js?v=20261126o';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126o';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126o';
+import { mountMarksTool } from './marks-tool.js?v=20261126o';
+import { showPlusUpsell } from './plus.js?v=20261126o';
+import { offerGivePack } from './first-steps.js?v=20261126o';
+import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126o';
+import { openMakeRevision, emojiFor } from './make-revision.js?v=20261126o';
+import { SCHOOL_LEVELS, OTHER_LEVELS, STD_BOARDS, OTHER_BODIES, SUBJECT_BOARD, isSchoolLevel, needsBoard, tidyBoard, officialName, officialDescription, refreshOfficialDescription } from './official-pack.js?v=20261126o';
+import { openDeletePack, restorePack, isBinned, binDaysLeft, binExpired, addBinCss, BIN_DAYS, openDeleteItem, restoreItem } from './pack-bin.js?v=20261126o';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126o';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126n';
-import { mountShell } from './shell.js?v=20261126n';
-import { openInviteDialog, signupLink } from './invite.js?v=20261126n';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126n';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126n';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126n';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126n';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126n';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126n';
-import { dueEntries } from './srs.js?v=20261126n';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126n';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126n';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126o';
+import { mountShell } from './shell.js?v=20261126o';
+import { openInviteDialog, signupLink } from './invite.js?v=20261126o';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126o';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126o';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126o';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126o';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126o';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126o';
+import { freshenNames } from './fresh-names.js?v=20261126o';
+import { dueEntries } from './srs.js?v=20261126o';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126o';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126o';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1763,9 +1764,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261126n';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126n';
-import { inOrder } from './order.js?v=20261126n';
+import { saveEmailIndex } from './email-index.js?v=20261126o';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126o';
+import { inOrder } from './order.js?v=20261126o';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1933,6 +1934,8 @@ async function renderAdminHome() {
     // Recent activity: sign-ups (14 days) and revision (7 days)
     const events = [];
     const roleWord = u => ['admin', 'teacher', 'parent', 'student'].find(r => has(u, r)) || 'user';
+    // Subjects renamed since show their current name (only students active this week)
+    await Promise.all(students.filter(u => (u.sessions || []).some(x => (x.date || 0) >= Date.now() - 7 * DAY)).map(u => freshenNames(u).catch(() => {})));
     users.filter(u => u.createdAt && u.createdAt >= Date.now() - 14 * DAY).forEach(u => events.push({ t: u.createdAt, html:
       `${dotHtml((u.name || '?')[0])}<div class="act-text"><strong>${esc(u.name || u.email || '')}</strong> joined as a ${roleWord(u)}<small>${agoText(u.createdAt)}</small></div><span class="act-score">👋</span>` }));
     students.forEach(u => (u.sessions || []).filter(x => (x.date || 0) >= Date.now() - 7 * DAY).forEach(x => events.push({ t: x.date, html:
@@ -5150,10 +5153,14 @@ function unlockStudent(u, what) {
   });
 }
 
-function openStudentProgress(uid) {
-  const u = asState.students.find(x => x.id === uid);
-  if (!u) return;
-  logEvent('admin.view_student', { target: u.name || u.email || '', targetId: uid, detail: 'Opened progress from All students' });
+async function openStudentProgress(uid) {
+  const raw = asState.students.find(x => x.id === uid);
+  if (!raw) return;
+  logEvent('admin.view_student', { target: raw.name || raw.email || '', targetId: uid, detail: 'Opened progress from All students' });
+  // Shown with current subject names; "Remove from progress" still works on the saved names (raw)
+  const u = { ...raw, sessions: (raw.sessions || []).map(s => ({ ...s })), studySubjects: { ...(raw.studySubjects || {}) } };
+  if (!raw.studySubjects) delete u.studySubjects;
+  await freshenNames(u).catch(() => {});
   const nameOf = id => asState.names[id] || 'Someone';
   const sessions = (u.sessions || []).slice().reverse();
   const allAvg = sessions.length ? Math.round(sessions.reduce((a, x) => a + (x.pct || 0), 0) / sessions.length) : null;
@@ -5175,7 +5182,7 @@ function openStudentProgress(uid) {
       <div class="st-title"><i data-icon="clipboard-list"></i> Recent quizzes</div>
       <div class="as-recent">${sessions.slice(0, 15).map(x => `<div><span>${esc(x.topic || x.subject || 'Quiz')}${x.subject && x.topic && x.subject !== x.topic ? ` <span class="as-sub" style="display:inline">· ${esc(x.subject)}</span>` : ''}</span><span class="as-num">${x.pct ?? '—'}% · ${asAgo(x.date)}</span></div>`).join('') || '<span class="as-sub">No quizzes yet.</span>'}</div>
     </section>
-    ${asTidyHtml(u)}
+    ${asTidyHtml(raw)}
     <div style="display:flex;justify-content:flex-end;gap:8px;">
       <button class="btn btn-secondary" data-close="modal-student">Close</button>
       <button class="btn btn-primary" data-action="view-as" data-uid="${esc(u.id)}" data-name="${esc(u.name || '')}"><i data-icon="eye"></i> View as ${esc((u.name || '').split(' ')[0] || 'student')}</button>
@@ -6026,6 +6033,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126n"></script>
+<script src="site.js?v=20261126o"></script>
 </body>
 </html>

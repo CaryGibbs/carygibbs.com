@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126n"></script>
+  <script src="dev-flag.js?v=20261126o"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Teacher Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126n">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126n">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126n">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126n">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126o">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126o">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126o">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126o">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126n">
-  <script src="icons.js?v=20261126n"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126o">
+  <script src="icons.js?v=20261126o"></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
     .topnav {
@@ -290,7 +290,7 @@
       .nav-user { display: none; }
     }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261126n">
+  <link rel="stylesheet" href="ui.css?v=20261126o">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -491,27 +491,28 @@
 </script>
 
 <script type="module">
-  import { auth, db } from './firebase-config.js?v=20261126n';
-  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261126n';
-  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261126n';
-  import { showPlusUpsell } from './plus.js?v=20261126n';
-  import { lastActive, lastActiveText } from './gamification.js?v=20261126n';
-  import { mountShell } from './shell.js?v=20261126n';
-  import { byOrder } from './order.js?v=20261126n';
-  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261126n';
-  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126n';
-  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261126n';
-  import { logEvent } from './log.js?v=20261126n';
-  import { openPasswordHelp } from './password-help.js?v=20261126n';
-  import { lobeyImg } from './lobey.js?v=20261126n';
-  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261126n';
-  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261126n';
-  import { app as firebaseApp } from './firebase-config.js?v=20261126n';
+  import { auth, db } from './firebase-config.js?v=20261126o';
+  import { requireRole, handleSignOut, generatePassword, showToast, openViewAs, isStudent, hasPlus, onAiTrial, trialSheetsText } from './auth.js?v=20261126o';
+  import { ownPackStats, firstStepsState, saveFirstSteps, askedToShow, firstStepsHtml, wireFirstSteps, FIRST_STEPS_CSS, appStep, noteAppInstalled } from './first-steps.js?v=20261126o';
+  import { showPlusUpsell } from './plus.js?v=20261126o';
+  import { lastActive, lastActiveText } from './gamification.js?v=20261126o';
+  import { freshenNames } from './fresh-names.js?v=20261126o';
+  import { mountShell } from './shell.js?v=20261126o';
+  import { byOrder } from './order.js?v=20261126o';
+  import { listPacks, packSections, updateStudentPacks } from './packs.js?v=20261126o';
+  import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126o';
+  import { loadCardSets, cardSetsHtml } from './card-sets.js?v=20261126o';
+  import { logEvent } from './log.js?v=20261126o';
+  import { openPasswordHelp } from './password-help.js?v=20261126o';
+  import { lobeyImg } from './lobey.js?v=20261126o';
+  import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, startOfDay } from './home-kit.js?v=20261126o';
+  import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS } from './themes.js?v=20261126o';
+  import { app as firebaseApp } from './firebase-config.js?v=20261126o';
   import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { createUserWithEmailAndPassword, updateProfile, getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { sendStudentSetup } from './mail.js?v=20261126n';
+  import { sendStudentSetup } from './mail.js?v=20261126o';
   import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, query, where, deleteField, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { saveEmailIndex, checkAccount } from './email-index.js?v=20261126n';
+  import { saveEmailIndex, checkAccount } from './email-index.js?v=20261126o';
 
   // Is this student still in another of my classes? (If not, I stop being
   // one of their teachers, so I no longer see their progress.)
@@ -674,7 +675,7 @@
   async function loadStudentProfiles() {
     const ids = [...new Set(Object.values(classRoster).flat().map(s => s.id))].filter(id => !studentProfiles[id]);
     await Promise.all(ids.slice(0, 300).map(id => getDoc(doc(db, 'users', id))
-      .then(d => { if (d.exists()) studentProfiles[id] = { id, ...d.data() }; }).catch(() => {})));
+      .then(async d => { if (d.exists()) { const p = { id, ...d.data() }; await freshenNames(p).catch(() => {}); studentProfiles[id] = p; } }).catch(() => {})));
   }
 
   function renderTeacherHome() {
@@ -1183,6 +1184,7 @@
     if (!packIds.length) { body.innerHTML = `<div class="empty-students">Choose a revision pack for this class first, so there are topics to track.<br><br><button class="btn btn-primary" onclick="closeModal('modal-progress'); openPacks('${esc(classId)}')">Choose packs</button></div>`; return; }
     const students = (await Promise.all(ids.map(s => getDoc(doc(db, 'users', s.id)).then(d => d.exists() ? { id: s.id, ...d.data() } : { id: s.id, name: s.name, email: s.email, missing: true }).catch(() => ({ id: s.id, name: s.name, missing: true })))))
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    await Promise.all(students.map(s => s.missing ? null : freshenNames(s).catch(() => {})));   // renamed subjects and topics match
     progressState = { classId, packIds, students, packId: packIds[0], subjectId: null };
     renderProgress();
   };
@@ -1347,6 +1349,6 @@
     c.appendChild(t); setTimeout(()=>t.remove(),3500);
   };
 </script>
-<script src="site.js?v=20261126n"></script>
+<script src="site.js?v=20261126o"></script>
 </body>
 </html>
