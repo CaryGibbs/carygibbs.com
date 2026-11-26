@@ -13,11 +13,11 @@
 // without sending the whole document again and again (cost).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126m';
-import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126m';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126m';
-import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126m';
-import { logEvent } from './log.js?v=20261126m';
+import { db } from './firebase-config.js?v=20261126n';
+import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126n';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126n';
+import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126n';
+import { logEvent } from './log.js?v=20261126n';
 import {
   doc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -303,7 +303,7 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
   /* Step 2: tick and name the topics */
   function step2() {
     const opts = t => `<option value="new" ${t.target === 'new' ? 'selected' : ''}>New topic</option>` +
-      st.existing.map(x => `<option value="${esc(x.id)}" ${t.target === x.id ? 'selected' : ''}>Add to “${esc(x.name)}”</option>`).join('');
+      st.existing.map(x => `<option value="${esc(x.id)}" ${t.target === x.id ? 'selected' : ''}>${mode === 'ai' && x.notesSource === 'ai' ? `Rewrite “${esc(x.name)}”` : `Add to “${esc(x.name)}”`}</option>`).join('');
     const matched = st.plan.filter(t => t.target !== 'new').length;
     body().innerHTML = `
       <h3 class="tw-h">${mode === 'ai' ? (st.plan.length === 1 ? 'One topic' : `${st.plan.length} topics`) : st.plan.length === 1 ? 'We found one topic' : `We found ${st.plan.length} topics`}</h3>
@@ -429,15 +429,22 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
       // Save the notes (a new topic is made now, so unticked ones never exist)
       let existing = st.existing.find(x => x.id === r.topicId);
       if (!r.topicId) {
-        const ref = await addDoc(collection(db, subjPath), { name: r.name, keyPoints: notes, videos: [], order: nextOrder(), createdAt: serverTimestamp() });
+        const ref = await addDoc(collection(db, subjPath), { name: r.name, keyPoints: notes, notesSource: mode === 'ai' ? 'ai' : 'material', videos: [], order: nextOrder(), createdAt: serverTimestamp() });
         r.topicId = ref.id;
         existing = { id: ref.id, name: r.name, keyPoints: notes };
         st.existing.push(existing);
         logEvent('content.topic', { target: label, detail: 'Created (topics from a sheet)' });
       } else {
-        const keyPoints = [...asGroups(existing?.keyPoints || []), ...notes];
-        await updateDoc(doc(db, `${subjPath}/${r.topicId}`), { keyPoints });
-        if (existing) existing.keyPoints = keyPoints;
+        // Build with AI over a topic whose notes were also written by AI (or that has none): replace, so nothing
+        // is repeated. Anything else is added to (a sheet can bring new points to a topic).
+        const from = mode === 'ai' ? 'ai' : 'material';
+        const had = asGroups(existing?.keyPoints || []);
+        const replace = !had.length || (from === 'ai' && existing?.notesSource === 'ai');
+        const keyPoints = replace ? notes : [...had, ...notes];
+        const notesSource = replace ? from : (existing?.notesSource === from ? from : 'mixed');
+        await updateDoc(doc(db, `${subjPath}/${r.topicId}`), { keyPoints, notesSource });
+        if (existing) { existing.keyPoints = keyPoints; existing.notesSource = notesSource; }
+        r.replaced = replace && had.length > 0;
       }
       r.notes = pointCount(notes);
       r.savedNotes = notes;
@@ -474,7 +481,7 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
     const what = r => r.state === 'waiting' ? (st.stopped ? 'Not made' : 'Waiting')
       : r.state === 'notes' ? 'Writing the notes…'
       : r.state === 'questions' ? `${r.notes} notes ✓ · writing ${st.qty} questions…`
-      : r.state === 'done' ? `${r.notes} notes · ${r.questions} questions`
+      : r.state === 'done' ? `${r.notes} notes${r.replaced ? ' (replaced the earlier AI notes)' : ''} · ${r.questions} questions`
       : r.state === 'skipped' ? 'Not made yet'
       : r.state === 'part' ? `${r.notes} notes ✓ · questions not made yet`
       : (r.notes ? `${r.notes} notes ✓ · questions not made: ` : 'Not made: ') + why(r);

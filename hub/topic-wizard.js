@@ -9,12 +9,12 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126m';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126m';
-import { mergeReads, siteOf } from './videos.js?v=20261126m';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126m';
-import { logEvent } from './log.js?v=20261126m';
-import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126m';
+import { db } from './firebase-config.js?v=20261126n';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126n';
+import { mergeReads, siteOf } from './videos.js?v=20261126n';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126n';
+import { logEvent } from './log.js?v=20261126n';
+import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126n';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -26,7 +26,7 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 //       'teach' (checklist/spec/objectives: write what each point means)
 // context: e.g. "GCSE AQA Chemistry: Atomic structure" (helps the level)
 const NOTES_JSON = `Leave out exam admin (marks, timings, word counts, assessment objectives, how many questions or tasks, how the paper is laid out): teach the subject itself. Exam technique is fine as advice on how to do it well, without numbers.
-Return ONLY a JSON array of groups, no markdown, no backticks, no preamble. Use between 3 and 12 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name about the SUBJECT (e.g. "Atoms and Elements", "Balancing Equations"), never about the document (not "Revision Checklist Format" or "Row 3"). Keep each explanation under 30 words.
+Return ONLY a JSON array of groups, no markdown, no backticks, no preamble. Use between 3 and 12 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name about the SUBJECT (e.g. "Atoms and Elements", "Balancing Equations"), never about the document (not "Revision Checklist Format" or "Row 3"). Keep each explanation under 30 words. Write each fact ONCE: merge points that overlap, never repeat a fact in another group, and don't pad with filler. But cover everything a student needs: don't leave out content to keep it short.
 [{"group":"Grid References","points":[{"term":"4-figure grid reference","explanation":"Identifies a 1km grid square using 4 digits: 2 for easting, 2 for northing"},{"term":"Easting","explanation":"The horizontal value, read first"}]},{"group":"Scale & Distance","points":[{"term":"Map scale","explanation":"The ratio between map distance and real-world distance"}]}]`;
 // The level to write for, read from the context ("A level AQA Economics: …").
 // Defaults to GCSE, as before.
@@ -74,7 +74,7 @@ export function notesPromptResearch(topic) {
   const lvl = levelOf(topic);
   return `You are an expert ${lvl} teacher. Write comprehensive key points for the following ${lvl} topic, organised into named sub-topic groups. Include every concept, definition, process, formula, example, case study, person, date, and piece of terminology a student needs for their exam.
 
-IMPORTANT: You MUST return between 3 and 10 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name (e.g. "Grid References", "Scale & Distance", "Contour Lines"). Do NOT use an empty string as a group name. Keep each explanation under 30 words.
+IMPORTANT: You MUST return between 3 and 10 groups, with no more than 12 points in a group. Every group MUST have a clear descriptive name (e.g. "Grid References", "Scale & Distance", "Contour Lines"). Do NOT use an empty string as a group name. Keep each explanation under 30 words. Write each fact ONCE: merge points that overlap, never repeat a fact in another group, and don't pad with filler. But cover everything a student needs: don't leave out content to keep it short.
 Leave out exam admin (marks, timings, word counts, assessment objectives, how many questions or tasks, how the paper is laid out): teach the subject itself. Exam technique is fine as advice on how to do it well, without numbers.
 If the topic below lists several sub-topics or bullet points, use them as the groups.
 
@@ -156,7 +156,8 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
     urls: '', pages: [], manual: [],   // "A web page": links typed, pages read, pages to copy by hand
     notesSaved: 0, questionsSaved: 0,
     current: asGroups(snap?.data()?.keyPoints || []),
-    notes: [], merge: 'add', questions: [], busy: false,
+    notesSource: snap?.data()?.notesSource || '',   // 'ai': written by AI from the topic; 'material': from a sheet, file, page or paste
+    notes: [], merge: 'add', mergeChosen: false, questions: [], busy: false,
     qty: 20, qtyChosen: false, types: QUESTION_TYPES.map(t => t.id),
     aiTopic: [subject.level, subject.examBoard, subject.name].filter(Boolean).join(' ') + (subject.name ? ': ' : '') + (topic.name || ''),
   };
@@ -413,17 +414,22 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
 
   /* Step 2: check the notes */
   function step2() {
-    const have = pointCount(st.current);
+    const have = pointCount(st.current), fresh = pointCount(st.notes);
+    // AI notes on top of AI notes (both from the topic itself) would mostly repeat: Replace is picked for them
+    if (!st.mergeChosen) st.merge = have && st.source === 'ai' && st.notesSource === 'ai' ? 'replace' : 'add';
+    const lots = have && (have + fresh > 60 || (st.source === 'ai' && st.notesSource === 'ai'));
     body().innerHTML = `
       <h3 class="tw-h">Check the notes</h3>
       <p class="tw-hint">${notesWord(pointCount(st.notes))} in ${st.notes.length} section${st.notes.length === 1 ? '' : 's'}. Change anything that isn't right, or remove what you don't need. Next, these notes are turned into quiz questions.</p>
       ${have ? `<div class="tw-merge">
         <label><input type="radio" name="tw-merge" value="add" ${st.merge === 'add' ? 'checked' : ''}> Add these to the ${notesWord(have)} already here</label>
-        <label><input type="radio" name="tw-merge" value="replace" ${st.merge === 'replace' ? 'checked' : ''}> Replace the notes already here</label></div>` : ''}
+        <label><input type="radio" name="tw-merge" value="replace" ${st.merge === 'replace' ? 'checked' : ''}> Replace the notes already here</label>
+        ${lots ? `<p class="tw-merge-warn">⚠️ This topic already has ${notesWord(have)}${st.notesSource === 'ai' ? ', also written by AI' : ''}. Adding ${fresh} more ${st.merge === 'replace' ? 'would' : 'will'} repeat a lot of the same points, so <b>Replace</b> is usually better. Keep <b>Add</b> only if these cover something new.</p>`
+          : `<p class="tw-merge-hint">If these cover the same ground as the notes already here, choose Replace so nothing is repeated.</p>`}</div>` : ''}
       <div class="tw-notes" id="tw-notes">${st.notes.map(groupHtml).join('')}</div>
       <button class="tw-add" data-add="group">＋ Add a section</button>
       <div class="tw-msg" id="tw-msg"></div>`;
-    body().querySelectorAll('[name="tw-merge"]').forEach(r => r.onchange = () => { st.merge = r.value; });
+    body().querySelectorAll('[name="tw-merge"]').forEach(r => r.onchange = () => { st.merge = r.value; st.mergeChosen = true; });
     body().onclick = e => {
       const t = e.target.closest('[data-add],[data-del]');
       if (!t) return;
@@ -460,7 +466,9 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
       ...st.manual.map(m => ({ label: m.name || (st.manual.length === 1 && !st.pages.length ? topic.name : ''), url: m.url, site: siteOf(m.url) })),
     ] : [];
     try {
-      const upd = { keyPoints };
+      // Where the notes came from (so a later AI rewrite knows to replace, not repeat)
+      const from = st.source === 'ai' ? 'ai' : 'material';
+      const upd = { keyPoints, notesSource: st.merge === 'replace' || !st.current.length ? from : (st.notesSource === from ? from : 'mixed') };
       if (fromPages.length) {
         const now = (await getDoc(doc(db, topicPath)).catch(() => null))?.data()?.reads || [];
         upd.reads = mergeReads(now, fromPages);
@@ -659,6 +667,8 @@ export function injectStyle() {
   .tw-merge { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; font-size: 0.88rem; background: var(--color-surface-2); padding: 10px 12px; border-radius: 10px; }
   .tw-merge label, .tw-check { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; cursor: pointer; text-transform: none; letter-spacing: 0; }
   .tw-merge input, .tw-check input { width: auto !important; margin: 0; flex-shrink: 0; }
+  .tw-merge-warn { margin: 4px 0 0; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--color-warning, #e0a000) 16%, var(--color-surface)); font-size: 0.86rem; line-height: 1.45; }
+  .tw-merge-hint { margin: 2px 0 0; font-size: 0.8rem; color: var(--color-text-muted); }
   .tw-grp { border: 1px solid var(--color-border); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
   .tw-grp-head { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
   .tw-gname { flex: 1; font-weight: 700; padding: 8px 10px; border-radius: 8px; }
