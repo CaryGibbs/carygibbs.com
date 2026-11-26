@@ -10,7 +10,7 @@
 // checked by the database rules).
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261126h';
+import { auth, db } from './firebase-config.js?v=20261126i';
 import { doc, getDoc, collection, writeBatch, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const SUPPORT_EMAIL = 'support@lobelimpet.com';

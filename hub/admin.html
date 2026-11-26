@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126h"></script>
+  <script src="dev-flag.js?v=20261126i"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126h">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126h">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126h">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126h">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126i">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126i">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126i">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126i">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126h">
-  <script src="icons.js?v=20261126h"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126i">
+  <script src="icons.js?v=20261126i"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -549,7 +549,7 @@
   .std-check { display: flex !important; align-items: center; gap: 8px; font-weight: 400 !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 0.88rem !important; margin: 0 0 10px !important; cursor: pointer; }
   .std-check input { width: auto !important; margin: 0; }
   .std-warn { background: color-mix(in srgb, var(--color-warning, #e0a000) 14%, var(--color-surface)); border-radius: 10px; padding: 8px 12px; font-size: 0.86rem; margin: -4px 0 12px; }
-  #modal-group input[readonly] { background: var(--color-surface-2, #f4f4f4); color: var(--color-text); }
+  #modal-group input[readonly], #modal-group textarea[readonly] { background: var(--color-surface-2, #f4f4f4); color: var(--color-text); }
   @media (max-width: 560px) { .std-grid { grid-template-columns: 1fr; } }
   .cn-field { margin-bottom: 14px; }
   .cn-field > label { display: block; font-family: var(--font-ui); font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; }
@@ -710,8 +710,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261126h">
-  <link rel="stylesheet" href="stats.css?v=20261126h">
+  <link rel="stylesheet" href="ui.css?v=20261126i">
+  <link rel="stylesheet" href="stats.css?v=20261126i">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1375,9 +1375,9 @@
     <div id="group-std" hidden>
       <div class="std-grid">
         <div class="form-group"><label for="std-level">Level</label><select id="std-level"></select></div>
-        <div class="form-group"><label for="std-board">Exam board</label><select id="std-board"></select></div>
-        <div class="form-group"><label for="std-subject">Subject</label><input id="std-subject" list="std-subjects" maxlength="50" placeholder="e.g. History, Religious Studies A"><datalist id="std-subjects"></datalist></div>
-        <div class="form-group"><label for="std-code">Spec code <span style="font-weight:400;text-transform:none;">(from the board's specification)</span></label><input id="std-code" maxlength="12" placeholder="e.g. 8145"></div>
+        <div class="form-group"><label for="std-board">Exam board or awarding body</label><input id="std-board" list="std-boards" maxlength="40" placeholder="e.g. AQA, DVSA, CIPD"><datalist id="std-boards"></datalist></div>
+        <div class="form-group"><label for="std-subject" id="std-subject-label">Subject</label><input id="std-subject" list="std-subjects" maxlength="60" placeholder="e.g. History, Religious Studies A"><datalist id="std-subjects"></datalist></div>
+        <div class="form-group"><label for="std-code">Code <span style="font-weight:400;text-transform:none;">(optional: spec or unit code)</span></label><input id="std-code" maxlength="16" placeholder="e.g. 8145"></div>
       </div>
       <div class="std-warn" id="std-warn" hidden></div>
       <label class="std-check" id="std-subj-row"><input type="checkbox" id="std-add-subject" checked> Add the subject inside the pack, with this level and board</label>
@@ -1427,7 +1427,8 @@
         <label>Level</label>
         <select id="subject-level-input">
           <option value="">Not set</option><option>GCSE</option><option>A level</option><option>AS level</option>
-          <option>National 5</option><option>Higher</option><option>KS3</option><option>Other</option>
+          <option>National 5</option><option>Higher</option><option>KS3</option>
+          <option>University</option><option value="Professional">Professional qualification</option><option value="Driving">Driving test</option><option>Other</option>
         </select>
       </div>
     </div>
@@ -1700,43 +1701,43 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261126h';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126h';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126h';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126h';
-import { syncFamilyPlus } from './family-plus.js?v=20261126h';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126h';
-import { pickerHtml, wirePicker, boardTagHtml, packMeta } from './pack-picker.js?v=20261126h';
-import { openDeleteAccount } from './account.js?v=20261126h';
-import { openPasswordHelp } from './password-help.js?v=20261126h';
-import { addDocumentButton } from './doc-text.js?v=20261126h';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126h';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126h';
-import { mountMarksTool } from './marks-tool.js?v=20261126h';
-import { showPlusUpsell } from './plus.js?v=20261126h';
-import { offerGivePack } from './first-steps.js?v=20261126h';
-import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126h';
-import { openMakeRevision, emojiFor } from './make-revision.js?v=20261126h';
-import { STD_LEVELS, STD_BOARDS, SUBJECT_BOARD, officialName, officialDescription, refreshOfficialDescription } from './official-pack.js?v=20261126h';
-import { openDeletePack, restorePack, isBinned, binDaysLeft, binExpired, addBinCss, BIN_DAYS, openDeleteItem, restoreItem } from './pack-bin.js?v=20261126h';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126h';
+import { auth, db, storage } from './firebase-config.js?v=20261126i';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126i';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126i';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126i';
+import { syncFamilyPlus } from './family-plus.js?v=20261126i';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126i';
+import { pickerHtml, wirePicker, boardTagHtml, packMeta } from './pack-picker.js?v=20261126i';
+import { openDeleteAccount } from './account.js?v=20261126i';
+import { openPasswordHelp } from './password-help.js?v=20261126i';
+import { addDocumentButton } from './doc-text.js?v=20261126i';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126i';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126i';
+import { mountMarksTool } from './marks-tool.js?v=20261126i';
+import { showPlusUpsell } from './plus.js?v=20261126i';
+import { offerGivePack } from './first-steps.js?v=20261126i';
+import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126i';
+import { openMakeRevision, emojiFor } from './make-revision.js?v=20261126i';
+import { SCHOOL_LEVELS, OTHER_LEVELS, STD_BOARDS, OTHER_BODIES, SUBJECT_BOARD, isSchoolLevel, needsBoard, tidyBoard, officialName, officialDescription, refreshOfficialDescription } from './official-pack.js?v=20261126i';
+import { openDeletePack, restorePack, isBinned, binDaysLeft, binExpired, addBinCss, BIN_DAYS, openDeleteItem, restoreItem } from './pack-bin.js?v=20261126i';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126i';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126h';
-import { mountShell } from './shell.js?v=20261126h';
-import { openInviteDialog, signupLink } from './invite.js?v=20261126h';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126h';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126h';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126h';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126h';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126h';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126h';
-import { dueEntries } from './srs.js?v=20261126h';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126h';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126h';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126i';
+import { mountShell } from './shell.js?v=20261126i';
+import { openInviteDialog, signupLink } from './invite.js?v=20261126i';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126i';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126i';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126i';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126i';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126i';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126i';
+import { dueEntries } from './srs.js?v=20261126i';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126i';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126i';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1752,9 +1753,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261126h';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126h';
-import { inOrder } from './order.js?v=20261126h';
+import { saveEmailIndex } from './email-index.js?v=20261126i';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126i';
+import { inOrder } from './order.js?v=20261126i';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2805,15 +2806,18 @@ async function openGroupModal(id) {
   if (std) {
     const opt = (v, l, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(l)}</option>`;
     const m = packMeta(data);
-    document.getElementById('std-level').innerHTML = STD_LEVELS.map(l => opt(l, l, (m.level || data.level || 'GCSE') === l)).join('');
-    document.getElementById('std-board').innerHTML = opt('', 'None / not board-specific', !m.board) + STD_BOARDS.map(b => opt(b, b, m.board === b)).join('');
+    const lv = data.level || m.level || 'GCSE';
+    document.getElementById('std-level').innerHTML = `<optgroup label="School and college">${SCHOOL_LEVELS.map(l => opt(l, l, lv === l)).join('')}</optgroup>
+      <optgroup label="Beyond school">${OTHER_LEVELS.map(([v, l]) => opt(v, l, lv === v)).join('')}</optgroup>`;
+    document.getElementById('std-board').value = data.examBoard || m.board || '';
     document.getElementById('std-subject').value = data.subject || m.subject || '';
     document.getElementById('std-code').value = data.specCode || m.code || '';
     document.getElementById('std-subj-row').hidden = !!id;
     // Other Lobe Limpet packs (for the duplicate check and subject suggestions)
     stdPacks = [];
     (await getDocs(collection(db, 'content')).catch(() => null))?.forEach(d => { if (!d.data().ownerUid && d.id !== id && !d.data().binned) stdPacks.push({ id: d.id, ...d.data() }); });
-    document.getElementById('std-subjects').innerHTML = [...new Set(stdPacks.map(p => packMeta(p).subject).filter(Boolean))].sort().map(x => `<option value="${esc(x)}">`).join('');
+    document.getElementById('std-subjects').innerHTML = [...new Set([...stdPacks.map(p => p.subject || packMeta(p).subject), 'Driving Theory Test', 'Motorcycle Theory Test'].filter(Boolean))].sort().map(x => `<option value="${esc(x)}">`).join('');
+    document.getElementById('std-boards').innerHTML = [...STD_BOARDS, ...OTHER_BODIES].map(x => `<option value="${esc(x)}">`).join('');
     // An existing pack whose name isn't the standard one stays as it is until changed
     const custom = !!id && (data.descAuto === false || (data.name || '') !== officialName(stdFields()));
     document.getElementById('std-custom').checked = custom;
@@ -2829,7 +2833,7 @@ async function openGroupModal(id) {
 function stdFields() {
   return {
     level: document.getElementById('std-level').value,
-    board: document.getElementById('std-board').value,
+    board: tidyBoard(document.getElementById('std-board').value),
     subject: document.getElementById('std-subject').value.trim().replace(/\s+/g, ' ').replace(/^./, c => c.toUpperCase()),
     code: document.getElementById('std-code').value.trim().toUpperCase(),
   };
@@ -2837,18 +2841,22 @@ function stdFields() {
 // Fill the name and description from the fields (unless "Write my own"), and warn about a duplicate
 function stdPreview(first = false) {
   const f = stdFields(), custom = document.getElementById('std-custom').checked;
+  // Beyond school, the "subject" is the qualification or test
+  document.getElementById('std-subject-label').textContent = isSchoolLevel(f.level) ? 'Subject' : 'Qualification, course or test';
+  document.getElementById('std-subject').placeholder = isSchoolLevel(f.level) ? 'e.g. History, Religious Studies A' : f.level === 'Driving' ? 'e.g. Driving Theory Test' : 'e.g. Level 5 Diploma in People Management';
   const nameIn = document.getElementById('group-name-input'), descIn = document.getElementById('group-desc-input');
   nameIn.readOnly = descIn.readOnly = !custom;
   if (!custom) {
     nameIn.value = f.subject ? officialName(f) : '';
     // Editing: keep a description that already names the free topics, if the subject and board are unchanged
-    const keep = editingItem && first === true && descIn.value && descIn.value.startsWith(`${[f.board, f.subject].filter(Boolean).join(' ')}:`);
-    if (!keep) descIn.value = f.subject ? officialDescription({ subject: f.subject, board: f.board }) : '';
+    const fresh = f.subject ? officialDescription({ subject: f.subject, board: f.board, level: f.level }) : '';
+    const keep = editingItem && first === true && descIn.value && fresh && descIn.value.startsWith(fresh.split(':')[0] + ':');
+    if (!keep) descIn.value = fresh;
   }
-  const same = f.subject && stdPacks.find(p => { const m = packMeta(p); return (m.level || '') === f.level && (m.board || '') === f.board && (m.subject || '').toLowerCase() === f.subject.toLowerCase(); });
+  const same = f.subject && stdPacks.find(p => { const m = packMeta(p); return (p.level || m.level || '') === f.level && tidyBoard(p.examBoard || m.board) === f.board && (p.subject || m.subject || '').toLowerCase() === f.subject.toLowerCase(); });
   const warn = document.getElementById('std-warn');
-  warn.hidden = !(same || (f.subject && !f.board && f.level !== 'KS3'));
-  warn.textContent = same ? `There's already a Lobe Limpet pack for this: “${same.name}”.` : 'No exam board chosen: fine for KS3 or a general pack, but GCSE and A level packs should name their board.';
+  warn.hidden = !(same || (f.subject && !f.board && needsBoard(f.level)));
+  warn.textContent = same ? `There's already a Lobe Limpet pack for this: “${same.name}”.` : `No exam board chosen: ${f.level} packs should name their board.`;
 }
 
 async function saveGroup() {
@@ -2874,7 +2882,7 @@ async function saveGroup() {
       logEvent('content.pack', { target: name, targetId: ref?.id, detail: 'Created' });
       // The subject inside, set up the same way
       if (std && f.subject && document.getElementById('std-add-subject').checked) {
-        const sd = { name: f.subject, emoji: emojiFor(f.subject), resources: [], examBoard: SUBJECT_BOARD[f.board] || f.board, level: f.level,
+        const sd = { name: f.subject, emoji: emojiFor(f.subject), resources: [], examBoard: SUBJECT_BOARD[f.board] || f.board, level: f.level === 'Other' ? '' : f.level,
           spelling: isLanguageSubject(f.subject) ? 'strict' : 'relaxed', order: 0, createdAt: serverTimestamp() };
         await addDoc(collection(db, `content/${ref.id}/subjects`), sd);
         logEvent('content.subject', { target: `${name} › ${sd.name}`, detail: 'Created' });
@@ -3001,7 +3009,9 @@ async function openSubjectModal(id) {
     if (snap.exists()) {
       document.getElementById('subject-name-input').value = snap.data().name || '';
       document.getElementById('subject-emoji-input').value = snap.data().emoji || '';
-      document.getElementById('subject-board-input').value = snap.data().examBoard || '';
+      const bSel = document.getElementById('subject-board-input'), bVal = snap.data().examBoard || '';
+      if (bVal && ![...bSel.options].some(o => o.value === bVal)) bSel.add(new Option(bVal, bVal));   // e.g. DVSA
+      bSel.value = bVal;
       document.getElementById('subject-level-input').value = snap.data().level || '';
       spellSel.value = spellingMode(snap.data());
       document.getElementById('subject-res-input').value = (snap.data().resources || []).map(r => `${r.label} | ${r.url}`).join('\n');
@@ -5952,6 +5962,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126h"></script>
+<script src="site.js?v=20261126i"></script>
 </body>
 </html>

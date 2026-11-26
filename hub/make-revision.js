@@ -14,13 +14,13 @@
 // given to the student straight away, so nothing is left unassigned.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126h';
-import { listPacks } from './packs.js?v=20261126h';
-import { packMeta } from './pack-picker.js?v=20261126h';
-import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126h';
-import { isLanguageSubject } from './spelling.js?v=20261126h';
-import { logEvent } from './log.js?v=20261126h';
-import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126h';
+import { db } from './firebase-config.js?v=20261126i';
+import { listPacks } from './packs.js?v=20261126i';
+import { packMeta } from './pack-picker.js?v=20261126i';
+import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126i';
+import { isLanguageSubject } from './spelling.js?v=20261126i';
+import { logEvent } from './log.js?v=20261126i';
+import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126i';
 import {
   doc, getDoc, getDocs, addDoc, collection, query, where, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -28,8 +28,9 @@ import {
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const norm = s => String(s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
 const NEW = '__new';
-export const LEVELS = ['KS3', 'GCSE', 'AS level', 'A level', 'National 5', 'Higher', 'Other'];
-export const BOARDS = ['AQA', 'Pearson Edexcel', 'OCR', 'WJEC Eduqas', 'WJEC', 'CCEA', 'SQA', 'Other'];
+export const LEVELS = ['KS3', 'GCSE', 'AS level', 'A level', 'National 5', 'Higher', 'University', 'Professional', 'Driving', 'Other'];
+const LEVEL_LABEL = { Professional: 'Professional qualification', Driving: 'Driving test' };
+export const BOARDS = ['AQA', 'Pearson Edexcel', 'OCR', 'WJEC Eduqas', 'WJEC', 'CCEA', 'SQA', 'DVSA', 'Other'];
 const SUBJECTS = ['Biology', 'Chemistry', 'Physics', 'Combined Science', 'Science', 'Maths', 'English Language', 'English Literature', 'History', 'Geography',
   'Religious Studies', 'French', 'Spanish', 'German', 'Computer Science', 'Economics', 'Business', 'Psychology', 'Sociology', 'Media Studies',
   'Design and Technology', 'Food Preparation and Nutrition', 'Physical Education', 'Music', 'Drama', 'Art and Design', 'Citizenship', 'Latin', 'Classical Civilisation'];
@@ -134,7 +135,7 @@ export async function openMakeRevision({ role, uid, canAI = false, onLocked = ()
         <datalist id="mr-subjects">${SUBJECTS.map(s => `<option value="${esc(s)}">`).join('')}</datalist></div>
       <div class="mr-two">
         <div class="mr-field"><label class="mr-label" for="mr-level">Level <span class="mr-opt">optional</span></label>
-          <select id="mr-level" class="tw-input">${opt('', 'Not sure')}${LEVELS.map(l => opt(l, l, st.level === l)).join('')}</select></div>
+          <select id="mr-level" class="tw-input">${opt('', 'Not sure')}${LEVELS.map(l => opt(l, LEVEL_LABEL[l] || l, st.level === l)).join('')}</select></div>
         <div class="mr-field"><label class="mr-label" for="mr-board">Exam board <span class="mr-opt">optional</span></label>
           <select id="mr-board" class="tw-input">${opt('', 'Not sure')}${BOARDS.map(b => opt(b, b, st.board === b)).join('')}</select></div>
       </div>

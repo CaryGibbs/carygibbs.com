@@ -13,13 +13,14 @@
 // ============================================================
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const LEVELS = ['GCSE', 'AS level', 'A level'];
+const LEVELS = ['KS3', 'GCSE', 'AS level', 'A level', 'National 5', 'Higher', 'University', 'Professional', 'Driving'];
+const LEVEL_LABEL = { Professional: 'Professional qualifications', Driving: 'Driving test' };
 const normLevel = l => {
   const s = String(l || '').trim();
   if (/^gcse/i.test(s)) return 'GCSE';
   if (/^as[ -]?level/i.test(s)) return 'AS level';
   if (/^a[ -]?level/i.test(s)) return 'A level';
-  return '';
+  return LEVELS.find(x => x.toLowerCase() === s.toLowerCase()) || '';
 };
 const normBoard = b => {
   const s = String(b || '').trim();
@@ -77,7 +78,7 @@ export function pickerHtml({ mine = [], official = [], item, mineTitle = 'My pac
   const levelsPresent = LEVELS.filter(l => official.some(p => packMeta(p).level === l));
   const bar = showBar ? `<div class="pp-bar">
       ${levelsPresent.length > 1 ? `<span class="pp-levels" role="group" aria-label="Level">
-        <button type="button" class="on" data-pp-level="">All</button>${levelsPresent.map(l => `<button type="button" data-pp-level="${esc(l)}">${esc(l)}</button>`).join('')}</span>` : ''}
+        <button type="button" class="on" data-pp-level="">All</button>${levelsPresent.map(l => `<button type="button" data-pp-level="${esc(l)}">${esc(LEVEL_LABEL[l] || l)}</button>`).join('')}</span>` : ''}
       ${boards.length > 1 ? `<select data-pp-board aria-label="Exam board"><option value="">All boards</option>${boards.map(b => `<option>${esc(b)}</option>`).join('')}</select>` : ''}
       <input type="search" data-pp-search placeholder="Search subject, board or spec code" aria-label="Search packs">
     </div>` : '';
@@ -87,7 +88,7 @@ export function pickerHtml({ mine = [], official = [], item, mineTitle = 'My pac
   const levelOrder = [...LEVELS, 'Other'].filter(l => byLevel[l]);
   const officialHtml = levelOrder.map(l => {
     const subs = Object.keys(byLevel[l]).sort((a, b) => a === 'Other' ? 1 : b === 'Other' ? -1 : a.localeCompare(b, 'en-GB'));
-    return `<div class="pp-group" data-pp-group><div class="pp-level">${esc(l === 'Other' ? 'Other packs' : l)}</div>${subs.map(s => `<div class="pp-group" data-pp-group>
+    return `<div class="pp-group" data-pp-group><div class="pp-level">${esc(l === 'Other' ? 'Other packs' : LEVEL_LABEL[l] || l)}</div>${subs.map(s => `<div class="pp-group" data-pp-group>
         <div class="pp-subject">${esc(s === 'Other' ? (l === 'Other' ? '' : 'Other') : s)}</div>
         <div class="pp-items">${byLevel[l][s].sort((a, b) => (packMeta(a).board || '').localeCompare(packMeta(b).board || '') || a.name.localeCompare(b.name)).map(row).join('')}</div></div>`).join('')}</div>`;
   }).join('');

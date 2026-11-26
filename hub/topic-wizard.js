@@ -9,12 +9,12 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126h';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126h';
-import { mergeReads, siteOf } from './videos.js?v=20261126h';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126h';
-import { logEvent } from './log.js?v=20261126h';
-import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126h';
+import { db } from './firebase-config.js?v=20261126i';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126i';
+import { mergeReads, siteOf } from './videos.js?v=20261126i';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126i';
+import { logEvent } from './log.js?v=20261126i';
+import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126i';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -34,6 +34,13 @@ export function levelOf(context = '') {
   const c = String(context);
   if (/\bAS[ -][Ll]evel\b/.test(c)) return 'AS level';
   if (/\bA[ -][Ll]evel\b/.test(c)) return 'A level';
+  // Beyond GCSE (the context starts with the subject's level, e.g. "Driving DVSA Driving Theory Test: Road signs")
+  if (/^Driving\b|driving theory|theory test/i.test(c)) return 'driving theory test';
+  if (/^Professional\b/.test(c)) return 'professional qualification';
+  if (/^University\b/.test(c)) return 'university';
+  if (/\bKS3\b/.test(c)) return 'KS3';
+  if (/^National 5\b/.test(c)) return 'National 5';
+  if (/^Higher\b/.test(c)) return 'SQA Higher';
   return 'GCSE';
 }
 const IGNORE_LAYOUT = `Ignore everything about how the document is laid out or used, and never make notes about it: tables and columns, row numbers, tick boxes, confidence or traffic-light columns, smiley faces, page headers and footers, logos, instructions to the student (e.g. "tick when revised"), and messages like "Good luck".`;
