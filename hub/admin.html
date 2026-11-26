@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126i"></script>
+  <script src="dev-flag.js?v=20261126j"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126i">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126i">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126i">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126i">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126j">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126j">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126j">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126j">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126i">
-  <script src="icons.js?v=20261126i"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126j">
+  <script src="icons.js?v=20261126j"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -555,6 +555,15 @@
   .cn-field > label { display: block; font-family: var(--font-ui); font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; }
   .cn-field select, .cn-field input { width: 100%; }
   .cn-field input { margin-top: 6px; }
+  .fill-start { border: 2px dashed color-mix(in srgb, var(--color-primary) 45%, var(--color-border)); border-radius: 16px; background: var(--color-primary-glow); padding: 16px 18px; }
+  .fill-head { font-family: var(--font-ui); margin-bottom: 12px; }
+  .fill-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+  .fill-way { text-align: left; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: start; background: var(--color-surface); border: 2px solid var(--color-border); border-radius: 14px; padding: 12px 14px; cursor: pointer; font: inherit; color: inherit; }
+  .fill-way:hover { border-color: var(--color-primary); }
+  .fill-way .fill-ic { grid-row: span 2; font-size: 1.5rem; line-height: 1.1; }
+  .fill-way b { font-family: var(--font-ui); font-size: 0.95rem; }
+  .fill-way small { color: var(--color-text-muted); font-size: 0.82rem; line-height: 1.4; }
+  .fill-way.needs-plus b::after { content: ' ✨ Plus'; font-size: 0.68rem; font-weight: 800; color: #e0643f; }
   .sheet-start { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px 18px; border: 2px dashed color-mix(in srgb, var(--color-primary) 45%, var(--color-border)); border-radius: 16px; background: var(--color-primary-glow); }
   .sheet-start-ic { font-size: 2rem; }
   .sheet-start > div:nth-child(2) { flex: 1; min-width: 220px; }
@@ -710,8 +719,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261126i">
-  <link rel="stylesheet" href="stats.css?v=20261126i">
+  <link rel="stylesheet" href="ui.css?v=20261126j">
+  <link rel="stylesheet" href="stats.css?v=20261126j">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -793,7 +802,8 @@
           <div class="panel-subtitle">Topics within this subject</div>
         </div>
         <div class="panel-actions" style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-secondary" data-action="topics-from-sheet" title="Photo or file of a sheet that covers several topics: AI splits it into topics, each with notes and questions"><i data-icon="sparkles"></i> Topics from a sheet</button>
+          <button class="btn btn-secondary" data-action="topics-from-sheet" title="Photo or file of a sheet that covers several topics: AI splits it into topics, each with notes and questions"><i data-icon="file-text"></i> Topics from a sheet</button>
+          <button class="btn btn-secondary" data-action="build-with-ai" title="No sheet needed: AI suggests the topics from the subject, level and board (or topics you type), then writes notes and questions"><i data-icon="sparkles"></i> Build with AI</button>
           <button class="btn btn-primary" data-action="new-topic">＋ New topic</button>
         </div>
       </div>
@@ -1701,43 +1711,43 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261126i';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126i';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126i';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126i';
-import { syncFamilyPlus } from './family-plus.js?v=20261126i';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126i';
-import { pickerHtml, wirePicker, boardTagHtml, packMeta } from './pack-picker.js?v=20261126i';
-import { openDeleteAccount } from './account.js?v=20261126i';
-import { openPasswordHelp } from './password-help.js?v=20261126i';
-import { addDocumentButton } from './doc-text.js?v=20261126i';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126i';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126i';
-import { mountMarksTool } from './marks-tool.js?v=20261126i';
-import { showPlusUpsell } from './plus.js?v=20261126i';
-import { offerGivePack } from './first-steps.js?v=20261126i';
-import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126i';
-import { openMakeRevision, emojiFor } from './make-revision.js?v=20261126i';
-import { SCHOOL_LEVELS, OTHER_LEVELS, STD_BOARDS, OTHER_BODIES, SUBJECT_BOARD, isSchoolLevel, needsBoard, tidyBoard, officialName, officialDescription, refreshOfficialDescription } from './official-pack.js?v=20261126i';
-import { openDeletePack, restorePack, isBinned, binDaysLeft, binExpired, addBinCss, BIN_DAYS, openDeleteItem, restoreItem } from './pack-bin.js?v=20261126i';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126i';
+import { auth, db, storage } from './firebase-config.js?v=20261126j';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126j';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126j';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126j';
+import { syncFamilyPlus } from './family-plus.js?v=20261126j';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126j';
+import { pickerHtml, wirePicker, boardTagHtml, packMeta } from './pack-picker.js?v=20261126j';
+import { openDeleteAccount } from './account.js?v=20261126j';
+import { openPasswordHelp } from './password-help.js?v=20261126j';
+import { addDocumentButton } from './doc-text.js?v=20261126j';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126j';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126j';
+import { mountMarksTool } from './marks-tool.js?v=20261126j';
+import { showPlusUpsell } from './plus.js?v=20261126j';
+import { offerGivePack } from './first-steps.js?v=20261126j';
+import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126j';
+import { openMakeRevision, emojiFor } from './make-revision.js?v=20261126j';
+import { SCHOOL_LEVELS, OTHER_LEVELS, STD_BOARDS, OTHER_BODIES, SUBJECT_BOARD, isSchoolLevel, needsBoard, tidyBoard, officialName, officialDescription, refreshOfficialDescription } from './official-pack.js?v=20261126j';
+import { openDeletePack, restorePack, isBinned, binDaysLeft, binExpired, addBinCss, BIN_DAYS, openDeleteItem, restoreItem } from './pack-bin.js?v=20261126j';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126j';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126i';
-import { mountShell } from './shell.js?v=20261126i';
-import { openInviteDialog, signupLink } from './invite.js?v=20261126i';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126i';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126i';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126i';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126i';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126i';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126i';
-import { dueEntries } from './srs.js?v=20261126i';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126i';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126i';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126j';
+import { mountShell } from './shell.js?v=20261126j';
+import { openInviteDialog, signupLink } from './invite.js?v=20261126j';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126j';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126j';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126j';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126j';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126j';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126j';
+import { dueEntries } from './srs.js?v=20261126j';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126j';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126j';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1753,9 +1763,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261126i';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126i';
-import { inOrder } from './order.js?v=20261126i';
+import { saveEmailIndex } from './email-index.js?v=20261126j';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126j';
+import { inOrder } from './order.js?v=20261126j';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1793,7 +1803,7 @@ let mineProfile = null; // (for the free-try estimate in Topics from a sheet)
 // Plus features are shown to everyone; using one without Plus explains and offers an upgrade
 function aiAllowed(feature = 'Creating with AI') { if (!canAI) showPlusUpsell(feature); return canAI; }
 // AI buttons get a small "Plus" tag for people without Plus
-const PLUS_BUTTONS = '[data-action="create-with-ai"],[data-qtab="generate"],[data-action="generate-questions"],[data-action="generate-everything"],[data-action="also-generate-questions"],[data-action="suggest-links"],[data-action="gen-keypoints"],[data-action="gen-keypoints-panel"],[data-action="research-keypoints"],[data-action="research-keypoints-panel"],[data-action="topics-from-sheet"]';
+const PLUS_BUTTONS = '[data-action="create-with-ai"],[data-qtab="generate"],[data-action="generate-questions"],[data-action="generate-everything"],[data-action="also-generate-questions"],[data-action="suggest-links"],[data-action="gen-keypoints"],[data-action="gen-keypoints-panel"],[data-action="research-keypoints"],[data-action="research-keypoints-panel"],[data-action="topics-from-sheet"],[data-action="build-with-ai"]';
 
 function startMine(user, profile) {
   currentAdminUid = user.uid;
@@ -2545,6 +2555,8 @@ document.addEventListener('click', async e => {
 
   else if (action === 'new-topic')          openTopicModal();
   else if (action === 'topics-from-sheet')  openTopicsFromSheet();
+  else if (action === 'build-with-ai')      openTopicsFromSheet('ai');
+  else if (action === 'type-topics')        openTypeTopics();
   else if (action === 'save-topic')         saveTopic();
   else if (action === 'edit-topic')         openTopicModal(t.dataset.id);
   else if (action === 'del-topic')          openDeleteItem({ kind: 'topic', pack: { id: selectedGroup.id, name: selectedGroup.name }, subject: { id: selectedSubject.id, name: selectedSubject.name }, topic: { id: t.dataset.id, name: t.dataset.name }, uid: currentAdminUid, onDone: loadTopics, onRestored: refreshAfterRestore });
@@ -3142,12 +3154,22 @@ async function loadTopics() {
   list.forEach((t, i) => grid.appendChild(topicCard(t.id, t, counts[t.id] || 0, i, list.length)));
   grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-topic">＋ New topic</div>`);
   // An empty subject: the quickest start is a sheet that lists the topics
-  if (!list.length) grid.insertAdjacentHTML('afterbegin', `<div class="sheet-start" style="grid-column:1/-1;">
-      <div class="sheet-start-ic">📷</div>
-      <div><strong>Got a revision list or worksheet for ${esc(selectedSubject?.name || 'this subject')}?</strong>
-      <p>Take a photo or upload it. We'll split it into topics, each with notes and quiz questions from its own part of the sheet.</p></div>
-      <button class="btn btn-primary" data-action="topics-from-sheet"><i data-icon="sparkles"></i> Topics from a sheet</button></div>`);
-  if (!canAI) grid.querySelectorAll('[data-action="topics-from-sheet"]').forEach(b => b.classList.add('needs-plus'));
+  // An empty subject: three ways to fill it
+  if (!list.length) {
+    const subj = esc(selectedSubject?.name || 'this subject');
+    const course = esc([selectedSubject?.level, selectedSubject?.examBoard, selectedSubject?.name].filter(Boolean).join(' ') || 'the subject');
+    grid.insertAdjacentHTML('afterbegin', `<div class="fill-start" style="grid-column:1/-1;">
+      <div class="fill-head"><strong>How do you want to fill ${subj}?</strong></div>
+      <div class="fill-ways">
+        <button class="fill-way" data-action="topics-from-sheet"><span class="fill-ic">📷</span><b>From a sheet</b>
+          <small>A revision list, worksheet, specification or syllabus. We split it into topics, each with notes and questions from its own part.</small></button>
+        <button class="fill-way" data-action="build-with-ai"><span class="fill-ic">✨</span><b>Build with AI</b>
+          <small>No sheet needed. Topics from ${course} (or ones you type), then notes and questions for each.</small></button>
+        <button class="fill-way" data-action="type-topics"><span class="fill-ic">✏️</span><b>Type the topic names</b>
+          <small>Just the names for now, all at once. Add notes and questions to each later.</small></button>
+      </div></div>`);
+  }
+  if (!canAI) grid.querySelectorAll('[data-action="topics-from-sheet"],[data-action="build-with-ai"]').forEach(b => b.classList.add('needs-plus'));
   orderBar('topics-grid', 'topics', list.length);
 }
 
@@ -3737,6 +3759,43 @@ async function openTopicsFromSheet(mode = 'sheet') {
   const sd = sSnap?.data() || {};
   openBuilder({ pack: { id: selectedGroup.id, name: selectedGroup.name }, subject: { ...sd, id: selectedSubject.id, name: selectedSubject.name, examBoard: sd.examBoard || '', level: sd.level || '' }, mode });
 }
+// Several topic names at once (no AI): one per line
+function openTypeTopics() {
+  if (!selectedGroup || !selectedSubject) return;
+  document.getElementById('type-topics')?.remove();
+  document.body.insertAdjacentHTML('beforeend', `<div class="modal-overlay open" id="type-topics" role="dialog" aria-modal="true" aria-labelledby="tt-title"><div class="modal" style="max-width:480px">
+    <div class="modal-header"><h2 id="tt-title">Topics for ${esc(selectedSubject.name)}</h2><button class="modal-close" data-tt="close" aria-label="Close">✕</button></div>
+    <p style="margin:0 0 10px;color:var(--color-text-muted);font-size:0.9rem">One per line, in the order students should see them. Copying a list from a specification is fine: bullets and numbers are tidied away.</p>
+    <textarea id="tt-text" rows="8" style="width:100%;resize:vertical" placeholder="e.g.
+Medieval England: the reign of Edward I
+The Tudors
+The Cold War"></textarea>
+    <div class="error-msg" id="tt-err"></div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn btn-secondary" data-tt="close">Cancel</button><button class="btn btn-primary" id="tt-go">Make these topics</button></div>
+  </div></div>`);
+  const box = document.getElementById('type-topics');
+  box.querySelectorAll('[data-tt="close"]').forEach(b => b.onclick = () => box.remove());
+  setTimeout(() => document.getElementById('tt-text').focus(), 30);
+  document.getElementById('tt-go').onclick = async () => {
+    const norm = x => String(x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const names = document.getElementById('tt-text').value.split('\n').map(x => x.replace(/^[\s•\-*\d.)]+/, '').trim()).filter(Boolean)
+      .filter((x, i, all) => all.findIndex(y => norm(y) === norm(x)) === i).slice(0, 60);   // repeats dropped, whatever the capitals
+    const err = document.getElementById('tt-err');
+    if (!names.length) { err.textContent = 'Type at least one topic.'; err.classList.add('visible'); return; }
+    const go = document.getElementById('tt-go'); go.disabled = true; go.classList.add('loading');
+    try {
+      const have = inOrder(await getDocs(collection(db, topicsPath())).catch(() => null));
+      const fresh = names.filter(n => !have.some(h => norm(h.name) === norm(n)));
+      await Promise.all(fresh.map((name, i) => addDoc(collection(db, topicsPath()), { name, keyPoints: [], videos: [], order: have.length + i, createdAt: serverTimestamp() })));
+      logEvent('content.topic', { target: `${selectedSubject.name}`, detail: `${fresh.length} topics typed in` });
+      box.remove();
+      showToast(`${fresh.length} topic${fresh.length === 1 ? '' : 's'} made${fresh.length < names.length ? ` (${names.length - fresh.length} already there)` : ''}. Open one to add notes and questions.`, 'success');
+      loadTopics();
+    } catch (e) { go.disabled = false; go.classList.remove('loading'); err.textContent = 'Could not make them: ' + e.message; err.classList.add('visible'); }
+  };
+}
+
 // The sheet / AI builder. pack and subject may not exist yet (no ids): prepare() makes them
 // when building starts. Afterwards the subject's topics are shown.
 function openBuilder({ pack, subject, mode = 'sheet', prepare = null, onBack = null, onClose = null }) {
@@ -5962,6 +6021,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126i"></script>
+<script src="site.js?v=20261126j"></script>
 </body>
 </html>

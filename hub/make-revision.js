@@ -14,13 +14,13 @@
 // given to the student straight away, so nothing is left unassigned.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126i';
-import { listPacks } from './packs.js?v=20261126i';
-import { packMeta } from './pack-picker.js?v=20261126i';
-import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126i';
-import { isLanguageSubject } from './spelling.js?v=20261126i';
-import { logEvent } from './log.js?v=20261126i';
-import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126i';
+import { db } from './firebase-config.js?v=20261126j';
+import { listPacks } from './packs.js?v=20261126j';
+import { packMeta } from './pack-picker.js?v=20261126j';
+import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126j';
+import { isLanguageSubject } from './spelling.js?v=20261126j';
+import { logEvent } from './log.js?v=20261126j';
+import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126j';
 import {
   doc, getDoc, getDocs, addDoc, collection, query, where, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -302,7 +302,8 @@ export async function openMakeRevision({ role, uid, canAI = false, onLocked = ()
 
   async function makeTyped() {
     st.typed = $('#mr-typed').value;
-    const names = [...new Set(st.typed.split('\n').map(s => s.replace(/^[\s•\-*\d.)]+/, '').trim()).filter(Boolean))].slice(0, 40);
+    const names = st.typed.split('\n').map(s => s.replace(/^[\s•\-*\d.)]+/, '').trim()).filter(Boolean)
+      .filter((x, i, all) => all.findIndex(y => norm(y) === norm(x)) === i).slice(0, 40);   // repeats dropped, whatever the capitals
     if (!names.length) { msg('Type at least one topic.', true); return; }
     const t = await makeTarget(); if (!t) return;
     busy(true, 'Making the topics…');
