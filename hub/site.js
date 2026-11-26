@@ -64,6 +64,8 @@
       '<a href="help.html"' + cur('help.html') + '>Help</a>' +
       '<a href="contact.html"' + cur('contact.html') + '>Contact us</a>' +
       '<a href="' + (likelyIn ? myHome : 'login.html') + '" id="menu-signin">' + (likelyIn ? 'My home' : 'Sign in') + '</a>' +
+      // Phones hide the header "Sign out", so the menu has its own (signed in only)
+      '<a href="login.html" id="menu-signout" data-out="1"' + (likelyIn ? '' : ' hidden') + '>Sign out</a>' +
       '</nav></header>';
     var tog = document.getElementById('nav-toggle'), menu = document.getElementById('nav-menu');
     var setOpen = function (open) { menu.hidden = !open; tog.setAttribute('aria-expanded', open); tog.classList.toggle('open', open); };
@@ -126,7 +128,7 @@
   if (head) {
     var check = function () {
       Promise.all([
-        import('./firebase-config.js?v=20261125f'),
+        import('./firebase-config.js?v=20261126a'),
         import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
       ]).then(function (m) {
         m[1].onAuthStateChanged(m[0].auth, function (user) {
@@ -140,6 +142,7 @@
             if (su) { su.textContent = 'Sign up free'; su.href = 'login.html?signup=' + signupType; }
             var si = document.getElementById('nav-btn'); if (si) { si.textContent = 'Sign in'; si.removeAttribute('data-out'); }
             var ms = document.getElementById('menu-signin'); if (ms) { ms.textContent = 'Sign in'; ms.href = 'login.html'; }
+            var mo = document.getElementById('menu-signout'); if (mo) mo.hidden = true;
             return;
           }
           // Signed in: "Sign up free" becomes a direct way back to their home,
@@ -148,6 +151,7 @@
           if (up) { up.textContent = 'Go to my home'; up.href = myHome; }
           var inBtn = document.getElementById('nav-btn');
           if (inBtn) { inBtn.textContent = 'Sign out'; inBtn.setAttribute('data-out', '1'); }
+          var mso = document.getElementById('menu-signout'); if (mso) mso.hidden = false;
           var fu = document.getElementById('foot-signup');
           if (fu) fu.parentNode.hidden = true;
           ['foot-signin', 'menu-signin'].forEach(function (id) {
@@ -180,12 +184,12 @@
 
   // ── "Sign out" in the website header ──
   if (head) document.addEventListener('click', function (e) {
-    var a = e.target.closest && e.target.closest('#nav-btn[data-out]');
+    var a = e.target.closest && e.target.closest('#nav-btn[data-out], #menu-signout');
     if (!a) return;
     e.preventDefault();
     try { localStorage.removeItem('ll_home'); } catch (x) {}
     Promise.all([
-      import('./firebase-config.js?v=20261125f'),
+      import('./firebase-config.js?v=20261126a'),
       import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
     ]).then(function (m) { return m[1].signOut(m[0].auth); })
       .catch(function () {})
@@ -199,20 +203,20 @@
     var b = e.target.closest && e.target.closest('[data-get-help]');
     if (!b) return;
     e.preventDefault();
-    import('./support.js?v=20261125f').then(function (m) {
+    import('./support.js?v=20261126a').then(function (m) {
       m.openSupport({ topic: b.getAttribute('data-get-help') || '' });
     }).catch(function () { location.href = 'contact.html'; });
   });
 
   // ── Help answers open over the page (help-sheet.js) ─────
   var hs = document.createElement('script');
-  hs.src = 'help-sheet.js?v=20261125f';
+  hs.src = 'help-sheet.js?v=20261126a';
   hs.defer = true;
   document.head.appendChild(hs);
 
   // ── Install as an app (service worker + home screen offer) ─
   var pwa = document.createElement('script');
-  pwa.src = 'pwa.js?v=20261125f';
+  pwa.src = 'pwa.js?v=20261126a';
   pwa.defer = true;
   document.head.appendChild(pwa);
 })();

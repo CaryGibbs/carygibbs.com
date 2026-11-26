@@ -311,7 +311,9 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .nav-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-.nav-menu { display: flex; flex-direction: column; padding: 6px 20px 14px; border-top: 1px solid rgba(18,58,74,0.08); }
+.nav-menu { display: flex; flex-direction: column; padding: 6px 20px 14px; border-top: 1px solid rgba(18,58,74,0.08); max-height: calc(100vh - 71px); max-height: calc(100dvh - 71px); overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; } /* the header is sticky, so a long menu scrolls inside itself on short screens */
+.nav-menu a[hidden] { display: none; }
+#menu-signout { color: var(--coral-dark); }
 .nav-menu[hidden] { display: none; }
 .nav-menu a { text-decoration: none; font-weight: 600; color: var(--deep); padding: 12px 0; border-bottom: 1px solid rgba(18,58,74,0.06); }
 .nav-menu a:last-child { border-bottom: 0; }

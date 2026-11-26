@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261125f"></script>
+  <script src="dev-flag.js?v=20261126a"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261125f">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261125f">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261125f">
-  <link rel="manifest" href="manifest.webmanifest?v=20261125f">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126a">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126a">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126a">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126a">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261125f">
-  <script src="icons.js?v=20261125f"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126a">
+  <script src="icons.js?v=20261126a"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -695,8 +695,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261125f">
-  <link rel="stylesheet" href="stats.css?v=20261125f">
+  <link rel="stylesheet" href="ui.css?v=20261126a">
+  <link rel="stylesheet" href="stats.css?v=20261126a">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1670,39 +1670,39 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261125f';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261125f';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261125f';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261125f';
-import { syncFamilyPlus } from './family-plus.js?v=20261125f';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261125f';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261125f';
-import { openDeleteAccount } from './account.js?v=20261125f';
-import { openPasswordHelp } from './password-help.js?v=20261125f';
-import { addDocumentButton } from './doc-text.js?v=20261125f';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261125f';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261125f';
-import { mountMarksTool } from './marks-tool.js?v=20261125f';
-import { showPlusUpsell } from './plus.js?v=20261125f';
-import { offerGivePack } from './first-steps.js?v=20261125f';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261125f';
+import { auth, db, storage } from './firebase-config.js?v=20261126a';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126a';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126a';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126a';
+import { syncFamilyPlus } from './family-plus.js?v=20261126a';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126a';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126a';
+import { openDeleteAccount } from './account.js?v=20261126a';
+import { openPasswordHelp } from './password-help.js?v=20261126a';
+import { addDocumentButton } from './doc-text.js?v=20261126a';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126a';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126a';
+import { mountMarksTool } from './marks-tool.js?v=20261126a';
+import { showPlusUpsell } from './plus.js?v=20261126a';
+import { offerGivePack } from './first-steps.js?v=20261126a';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126a';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261125f';
-import { mountShell } from './shell.js?v=20261125f';
-import { openInviteDialog, signupLink } from './invite.js?v=20261125f';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261125f';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261125f';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261125f';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261125f';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261125f';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261125f';
-import { dueEntries } from './srs.js?v=20261125f';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261125f';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261125f';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126a';
+import { mountShell } from './shell.js?v=20261126a';
+import { openInviteDialog, signupLink } from './invite.js?v=20261126a';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126a';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126a';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126a';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126a';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126a';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126a';
+import { dueEntries } from './srs.js?v=20261126a';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126a';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126a';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1718,9 +1718,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261125f';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261125f';
-import { inOrder } from './order.js?v=20261125f';
+import { saveEmailIndex } from './email-index.js?v=20261126a';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126a';
+import { inOrder } from './order.js?v=20261126a';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -5673,6 +5673,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261125f"></script>
+<script src="site.js?v=20261126a"></script>
 </body>
 </html>
