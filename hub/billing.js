@@ -12,9 +12,9 @@
 // asks it for a checkout or "Manage billing" link and goes there.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126b';
+import { db } from './firebase-config.js?v=20261126c';
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { workerAction } from './ai.js?v=20261126b';
+import { workerAction } from './ai.js?v=20261126c';
 
 export const IS_DEV = (() => {
   const h = location.hostname;

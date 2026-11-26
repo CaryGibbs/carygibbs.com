@@ -9,12 +9,12 @@
 // wizard and the older screens write notes and questions the same way.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126b';
-import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126b';
-import { mergeReads, siteOf } from './videos.js?v=20261126b';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126b';
-import { logEvent } from './log.js?v=20261126b';
-import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126b';
+import { db } from './firebase-config.js?v=20261126c';
+import { askClaude, textOf, parseJsonLoose, findArrayLoose, workerAction } from './ai.js?v=20261126c';
+import { mergeReads, siteOf } from './videos.js?v=20261126c';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126c';
+import { logEvent } from './log.js?v=20261126c';
+import { MARKS_PROMPT, marksOf, marksLabel } from './question-marks.js?v=20261126c';
 import {
   doc, getDoc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -581,7 +581,7 @@ export async function openTopicWizard({ topic, topicPath, subject = {}, onDone =
   render();
 }
 
-function injectStyle() {
+export function injectStyle() {
   if (document.getElementById('tw-style')) return;
   document.head.insertAdjacentHTML('beforeend', `<style id="tw-style">
   .tw-overlay { position: fixed; inset: 0; z-index: 2500; background: rgba(10,12,20,0.5); display: flex; align-items: flex-start; justify-content: center; padding: 4vh 12px; overflow-y: auto; }
