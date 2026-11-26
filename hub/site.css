@@ -289,7 +289,7 @@ h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 
 .sheet-row i.s { width: 60%; }
 .snap-arrow { font-size: 1.4rem; line-height: 1; }
 .snap .mock-card { width: 100%; }
-.snap-rot { display: grid; gap: 10px; justify-items: center; width: 100%; transition: opacity .35s ease, transform .35s ease; }
+.snap-rot { display: grid; gap: 10px; justify-items: center; align-content: start; width: 100%; transition: opacity .35s ease, transform .35s ease; }
 .snap-rot.swap { opacity: 0; transform: translateY(6px); }
 .snap-rot .sheet-li em { font-style: normal; }
 .snap .q { min-height: 2.7em; }
