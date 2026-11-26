@@ -14,13 +14,13 @@
 // given to the student straight away, so nothing is left unassigned.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126e';
-import { listPacks } from './packs.js?v=20261126e';
-import { packMeta } from './pack-picker.js?v=20261126e';
-import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126e';
-import { isLanguageSubject } from './spelling.js?v=20261126e';
-import { logEvent } from './log.js?v=20261126e';
-import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126e';
+import { db } from './firebase-config.js?v=20261126f';
+import { listPacks } from './packs.js?v=20261126f';
+import { packMeta } from './pack-picker.js?v=20261126f';
+import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126f';
+import { isLanguageSubject } from './spelling.js?v=20261126f';
+import { logEvent } from './log.js?v=20261126f';
+import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126f';
 import {
   doc, getDoc, getDocs, addDoc, collection, query, where, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -77,7 +77,7 @@ export async function openMakeRevision({ role, uid, canAI = false, onLocked = ()
     (async () => {
       const list = [];
       (await getDocs(query(collection(db, 'content'), where('ownerUid', '==', uid))).catch(() => null))
-        ?.forEach(d => { if (d.data().visibility !== 'library') list.push({ id: d.id, ...d.data() }); });
+        ?.forEach(d => { if (d.data().visibility !== 'library' && !d.data().binned) list.push({ id: d.id, ...d.data() }); });
       const t = x => x?.toMillis?.() || 0;
       return list.sort((a, b) => t(a.createdAt) - t(b.createdAt));
     })(),

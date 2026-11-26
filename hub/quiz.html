@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261126e"></script>
+  <script src="dev-flag.js?v=20261126f"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Quiz</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126e">
-  <script src="icons.js?v=20261126e"></script>
-  <script src="help-sheet.js?v=20261126e" defer></script>
+  <link rel="stylesheet" href="theme.css?v=20261126f">
+  <script src="icons.js?v=20261126f"></script>
+  <script src="help-sheet.js?v=20261126f" defer></script>
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -379,7 +379,7 @@
     .no-q-screen h2 { font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: var(--space-sm); }
     .no-q-screen p { color: var(--color-text-muted); margin-bottom: var(--space-lg); }
   </style>
-  <link rel="stylesheet" href="ui.css?v=20261126e">
+  <link rel="stylesheet" href="ui.css?v=20261126f">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -602,19 +602,19 @@
 </script>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261126e';
-import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261126e';
-import { marksLeft, marksLeftText } from './marks.js?v=20261126e';
-import { marksOf, marksLabel, writingGuide, markingGuide } from './question-marks.js?v=20261126e';
-import { showPlusUpsell } from './plus.js?v=20261126e';
-import { askClaude, jsonOf } from './ai.js?v=20261126e';
-import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261126e';
-import { logEvent } from './log.js?v=20261126e';
-import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261126e';
-import { showBadgePops } from './badge-pop.js?v=20261126e';
-import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261126e';
-import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261126e';
-import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261126e';
+import { auth, db } from './firebase-config.js?v=20261126f';
+import { requireAuth, showToast, isPreview, isStudent, hasRole, viewsOf, hasPlus } from './auth.js?v=20261126f';
+import { marksLeft, marksLeftText } from './marks.js?v=20261126f';
+import { marksOf, marksLabel, writingGuide, markingGuide } from './question-marks.js?v=20261126f';
+import { showPlusUpsell } from './plus.js?v=20261126f';
+import { askClaude, jsonOf } from './ai.js?v=20261126f';
+import { awardXp, getLevelInfo, LEVELS, BADGES } from './gamification.js?v=20261126f';
+import { logEvent } from './log.js?v=20261126f';
+import { lobeySays, lobeyImg, lobeyShows, syncLobey, LINES, pick } from './lobey.js?v=20261126f';
+import { showBadgePops } from './badge-pop.js?v=20261126f';
+import { topicLocked, showTopicLocked, notePlusTopicUse } from './access.js?v=20261126f';
+import { dueEntries, recordAnswers, nextDueDay, whenText, REVIEW_SIZE } from './srs.js?v=20261126f';
+import { checkTyped, spellingMode, markingSpellingRules } from './spelling.js?v=20261126f';
 import {
   collection, getDocs, getDoc, query, orderBy,
   doc, updateDoc, arrayUnion
@@ -1702,7 +1702,7 @@ document.getElementById('q-report').onclick = async () => {
   if (!q) return;
   const a = answerLog[currentIdx] || {};
   try {
-    const { openSupport } = await import('./support.js?v=20261126e');
+    const { openSupport } = await import('./support.js?v=20261126f');
     openSupport({ kind: 'question', question: {
       packId: q.loc?.p || groupId, subjectId: q.loc?.s || subjectId, topicId: q.loc?.t || q.topicId || topicId, questionId: q.id,
       subjectName: q.subjectName || (reviewMode ? '' : subjectName), topicName: reviewMode ? '' : topicName,

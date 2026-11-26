@@ -4,7 +4,7 @@
 // this dialog, with a link to the Plus page to upgrade.
 // ============================================================
 
-import { isPlusTier } from './auth.js?v=20261126e';
+import { isPlusTier } from './auth.js?v=20261126f';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

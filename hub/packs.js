@@ -12,7 +12,7 @@
 // student's own flashcard pack, myPackId).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126e';
+import { db } from './firebase-config.js?v=20261126f';
 import {
   collection, getDocs, getDoc, doc, query, where, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -52,7 +52,7 @@ export async function listPacks(uid) {
   }
   const list = [...found.values()]
     .map(p => ({ ...p, name: p.name || 'Untitled pack', mine: isOwnPack(p, uid), official: isOfficialPack(p) }))
-    .filter(p => p.mine || p.official);
+    .filter(p => (p.mine || p.official) && !p.binned);   // (not packs in Recently deleted)
   return list.sort((a, b) => (b.mine - a.mine) || (a.name || '').localeCompare(b.name || ''));
 }
 
@@ -61,7 +61,7 @@ export async function listPacks(uid) {
 export async function packNames(ids = []) {
   const out = {};
   await Promise.all(ids.map(id => getDoc(doc(db, 'content', id))
-    .then(s => { if (s.exists()) out[id] = s.data().name || 'Untitled pack'; })
+    .then(s => { if (s.exists() && !s.data().binned) out[id] = s.data().name || 'Untitled pack'; })
     .catch(() => {})));
   return out;
 }

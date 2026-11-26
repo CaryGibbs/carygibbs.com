@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="parent">
 <head>
-  <script src="dev-flag.js?v=20261126e"></script>
+  <script src="dev-flag.js?v=20261126f"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — Admin</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126e">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126e">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126e">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126e">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126f">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126f">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126f">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126f">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126e">
-  <script src="icons.js?v=20261126e"></script>
+  <link rel="stylesheet" href="theme.css?v=20261126f">
+  <script src="icons.js?v=20261126f"></script>
   <style>
     /* ── Layout ──────────────────────────────────────────── */
     body { display: flex; min-height: 100vh; background: var(--color-bg); overflow-x: hidden; }
@@ -703,8 +703,8 @@
   .nw-pick span { flex: 1 1 auto; }
   @media (max-width: 980px) { .news-grid { grid-template-columns: 1fr; } }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261126e">
-  <link rel="stylesheet" href="stats.css?v=20261126e">
+  <link rel="stylesheet" href="ui.css?v=20261126f">
+  <link rel="stylesheet" href="stats.css?v=20261126f">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body class="app-layout">
@@ -1681,41 +1681,42 @@
 </script>
 
 <script type="module">
-import { auth, db, storage } from './firebase-config.js?v=20261126e';
-import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126e';
-import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126e';
-import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126e';
-import { syncFamilyPlus } from './family-plus.js?v=20261126e';
-import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126e';
-import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126e';
-import { openDeleteAccount } from './account.js?v=20261126e';
-import { openPasswordHelp } from './password-help.js?v=20261126e';
-import { addDocumentButton } from './doc-text.js?v=20261126e';
-import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126e';
-import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126e';
-import { mountMarksTool } from './marks-tool.js?v=20261126e';
-import { showPlusUpsell } from './plus.js?v=20261126e';
-import { offerGivePack } from './first-steps.js?v=20261126e';
-import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126e';
-import { openMakeRevision } from './make-revision.js?v=20261126e';
-import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126e';
+import { auth, db, storage } from './firebase-config.js?v=20261126f';
+import { requireRole, requireAuth, hasRole, hasPlus, canUseAI, onAiTrial, aiTrialLeft, trialSheetsText, handleSignOut, showToast, openViewAs, primaryRole, rolesOf } from './auth.js?v=20261126f';
+import { listPacks, flatPackIds, samePackIds, isOfficialPack } from './packs.js?v=20261126f';
+import { isPlusOnly, plusTagHtml, addAccessCss } from './access.js?v=20261126f';
+import { syncFamilyPlus } from './family-plus.js?v=20261126f';
+import { ensureAccountNo, formatAccountNo, accountSearchText } from './account-no.js?v=20261126f';
+import { pickerHtml, wirePicker, boardTagHtml } from './pack-picker.js?v=20261126f';
+import { openDeleteAccount } from './account.js?v=20261126f';
+import { openPasswordHelp } from './password-help.js?v=20261126f';
+import { addDocumentButton } from './doc-text.js?v=20261126f';
+import { openTopicWizard, notesPromptFromText, notesPromptResearch, questionsPrompt } from './topic-wizard.js?v=20261126f';
+import { MARK_OPTIONS, marksOf, marksLabel, estimateMarks } from './question-marks.js?v=20261126f';
+import { mountMarksTool } from './marks-tool.js?v=20261126f';
+import { showPlusUpsell } from './plus.js?v=20261126f';
+import { offerGivePack } from './first-steps.js?v=20261126f';
+import { openSubjectBuilder, TOKENS_PER_TOPIC } from './subject-builder.js?v=20261126f';
+import { openMakeRevision } from './make-revision.js?v=20261126f';
+import { openDeletePack, restorePack, isBinned, binDaysLeft, binExpired, addBinCss, BIN_DAYS } from './pack-bin.js?v=20261126f';
+import { spellingMode, isLanguageSubject } from './spelling.js?v=20261126f';
 // "Upload a document" above each box where content is pasted for AI generation
 // (these boxes are only shown to Plus users and admins, who also get "Read with AI")
 ['gen-content', 'kp-paste-content', 'kp-modal-paste-content'].forEach(id => addDocumentButton(document.getElementById(id), {
   askClaude, allowed: () => canAI, onLocked: () => showPlusUpsell('Reading scans and diagrams with AI') }));
 const OWNER_UID = '0hFoAiW9YFhqk2BovndPnoT1Ul22';   // the site owner (same as the security rules)
-import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126e';
-import { mountShell } from './shell.js?v=20261126e';
-import { openInviteDialog, signupLink } from './invite.js?v=20261126e';
-import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126e';
-import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126e';
-import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126e';
-import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126e';
-import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126e';
-import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126e';
-import { dueEntries } from './srs.js?v=20261126e';
-import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126e';
-import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126e';
+import { helloHtml, tilesHtml, attentionHtml, activityHtml, dotHtml, smallBtn, agoText, DAY } from './home-kit.js?v=20261126f';
+import { mountShell } from './shell.js?v=20261126f';
+import { openInviteDialog, signupLink } from './invite.js?v=20261126f';
+import { logEvent, ACTIONS as LOG_ACTIONS, CATS as LOG_CATS } from './log.js?v=20261126f';
+import { videosOf, parseVideoLines, videoLines, readsOf, readLines, parseReadLines } from './videos.js?v=20261126f';
+import { askClaude, MODELS, TASKS, FALLBACK_MODEL, loadAiSettings, textOf, parseJsonLoose, checkLinks, workerAction } from './ai.js?v=20261126f';
+import { IS_DEV, PRICING_DOC, PAYMENTS_DOC, BILLING_COLL, STRIPE_DASH, PAID_STATES, getPricing, getPaymentsMode, gbp, perWeekText, dateText as payDate } from './billing.js?v=20261126f';
+import { REPAIR, SHIELDS, REPAIR_DEFAULTS, SHIELD_DEFAULTS, loadStreakSettings, studyEntries, currentStreak, getLevelInfo, lastActive, lastActiveText } from './gamification.js?v=20261126f';
+import { statsSectionsHtml, renderStats, fmtTime } from './stats.js?v=20261126f';
+import { dueEntries } from './srs.js?v=20261126f';
+import { progressMatches, progressSubjects, forgetProgress } from './progress-tidy.js?v=20261126f';
+import { LEVELS as PLAN_LEVELS, LEVEL_DEFAULTS as PLAN_DEFAULTS, loadPlanSettings } from './plan.js?v=20261126f';
 
 // Content generation uses the model chosen in Settings. Wraps the result so
 // the existing code (which expected a fetch Response) works unchanged.
@@ -1731,9 +1732,9 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, where, limit, startAfter, arrayUnion, deleteField, writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { saveEmailIndex } from './email-index.js?v=20261126e';
-import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126e';
-import { inOrder } from './order.js?v=20261126e';
+import { saveEmailIndex } from './email-index.js?v=20261126f';
+import { TOPIC_LABEL as SUPPORT_TOPICS } from './support.js?v=20261126f';
+import { inOrder } from './order.js?v=20261126f';
 import {
   ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -2492,7 +2493,9 @@ document.addEventListener('click', async e => {
   if (action === 'new-group')               MINE ? makeRevision() : openGroupModal();
   else if (action === 'save-group')         saveGroup();
   else if (action === 'edit-group')         openGroupModal(t.dataset.id);
-  else if (action === 'del-group')          confirmDelete('group', t.dataset.id, t.dataset.name);
+  else if (action === 'del-group')          openDeletePack({ pack: { id: t.dataset.id, name: t.dataset.name }, role: MINE || 'admin', uid: currentAdminUid, toast: showToast, onDone: loadGroups });
+  else if (action === 'bin-restore')        restoreBinned(t.dataset.id);
+  else if (action === 'bin-forever')        deleteForever(t.dataset.id, t.dataset.name);
   else if (action === 'copy-pack')          copyPackClicked(t);
   else if (action === 'toggle-plus-topic')  togglePlusTopic(t);
   else if (action === 'free-sample')        openFreeSample(t.dataset.id, t.dataset.name);
@@ -2620,6 +2623,14 @@ async function loadGroups() {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><h3>Couldn't load packs</h3><p>${esc(e.message)}</p></div>`;
     return;
   }
+  // Packs in Recently deleted: listed separately; cleared for good after BIN_DAYS
+  binnedPacks = list.filter(p => isBinned(p.data));
+  for (const p of binnedPacks.filter(p => binExpired(p.data))) {
+    await deletePackTree(p.id).then(() => logEvent('content.delete', { target: p.data.name, targetId: p.id, detail: `Deleted revision pack for good (${BIN_DAYS} days in Recently deleted)` })).catch(e => console.warn('Bin clear-out failed', p.id, e.message));
+  }
+  binnedPacks = binnedPacks.filter(p => !binExpired(p.data));
+  for (let i = list.length - 1; i >= 0; i--) if (isBinned(list[i].data)) list.splice(i, 1);
+  renderBin();
   grid.innerHTML = '';
   if (MINE && !list.length) grid.insertAdjacentHTML('beforeend', `<div class="empty-state" style="grid-column:1/-1;">
       <div class="empty-state-icon"><i data-icon="folder"></i></div>
@@ -2638,6 +2649,51 @@ async function loadGroups() {
   } else list.forEach(p => grid.appendChild(groupCard(p.id, p.data)));
   grid.insertAdjacentHTML('beforeend', `<div class="add-card" data-action="new-group">${MINE ? '＋ Make revision' : '＋ New pack'}</div>`);
   if (MINE) { renderOfficialToCopy(); loadLibraryBrowse(); }
+}
+
+/* ── Recently deleted packs (pack-bin.js) ─────────────────── */
+let binnedPacks = [];
+function renderBin() {
+  addBinCss();
+  let box = document.getElementById('pack-bin');
+  if (!box) {
+    document.getElementById('panel-groups').insertAdjacentHTML('beforeend', `<div id="pack-bin" class="official-copy" hidden>
+      <div class="official-copy-head"><i data-icon="trash-2"></i> Recently deleted</div>
+      <p class="official-copy-sub">Packs stay here for ${BIN_DAYS} days. Restore one to bring it back${MINE ? ', and give it back to whoever had it' : ''}.</p>
+      <div id="pack-bin-list" class="bin-list"></div></div>`);
+    box = document.getElementById('pack-bin');
+  }
+  box.hidden = !binnedPacks.length;
+  document.getElementById('pack-bin-list').innerHTML = binnedPacks.map(p => {
+    const n = binDaysLeft(p.data), had = (p.data.binned.kids || []).length + (p.data.binned.classes || []).length + (p.data.binned.users || []).length;
+    return `<div class="bin-row"><div><strong>${esc(p.data.name || 'Untitled pack')}</strong>
+      <small>Deleted ${new Date(p.data.binned.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · gone for good in ${n} day${n === 1 ? '' : 's'}${had ? ` · ${had} ${MINE === 'teacher' ? (had === 1 ? 'class' : 'classes') : (had === 1 ? 'student' : 'students')} had it` : ''}</small></div>
+      <button class="btn btn-secondary" data-action="bin-restore" data-id="${esc(p.id)}"><i data-icon="rotate-ccw"></i> Restore</button>
+      <button class="bin-forever" data-action="bin-forever" data-id="${esc(p.id)}" data-name="${esc(p.data.name || 'Untitled pack')}">Delete forever</button></div>`;
+  }).join('');
+}
+async function restoreBinned(id) {
+  const p = binnedPacks.find(x => x.id === id); if (!p) return;
+  try {
+    const back = await restorePack({ pack: { id, name: p.data.name, binned: p.data.binned }, role: MINE || 'admin', uid: currentAdminUid });
+    showToast(`“${p.data.name}” restored${back.length ? ` and given back to ${back.join(', ')}` : ''}.`, 'success');
+    loadGroups();
+  } catch (e) { showToast('Could not restore it: ' + e.message, 'error'); }
+}
+function deleteForever(id, name) {
+  setConfirmButton('Delete forever', true);
+  document.getElementById('confirm-title').textContent = 'Delete forever?';
+  document.getElementById('confirm-msg').textContent = `"${name}" and everything in it will be deleted for good. This can't be undone.`;
+  confirmCallback = async () => {
+    try {
+      await deletePackTree(id);
+      logEvent('content.delete', { target: name, targetId: id, detail: 'Deleted revision pack for good (from Recently deleted)' });
+      closeModal('modal-confirm');
+      showToast(`“${name}” deleted for good`, 'success');
+      loadGroups();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  };
+  openModal('modal-confirm');
 }
 
 function groupCard(id, data) {
@@ -3592,7 +3648,7 @@ async function openClassNotesStart(packId = '', subjectId = '') {
   document.getElementById('cn-start')?.remove();
   const packs = [];
   (await getDocs(query(collection(db, 'content'), where('ownerUid', '==', currentAdminUid))).catch(() => null))
-    ?.forEach(d => { if (d.data().visibility !== 'library') packs.push({ id: d.id, ...d.data() }); });
+    ?.forEach(d => { if (d.data().visibility !== 'library' && !d.data().binned) packs.push({ id: d.id, ...d.data() }); });
   const t = x => x?.toMillis?.() || 0;
   packs.sort((a, b) => t(a.createdAt) - t(b.createdAt));
   const NEW = '__new';
@@ -5778,6 +5834,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126e"></script>
+<script src="site.js?v=20261126f"></script>
 </body>
 </html>
