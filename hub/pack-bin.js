@@ -12,10 +12,10 @@
 // No security-rules change: owners already update their own pack.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126j';
-import { updateStudentPacks } from './packs.js?v=20261126j';
-import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126j';
-import { logEvent } from './log.js?v=20261126j';
+import { db } from './firebase-config.js?v=20261126k';
+import { updateStudentPacks } from './packs.js?v=20261126k';
+import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126k';
+import { logEvent } from './log.js?v=20261126k';
 import {
   doc, getDoc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, collection, query, where, deleteField, getCountFromServer, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";

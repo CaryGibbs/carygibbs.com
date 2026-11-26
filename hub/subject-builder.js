@@ -13,11 +13,11 @@
 // without sending the whole document again and again (cost).
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126j';
-import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126j';
-import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126j';
-import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126j';
-import { logEvent } from './log.js?v=20261126j';
+import { db } from './firebase-config.js?v=20261126k';
+import { askClaude, textOf, findArrayLoose } from './ai.js?v=20261126k';
+import { readDocument, readDocumentWithAI } from './doc-text.js?v=20261126k';
+import { notesPromptFromText, notesPromptResearch, questionsPrompt, notesToText, QUESTION_TYPES, injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126k';
+import { logEvent } from './log.js?v=20261126k';
 import {
   doc, getDocs, updateDoc, addDoc, collection, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -143,10 +143,10 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
     <div class="tw-overlay sb-overlay" id="sb" role="dialog" aria-modal="true" aria-labelledby="sb-title">
       <div class="tw-box">
         <div class="tw-head">
-          <div><div class="tw-kicker">✨ ${mode === 'ai' ? 'Build with AI' : 'Topics from one sheet'}</div><h2 id="sb-title">${esc(subject.name)}</h2></div>
+          <div><div class="tw-kicker" id="sb-kicker">✨ ${mode === 'ai' ? 'Build with AI' : 'Topics from one sheet'}</div><h2 id="sb-title">${esc(subject.name)}</h2></div>
           <button class="tw-x" aria-label="Close">✕</button>
         </div>
-        <ol class="tw-steps"><li data-s="1">${mode === 'ai' ? 'What to cover' : 'Your sheet'}</li><li data-s="2">The topics</li><li data-s="3">Notes and questions</li></ol>
+        <ol class="tw-steps"><li data-s="1" id="sb-step1">${mode === 'ai' ? 'What to cover' : 'Your sheet'}</li><li data-s="2">The topics</li><li data-s="3">Notes and questions</li></ol>
         <div class="tw-body" id="sb-body"></div>
         <div class="tw-foot" id="sb-foot"></div>
       </div>
@@ -185,11 +185,22 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
   }
 
   /* Step 1: the sheet (or, with no sheet, what to cover) */
+  // Switch between "from a sheet" and "no sheet: let AI build it" without closing
+  function switchMode(to) {
+    if (mode === 'sheet') st.text = (box.querySelector('#sb-text')?.value ?? st.text);
+    else st.typed = (box.querySelector('#sb-typed')?.value ?? st.typed);
+    mode = to; st.note = '';
+    box.querySelector('#sb-kicker').textContent = `✨ ${mode === 'ai' ? 'Build with AI' : 'Topics from one sheet'}`;
+    box.querySelector('#sb-step1').textContent = mode === 'ai' ? 'What to cover' : 'Your sheet';
+    step1();
+  }
   function step1() {
     if (mode === 'ai') return step1ai();
     body().innerHTML = `
       <h3 class="tw-h">Add the whole sheet</h3>
       <p class="tw-hint">A revision list, worksheet, knowledge organiser or specification that covers several topics. We'll split it into topics, and each topic gets notes and quiz questions from its own part of the sheet.</p>
+      <div class="sb-switch sb-switch-top"><span>No sheet?</span> <button class="tw-link sb-switch-btn" data-switch="ai">✨ Let AI build ${esc(subject.name)} instead</button>
+        <small>It suggests the topics from ${esc(context || subject.name)}, or ones you type.</small></div>
       <div class="tw-upload">
         <div class="tw-up-btns">
           <label class="tw-file"><input type="file" id="sb-photo" accept="image/*" capture="environment" multiple><span>📷 ${st.text ? 'Add another photo' : 'Take a photo'}</span></label>
@@ -199,18 +210,19 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
         <p class="tw-hint tw-up-hint">Several pages? Choose them all at once, or add them one at a time. Or paste the words into the box.</p>
         <textarea id="sb-text" class="tw-text" placeholder="The words from your sheet appear here, so you can check them. You can also paste them in.">${esc(st.text)}</textarea>
       </div>
-      <div class="tw-kind"><span class="tw-label-s">What is it?</span>
-        ${[['auto', 'Let AI decide'], ['extract', 'Notes or a textbook: use what it says'], ['teach', 'A checklist or specification: write notes that teach each point']]
+      <div class="tw-kind"><span class="tw-label-s" style="width:auto">What kind of sheet is it?</span>
+        ${[['auto', 'Not sure: AI works it out'], ['extract', 'Notes or a textbook: use what it says'], ['teach', 'A checklist or specification: write notes that teach each point']]
           .map(([v, t]) => `<label><input type="radio" name="sb-kind" value="${v}" ${st.kind === v ? 'checked' : ''}> ${t}</label>`).join('')}</div>
       <div class="tw-msg" id="sb-msg"></div>`;
+    box.querySelector('[data-switch="ai"]').onclick = () => switchMode('ai');
     box.querySelector('#sb-pics').onchange = e => { st.pics = e.target.checked; };
     box.querySelector('#sb-file').onchange = e => readFiles([...e.target.files]);
     box.querySelector('#sb-photo').onchange = e => readFiles([...e.target.files]);
     box.querySelectorAll('[name="sb-kind"]').forEach(r => r.onchange = () => { st.kind = r.value; });
-    box.querySelector('#sb-text').oninput = e => { st.text = e.target.value; const nx = foot().querySelector('[data-go="next"]'); if (nx) nx.disabled = e.target.value.trim().length < 40; };
+    box.querySelector('#sb-text').oninput = e => { st.text = e.target.value; };
     if (st.note) msg(st.note);
     foot().innerHTML = `${firstLeft()}
-      <button class="btn btn-primary" data-go="next" ${st.text.trim().length >= 40 ? '' : 'disabled'}>Next: find the topics →</button>`;
+      <button class="btn btn-primary" data-go="next">Next: find the topics →</button>`;
     wireFirstLeft();
     foot().querySelector('[data-go="next"]').onclick = findTopics;
   }
@@ -223,7 +235,9 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
         <textarea id="sb-typed" class="tw-text" style="min-height:140px" placeholder="One topic per line, e.g. copied from their test list">${esc(st.typed || '')}</textarea></label>
       ${!subject.level && !subject.examBoard ? `<p class="tw-hint" style="margin-top:8px">Tip: the level and exam board help the notes match their course. You can set them on the subject (the pencil on its card).</p>` : ''}
       <p class="tw-gen-note">The notes are written by AI from what it knows of ${esc(course)}, not from the school's own materials. Have a quick look at a topic or two. If you have the school's sheet, it's even better to use that.</p>
+      <div class="sb-switch"><span>Got a sheet after all?</span> <button class="tw-link sb-switch-btn" data-switch="sheet">📷 Use a sheet instead</button></div>
       <div class="tw-msg" id="sb-msg"></div>`;
+    box.querySelector('[data-switch="sheet"]').onclick = () => switchMode('sheet');
     box.querySelector('#sb-typed').oninput = e => { st.typed = e.target.value; };
     foot().innerHTML = `${firstLeft()}
       <button class="btn btn-primary" data-go="next">Next: suggest the topics →</button>`;
@@ -266,7 +280,7 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
       prompt = topicsFromSubjectPrompt(context || subject.name, st.typed, st.existing.map(t => t.name));
     } else {
       st.text = (box.querySelector('#sb-text')?.value || st.text).trim();
-      if (st.text.length < 40) { msg('Take a photo, choose a file or paste the words first.', true); return; }
+      if (st.text.length < 40) { msg(st.text ? 'There are only a few words there. Add the rest of the sheet, or paste more.' : 'Add your sheet first: take a photo, choose a file or paste the words. No sheet? Use "Let AI build it instead" below.', true); return; }
       st.lines = numberedLines(st.text);
       prompt = topicsPrompt(st.lines, st.existing.map(t => t.name), context);
     }
@@ -475,6 +489,11 @@ export async function openSubjectBuilder({ pack, subject, mode = 'sheet', trialT
 function injectStyle() {
   if (document.getElementById('sb-style')) return;
   document.head.insertAdjacentHTML('beforeend', `<style id="sb-style">
+  .sb-switch { margin-top: 14px; padding: 10px 14px; border-radius: 12px; background: var(--color-primary-glow); font-size: 0.9rem; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+  .sb-switch-top { margin: 0 0 14px; }
+  .sb-switch > span { font-family: var(--font-ui); font-weight: 700; }
+  .sb-switch-btn { padding: 4px 2px !important; color: var(--color-primary) !important; font-weight: 700 !important; font-size: 0.9rem !important; }
+  .sb-switch small { flex-basis: 100%; color: var(--color-text-muted); font-size: 0.8rem; }
   .sb-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
   .sb-row { display: grid; grid-template-columns: auto 1fr minmax(150px, 220px); gap: 10px; align-items: start; border: 1px solid var(--color-border); border-radius: 12px; padding: 10px 12px; }
   .sb-row.off { opacity: 0.55; }

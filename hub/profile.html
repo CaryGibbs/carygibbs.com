@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="edge">
 <head>
-  <script src="dev-flag.js?v=20261126j"></script>
+  <script src="dev-flag.js?v=20261126k"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Lobe Limpet — My Profile</title>
-  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126j">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126j">
-  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126j">
-  <link rel="manifest" href="manifest.webmanifest?v=20261126j">
+  <link rel="icon" type="image/svg+xml" href="assets/images/brand/favicon.svg?v=20261126k">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png?v=20261126k">
+  <link rel="apple-touch-icon" href="assets/images/brand/apple-touch-icon.png?v=20261126k">
+  <link rel="manifest" href="manifest.webmanifest?v=20261126k">
   <meta name="apple-mobile-web-app-title" content="Lobe Limpet">
   <meta name="application-name" content="Lobe Limpet">
-  <link rel="stylesheet" href="theme.css?v=20261126j">
-  <script src="icons.js?v=20261126j"></script>
-  <link rel="stylesheet" href="stats.css?v=20261126j">
+  <link rel="stylesheet" href="theme.css?v=20261126k">
+  <script src="icons.js?v=20261126k"></script>
+  <link rel="stylesheet" href="stats.css?v=20261126k">
   <style>
     body { min-height: 100vh; background: var(--color-bg); }
 
@@ -156,7 +156,7 @@
     .card-length-opt span { font-size: 0.78rem; color: var(--color-text-muted); }
     .card-length-opt.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 </style>
-  <link rel="stylesheet" href="ui.css?v=20261126j">
+  <link rel="stylesheet" href="ui.css?v=20261126k">
 <!-- Cloudflare Web Analytics (live site only) --><script>if(/(^|\.)lobelimpet\.com$/.test(location.hostname)){var s=document.createElement('script');s.defer=true;s.src='https://static.cloudflareinsights.com/beacon.min.js';s.setAttribute('data-cf-beacon','{"token": "03f4e033e3af48988266f6935bed3b9c"}');document.head.appendChild(s);}</script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
@@ -290,22 +290,22 @@
 </div>
 
 <script type="module">
-import { auth, db } from './firebase-config.js?v=20261126j';
-import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261126j';
-import { formatAccountNo } from './account-no.js?v=20261126j';
-import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261126j';
-import { statsSectionsHtml, renderStats } from './stats.js?v=20261126j';
-import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261126j';
-import { LENGTHS, lengthOf } from './card-length.js?v=20261126j';
-import { openDeleteAccount } from './account.js?v=20261126j';
-import { plusPillHtml } from './plus.js?v=20261126j';
-import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261126j';
+import { auth, db } from './firebase-config.js?v=20261126k';
+import { requireAuth, handleSignOut, isPreview, isStudent } from './auth.js?v=20261126k';
+import { formatAccountNo } from './account-no.js?v=20261126k';
+import { getLevelInfo, LEVELS, BADGES, currentStreak, streakStatus } from './gamification.js?v=20261126k';
+import { statsSectionsHtml, renderStats } from './stats.js?v=20261126k';
+import { THEMES, themeSwatchHtml, THEME_SWATCH_CSS, themeColour } from './themes.js?v=20261126k';
+import { LENGTHS, lengthOf } from './card-length.js?v=20261126k';
+import { openDeleteAccount } from './account.js?v=20261126k';
+import { plusPillHtml } from './plus.js?v=20261126k';
+import { linksForStudent, removeLinkedParent } from './parent-link.js?v=20261126k';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { packNames, flatPackIds } from './packs.js?v=20261126j';
-import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261126j';
-import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261126j';
-import { LOBEY_LEVELS, lobeyLevel, setLobeyLevel, syncLobey, lobeyImg } from './lobey.js?v=20261126j';
-import { mountReminders } from './reminders.js?v=20261126j';
+import { packNames, flatPackIds } from './packs.js?v=20261126k';
+import { openChoosePacks, removeChosenPack, packSource, SOURCE_TEXT } from './student-start.js?v=20261126k';
+import { firstStepsState, saveFirstSteps } from './first-steps.js?v=20261126k';
+import { LOBEY_LEVELS, lobeyLevel, setLobeyLevel, syncLobey, lobeyImg } from './lobey.js?v=20261126k';
+import { mountReminders } from './reminders.js?v=20261126k';
 
 async function showPacks(user, profile) {
   if (!isStudent(profile)) return;
@@ -551,6 +551,6 @@ window.showToast = function(msg, type='info') {
   c.appendChild(t); setTimeout(() => t.remove(), 3500);
 };
 </script>
-<script src="site.js?v=20261126j"></script>
+<script src="site.js?v=20261126k"></script>
 </body>
 </html>
