@@ -14,13 +14,13 @@
 // given to the student straight away, so nothing is left unassigned.
 // ============================================================
 
-import { db } from './firebase-config.js?v=20261126g';
-import { listPacks } from './packs.js?v=20261126g';
-import { packMeta } from './pack-picker.js?v=20261126g';
-import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126g';
-import { isLanguageSubject } from './spelling.js?v=20261126g';
-import { logEvent } from './log.js?v=20261126g';
-import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126g';
+import { db } from './firebase-config.js?v=20261126h';
+import { listPacks } from './packs.js?v=20261126h';
+import { packMeta } from './pack-picker.js?v=20261126h';
+import { givePackToChild, givePackToClass } from './first-steps.js?v=20261126h';
+import { isLanguageSubject } from './spelling.js?v=20261126h';
+import { logEvent } from './log.js?v=20261126h';
+import { injectStyle as injectWizardStyle } from './topic-wizard.js?v=20261126h';
 import {
   doc, getDoc, getDocs, addDoc, collection, query, where, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
