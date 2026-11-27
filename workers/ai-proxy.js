@@ -70,6 +70,16 @@
 //                       emails or news (t=teacher / start / news)
 //                       (signed, so it can't be guessed). Used by mail apps'
 //                       one-click unsubscribe and by lobelimpet.com/unsubscribe.html
+//   action 'emailChangeStart'  change an account's sign-in email: yourself,
+//                       the parent or teacher who made a student's account, or an
+//                       admin (owner only for admins). Emails a confirm link to
+//                       the NEW address (24 hours, once); nothing changes until
+//                       it's used. 5 a day per person.
+//   action 'emailChangeInfo' / 'emailChangeConfirm'  no sign-in (the link is
+//                       the proof): what the link changes, and making the change:
+//                       sign-in email, users, emailIndex, parents' and classes'
+//                       copies, link records, Stripe customer. The old address and
+//                       a student's other parents are told. 30 a day per IP.
 //   action 'passwordEmail'  "Forgot your password?" (no sign-in): our own
 //                       email with a link to set-password.html; 10 a day from
 //                       one internet address, 3 a day per email address
@@ -221,6 +231,12 @@ export default {
       catch (e) { return reply(200, { ok: false, reason: 'error' }); }
     }
 
+    // ── Signed out: confirming a new sign-in email from the link sent to it ──
+    if (body.action === 'emailChangeInfo' || body.action === 'emailChangeConfirm') {
+      try { return reply(200, await emailChangeLink(env, request, body)); }
+      catch (e) { return reply(200, { ok: false, reason: 'error', error: e.message }); }
+    }
+
     // ── Who is asking? ──
     const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
     let user = null;
@@ -243,6 +259,13 @@ export default {
       if (!user) return fail(401, 'Please sign in to use this');
       try { return reply(200, await setPassword(env, user, String(body.uid || ''), String(body.password || ''))); }
       catch (e) { return fail(e.status || 500, e.message || "The password couldn't be changed"); }
+    }
+
+    // ── Changing an account's sign-in email (sends a confirm link) ──
+    if (body.action === 'emailChangeStart') {
+      if (!user) return fail(401, 'Please sign in to use this');
+      try { return reply(200, await emailChangeStart(env, user, body, origin)); }
+      catch (e) { return fail(e.status || 500, e.message || "The email couldn't be changed"); }
     }
 
     // ── Emails: welcome after sign-up, choose-a-password for a new student ──
@@ -2664,6 +2687,186 @@ async function acceptParentInviteFor(env, user, me, body) {
   await fsCommit(tok, writes);
   await workerLog(tok, user.uid, me, 'student.parent_invite_accepted', 'Accepted an Invite a parent link', { name: st.name || '', id: sid });
   return { ok: true, studentFirst: firstName(st.name) || '', why: r.inv.why || '' };
+}
+
+/* ============================================================
+   Changing an account's sign-in email
+   Who can start it: the person themselves; for a student-only account,
+   the parent or teacher who made it (parentUid / teacherUid); admins
+   (only the owner for another admin). Nothing changes until someone taps
+   the link sent to the NEW address, so a typo can't lock anyone out and
+   nobody can move an account to an inbox they don't have.
+     emailChanges/{code}        { uid, oldEmail, newEmail, by, byName, at, expiresAt }
+     emailChangePending/{uid}   { code }  only the latest request works
+   On confirm: Firebase sign-in email (marked verified), users/{uid}.email,
+   emailIndex (old entry removed, new one added), the copies in parents'
+   children lists and teachers' class lists, link records, and the Stripe
+   customer if they pay. The old address is told, and so are a student's
+   parents (other than whoever asked for it). Logged as account.email_*.
+   The app can't read or write these collections (no rule allows it).
+   ============================================================ */
+const EMAIL_CHANGE_HOURS = 24;
+const EMAIL_CHANGES_PER_DAY = 5;
+const VALID_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function authUidForEmail(tok, email) {
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:lookup`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: [email] }),
+  });
+  const d = await r.json().catch(() => ({}));
+  return d.users?.[0]?.localId || '';
+}
+
+async function emailChangeStart(env, user, body, origin) {
+  if (!env.RESEND_API_KEY) throw oops(503, 'Email is not set up yet');
+  const tok = await serviceToken(env);
+  const uid = String(body.uid || user.uid);
+  const newEmail = normEmail(body.newEmail);
+  if (!VALID_EMAIL.test(newEmail) || newEmail.length > 200) throw oops(400, 'Please enter a valid email address.');
+  const [target, me] = await Promise.all([fsGet(tok, `users/${uid}`), uid === user.uid ? null : fsGet(tok, `users/${user.uid}`)]);
+  if (!target) throw oops(404, 'No account found');
+  const caller = uid === user.uid ? target : me;
+  const self = uid === user.uid;
+  if (!self) {
+    const isAdmin = user.uid === OWNER_UID || rolesOf(me).has('admin');
+    const tRoles = rolesOf(target);
+    const studentOnly = tRoles.size === 1 && tRoles.has('student');
+    if (uid === OWNER_UID) throw oops(403, "The owner's email can only be changed by the owner");
+    if (isAdmin) {
+      if (tRoles.has('admin') && user.uid !== OWNER_UID) throw oops(403, "Only the owner can change another admin's email");
+    } else if (!(studentOnly && (target.parentUid === user.uid || target.teacherUid === user.uid))) {
+      throw oops(403, 'Only the person who made this account (or an admin) can change its email. They can also change it themselves in their Profile.');
+    }
+  }
+  const oldEmail = normEmail(await authEmailOf(tok, uid) || target.email);
+  if (newEmail === oldEmail) throw oops(400, 'That is already the email for this account.');
+  const [idx, authUid] = await Promise.all([fsGet(tok, `emailIndex/${encodeURIComponent(newEmail)}`), authUidForEmail(tok, newEmail)]);
+  if ((idx?.uid && idx.uid !== uid) || (authUid && authUid !== uid)) throw oops(409, 'Another Lobe Limpet account already uses that email.');
+  if ((await bumpCounter(tok, `rateLimits/emailchg_${user.uid}_${londonDay()}`)) >= EMAIL_CHANGES_PER_DAY) throw oops(429, 'Too many email changes today. Please try again tomorrow.');
+
+  const code = [...crypto.getRandomValues(new Uint8Array(24))].map(b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
+  const now = Date.now();
+  const sv = v => ({ stringValue: String(v ?? '') });
+  await fsCommit(tok, [
+    { update: { name: `${DOCS}/emailChanges/${code}`, fields: {
+      uid: sv(uid), oldEmail: sv(oldEmail), newEmail: sv(newEmail), name: sv(target.name || ''),
+      by: sv(user.uid), byName: sv(caller?.name || ''), at: { integerValue: String(now) },
+      expiresAt: { integerValue: String(now + EMAIL_CHANGE_HOURS * 3600000) }, expireAt: tsv(new Date(now + 7 * 86400000)),
+    } }, currentDocument: { exists: false } },
+    { update: { name: `${DOCS}/emailChangePending/${uid}`, fields: { code: sv(code), at: { integerValue: String(now) }, expireAt: tsv(new Date(now + 7 * 86400000)) } } },
+  ]);
+  const link = `${siteFor(origin)}/confirm-email.html?code=${code}`;
+  const first = escH(firstName(target.name));
+  const byOther = !self ? escH(caller?.name || 'Someone') : '';
+  const c = {
+    heading: 'Confirm your new email',
+    paras: [first ? `Hi ${first},` : 'Hi,',
+      self ? `You asked to change the email you sign in to Lobe Limpet with to <strong>${escH(newEmail)}</strong>.`
+           : `${byOther} asked to change ${first ? `${first}'s` : 'your'} Lobe Limpet sign-in email to <strong>${escH(newEmail)}</strong>.`,
+      'Tap the button to confirm. Nothing changes until you do.'],
+    button: { label: 'Confirm my new email', url: link },
+    after: [`The button works for ${EMAIL_CHANGE_HOURS} hours, once. After that, sign in with your new email and the same password as before.`, 'The Lobe Limpet team'],
+    footer: `You're getting this because someone entered this address as the new email for a Lobe Limpet account. Not expecting it? Ignore this email and nothing will change.`,
+  };
+  await resendSend(env, { to: newEmail, kind: 'email_change', subject: 'Confirm your new Lobe Limpet email', html: emailHtml(c), text: emailText(c) });
+  await workerLog(tok, user.uid, caller, 'account.email_change_requested', `Asked to change the sign-in email to ${newEmail}`, { name: target.name || oldEmail, id: uid });
+  return { ok: true, sentTo: newEmail, hours: EMAIL_CHANGE_HOURS };
+}
+
+// A change link, checked: { ch } or { reason }
+async function readEmailChange(tok, code) {
+  if (!/^[a-z0-9]{16,40}$/.test(String(code || ''))) return { reason: 'notfound' };
+  const ch = await fsGet(tok, `emailChanges/${code}`);
+  if (!ch) return { reason: 'notfound' };
+  if (ch.usedAt) return { reason: 'used', ch };
+  if (Number(ch.expiresAt) < Date.now()) return { reason: 'expired', ch };
+  const pending = await fsGet(tok, `emailChangePending/${ch.uid}`);
+  if (pending?.code !== code) return { reason: 'replaced', ch };
+  return { ch };
+}
+
+async function emailChangeLink(env, request, body) {
+  const tok = await serviceToken(env);
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if ((await bumpCounter(tok, `rateLimits/emailconf_${await sha(ip + PROJECT_ID)}_${londonDay()}`)) >= 30) return { ok: false, reason: 'limited' };
+  const code = String(body.code || '');
+  const { ch, reason } = await readEmailChange(tok, code);
+  if (reason) return { ok: false, reason, newEmail: reason === 'used' ? ch?.newEmail || '' : '' };
+  if (body.action === 'emailChangeInfo') return { ok: true, newEmail: ch.newEmail, first: firstName(ch.name) || '' };
+
+  // Make the change
+  const uid = ch.uid, newEmail = ch.newEmail;
+  const target = await fsGet(tok, `users/${uid}`);
+  if (!target) return { ok: false, reason: 'gone' };
+  const [idx, authUid] = await Promise.all([fsGet(tok, `emailIndex/${encodeURIComponent(newEmail)}`), authUidForEmail(tok, newEmail)]);
+  if ((idx?.uid && idx.uid !== uid) || (authUid && authUid !== uid)) return { ok: false, reason: 'taken' };
+  const oldEmail = normEmail(await authEmailOf(tok, uid) || ch.oldEmail);
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:update`, {
+    method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ localId: uid, email: newEmail, emailVerified: true }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    if (/EMAIL_EXISTS/.test(t)) return { ok: false, reason: 'taken' };
+    throw oops(500, `The sign-in email couldn't be changed (${r.status})`);
+  }
+  const now = Date.now();
+  const sv = v => ({ stringValue: String(v ?? '') });
+  const setEmail = (path, field = 'email') => ({ update: { name: `${DOCS}/${path}`, fields: { [field]: sv(newEmail) } }, updateMask: { fieldPaths: [field] }, currentDocument: { exists: true } });
+  // The must-haves, together
+  const core = [
+    setEmail(`users/${uid}`),
+    { update: { name: `${DOCS}/emailIndex/${encodeURIComponent(newEmail)}`, fields: {
+      uid: sv(uid), name: sv(target.name || ''), roles: { arrayValue: { values: [...rolesOf(target)].map(sv) } }, updatedAt: { integerValue: String(now) } } } },
+    { update: { name: `${DOCS}/emailChanges/${code}`, fields: { usedAt: { integerValue: String(now) } } }, updateMask: { fieldPaths: ['usedAt'] } },
+    del(`emailChangePending/${uid}`),
+  ];
+  const oldIdx = oldEmail && oldEmail !== newEmail ? await fsGet(tok, `emailIndex/${encodeURIComponent(oldEmail)}`) : null;
+  if (oldIdx?.uid === uid) core.push(del(`emailIndex/${encodeURIComponent(oldEmail)}`));
+  await fsCommit(tok, core);
+
+  // Copies elsewhere: each on its own, so one missing document doesn't stop the rest
+  const extra = [];
+  parentsOfDoc(target).forEach(p => extra.push(setEmail(`users/${p}/children/${uid}`)));
+  const classIds = Object.keys(target.classes || {}).filter(k => target.classes[k]);
+  (target.teacherIds || []).forEach(t => classIds.forEach(cid => extra.push(setEmail(`users/${t}/classes/${cid}/students/${uid}`))));
+  const [asStudent, asParent] = await Promise.all([fsQuery(tok, 'parentLinks', 'studentUid', 'EQUAL', uid), fsQuery(tok, 'parentLinks', 'by', 'EQUAL', uid)]);
+  asStudent.forEach(l => extra.push(setEmail(`parentLinks/${l.id}`, 'studentEmail')));
+  asParent.forEach(l => extra.push(setEmail(`parentLinks/${l.id}`, 'byEmail')));
+  await Promise.all(extra.map(w => fsCommit(tok, [w]).catch(() => {})));
+  // Stripe receipts go to the new address too
+  await Promise.all(['live', 'test'].map(async mode => {
+    try {
+      const b = await fsGet(tok, `${stripeCfg(mode).billing}/${uid}`);
+      if (b?.customerId && env[stripeCfg(mode).key]) await stripeApi(env, mode, 'POST', `customers/${b.customerId}`, { email: newEmail });
+    } catch (e) { console.warn('Stripe email not updated', mode, e.message); }
+  }));
+
+  // Tell the old address, and a student's parents (not whoever asked for it)
+  const first = escH(firstName(target.name));
+  const notice = (to, hi, para) => {
+    const c = {
+      heading: 'Sign-in email changed',
+      paras: [hi, para, `If you didn't expect this, reply to this email or write to safeguarding@lobelimpet.com and we'll help.`],
+      after: ['The Lobe Limpet team'],
+      footer: "This is an account security email. We always send one when a sign-in email changes.",
+    };
+    return resendSend(env, { to, kind: 'email_changed', subject: 'Your Lobe Limpet sign-in email has changed', html: emailHtml(c), text: emailText(c) })
+      .catch(e => console.warn('Email-change notice not sent', e.message));
+  };
+  const sends = [];
+  if (oldEmail && oldEmail !== newEmail && !oldEmail.endsWith('.invalid')) {
+    sends.push(notice(oldEmail, first ? `Hi ${first},` : 'Hi,', `The email used to sign in to ${first ? `${first}'s ` : 'this '}Lobe Limpet account has been changed from <strong>${escH(oldEmail)}</strong> to <strong>${escH(newEmail)}</strong>. The password hasn't changed.`));
+  }
+  const r2 = rolesOf(target);
+  if (r2.has('student') && r2.size === 1) {
+    const parents = (await Promise.all(parentsOfDoc(target).filter(p => p !== ch.by).map(p => fsGet(tok, `users/${p}`)))).filter(d => d?.email && normEmail(d.email) !== oldEmail);
+    parents.forEach(d => sends.push(notice(d.email, firstName(d.name) ? `Hi ${escH(firstName(d.name))},` : 'Hi,',
+      `${first || 'Your student'} now signs in to Lobe Limpet with <strong>${escH(newEmail)}</strong> (it was ${escH(oldEmail)}). Nothing else has changed, and you can still see their progress.`)));
+  }
+  await Promise.all(sends);
+  await workerLog(tok, uid, target, 'account.email_changed', `Sign-in email changed from ${oldEmail} to ${newEmail}`, { name: target.name || newEmail, id: uid });
+  return { ok: true, newEmail };
 }
 
 /* ============================================================

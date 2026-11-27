@@ -9,9 +9,9 @@
 //   sendPasswordEmail(email) "Forgot your password?" and reset links
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261126o';
+import { auth } from './firebase-config.js?v=20261127a';
 import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { PROXY_URL, workerAction } from './ai.js?v=20261126o';
+import { PROXY_URL, workerAction } from './ai.js?v=20261127a';
 
 const timeout = (ms) => new Promise((_, no) => setTimeout(() => no(new Error('Timed out')), ms));
 

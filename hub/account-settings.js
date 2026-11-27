@@ -5,14 +5,15 @@
 // of the way) deleting your account.
 // ============================================================
 
-import { auth, db } from './firebase-config.js?v=20261126o';
+import { auth, db } from './firebase-config.js?v=20261127a';
 import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { workerAction } from './ai.js?v=20261126o';
-import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261126o';
-import { openDeleteAccount } from './account.js?v=20261126o';
-import { formatAccountNo } from './account-no.js?v=20261126o';
-import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261126o';
-import { sendPasswordEmail } from './mail.js?v=20261126o';
+import { workerAction } from './ai.js?v=20261127a';
+import { hasPlus, hasFamilyPlus, aiTrialLeft, trialSheetsText, viewsOf } from './auth.js?v=20261127a';
+import { openDeleteAccount } from './account.js?v=20261127a';
+import { formatAccountNo } from './account-no.js?v=20261127a';
+import { getBilling, getPricing, paidPlus, giftOf, gbp, dateText as shortDate, openBillingPortal } from './billing.js?v=20261127a';
+import { sendPasswordEmail } from './mail.js?v=20261127a';
+import { openEmailChange } from './email-change.js?v=20261127a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ROLE = { admin: 'Admin', teacher: 'Teacher', parent: 'Parent', student: 'Student' };
@@ -52,11 +53,11 @@ export function openAccountSettings({ user, profile = {} } = {}) {
           <h3>Your details</h3>
           <dl class="as-dl">
             <dt>Name</dt><dd>${esc(profile.name || user.displayName || '')}</dd>
-            <dt>Email</dt><dd>${esc(email)}</dd>
+            <dt>Email</dt><dd>${esc(email)} <button class="as-copy" id="as-email-change" title="Change the email you sign in with">Change</button></dd>
             <dt>Roles</dt><dd>${esc(roles)}</dd>
             ${profile.accountNo ? `<dt>Account no.</dt><dd><span class="as-no">${esc(formatAccountNo(profile.accountNo))}</span> <button class="as-copy" id="as-copy" title="Copy">Copy</button></dd>` : ''}
           </dl>
-          <p class="as-hint">${profile.accountNo ? 'Quote your account number if you contact us. ' : ''}To change your name or email, <a href="contact.html" target="_blank" rel="noopener">contact us</a> from this email address.</p>
+          <p class="as-hint">${profile.accountNo ? 'Quote your account number if you contact us. ' : ''}To change your name, <a href="contact.html" target="_blank" rel="noopener">contact us</a> from this email address.</p>
         </section>
 
         <section class="as-sec">
@@ -123,6 +124,7 @@ export function openAccountSettings({ user, profile = {} } = {}) {
   document.getElementById('as-copy')?.addEventListener('click', e => {
     navigator.clipboard?.writeText(formatAccountNo(profile.accountNo)).then(() => { e.target.textContent = 'Copied'; }).catch(() => {});
   });
+  document.getElementById('as-email-change').onclick = () => { close(); openEmailChange({ uid: user.uid, email, name: profile.name || '', self: true }); };
   const reset = document.getElementById('as-reset'), rmsg = document.getElementById('as-reset-msg');
   reset.onclick = async () => {
     if (!email) { rmsg.textContent = 'No email address on this account.'; return; }

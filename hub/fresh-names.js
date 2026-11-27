@@ -9,7 +9,7 @@
    viewer can't read, keeps the name it was saved with.
    Lookups are shared across the page, so several students on the same
    pack cost one read per subject or topic. */
-import { db } from './firebase-config.js?v=20261126o';
+import { db } from './firebase-config.js?v=20261127a';
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 

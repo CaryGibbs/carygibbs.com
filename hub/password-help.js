@@ -6,26 +6,30 @@
 //   Set a new password: done by the AI Worker (action setPassword), which
 //   allows admins (only the owner for other admins), and the parent or
 //   teacher who made a student's account. Logged in the activity log.
+//   Change their email (canEmail): the same people, plus admins; a confirm
+//   link goes to the new address (email-change.js, Worker emailChangeStart).
 // ============================================================
 
-import { auth } from './firebase-config.js?v=20261126o';
-import { sendPasswordEmail } from './mail.js?v=20261126o';
-import { workerAction } from './ai.js?v=20261126o';
-import { generatePassword } from './auth.js?v=20261126o';
-import { logEvent } from './log.js?v=20261126o';
+import { auth } from './firebase-config.js?v=20261127a';
+import { sendPasswordEmail } from './mail.js?v=20261127a';
+import { workerAction } from './ai.js?v=20261127a';
+import { generatePassword } from './auth.js?v=20261127a';
+import { logEvent } from './log.js?v=20261127a';
+import { emailChangeFormHtml, wireEmailChangeForm } from './email-change.js?v=20261127a';
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // uid, name, email: whose password. canSet: show "Set a new password"
-// (the Worker checks again). note: an extra line, e.g. why setting isn't offered.
-export function openPasswordHelp({ uid, name = '', email = '', canSet = true, note = '' } = {}) {
+// (the Worker checks again). canEmail: show "Change their email" (the Worker checks).
+// note: an extra line, e.g. why setting isn't offered.
+export function openPasswordHelp({ uid, name = '', email = '', canSet = true, canEmail = false, note = '' } = {}) {
   document.getElementById('pw-help')?.remove();
   injectStyle();
   const first = (name || 'them').split(' ')[0];
   document.body.insertAdjacentHTML('beforeend', `
     <div class="pwh-overlay" id="pw-help" role="dialog" aria-modal="true" aria-labelledby="pwh-title">
       <div class="pwh-box">
-        <div class="pwh-head"><h2 id="pwh-title">Password: ${esc(name || email)}</h2><button class="pwh-x" aria-label="Close">✕</button></div>
+        <div class="pwh-head"><h2 id="pwh-title">${canEmail ? 'Password and email' : 'Password'}: ${esc(name || email)}</h2><button class="pwh-x" aria-label="Close">✕</button></div>
         <p class="pwh-hint">Signs in as <strong>${esc(email || 'no email on this account')}</strong></p>
 
         <section class="pwh-sec">
@@ -44,6 +48,12 @@ export function openPasswordHelp({ uid, name = '', email = '', canSet = true, no
           </div>
           <button class="btn btn-primary" id="pwh-set">Set password</button>
           <span class="pwh-msg" id="pwh-set-msg" role="status"></span>
+        </section>` : ''}
+
+        ${canEmail ? `<section class="pwh-sec">
+          <h3>Change their email</h3>
+          <p class="pwh-hint">For when ${esc(first)} should sign in with a different address, such as their own. We'll email the new address a link to confirm; nothing changes until it's tapped. The password stays the same.</p>
+          ${emailChangeFormHtml('pwh-ec')}
         </section>` : ''}
         ${note ? `<p class="pwh-hint" style="margin-top:10px;">${note}</p>` : ''}
       </div>
@@ -65,6 +75,7 @@ export function openPasswordHelp({ uid, name = '', email = '', canSet = true, no
     } catch (e) { smsg.textContent = `Couldn't send it: ${e.message}`; send.disabled = false; }
   };
 
+  if (canEmail) wireEmailChangeForm({ id: 'pwh-ec', uid, email, name, self: false });
   if (!canSet) return;
   const pw = document.getElementById('pwh-pw'), set = document.getElementById('pwh-set'), msg = document.getElementById('pwh-set-msg');
   document.getElementById('pwh-gen').onclick = () => { pw.value = generatePassword(); pw.focus(); pw.select(); };
